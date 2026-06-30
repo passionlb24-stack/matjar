@@ -60,6 +60,7 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
         .select("id, name, price, image_url")
         .eq("store_id", id)
         .eq("status", "active")
+        .eq("is_available", true)
         .is("deleted_at", null)
         .order("sort_order", { ascending: true });
       return {

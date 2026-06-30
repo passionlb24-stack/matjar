@@ -7,6 +7,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { ProductForm } from "@/components/product-form";
+import { ProductRowActions } from "@/components/product-row-actions";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -101,7 +102,7 @@ export default async function ManageStorePage({
                 {products.map((p) => (
                   <div
                     key={p.id}
-                    className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3"
+                    className={`flex items-center gap-3 rounded-xl border border-border bg-surface p-3 ${p.is_available ? "" : "opacity-60"}`}
                   >
                     {p.image_url ? (
                       <Image
@@ -121,6 +122,13 @@ export default async function ManageStorePage({
                     <span className="font-bold text-primary">
                       {formatPrice(p.price)}
                     </span>
+                    <ProductRowActions
+                      productId={p.id}
+                      isAvailable={p.is_available}
+                      showLabel={dict.merchant.products.show}
+                      hideLabel={dict.merchant.products.hide}
+                      deleteLabel={dict.merchant.products.delete}
+                    />
                   </div>
                 ))}
               </div>

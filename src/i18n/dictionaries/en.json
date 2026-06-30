@@ -177,6 +177,9 @@
       "save": "Save product",
       "saving": "Saving…",
       "empty": "No products yet. Add your store's first product.",
+      "delete": "Delete",
+      "hide": "Hide",
+      "show": "Show",
       "back": "Back to my stores"
     }
   },
