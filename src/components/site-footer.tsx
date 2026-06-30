@@ -14,7 +14,7 @@ export function SiteFooter({ lang, dict }: { lang: Locale; dict: Dictionary }) {
       links: [
         { label: L.stores, href: `/${lang}/explore` },
         { label: L.categories, href: `/${lang}/categories` },
-        { label: L.offers, href: `/${lang}/offers` },
+        { label: L.offers, href: `/${lang}/explore` },
       ],
     },
     {
