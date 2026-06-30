@@ -40,7 +40,7 @@ export default async function RootLayout({
       dir={localeDirection[lang]}
       className={`${tajawal.variable} h-full`}
     >
-      <body className="min-h-full bg-background font-sans text-foreground antialiased">
+      <body className="flex min-h-dvh flex-col bg-background font-sans text-foreground antialiased">
         {children}
       </body>
     </html>

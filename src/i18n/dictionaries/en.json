@@ -68,5 +68,25 @@
       "privacy": "Privacy"
     },
     "rights": "All rights reserved."
+  },
+  "explore": {
+    "title": "Explore stores",
+    "subtitle": "Find the nearest store or service to you by category and region.",
+    "searchPlaceholder": "Search for a store…",
+    "allCategories": "All categories",
+    "allRegions": "All regions",
+    "results": "stores",
+    "empty": "No matching results. Try a different filter."
+  },
+  "store": {
+    "openNow": "Open now",
+    "closed": "Closed",
+    "call": "Call",
+    "whatsapp": "WhatsApp",
+    "products": "Products & services",
+    "reviews": "Reviews",
+    "order": "Add to cart",
+    "book": "Book",
+    "from": "From"
   }
 }
