@@ -6,7 +6,23 @@ import { Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
-type Staff = { id: string; email: string | null; role: string };
+type Perms = { orders: boolean; products: boolean; bookings: boolean };
+type Staff = {
+  id: string;
+  email: string | null;
+  role: string;
+  permissions: Record<string, boolean> | null;
+};
+
+const PERM_KEYS = ["orders", "products", "bookings"] as const;
+
+function normalize(p: Record<string, boolean> | null): Perms {
+  return {
+    orders: p?.orders ?? true,
+    products: p?.products ?? true,
+    bookings: p?.bookings ?? true,
+  };
+}
 
 export function StaffManager({
   storeId,
@@ -20,6 +36,9 @@ export function StaffManager({
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [perms, setPerms] = useState<Record<string, Perms>>(
+    Object.fromEntries(staff.map((s) => [s.id, normalize(s.permissions)])),
+  );
 
   async function onAdd(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -51,6 +70,16 @@ export function StaffManager({
     router.refresh();
   }
 
+  async function togglePerm(staffId: string, key: keyof Perms) {
+    const current = perms[staffId] ?? normalize(null);
+    const next = { ...current, [key]: !current[key] };
+    setPerms((p) => ({ ...p, [staffId]: next }));
+    await createClient()
+      .from("store_staff")
+      .update({ permissions: next })
+      .eq("id", staffId);
+  }
+
   async function remove(id: string) {
     setBusy(true);
     await createClient().from("store_staff").delete().eq("id", id);
@@ -79,24 +108,54 @@ export function StaffManager({
         <p className="mt-2 text-sm font-medium text-muted-foreground">{msg}</p>
       )}
 
-      <div className="mt-5 space-y-2">
+      <div className="mt-5 space-y-3">
         {staff.length ? (
-          staff.map((s) => (
-            <div
-              key={s.id}
-              className="flex items-center justify-between rounded-xl border border-border bg-surface p-3"
-            >
-              <span className="text-sm font-semibold">{s.email}</span>
-              <button
-                onClick={() => remove(s.id)}
-                disabled={busy}
-                aria-label="remove"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-60"
+          staff.map((s) => {
+            const sp = perms[s.id] ?? normalize(s.permissions);
+            return (
+              <div
+                key={s.id}
+                className="rounded-xl border border-border bg-surface p-4"
               >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-          ))
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold">{s.email}</span>
+                  <button
+                    onClick={() => remove(s.id)}
+                    disabled={busy}
+                    aria-label="remove"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-60"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="mt-3 border-t border-border pt-3">
+                  <p className="mb-2 text-xs font-semibold text-muted-foreground">
+                    {dict.merchant.perms.label}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {PERM_KEYS.map((key) => (
+                      <label
+                        key={key}
+                        className={`flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                          sp[key]
+                            ? "border-primary bg-primary-soft text-primary"
+                            : "border-border text-muted-foreground"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={sp[key]}
+                          onChange={() => togglePerm(s.id, key)}
+                          className="h-3.5 w-3.5 accent-primary"
+                        />
+                        {dict.merchant.perms[key]}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })
         ) : (
           <p className="text-sm text-muted-foreground">{dict.merchant.noStaff}</p>
         )}

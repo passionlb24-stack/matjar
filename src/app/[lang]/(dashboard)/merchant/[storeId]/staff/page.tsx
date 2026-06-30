@@ -36,13 +36,14 @@ export default async function StaffPage({
 
   const { data: staffData } = await supabase
     .from("store_staff")
-    .select("id, email, role")
+    .select("id, email, role, permissions")
     .eq("store_id", storeId)
     .order("created_at", { ascending: true });
   const staff = (staffData ?? []) as {
     id: string;
     email: string | null;
     role: string;
+    permissions: Record<string, boolean> | null;
   }[];
 
   return (

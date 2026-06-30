@@ -183,6 +183,12 @@
     "staffEmail": "Staff member's email",
     "staffAdd": "Add",
     "noStaff": "No staff yet.",
+    "perms": {
+      "label": "Permissions",
+      "orders": "Orders",
+      "products": "Products",
+      "bookings": "Bookings"
+    },
     "staffNotFound": "No user found with that email — they need an account first.",
     "staffSelf": "You can't add yourself.",
     "staffAdded": "Added ✓",

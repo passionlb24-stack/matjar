@@ -50,7 +50,7 @@ export default async function ManageStorePage({
   if (!canManage) redirect(`/${lang}/merchant`);
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, business_types(slug)")
+    .select("id, name, owner_id, business_types(slug)")
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
@@ -59,6 +59,32 @@ export default async function ManageStorePage({
       .business_types?.slug as CategoryKey) ?? "retail";
   const mod = categoryModule[category];
   const itemsLabel = dict.store[mod.itemsKey];
+
+  // Owner gets everything; a staff member only their granted permissions.
+  const isOwner =
+    (store as unknown as { owner_id: string }).owner_id === user.id;
+  let canProducts = true;
+  let canOrders = true;
+  let canBookings = true;
+  if (!isOwner) {
+    const { data: staffRow } = await supabase
+      .from("store_staff")
+      .select("permissions")
+      .eq("store_id", storeId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const perms =
+      (staffRow?.permissions as Record<string, boolean> | null) ?? {};
+    canProducts = perms.products ?? false;
+    canOrders = perms.orders ?? false;
+    canBookings = perms.bookings ?? false;
+    // This page is the items view; send permitted-but-not-here staff onward.
+    if (!canProducts) {
+      if (canOrders) redirect(`/${lang}/merchant/${storeId}/orders`);
+      if (canBookings) redirect(`/${lang}/merchant/${storeId}/bookings`);
+      redirect(`/${lang}/merchant`);
+    }
+  }
 
   const { data } = await supabase
     .from("products")
@@ -87,46 +113,56 @@ export default async function ManageStorePage({
             <span className="rounded-lg bg-foreground px-3.5 py-1.5 text-sm font-semibold text-background">
               {itemsLabel}
             </span>
-            {mod.kind === "commerce" ? (
+            {mod.kind === "commerce"
+              ? canOrders && (
+                  <Link
+                    href={`/${lang}/merchant/${storeId}/orders`}
+                    className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
+                  >
+                    {dict.merchant.ordersLink}
+                  </Link>
+                )
+              : canBookings && (
+                  <Link
+                    href={`/${lang}/merchant/${storeId}/bookings`}
+                    className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
+                  >
+                    {dict.merchant.bookingsLink}
+                  </Link>
+                )}
+            {canOrders && (
               <Link
-                href={`/${lang}/merchant/${storeId}/orders`}
+                href={`/${lang}/merchant/${storeId}/customers`}
                 className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
               >
-                {dict.merchant.ordersLink}
-              </Link>
-            ) : (
-              <Link
-                href={`/${lang}/merchant/${storeId}/bookings`}
-                className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
-              >
-                {dict.merchant.bookingsLink}
+                {dict.merchant.customersLink}
               </Link>
             )}
-            <Link
-              href={`/${lang}/merchant/${storeId}/customers`}
-              className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
-            >
-              {dict.merchant.customersLink}
-            </Link>
-            <Link
-              href={`/${lang}/merchant/${storeId}/staff`}
-              className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
-            >
-              {dict.merchant.staffLink}
-            </Link>
-            <Link
-              href={`/${lang}/merchant/${storeId}/subscription`}
-              className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
-            >
-              {dict.merchant.subscriptionLink}
-            </Link>
+            {isOwner && (
+              <Link
+                href={`/${lang}/merchant/${storeId}/staff`}
+                className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
+              >
+                {dict.merchant.staffLink}
+              </Link>
+            )}
+            {isOwner && (
+              <Link
+                href={`/${lang}/merchant/${storeId}/subscription`}
+                className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
+              >
+                {dict.merchant.subscriptionLink}
+              </Link>
+            )}
           </div>
-          <Link
-            href={`/${lang}/merchant/${storeId}/edit`}
-            className="rounded-lg border border-border px-3.5 py-1.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
-          >
-            {dict.merchant.edit}
-          </Link>
+          {isOwner && (
+            <Link
+              href={`/${lang}/merchant/${storeId}/edit`}
+              className="rounded-lg border border-border px-3.5 py-1.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+            >
+              {dict.merchant.edit}
+            </Link>
+          )}
         </div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
