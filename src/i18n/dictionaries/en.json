@@ -300,5 +300,13 @@
   "favorites": {
     "title": "Favorites",
     "empty": "You don't have any favorite stores yet."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet.",
+    "orderNew": "New order on your store",
+    "orderStatus": "Your order status changed",
+    "bookingNew": "New booking on your store",
+    "bookingStatus": "Your booking status changed"
   }
 }

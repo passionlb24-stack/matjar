@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Store, User } from "lucide-react";
+import { Bell, Store, User } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
@@ -10,10 +10,12 @@ export function SiteHeader({
   lang,
   dict,
   user,
+  unread = 0,
 }: {
   lang: Locale;
   dict: Dictionary;
   user: { name: string } | null;
+  unread?: number;
 }) {
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-md">
@@ -46,6 +48,18 @@ export function SiteHeader({
           <LanguageSwitcher currentLocale={lang} pathname={`/${lang}`} />
           {user ? (
             <>
+              <Link
+                href={`/${lang}/notifications`}
+                aria-label="notifications"
+                className="relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-surface-muted"
+              >
+                <Bell className="h-5 w-5" />
+                {unread > 0 && (
+                  <span className="absolute -end-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                    {unread > 9 ? "9+" : unread}
+                  </span>
+                )}
+              </Link>
               <Link
                 href={`/${lang}/account`}
                 className="hidden items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted sm:flex"

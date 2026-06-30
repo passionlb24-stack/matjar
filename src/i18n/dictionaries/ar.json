@@ -300,5 +300,13 @@
   "favorites": {
     "title": "المفضّلة",
     "empty": "لسا ما عندك متاجر مفضّلة."
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "empty": "ما في إشعارات بعد.",
+    "orderNew": "طلب جديد على متجرك",
+    "orderStatus": "تغيّرت حالة طلبك",
+    "bookingNew": "حجز جديد على متجرك",
+    "bookingStatus": "تغيّرت حالة حجزك"
   }
 }
