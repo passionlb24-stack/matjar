@@ -101,6 +101,11 @@ export function StoreProducts({
   const [fulfillment, setFulfillment] = useState<"delivery" | "pickup">(
     acceptsDelivery ? "delivery" : "pickup",
   );
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCode, setAppliedCode] = useState<string | null>(null);
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponMsg, setCouponMsg] = useState<string | null>(null);
+  const [couponBusy, setCouponBusy] = useState(false);
 
   const Icon = categoryIcons[category];
   const style = categoryStyles[category];
@@ -122,6 +127,37 @@ export function StoreProducts({
     0,
   );
   const belowMin = minOrder != null && total < minOrder;
+  const finalTotal = Math.max(0, total - couponDiscount);
+
+  async function applyCoupon() {
+    if (!couponInput.trim()) return;
+    setCouponBusy(true);
+    setCouponMsg(null);
+    const { data, error } = await createClient().rpc("validate_coupon", {
+      p_store_id: storeId,
+      p_code: couponInput.trim().toUpperCase(),
+      p_subtotal: total,
+    });
+    setCouponBusy(false);
+    const row = (Array.isArray(data) ? data[0] : data) as
+      | { valid: boolean; discount: number; reason: string }
+      | undefined;
+    if (error || !row || !row.valid) {
+      const reasons: Record<string, string> = {
+        invalid: dict.store.couponInvalid,
+        expired: dict.store.couponExpired,
+        used_up: dict.store.couponUsedUp,
+        min_order: dict.store.couponMinOrder,
+      };
+      setCouponMsg(reasons[row?.reason ?? "invalid"] ?? dict.store.couponInvalid);
+      setAppliedCode(null);
+      setCouponDiscount(0);
+      return;
+    }
+    setAppliedCode(couponInput.trim().toUpperCase());
+    setCouponDiscount(Number(row.discount) || 0);
+    setCouponMsg(null);
+  }
 
   const waUrl =
     whatsapp && items.length
@@ -164,7 +200,9 @@ export function StoreProducts({
         customer_name:
           (user.user_metadata?.full_name as string | undefined) ?? null,
         subtotal: total,
-        total,
+        discount: couponDiscount,
+        coupon_code: appliedCode,
+        total: finalTotal,
         fulfillment,
         address: String(form.get("address")) || null,
         phone: String(form.get("phone")) || null,
@@ -324,9 +362,54 @@ export function StoreProducts({
             onSubmit={confirmOrder}
             className="mt-6 space-y-4 rounded-2xl border border-border bg-surface p-5 shadow-sm"
           >
-            <p className="text-lg font-extrabold">
-              {dict.store.total}: {formatPrice(total)}
-            </p>
+            {/* Coupon */}
+            <div>
+              <div className="flex gap-2">
+                <input
+                  value={couponInput}
+                  onChange={(e) => setCouponInput(e.target.value)}
+                  placeholder={dict.store.couponCode}
+                  className={`${fieldClass} mt-0 flex-1 uppercase`}
+                />
+                <button
+                  type="button"
+                  onClick={applyCoupon}
+                  disabled={couponBusy || !couponInput.trim()}
+                  className="shrink-0 rounded-xl border border-border px-4 py-2.5 text-sm font-bold transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
+                >
+                  {dict.store.couponApply}
+                </button>
+              </div>
+              {couponMsg && (
+                <p className="mt-1 text-sm font-medium text-red-600">{couponMsg}</p>
+              )}
+              {appliedCode && (
+                <p className="mt-1 text-sm font-semibold text-primary">
+                  {appliedCode} ✓
+                </p>
+              )}
+            </div>
+
+            {/* Totals */}
+            <div className="space-y-1 border-t border-border pt-3 text-sm">
+              {couponDiscount > 0 && (
+                <>
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>{dict.store.subtotal}</span>
+                    <span>{formatPrice(total)}</span>
+                  </div>
+                  <div className="flex justify-between text-primary">
+                    <span>{dict.store.discount}</span>
+                    <span>−{formatPrice(couponDiscount)}</span>
+                  </div>
+                </>
+              )}
+              <div className="flex justify-between text-lg font-extrabold">
+                <span>{dict.store.total}</span>
+                <span>{formatPrice(finalTotal)}</span>
+              </div>
+            </div>
+
             <p className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700">
               💵 {dict.store.codNote}
             </p>

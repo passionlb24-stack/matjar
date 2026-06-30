@@ -128,7 +128,15 @@
     "insuranceTitle": "Accepted insurance",
     "orderWhatsapp": "Order via WhatsApp",
     "waGreeting": "Hi, I'd like to order from",
-    "codNote": "Cash on delivery"
+    "codNote": "Cash on delivery",
+    "couponCode": "Discount code",
+    "couponApply": "Apply",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "couponInvalid": "Invalid code",
+    "couponExpired": "This code has expired",
+    "couponUsedUp": "This code is used up",
+    "couponMinOrder": "Your order is below this code's minimum"
   },
   "auth": {
     "loginTitle": "Log in",
@@ -344,6 +352,29 @@
       "fix": "Complete",
       "addItems": "Add items",
       "completeBadge": "Store complete ✓"
+    },
+    "coupons": {
+      "link": "Coupons",
+      "title": "Coupons",
+      "subtitle": "Create discount codes for your store.",
+      "add": "Add coupon",
+      "code": "Code",
+      "codePlaceholder": "e.g. SUMMER20",
+      "type": "Type",
+      "percent": "Percent %",
+      "fixed": "Amount $",
+      "value": "Value",
+      "minOrder": "Minimum order ($) — optional",
+      "expires": "Expiry date — optional",
+      "maxUses": "Usage limit — optional",
+      "active": "Active",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "empty": "No coupons yet.",
+      "used": "used",
+      "inactiveBadge": "Inactive"
     }
   },
   "admin": {

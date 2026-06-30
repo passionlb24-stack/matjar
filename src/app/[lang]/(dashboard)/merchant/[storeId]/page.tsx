@@ -186,6 +186,14 @@ export default async function ManageStorePage({
             )}
             {isOwner && (
               <Link
+                href={`/${lang}/merchant/${storeId}/coupons`}
+                className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
+              >
+                {dict.merchant.coupons.link}
+              </Link>
+            )}
+            {isOwner && (
+              <Link
                 href={`/${lang}/merchant/${storeId}/settings`}
                 className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
               >

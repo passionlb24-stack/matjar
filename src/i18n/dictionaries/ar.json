@@ -128,7 +128,15 @@
     "insuranceTitle": "التأمين المقبول",
     "orderWhatsapp": "اطلب عبر WhatsApp",
     "waGreeting": "مرحبا، بدّي اطلب من",
-    "codNote": "الدفع عند الاستلام"
+    "codNote": "الدفع عند الاستلام",
+    "couponCode": "كود الخصم",
+    "couponApply": "تطبيق",
+    "subtotal": "المجموع الفرعي",
+    "discount": "الخصم",
+    "couponInvalid": "كود غير صالح",
+    "couponExpired": "الكود منتهي الصلاحية",
+    "couponUsedUp": "الكود استنفد عدد الاستخدامات",
+    "couponMinOrder": "طلبك تحت الحد الأدنى لهذا الكود"
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",
@@ -344,6 +352,29 @@
       "fix": "أكمل",
       "addItems": "أضف عناصر",
       "completeBadge": "متجر مكتمل ✓"
+    },
+    "coupons": {
+      "link": "كوبونات",
+      "title": "الكوبونات",
+      "subtitle": "أنشئ أكواد خصم لمتجرك.",
+      "add": "إضافة كوبون",
+      "code": "الكود",
+      "codePlaceholder": "مثلاً: SUMMER20",
+      "type": "النوع",
+      "percent": "نسبة %",
+      "fixed": "مبلغ $",
+      "value": "القيمة",
+      "minOrder": "حد أدنى للطلب ($) — اختياري",
+      "expires": "تاريخ الانتهاء — اختياري",
+      "maxUses": "حد الاستخدام — اختياري",
+      "active": "مفعّل",
+      "save": "حفظ",
+      "saving": "عم نحفظ…",
+      "cancel": "إلغاء",
+      "delete": "حذف",
+      "empty": "ما في كوبونات بعد.",
+      "used": "استُخدم",
+      "inactiveBadge": "معطّل"
     }
   },
   "admin": {
