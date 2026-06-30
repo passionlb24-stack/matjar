@@ -157,6 +157,12 @@ export default async function ManageStorePage({
                     <span className="font-bold text-primary">
                       {formatPrice(p.price)}
                     </span>
+                    <Link
+                      href={`/${lang}/merchant/${storeId}/products/${p.id}`}
+                      className="rounded-lg border border-border px-3 py-1.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+                    >
+                      {dict.merchant.products.editAction}
+                    </Link>
                     <ProductRowActions
                       productId={p.id}
                       isAvailable={p.is_available}

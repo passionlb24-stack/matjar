@@ -233,7 +233,10 @@
       "remove": "حذف",
       "addMenuItem": "أضف صنف للمنيو",
       "addService": "أضف خدمة",
-      "addListing": "أضف إعلان"
+      "addListing": "أضف إعلان",
+      "editTitle": "تعديل المنتج",
+      "editAction": "تعديل",
+      "update": "حفظ التعديلات"
     },
     "subscriptionLink": "اشتراكي",
     "subscription": {

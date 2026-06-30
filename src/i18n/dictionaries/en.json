@@ -233,7 +233,10 @@
       "remove": "Remove",
       "addMenuItem": "Add menu item",
       "addService": "Add service",
-      "addListing": "Add listing"
+      "addListing": "Add listing",
+      "editTitle": "Edit product",
+      "editAction": "Edit",
+      "update": "Save changes"
     },
     "subscriptionLink": "Subscription",
     "subscription": {
