@@ -140,6 +140,10 @@
     "create": "إنشاء المتجر",
     "creating": "عم ننشئ…",
     "manage": "إدارة",
+    "ordersTitle": "طلبات المتجر",
+    "ordersLink": "الطلبات",
+    "productsLink": "المنتجات",
+    "noOrders": "لسا ما في طلبات بهالمتجر.",
     "status": {
       "pending": "قيد المراجعة",
       "active": "مفعّل",

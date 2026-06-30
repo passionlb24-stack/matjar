@@ -140,6 +140,10 @@
     "create": "Create store",
     "creating": "Creating…",
     "manage": "Manage",
+    "ordersTitle": "Store orders",
+    "ordersLink": "Orders",
+    "productsLink": "Products",
+    "noOrders": "No orders for this store yet.",
     "status": {
       "pending": "Under review",
       "active": "Active",
