@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Bell, Store, User } from "lucide-react";
+import Image from "next/image";
+import { Bell, User } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
@@ -23,13 +24,15 @@ export function SiteHeader({
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-md">
       <Container className="flex h-16 items-center justify-between gap-4">
         <div className="flex items-center gap-6">
-          <Link href={`/${lang}`} className="flex items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <Store className="h-5 w-5" />
-            </span>
-            <span className="text-xl font-extrabold tracking-tight">
-              {dict.common.brand}
-            </span>
+          <Link href={`/${lang}`} className="flex items-center" aria-label={dict.common.brand}>
+            <Image
+              src="/logo.png"
+              alt={dict.common.brand}
+              width={48}
+              height={48}
+              priority
+              className="h-11 w-11 object-contain"
+            />
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
             <Link
