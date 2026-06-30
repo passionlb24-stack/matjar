@@ -1,16 +1,72 @@
 import { notFound } from "next/navigation";
 import { MapPin, MessageCircle, Phone, Star } from "lucide-react";
-import { isLocale } from "@/i18n/config";
+import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
-import { categoryStyles, getStoreById, sampleProducts } from "@/lib/catalog";
+import {
+  categoryStyles,
+  getStoreById,
+  sampleProducts,
+  type CategoryKey,
+} from "@/lib/catalog";
+import { createClient } from "@/lib/supabase/server";
 import { categoryIcons } from "@/components/category-icon";
 import { Container } from "@/components/ui/container";
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const bookingCategories = new Set(["services", "healthcare", "realEstate"]);
 
 function formatPrice(price: number) {
   return price >= 1000 ? `$${price.toLocaleString("en-US")}` : `$${price}`;
 }
 
-const bookingCategories = new Set(["services", "healthcare", "realEstate"]);
+type StoreView = {
+  name: string;
+  category: CategoryKey;
+  area: string | null;
+  description: string | null;
+  isOpen: boolean;
+  rating?: number;
+  reviews?: number;
+};
+
+async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
+  // Real stores have UUID ids; only query the DB for those.
+  if (UUID_RE.test(id)) {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("stores")
+      .select("name, description, area, phone, whatsapp, status, business_types(slug, name_ar, name_en)")
+      .eq("id", id)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (data) {
+      const bt = data.business_types as unknown as { slug: string } | null;
+      return {
+        name: data.name as string,
+        category: (bt?.slug as CategoryKey) ?? "retail",
+        area: (data.area as string | null) ?? null,
+        description: (data.description as string | null) ?? null,
+        isOpen: data.status === "active",
+      };
+    }
+  }
+  // Fall back to the demo catalog (seeded sample stores).
+  const mock = getStoreById(id);
+  if (mock) {
+    return {
+      name: mock.name[lang],
+      category: mock.category,
+      area: mock.area[lang],
+      description: mock.description?.[lang] ?? null,
+      isOpen: mock.isOpen,
+      rating: mock.rating,
+      reviews: mock.reviews,
+    };
+  }
+  return null;
+}
 
 export default async function StorePage({
   params,
@@ -20,7 +76,7 @@ export default async function StorePage({
   const { lang, id } = await params;
   if (!isLocale(lang)) notFound();
 
-  const store = getStoreById(id);
+  const store = await loadStore(id, lang);
   if (!store) notFound();
 
   const dict = await getDictionary(lang);
@@ -50,7 +106,7 @@ export default async function StorePage({
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-2xl font-extrabold tracking-tight">
-                    {store.name[lang]}
+                    {store.name}
                   </h1>
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-xs font-bold text-white ${store.isOpen ? "bg-emerald-600" : "bg-slate-500"}`}
@@ -60,17 +116,21 @@ export default async function StorePage({
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">{cat.name}</p>
                 <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                  <span className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                    <span className="font-bold">{store.rating.toFixed(1)}</span>
-                    <span className="text-muted-foreground">
-                      ({store.reviews} {dict.featured.reviews})
+                  {store.rating !== undefined && (
+                    <span className="flex items-center gap-1">
+                      <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                      <span className="font-bold">{store.rating.toFixed(1)}</span>
+                      <span className="text-muted-foreground">
+                        ({store.reviews} {dict.featured.reviews})
+                      </span>
                     </span>
-                  </span>
-                  <span className="flex items-center gap-1 text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    {store.area[lang]}
-                  </span>
+                  )}
+                  {store.area && (
+                    <span className="flex items-center gap-1 text-muted-foreground">
+                      <MapPin className="h-4 w-4" />
+                      {store.area}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -95,7 +155,7 @@ export default async function StorePage({
 
           {store.description && (
             <p className="mt-4 border-t border-border pt-4 text-muted-foreground">
-              {store.description[lang]}
+              {store.description}
             </p>
           )}
         </div>
