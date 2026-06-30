@@ -51,6 +51,7 @@ export type Store = {
   rating?: number;
   reviews?: number;
   isOpen: boolean;
+  plan?: "free" | "pro";
   tag?: Bilingual;
   description?: Bilingual;
 };

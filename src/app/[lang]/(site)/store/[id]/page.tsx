@@ -14,6 +14,7 @@ import { categoryIcons } from "@/components/category-icon";
 import { Container } from "@/components/ui/container";
 import { StoreProducts } from "@/components/store-products";
 import { StoreReviews, type Review } from "@/components/store-reviews";
+import { ProBadge } from "@/components/pro-badge";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -32,6 +33,7 @@ type StoreView = {
   area: string | null;
   description: string | null;
   isOpen: boolean;
+  plan?: "free" | "pro";
   rating?: number;
   reviews?: number;
   logoUrl?: string | null;
@@ -50,7 +52,7 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
     const supabase = await createClient();
     const { data } = await supabase
       .from("stores")
-      .select("name, description, area, status, logo_url, cover_url, business_types(slug)")
+      .select("name, description, area, status, plan, logo_url, cover_url, business_types(slug)")
       .eq("id", id)
       .is("deleted_at", null)
       .maybeSingle();
@@ -70,6 +72,7 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
         area: (data.area as string | null) ?? null,
         description: (data.description as string | null) ?? null,
         isOpen: data.status === "active",
+        plan: (data.plan as "free" | "pro" | null) ?? "free",
         logoUrl: (data.logo_url as string | null) ?? null,
         coverUrl: (data.cover_url as string | null) ?? null,
         isReal: true,
@@ -195,6 +198,7 @@ export default async function StorePage({
                   >
                     {store.isOpen ? dict.store.openNow : dict.store.closed}
                   </span>
+                  {store.plan === "pro" && <ProBadge />}
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">{cat.name}</p>
                 <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">

@@ -1,0 +1,125 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Check, Crown } from "lucide-react";
+import { isLocale } from "@/i18n/config";
+import { getDictionary } from "@/i18n/get-dictionary";
+import { Container } from "@/components/ui/container";
+
+export default async function PricingPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  if (!isLocale(lang)) notFound();
+  const dict = await getDictionary(lang);
+
+  const freeFeatures =
+    lang === "ar"
+      ? [
+          "صفحة أعمال أساسية",
+          "معلومات التواصل وواتساب",
+          "صور محدودة",
+          "ظهور عادي بالبحث",
+          "عدد محدود من المنتجات",
+        ]
+      : [
+          "Basic business page",
+          "Contact info + WhatsApp",
+          "Limited images",
+          "Standard search visibility",
+          "Limited products",
+        ];
+  const proFeatures =
+    lang === "ar"
+      ? [
+          "متجر إلكتروني كامل",
+          "منتجات غير محدودة",
+          "إدارة الطلبات والحجوزات",
+          "لوحة تحكم وإحصائيات",
+          "ظهور أعلى بالبحث",
+          "شارة Pro موثّقة",
+          "دعم أفضل",
+        ]
+      : [
+          "Full online store",
+          "Unlimited products",
+          "Orders + bookings management",
+          "Dashboard + analytics",
+          "Higher search visibility",
+          "Verified Pro badge",
+          "Priority support",
+        ];
+
+  return (
+    <div className="py-14 sm:py-16">
+      <Container>
+        <div className="text-center">
+          <h1 className="text-4xl font-extrabold tracking-tight">
+            {dict.pricing.title}
+          </h1>
+          <p className="mt-3 text-muted-foreground">{dict.pricing.subtitle}</p>
+        </div>
+
+        <div className="mx-auto mt-10 grid max-w-4xl items-start gap-6 md:grid-cols-2">
+          <div className="rounded-3xl border border-border bg-surface p-8">
+            <h2 className="text-lg font-bold">{dict.pricing.free}</h2>
+            <p className="mt-3">
+              <span className="text-4xl font-extrabold">$0</span>
+              <span className="text-muted-foreground">
+                {dict.pricing.perMonth}
+              </span>
+            </p>
+            <ul className="mt-6 space-y-3">
+              {freeFeatures.map((f) => (
+                <li key={f} className="flex items-start gap-2">
+                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                  <span>{f}</span>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href={`/${lang}/signup`}
+              className="mt-8 block rounded-xl border border-border px-5 py-3 text-center font-bold transition-colors hover:border-primary hover:text-primary"
+            >
+              {dict.pricing.startFree}
+            </Link>
+          </div>
+
+          <div className="relative rounded-3xl border-2 border-primary bg-surface p-8">
+            <span className="absolute -top-3 start-8 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">
+              {dict.pricing.popular}
+            </span>
+            <h2 className="flex items-center gap-2 text-lg font-bold">
+              <Crown className="h-5 w-5 text-amber-500" />
+              {dict.pricing.pro}
+            </h2>
+            <p className="mt-3">
+              <span className="text-4xl font-extrabold">$12</span>
+              <span className="text-muted-foreground">
+                {dict.pricing.perMonth}
+              </span>
+            </p>
+            <ul className="mt-6 space-y-3">
+              {proFeatures.map((f) => (
+                <li key={f} className="flex items-start gap-2">
+                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                  <span>{f}</span>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href={`/${lang}/merchant/new`}
+              className="mt-8 block rounded-xl bg-primary px-5 py-3 text-center font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+            >
+              {dict.pricing.goPro}
+            </Link>
+            <p className="mt-3 text-center text-xs text-muted-foreground">
+              {dict.pricing.contactNote}
+            </p>
+          </div>
+        </div>
+      </Container>
+    </div>
+  );
+}

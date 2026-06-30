@@ -15,6 +15,7 @@ function rowToStore(row: {
   name: string;
   area: string | null;
   region: string | null;
+  plan: "free" | "pro" | null;
   business_types: { slug: string } | null;
 }): Store {
   return {
@@ -24,6 +25,7 @@ function rowToStore(row: {
     region: (row.region as RegionKey) ?? undefined,
     category: (row.business_types?.slug as CategoryKey) ?? "retail",
     isOpen: true,
+    plan: row.plan ?? "free",
   };
 }
 
@@ -31,7 +33,7 @@ async function fetchActiveStores(): Promise<Store[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("stores")
-    .select("id, name, area, region, business_types(slug)")
+    .select("id, name, area, region, plan, business_types(slug)")
     .eq("status", "active")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });

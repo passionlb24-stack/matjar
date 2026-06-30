@@ -189,7 +189,10 @@
     "pendingTitle": "Stores awaiting review",
     "noPending": "No stores are awaiting review right now.",
     "approve": "Approve",
-    "reject": "Reject"
+    "reject": "Reject",
+    "activeStores": "Active stores",
+    "makePro": "Make Pro",
+    "makeFree": "Make Free"
   },
   "orders": {
     "title": "My orders",
@@ -225,5 +228,16 @@
     "save": "Save",
     "saving": "Saving…",
     "saved": "Saved ✓"
+  },
+  "pricing": {
+    "title": "Pricing",
+    "subtitle": "Start free, upgrade to Pro as your store grows.",
+    "free": "Free",
+    "pro": "Matjar Pro",
+    "perMonth": "/month",
+    "popular": "Most popular",
+    "startFree": "Start free",
+    "goPro": "Go Pro",
+    "contactNote": "Payment is manual for now — contact us to activate Pro after payment."
   }
 }

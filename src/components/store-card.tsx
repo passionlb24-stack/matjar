@@ -4,6 +4,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { categoryStyles, type FeaturedStore } from "@/lib/catalog";
 import { categoryIcons } from "@/components/category-icon";
+import { ProBadge } from "@/components/pro-badge";
 
 export function StoreCard({
   store,
@@ -47,9 +48,12 @@ export function StoreCard({
       </div>
 
       <div className="p-4 pt-7">
-        <h3 className="font-bold leading-tight transition-colors group-hover:text-primary">
-          {store.name[lang]}
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="font-bold leading-tight transition-colors group-hover:text-primary">
+            {store.name[lang]}
+          </h3>
+          {store.plan === "pro" && <ProBadge />}
+        </div>
         <p className="mt-1 text-sm text-muted-foreground">
           {cat.name} · {store.area[lang]}
         </p>
