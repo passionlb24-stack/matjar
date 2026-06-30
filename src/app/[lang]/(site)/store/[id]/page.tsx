@@ -125,6 +125,17 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
   return null;
 }
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string; id: string }>;
+}) {
+  const { lang, id } = await params;
+  if (!isLocale(lang)) return {};
+  const store = await loadStore(id, lang);
+  return { title: store?.name ?? "متجر | Matjar" };
+}
+
 export default async function StorePage({
   params,
 }: {
