@@ -11,11 +11,13 @@ export function SiteHeader({
   dict,
   user,
   unread = 0,
+  dashboardHref = null,
 }: {
   lang: Locale;
   dict: Dictionary;
   user: { name: string } | null;
   unread?: number;
+  dashboardHref?: string | null;
 }) {
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-md">
@@ -48,6 +50,14 @@ export function SiteHeader({
           <LanguageSwitcher currentLocale={lang} pathname={`/${lang}`} />
           {user ? (
             <>
+              {dashboardHref && (
+                <Link
+                  href={dashboardHref}
+                  className="hidden rounded-lg px-3 py-2 text-sm font-bold text-primary transition-colors hover:bg-surface-muted sm:block"
+                >
+                  {dict.dashboard.panel}
+                </Link>
+              )}
               <Link
                 href={`/${lang}/notifications`}
                 aria-label="notifications"

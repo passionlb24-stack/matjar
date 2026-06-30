@@ -316,5 +316,11 @@
     "orderStatus": "Your order status changed",
     "bookingNew": "New booking on your store",
     "bookingStatus": "Your booking status changed"
+  },
+  "dashboard": {
+    "panel": "Dashboard",
+    "visitSite": "Visit site",
+    "stores": "My stores",
+    "admin": "Admin"
   }
 }

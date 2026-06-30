@@ -25,7 +25,16 @@ export default async function SiteLayout({
     (user?.user_metadata?.full_name as string | undefined) ?? user?.email ?? "";
 
   let unread = 0;
+  let dashboardHref: string | null = null;
   if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+    const role = (profile as { role?: string } | null)?.role;
+    if (role === "super_admin") dashboardHref = `/${lang}/admin`;
+    else if (role === "merchant") dashboardHref = `/${lang}/merchant`;
     const { count } = await supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })
@@ -41,6 +50,7 @@ export default async function SiteLayout({
         dict={dict}
         user={user ? { name: displayName } : null}
         unread={unread}
+        dashboardHref={dashboardHref}
       />
       <main className="flex-1">{children}</main>
       <SiteFooter lang={lang} dict={dict} />

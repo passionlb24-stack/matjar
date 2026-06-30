@@ -316,5 +316,11 @@
     "orderStatus": "تغيّرت حالة طلبك",
     "bookingNew": "حجز جديد على متجرك",
     "bookingStatus": "تغيّرت حالة حجزك"
+  },
+  "dashboard": {
+    "panel": "لوحة التحكم",
+    "visitSite": "زيارة الموقع",
+    "stores": "متاجري",
+    "admin": "الإدارة"
   }
 }
