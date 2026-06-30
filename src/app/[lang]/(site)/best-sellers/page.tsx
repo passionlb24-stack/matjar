@@ -3,9 +3,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Flame, ImageIcon } from "lucide-react";
-import { isLocale } from "@/i18n/config";
+import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getBestSellers } from "@/lib/data/best-sellers";
+import { getUsdLbpRate } from "@/lib/data/settings";
+import { formatLbp } from "@/lib/currency";
 import { Container } from "@/components/ui/container";
 
 function formatPrice(price: number) {
@@ -36,6 +38,8 @@ export default async function BestSellersPage({
   if (!isLocale(lang)) notFound();
   const dict = await getDictionary(lang);
   const products = await getBestSellers();
+  const lbpRate = await getUsdLbpRate();
+  const l = lang as Locale;
 
   return (
     <div className="py-10">
@@ -93,6 +97,11 @@ export default async function BestSellersPage({
                       </span>
                     )}
                   </p>
+                  {lbpRate > 0 && (
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      {formatLbp(p.discountPrice ?? p.price, lbpRate, l)}
+                    </p>
+                  )}
                 </div>
               </Link>
             ))}

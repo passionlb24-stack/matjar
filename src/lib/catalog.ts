@@ -52,6 +52,7 @@ export type Store = {
   reviews?: number;
   isOpen: boolean;
   plan?: "free" | "pro";
+  verified?: boolean;
   favorited?: boolean;
   tag?: Bilingual;
   description?: Bilingual;
