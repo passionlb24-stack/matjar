@@ -2,7 +2,9 @@ import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { Hero } from "@/components/hero";
+import { TrustStrip } from "@/components/trust-strip";
 import { CategoryGrid } from "@/components/category-grid";
+import { OffersTeaser } from "@/components/offers-teaser";
 import { FeaturedStores } from "@/components/featured-stores";
 import { HowItWorks } from "@/components/how-it-works";
 import { MerchantCta } from "@/components/merchant-cta";
@@ -20,7 +22,9 @@ export default async function Home({
   return (
     <>
       <Hero lang={lang} dict={dict} />
+      <TrustStrip dict={dict} />
       <CategoryGrid lang={lang} dict={dict} />
+      <OffersTeaser lang={lang} dict={dict} />
       <FeaturedStores lang={lang} dict={dict} />
       <HowItWorks dict={dict} />
       <MerchantCta lang={lang} dict={dict} />

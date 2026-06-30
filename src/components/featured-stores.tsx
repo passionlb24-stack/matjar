@@ -32,11 +32,26 @@ export async function FeaturedStores({
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {featuredStores.map((store) => (
-            <StoreCard key={store.id} store={store} lang={lang} dict={dict} />
-          ))}
-        </div>
+        {featuredStores.length ? (
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {featuredStores.map((store) => (
+              <StoreCard key={store.id} store={store} lang={lang} dict={dict} />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-border bg-surface px-6 py-12 text-center">
+            <h3 className="text-lg font-extrabold">{dict.featured.emptyTitle}</h3>
+            <p className="mx-auto mt-2 max-w-md text-muted-foreground">
+              {dict.featured.emptyBody}
+            </p>
+            <Link
+              href={`/${lang}/merchant/new`}
+              className="mt-5 inline-block rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+            >
+              {dict.featured.emptyCta}
+            </Link>
+          </div>
+        )}
       </Container>
     </section>
   );

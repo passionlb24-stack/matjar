@@ -35,7 +35,20 @@
     "viewAll": "View all",
     "open": "Open",
     "closed": "Closed",
-    "reviews": "reviews"
+    "reviews": "reviews",
+    "emptyTitle": "Be the first store on Matjar",
+    "emptyBody": "Open your store for free and start receiving orders across Lebanon.",
+    "emptyCta": "Open your store"
+  },
+  "trust": {
+    "cod": "Cash on delivery",
+    "codDesc": "Pay when your order arrives",
+    "verified": "Verified stores",
+    "verifiedDesc": "Reviewed and approved",
+    "lebanon": "All of Lebanon",
+    "lebanonDesc": "Stores in every region",
+    "direct": "Direct contact",
+    "directDesc": "Call or WhatsApp the store"
   },
   "howItWorks": {
     "title": "How Matjar works",
