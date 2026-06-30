@@ -608,6 +608,12 @@
     "off": "off",
     "empty": "No offers right now. Check back tomorrow!"
   },
+  "bestSellers": {
+    "title": "Best sellers",
+    "subtitle": "The most-ordered products on Matjar.",
+    "sold": "sold",
+    "empty": "Not enough sales yet. Check back soon!"
+  },
   "notifications": {
     "title": "Notifications",
     "empty": "No notifications yet.",
