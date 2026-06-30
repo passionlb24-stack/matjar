@@ -416,7 +416,17 @@
       "users": "Users",
       "types": "Business types",
       "subscriptions": "Subscriptions",
-      "reports": "Reports"
+      "reports": "Reports",
+      "settings": "Settings"
+    },
+    "platform": {
+      "title": "Platform settings",
+      "subtitle": "Global settings shown to users.",
+      "lbpRate": "USD exchange rate (LBP)",
+      "lbpRateHint": "Used to show prices in LBP. Set to 0 to hide the LBP display.",
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Saved ✓"
     },
     "subs": {
       "title": "Subscriptions",

@@ -6,6 +6,7 @@ import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { formatLbp } from "@/lib/currency";
 
 export type Variant = {
   id: string;
@@ -36,6 +37,7 @@ export function ProductOrder({
   defaultAddress = "",
   acceptsDelivery = true,
   acceptsPickup = true,
+  lbpRate = 0,
 }: {
   lang: Locale;
   dict: Dictionary;
@@ -49,6 +51,7 @@ export function ProductOrder({
   defaultAddress?: string;
   acceptsDelivery?: boolean;
   acceptsPickup?: boolean;
+  lbpRate?: number;
 }) {
   const router = useRouter();
   const [variantId, setVariantId] = useState<string | null>(
@@ -236,9 +239,16 @@ export function ProductOrder({
           </div>
 
           <div className="flex items-center justify-between border-t border-border pt-4">
-            <span className="text-lg font-extrabold">
-              {dict.product.total}: {formatPrice(total)}
-            </span>
+            <div>
+              <span className="text-lg font-extrabold">
+                {dict.product.total}: {formatPrice(total)}
+              </span>
+              {lbpRate > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {formatLbp(total, lbpRate, lang)}
+                </p>
+              )}
+            </div>
             <button
               type="button"
               disabled={soldOut}
@@ -261,6 +271,11 @@ export function ProductOrder({
           <p className="text-lg font-extrabold">
             {dict.product.total}: {formatPrice(total)}
           </p>
+          {lbpRate > 0 && (
+            <p className="-mt-3 text-xs text-muted-foreground">
+              {formatLbp(total, lbpRate, lang)}
+            </p>
+          )}
           {fulfillmentOptions.length > 1 && (
             <div>
               <span className="text-sm font-semibold">{dict.store.fulfillment}</span>

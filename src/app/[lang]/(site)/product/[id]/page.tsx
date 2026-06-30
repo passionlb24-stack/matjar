@@ -7,6 +7,8 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { regions, type CategoryKey } from "@/lib/catalog";
 import { attributeSummary } from "@/lib/attributes";
+import { getUsdLbpRate } from "@/lib/data/settings";
+import { formatLbp } from "@/lib/currency";
 import { Container } from "@/components/ui/container";
 import { ProductGallery } from "@/components/product-gallery";
 import { ProductOrder, type Variant, type AddOn } from "@/components/product-order";
@@ -195,6 +197,7 @@ export default async function ProductPage({
   }
 
   const basePrice = product.discountPrice ?? product.price;
+  const lbpRate = await getUsdLbpRate();
   const attrText = attributeSummary(product.category, product.attributes, l);
   const isBooking = bookingCategories.has(product.category);
   const soldOut = product.stock != null && product.stock <= 0;
@@ -246,6 +249,12 @@ export default async function ProductPage({
               )}
             </div>
 
+            {lbpRate > 0 && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {formatLbp(basePrice, lbpRate, l)}
+              </p>
+            )}
+
             {attrText && (
               <p className="mt-3 text-sm text-muted-foreground">{attrText}</p>
             )}
@@ -283,6 +292,7 @@ export default async function ProductPage({
                   defaultAddress={defaultAddress}
                   acceptsDelivery={product.acceptsDelivery}
                   acceptsPickup={product.acceptsPickup}
+                  lbpRate={lbpRate}
                 />
               )}
             </div>

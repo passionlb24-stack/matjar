@@ -11,6 +11,7 @@ import {
   type CategoryKey,
 } from "@/lib/catalog";
 import { createClient } from "@/lib/supabase/server";
+import { getUsdLbpRate } from "@/lib/data/settings";
 import { categoryIcons } from "@/components/category-icon";
 import { Container } from "@/components/ui/container";
 import { StoreProducts } from "@/components/store-products";
@@ -227,6 +228,7 @@ export default async function StorePage({
       .maybeSingle();
     isFollowing = !!fol;
   }
+  const lbpRate = await getUsdLbpRate();
   const avg = reviews.length
     ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
     : null;
@@ -436,6 +438,7 @@ export default async function StorePage({
                 prepTime={store.prepTime ?? null}
                 whatsapp={store.whatsapp ?? null}
                 storeName={store.name}
+                lbpRate={lbpRate}
                 products={store.products
                   .filter((p) => p.id)
                   .map((p) => ({

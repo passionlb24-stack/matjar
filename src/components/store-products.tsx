@@ -11,6 +11,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { categoryStyles, type CategoryKey } from "@/lib/catalog";
 import { attributeSummary } from "@/lib/attributes";
 import { waLink, buildOrderMessage } from "@/lib/whatsapp";
+import { formatLbp } from "@/lib/currency";
 import { categoryIcons } from "@/components/category-icon";
 
 type Product = {
@@ -74,6 +75,7 @@ export function StoreProducts({
   prepTime = null,
   whatsapp = null,
   storeName = "",
+  lbpRate = 0,
 }: {
   storeId: string;
   lang: Locale;
@@ -89,6 +91,7 @@ export function StoreProducts({
   prepTime?: string | null;
   whatsapp?: string | null;
   storeName?: string;
+  lbpRate?: number;
 }) {
   const router = useRouter();
   const [cart, setCart] = useState<Record<string, number>>({});
@@ -408,6 +411,11 @@ export function StoreProducts({
                 <span>{dict.store.total}</span>
                 <span>{formatPrice(finalTotal)}</span>
               </div>
+              {lbpRate > 0 && (
+                <p className="text-end text-xs font-normal text-muted-foreground">
+                  {formatLbp(finalTotal, lbpRate, lang)}
+                </p>
+              )}
             </div>
 
             <p className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700">
