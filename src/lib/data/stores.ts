@@ -35,9 +35,34 @@ async function fetchActiveStores(): Promise<Store[]> {
     .eq("status", "active")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
-  return ((data ?? []) as unknown as Parameters<typeof rowToStore>[0][]).map(
+  const list = ((data ?? []) as unknown as Parameters<typeof rowToStore>[0][]).map(
     rowToStore,
   );
+
+  // Attach real average ratings from reviews.
+  if (list.length) {
+    const ids = list.map((s) => s.id);
+    const { data: revs } = await supabase
+      .from("reviews")
+      .select("store_id, rating")
+      .in("store_id", ids);
+    const agg = new Map<string, { sum: number; count: number }>();
+    ((revs ?? []) as { store_id: string; rating: number }[]).forEach((r) => {
+      const a = agg.get(r.store_id) ?? { sum: 0, count: 0 };
+      a.sum += r.rating;
+      a.count += 1;
+      agg.set(r.store_id, a);
+    });
+    list.forEach((s) => {
+      const a = agg.get(s.id);
+      if (a) {
+        s.rating = a.sum / a.count;
+        s.reviews = a.count;
+      }
+    });
+  }
+
+  return list;
 }
 
 // Real active stores, optionally padded with demo samples so listings aren't
