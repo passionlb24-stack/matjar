@@ -3,13 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MailCheck } from "lucide-react";
+import { Eye, EyeOff, MailCheck, ShoppingBag, Store } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
 const fieldClass =
-  "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
+  "w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
 const labelClass = "text-sm font-semibold";
 const submitClass =
   "w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60";
@@ -19,6 +19,49 @@ function Header({ title, subtitle }: { title: string; subtitle: string }) {
     <div className="mb-6 text-center">
       <h1 className="text-2xl font-extrabold tracking-tight">{title}</h1>
       <p className="mt-1.5 text-sm text-muted-foreground">{subtitle}</p>
+    </div>
+  );
+}
+
+function PasswordInput({
+  label,
+  autoComplete,
+  minLength,
+  showLabel,
+  hideLabel,
+}: {
+  label: string;
+  autoComplete: string;
+  minLength?: number;
+  showLabel: string;
+  hideLabel: string;
+}) {
+  const [show, setShow] = useState(false);
+  return (
+    <div>
+      <label className={labelClass} htmlFor="password">
+        {label}
+      </label>
+      <div className="relative mt-1.5">
+        <input
+          id="password"
+          name="password"
+          type={show ? "text" : "password"}
+          required
+          minLength={minLength}
+          autoComplete={autoComplete}
+          placeholder="••••••••"
+          className={`${fieldClass} pe-11`}
+        />
+        <button
+          type="button"
+          onClick={() => setShow((s) => !s)}
+          aria-label={show ? hideLabel : showLabel}
+          className="absolute inset-y-0 end-0 flex items-center pe-3 text-muted-foreground transition-colors hover:text-foreground"
+        >
+          {show ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+        </button>
+      </div>
     </div>
   );
 }
@@ -43,7 +86,21 @@ export function LoginForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
       setLoading(false);
       return;
     }
-    router.push(`/${lang}`);
+    // Route each role to its home surface.
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    let dest = `/${lang}`;
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (profile?.role === "super_admin") dest = `/${lang}/admin`;
+      else if (profile?.role === "merchant") dest = `/${lang}/merchant`;
+    }
+    router.push(dest);
     router.refresh();
   }
 
@@ -55,14 +112,14 @@ export function LoginForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
           <label className={labelClass} htmlFor="email">
             {dict.auth.email}
           </label>
-          <input id="email" name="email" type="email" required autoComplete="email" placeholder="name@email.com" className={fieldClass} />
+          <input id="email" name="email" type="email" required autoComplete="email" placeholder="name@email.com" className={`${fieldClass} mt-1.5`} />
         </div>
-        <div>
-          <label className={labelClass} htmlFor="password">
-            {dict.auth.password}
-          </label>
-          <input id="password" name="password" type="password" required autoComplete="current-password" placeholder="••••••••" className={fieldClass} />
-        </div>
+        <PasswordInput
+          label={dict.auth.password}
+          autoComplete="current-password"
+          showLabel={dict.auth.showPassword}
+          hideLabel={dict.auth.hidePassword}
+        />
         {error && <p className="text-sm font-medium text-red-600">{error}</p>}
         <button type="submit" disabled={loading} className={submitClass}>
           {loading ? dict.auth.loading : dict.auth.loginButton}
@@ -83,6 +140,9 @@ export function SignupForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [accountType, setAccountType] = useState<"customer" | "merchant">(
+    "customer",
+  );
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -94,7 +154,10 @@ export function SignupForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
       email: String(form.get("email")),
       password: String(form.get("password")),
       options: {
-        data: { full_name: String(form.get("full_name")) },
+        data: {
+          full_name: String(form.get("full_name")),
+          account_type: accountType,
+        },
         emailRedirectTo: `${window.location.origin}/${lang}`,
       },
     });
@@ -104,11 +167,12 @@ export function SignupForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
       return;
     }
     if (!data.session) {
+      // Email confirmation is enabled — ask the user to confirm.
       setSent(true);
       setLoading(false);
       return;
     }
-    router.push(`/${lang}`);
+    router.push(accountType === "merchant" ? `/${lang}/merchant` : `/${lang}`);
     router.refresh();
   }
 
@@ -124,28 +188,49 @@ export function SignupForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
     );
   }
 
+  const typeBtn = (active: boolean) =>
+    `flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-bold transition-colors ${
+      active
+        ? "border-primary bg-primary-soft text-primary"
+        : "border-border text-muted-foreground hover:border-primary/40"
+    }`;
+
   return (
     <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm sm:p-8">
       <Header title={dict.auth.signupTitle} subtitle={dict.auth.signupSubtitle} />
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
+          <label className={labelClass}>{dict.auth.accountType}</label>
+          <div className="mt-1.5 grid grid-cols-2 gap-2">
+            <button type="button" onClick={() => setAccountType("customer")} className={typeBtn(accountType === "customer")}>
+              <ShoppingBag className="h-4 w-4" />
+              {dict.auth.asCustomer}
+            </button>
+            <button type="button" onClick={() => setAccountType("merchant")} className={typeBtn(accountType === "merchant")}>
+              <Store className="h-4 w-4" />
+              {dict.auth.asMerchant}
+            </button>
+          </div>
+        </div>
+        <div>
           <label className={labelClass} htmlFor="full_name">
             {dict.auth.fullName}
           </label>
-          <input id="full_name" name="full_name" type="text" required autoComplete="name" placeholder={dict.auth.fullNamePlaceholder} className={fieldClass} />
+          <input id="full_name" name="full_name" type="text" required autoComplete="name" placeholder={dict.auth.fullNamePlaceholder} className={`${fieldClass} mt-1.5`} />
         </div>
         <div>
           <label className={labelClass} htmlFor="email">
             {dict.auth.email}
           </label>
-          <input id="email" name="email" type="email" required autoComplete="email" placeholder="name@email.com" className={fieldClass} />
+          <input id="email" name="email" type="email" required autoComplete="email" placeholder="name@email.com" className={`${fieldClass} mt-1.5`} />
         </div>
-        <div>
-          <label className={labelClass} htmlFor="password">
-            {dict.auth.password}
-          </label>
-          <input id="password" name="password" type="password" required minLength={6} autoComplete="new-password" placeholder="••••••••" className={fieldClass} />
-        </div>
+        <PasswordInput
+          label={dict.auth.password}
+          autoComplete="new-password"
+          minLength={6}
+          showLabel={dict.auth.showPassword}
+          hideLabel={dict.auth.hidePassword}
+        />
         {error && <p className="text-sm font-medium text-red-600">{error}</p>}
         <button type="submit" disabled={loading} className={submitClass}>
           {loading ? dict.auth.loading : dict.auth.signupButton}

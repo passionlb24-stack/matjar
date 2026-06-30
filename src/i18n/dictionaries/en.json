@@ -115,7 +115,12 @@
     "errorInvalid": "Invalid email or password.",
     "errorGeneric": "Something went wrong, please try again.",
     "logout": "Log out",
-    "account": "My account"
+    "account": "My account",
+    "accountType": "Account type",
+    "asCustomer": "Customer",
+    "asMerchant": "Merchant",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "merchant": {
     "dashboardTitle": "My stores",

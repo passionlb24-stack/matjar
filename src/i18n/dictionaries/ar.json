@@ -115,7 +115,12 @@
     "errorInvalid": "البريد أو كلمة المرور غير صحيحة.",
     "errorGeneric": "صار خطأ، جرّب مرّة تانية.",
     "logout": "تسجيل الخروج",
-    "account": "حسابي"
+    "account": "حسابي",
+    "accountType": "نوع الحساب",
+    "asCustomer": "عميل",
+    "asMerchant": "تاجر",
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور"
   },
   "merchant": {
     "dashboardTitle": "متاجري",
