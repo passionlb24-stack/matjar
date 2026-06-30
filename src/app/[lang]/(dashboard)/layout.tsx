@@ -29,10 +29,24 @@ export default async function DashboardLayout({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, full_name")
+    .select("role, full_name, is_active")
     .eq("id", user.id)
     .maybeSingle();
   const isAdmin = (profile as { role?: string } | null)?.role === "super_admin";
+  const isActive =
+    (profile as { is_active?: boolean } | null)?.is_active !== false;
+
+  if (!isActive) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-surface-muted/30 p-6 text-center">
+        <h1 className="text-2xl font-extrabold">{dict.admin.suspendedTitle}</h1>
+        <p className="max-w-sm text-muted-foreground">
+          {dict.admin.suspendedBody}
+        </p>
+        <LogoutButton label={dict.auth.logout} />
+      </div>
+    );
+  }
   const name =
     ((profile as { full_name?: string } | null)?.full_name as string) ??
     user.email ??

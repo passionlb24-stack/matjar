@@ -235,7 +235,89 @@
     "ordersTotal": "الطلبات",
     "reviewsTitle": "أحدث التقييمات",
     "deleteReview": "حذف",
-    "noReviews": "ما في تقييمات."
+    "noReviews": "ما في تقييمات.",
+    "nav": {
+      "overview": "نظرة عامة",
+      "stores": "المتاجر",
+      "users": "المستخدمون",
+      "types": "أنواع الأنشطة",
+      "reports": "التقارير"
+    },
+    "usersAdmin": {
+      "title": "إدارة المستخدمين",
+      "subtitle": "كل مستخدمي المنصّة — عطّل أو فعّل الحسابات.",
+      "search": "ابحث بالاسم أو الهاتف…",
+      "role": "الدور",
+      "joined": "الانضمام",
+      "statusCol": "الحالة",
+      "active": "نشط",
+      "suspended": "معطّل",
+      "suspend": "تعطيل",
+      "reactivate": "تفعيل",
+      "empty": "ما في مستخدمين مطابقين.",
+      "you": "أنت",
+      "roles": {
+        "customer": "عميل",
+        "merchant": "تاجر",
+        "super_admin": "أدمن",
+        "driver": "سائق"
+      }
+    },
+    "storesAdmin": {
+      "title": "إدارة المتاجر",
+      "subtitle": "كل المتاجر على المنصّة مع البحث والفلترة.",
+      "search": "ابحث عن متجر…",
+      "allStatuses": "كل الحالات",
+      "allRegions": "كل المناطق",
+      "verify": "توثيق",
+      "unverify": "إلغاء التوثيق",
+      "suspend": "تعطيل",
+      "activate": "تفعيل",
+      "owner": "المالك",
+      "empty": "ما في متاجر مطابقة.",
+      "statusLabels": {
+        "pending": "قيد المراجعة",
+        "active": "مفعّل",
+        "suspended": "معطّل",
+        "rejected": "مرفوض"
+      }
+    },
+    "types": {
+      "title": "أنواع الأنشطة التجارية",
+      "subtitle": "التصنيفات الفرعية اللي يختار منها التاجر عند إنشاء متجره.",
+      "add": "إضافة نوع",
+      "nameAr": "الاسم بالعربي",
+      "nameEn": "الاسم بالإنجليزي",
+      "slug": "المعرّف (slug)",
+      "icon": "اسم الأيقونة",
+      "sortOrder": "الترتيب",
+      "active": "مفعّل",
+      "save": "حفظ",
+      "saving": "عم نحفظ…",
+      "cancel": "إلغاء",
+      "delete": "حذف",
+      "confirmDelete": "متأكد من حذف هالنوع؟",
+      "empty": "ما في أنواع بعد. أضف أول نوع.",
+      "inactiveBadge": "معطّل"
+    },
+    "reports": {
+      "title": "التقارير والإحصائيات",
+      "subtitle": "مؤشرات أداء المنصّة.",
+      "storesByStatus": "المتاجر حسب الحالة",
+      "storesByRegion": "المتاجر حسب المنطقة",
+      "storesByType": "المتاجر حسب النشاط",
+      "usersByRole": "المستخدمون حسب الدور",
+      "proStores": "متاجر Pro",
+      "freeStores": "متاجر مجانية",
+      "conversion": "نسبة التحويل لـ Pro",
+      "totalBookings": "إجمالي الحجوزات",
+      "totalOrders": "إجمالي الطلبات",
+      "topStores": "أكثر المتاجر طلباً",
+      "orders": "طلب",
+      "noData": "لا توجد بيانات بعد."
+    },
+    "suspendedTitle": "حسابك معطّل",
+    "suspendedBody": "تم تعطيل حسابك من قبل الإدارة. تواصل معنا لمزيد من المعلومات."
   },
   "orders": {
     "title": "طلباتي",

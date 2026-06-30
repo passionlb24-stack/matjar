@@ -235,7 +235,89 @@
     "ordersTotal": "Orders",
     "reviewsTitle": "Recent reviews",
     "deleteReview": "Delete",
-    "noReviews": "No reviews."
+    "noReviews": "No reviews.",
+    "nav": {
+      "overview": "Overview",
+      "stores": "Stores",
+      "users": "Users",
+      "types": "Business types",
+      "reports": "Reports"
+    },
+    "usersAdmin": {
+      "title": "User management",
+      "subtitle": "Every platform user — suspend or reactivate accounts.",
+      "search": "Search by name or phone…",
+      "role": "Role",
+      "joined": "Joined",
+      "statusCol": "Status",
+      "active": "Active",
+      "suspended": "Suspended",
+      "suspend": "Suspend",
+      "reactivate": "Reactivate",
+      "empty": "No matching users.",
+      "you": "You",
+      "roles": {
+        "customer": "Customer",
+        "merchant": "Merchant",
+        "super_admin": "Admin",
+        "driver": "Driver"
+      }
+    },
+    "storesAdmin": {
+      "title": "Store management",
+      "subtitle": "Every store on the platform with search and filters.",
+      "search": "Search for a store…",
+      "allStatuses": "All statuses",
+      "allRegions": "All regions",
+      "verify": "Verify",
+      "unverify": "Unverify",
+      "suspend": "Suspend",
+      "activate": "Activate",
+      "owner": "Owner",
+      "empty": "No matching stores.",
+      "statusLabels": {
+        "pending": "Under review",
+        "active": "Active",
+        "suspended": "Suspended",
+        "rejected": "Rejected"
+      }
+    },
+    "types": {
+      "title": "Business types",
+      "subtitle": "The sub-categories a merchant picks when creating a store.",
+      "add": "Add type",
+      "nameAr": "Arabic name",
+      "nameEn": "English name",
+      "slug": "Slug",
+      "icon": "Icon name",
+      "sortOrder": "Order",
+      "active": "Active",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "confirmDelete": "Delete this type?",
+      "empty": "No types yet. Add your first one.",
+      "inactiveBadge": "Inactive"
+    },
+    "reports": {
+      "title": "Reports & analytics",
+      "subtitle": "Platform performance metrics.",
+      "storesByStatus": "Stores by status",
+      "storesByRegion": "Stores by region",
+      "storesByType": "Stores by business type",
+      "usersByRole": "Users by role",
+      "proStores": "Pro stores",
+      "freeStores": "Free stores",
+      "conversion": "Pro conversion rate",
+      "totalBookings": "Total bookings",
+      "totalOrders": "Total orders",
+      "topStores": "Top stores by orders",
+      "orders": "orders",
+      "noData": "No data yet."
+    },
+    "suspendedTitle": "Your account is suspended",
+    "suspendedBody": "Your account has been suspended by an admin. Contact us for more information."
   },
   "orders": {
     "title": "My orders",
