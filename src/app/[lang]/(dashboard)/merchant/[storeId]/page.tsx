@@ -130,6 +130,14 @@ export default async function ManageStorePage({
                     {dict.merchant.bookingsLink}
                   </Link>
                 )}
+            {category === "healthcare" && (
+              <Link
+                href={`/${lang}/merchant/${storeId}/doctors`}
+                className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
+              >
+                {dict.merchant.doctorsLink}
+              </Link>
+            )}
             {canOrders && (
               <Link
                 href={`/${lang}/merchant/${storeId}/customers`}

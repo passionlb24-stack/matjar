@@ -109,7 +109,10 @@
     "minOrder": "Minimum order",
     "belowMin": "Your order is below the minimum",
     "payment": "Payment",
-    "prep": "Prep time"
+    "prep": "Prep time",
+    "doctorsTitle": "Our doctors",
+    "specialtiesTitle": "Specialties",
+    "insuranceTitle": "Accepted insurance"
   },
   "auth": {
     "loginTitle": "Log in",
@@ -278,7 +281,29 @@
       "prepTime": "Preparation time",
       "prepTimePlaceholder": "e.g. 30-45 min",
       "paymentNote": "Payment methods / note",
-      "paymentNotePlaceholder": "e.g. Cash on delivery"
+      "paymentNotePlaceholder": "e.g. Cash on delivery",
+      "specialties": "Specialties (healthcare)",
+      "specialtiesPlaceholder": "e.g. Cardiology, Dermatology, Pediatrics",
+      "insurance": "Accepted insurance (healthcare)",
+      "insurancePlaceholder": "e.g. NSSF, GlobeMed, Bankers"
+    },
+    "doctorsLink": "Doctors",
+    "doctors": {
+      "title": "Doctors",
+      "subtitle": "Add the doctors at your clinic or center.",
+      "add": "Add doctor",
+      "name": "Name",
+      "namePlaceholder": "Dr. ...",
+      "specialty": "Specialty",
+      "specialtyPlaceholder": "e.g. Pediatrics",
+      "bio": "Bio",
+      "bioPlaceholder": "Experience, qualifications… (optional)",
+      "photo": "Doctor photo",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "empty": "No doctors yet. Add your first one."
     }
   },
   "admin": {

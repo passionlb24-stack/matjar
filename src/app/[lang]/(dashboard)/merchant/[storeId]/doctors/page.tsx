@@ -5,15 +5,12 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
-import {
-  StoreSettingsForm,
-  type StoreSettings,
-} from "@/components/store-settings-form";
+import { DoctorManager, type Doctor } from "@/components/doctor-manager";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export default async function StoreSettingsPage({
+export default async function StoreDoctorsPage({
   params,
 }: {
   params: Promise<{ lang: string; storeId: string }>;
@@ -28,35 +25,32 @@ export default async function StoreSettingsPage({
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect(`/${lang}/login`);
+  const { data: canManage } = await supabase.rpc("can_manage_store", {
+    p_store_id: storeId,
+  });
+  if (!canManage) redirect(`/${lang}/merchant`);
 
-  // Owner-only.
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, business_types(slug)")
+    .select("id, name, business_types(slug)")
     .eq("id", storeId)
-    .eq("owner_id", user.id)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
-  const isHealthcare =
-    (store as unknown as { business_types: { slug: string } | null })
-      .business_types?.slug === "healthcare";
+  const slug = (store as unknown as { business_types: { slug: string } | null })
+    .business_types?.slug;
+  // Doctors are a healthcare-only feature.
+  if (slug !== "healthcare") redirect(`/${lang}/merchant/${storeId}`);
 
-  const initial: StoreSettings = {
-    accepts_delivery: (store as { accepts_delivery: boolean }).accepts_delivery,
-    accepts_pickup: (store as { accepts_pickup: boolean }).accepts_pickup,
-    min_order:
-      (store as { min_order: number | null }).min_order != null
-        ? String((store as { min_order: number }).min_order)
-        : "",
-    prep_time: (store as { prep_time: string | null }).prep_time ?? "",
-    payment_note: (store as { payment_note: string | null }).payment_note ?? "",
-    specialties: (store as { specialties: string | null }).specialties ?? "",
-    insurance: (store as { insurance: string | null }).insurance ?? "",
-  };
+  const { data: doctorsData } = await supabase
+    .from("doctors")
+    .select("id, name, specialty, photo_url, bio")
+    .eq("store_id", storeId)
+    .order("sort_order", { ascending: true });
+  const doctors = (doctorsData ?? []) as Doctor[];
 
   return (
     <div className="py-10">
-      <Container className="max-w-xl">
+      <Container className="max-w-2xl">
         <Link
           href={`/${lang}/merchant/${storeId}`}
           className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
@@ -65,18 +59,10 @@ export default async function StoreSettingsPage({
           {(store as { name: string }).name}
         </Link>
         <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
-          {dict.merchant.settings.title}
+          {dict.merchant.doctors.title}
         </h1>
-        <p className="mt-2 text-muted-foreground">
-          {dict.merchant.settings.subtitle}
-        </p>
         <div className="mt-6">
-          <StoreSettingsForm
-            storeId={storeId}
-            dict={dict}
-            initial={initial}
-            isHealthcare={isHealthcare}
-          />
+          <DoctorManager storeId={storeId} dict={dict} doctors={doctors} />
         </div>
       </Container>
     </div>

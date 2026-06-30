@@ -109,7 +109,10 @@
     "minOrder": "الحد الأدنى للطلب",
     "belowMin": "طلبك تحت الحد الأدنى للطلب",
     "payment": "الدفع",
-    "prep": "التحضير"
+    "prep": "التحضير",
+    "doctorsTitle": "الأطباء",
+    "specialtiesTitle": "التخصصات",
+    "insuranceTitle": "التأمين المقبول"
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",
@@ -278,7 +281,29 @@
       "prepTime": "وقت التحضير",
       "prepTimePlaceholder": "مثلاً: 30-45 دقيقة",
       "paymentNote": "طرق الدفع / ملاحظة",
-      "paymentNotePlaceholder": "مثلاً: نقداً عند الاستلام"
+      "paymentNotePlaceholder": "مثلاً: نقداً عند الاستلام",
+      "specialties": "التخصصات (للقطاع الصحي)",
+      "specialtiesPlaceholder": "مثلاً: قلبية، جلدية، أطفال",
+      "insurance": "التأمين المقبول (للقطاع الصحي)",
+      "insurancePlaceholder": "مثلاً: ضمان، NSSF، GlobeMed"
+    },
+    "doctorsLink": "الأطباء",
+    "doctors": {
+      "title": "الأطباء",
+      "subtitle": "أضف أطباء عيادتك أو مركزك.",
+      "add": "إضافة طبيب",
+      "name": "الاسم",
+      "namePlaceholder": "د. ...",
+      "specialty": "التخصص",
+      "specialtyPlaceholder": "مثلاً: طب أطفال",
+      "bio": "نبذة",
+      "bioPlaceholder": "خبرة، مؤهلات… (اختياري)",
+      "photo": "صورة الطبيب",
+      "save": "حفظ",
+      "saving": "عم نحفظ…",
+      "cancel": "إلغاء",
+      "delete": "حذف",
+      "empty": "ما في أطباء بعد. أضف أول طبيب."
     }
   },
   "admin": {

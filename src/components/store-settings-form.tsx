@@ -15,16 +15,20 @@ export type StoreSettings = {
   min_order: string;
   prep_time: string;
   payment_note: string;
+  specialties: string;
+  insurance: string;
 };
 
 export function StoreSettingsForm({
   storeId,
   dict,
   initial,
+  isHealthcare = false,
 }: {
   storeId: string;
   dict: Dictionary;
   initial: StoreSettings;
+  isHealthcare?: boolean;
 }) {
   const router = useRouter();
   const t = dict.merchant.settings;
@@ -47,6 +51,8 @@ export function StoreSettingsForm({
         min_order: minRaw === "" ? null : Number(minRaw),
         prep_time: String(form.get("prep_time")) || null,
         payment_note: String(form.get("payment_note")) || null,
+        specialties: String(form.get("specialties") ?? "") || null,
+        insurance: String(form.get("insurance") ?? "") || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", storeId);
@@ -96,6 +102,19 @@ export function StoreSettingsForm({
         <label className={labelClass} htmlFor="payment_note">{t.paymentNote}</label>
         <input id="payment_note" name="payment_note" type="text" defaultValue={initial.payment_note} placeholder={t.paymentNotePlaceholder} className={fieldClass} />
       </div>
+
+      {isHealthcare && (
+        <>
+          <div>
+            <label className={labelClass} htmlFor="specialties">{t.specialties}</label>
+            <input id="specialties" name="specialties" type="text" defaultValue={initial.specialties} placeholder={t.specialtiesPlaceholder} className={fieldClass} />
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="insurance">{t.insurance}</label>
+            <input id="insurance" name="insurance" type="text" defaultValue={initial.insurance} placeholder={t.insurancePlaceholder} className={fieldClass} />
+          </div>
+        </>
+      )}
 
       <div className="flex items-center gap-3">
         <button

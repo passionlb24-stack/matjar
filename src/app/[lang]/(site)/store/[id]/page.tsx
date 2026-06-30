@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Clock, MapPin, MessageCircle, Phone, Star } from "lucide-react";
+import { Clock, MapPin, MessageCircle, Phone, Star, Stethoscope } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import {
@@ -51,6 +51,8 @@ type StoreView = {
   minOrder?: number | null;
   prepTime?: string | null;
   paymentNote?: string | null;
+  specialties?: string | null;
+  insurance?: string | null;
   isReal: boolean;
   products: {
     id?: string;
@@ -67,7 +69,7 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
     const supabase = await createClient();
     const { data } = await supabase
       .from("stores")
-      .select("name, description, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, business_types(slug)")
+      .select("name, description, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, business_types(slug)")
       .eq("id", id)
       .is("deleted_at", null)
       .maybeSingle();
@@ -101,6 +103,8 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
         minOrder: data.min_order != null ? Number(data.min_order) : null,
         prepTime: (data.prep_time as string | null) ?? null,
         paymentNote: (data.payment_note as string | null) ?? null,
+        specialties: (data.specialties as string | null) ?? null,
+        insurance: (data.insurance as string | null) ?? null,
         isReal: true,
         products: (prods ?? []).map((p) => ({
           id: p.id as string,
@@ -173,6 +177,23 @@ export default async function StorePage({
       .eq("store_id", id)
       .order("created_at", { ascending: false });
     reviews = (data ?? []) as Review[];
+  }
+
+  type DoctorView = {
+    id: string;
+    name: string;
+    specialty: string | null;
+    photo_url: string | null;
+    bio: string | null;
+  };
+  let doctors: DoctorView[] = [];
+  if (store.isReal && UUID_RE.test(id) && store.category === "healthcare") {
+    const { data } = await supabase
+      .from("doctors")
+      .select("id, name, specialty, photo_url, bio")
+      .eq("store_id", id)
+      .order("sort_order", { ascending: true });
+    doctors = (data ?? []) as DoctorView[];
   }
   const avg = reviews.length
     ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
@@ -417,6 +438,72 @@ export default async function StorePage({
               </div>
             ))}
           </div>
+        )}
+
+        {store.category === "healthcare" &&
+          (store.specialties || store.insurance) && (
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
+              {store.specialties && (
+                <div className="rounded-2xl border border-border bg-surface p-5">
+                  <h3 className="text-sm font-bold text-muted-foreground">
+                    {dict.store.specialtiesTitle}
+                  </h3>
+                  <p className="mt-1 font-medium">{store.specialties}</p>
+                </div>
+              )}
+              {store.insurance && (
+                <div className="rounded-2xl border border-border bg-surface p-5">
+                  <h3 className="text-sm font-bold text-muted-foreground">
+                    {dict.store.insuranceTitle}
+                  </h3>
+                  <p className="mt-1 font-medium">{store.insurance}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+        {doctors.length > 0 && (
+          <>
+            <h2 className="mb-4 mt-10 text-xl font-bold">
+              {dict.store.doctorsTitle}
+            </h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {doctors.map((d) => (
+                <div
+                  key={d.id}
+                  className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-4"
+                >
+                  {d.photo_url ? (
+                    <Image
+                      src={d.photo_url}
+                      alt=""
+                      width={56}
+                      height={56}
+                      className="h-14 w-14 shrink-0 rounded-full object-cover"
+                      sizes="56px"
+                    />
+                  ) : (
+                    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-surface-muted text-muted-foreground">
+                      <Stethoscope className="h-6 w-6" />
+                    </span>
+                  )}
+                  <div className="min-w-0">
+                    <p className="font-bold">{d.name}</p>
+                    {d.specialty && (
+                      <p className="text-sm font-semibold text-primary">
+                        {d.specialty}
+                      </p>
+                    )}
+                    {d.bio && (
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {d.bio}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         {store.isReal && (
