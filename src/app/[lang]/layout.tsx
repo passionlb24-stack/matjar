@@ -3,6 +3,7 @@ import { Tajawal } from "next/font/google";
 import { notFound } from "next/navigation";
 import "../globals.css";
 import { isLocale, locales, localeDirection } from "@/i18n/config";
+import { SITE_URL } from "@/lib/site";
 
 // Tajawal — a modern, premium typeface that covers Arabic and Latin.
 const tajawal = Tajawal({
@@ -11,13 +12,28 @@ const tajawal = Tajawal({
   variable: "--font-tajawal",
 });
 
+const SITE_DESCRIPTION =
+  "منصّة التجارة المحلية في لبنان — كل متجر، منتج، وخدمة بمكان واحد. Local commerce platform for Lebanon.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "متجر | Matjar",
     template: "%s · متجر",
   },
-  description:
-    "منصّة التجارة المحلية في لبنان — كل متجر، منتج، وخدمة بمكان واحد. Local commerce platform for Lebanon.",
+  description: SITE_DESCRIPTION,
+  applicationName: "متجر · Matjar",
+  openGraph: {
+    type: "website",
+    siteName: "متجر · Matjar",
+    title: "متجر | Matjar",
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "متجر | Matjar",
+    description: SITE_DESCRIPTION,
+  },
 };
 
 export function generateStaticParams() {

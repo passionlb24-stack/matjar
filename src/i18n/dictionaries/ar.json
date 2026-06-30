@@ -140,7 +140,18 @@
     "asCustomer": "عميل",
     "asMerchant": "تاجر",
     "showPassword": "إظهار كلمة المرور",
-    "hidePassword": "إخفاء كلمة المرور"
+    "hidePassword": "إخفاء كلمة المرور",
+    "forgotLink": "نسيت كلمة المرور؟",
+    "forgotTitle": "إعادة تعيين كلمة المرور",
+    "forgotSubtitle": "أدخل إيميلك وبنبعتلك رابط لإعادة التعيين.",
+    "sendReset": "أرسل الرابط",
+    "resetSent": "بعتنالك رابط لإعادة تعيين كلمة المرور. تفقّد إيميلك.",
+    "resetTitle": "كلمة مرور جديدة",
+    "resetSubtitle": "اختر كلمة مرور جديدة لحسابك.",
+    "newPassword": "كلمة المرور الجديدة",
+    "updatePassword": "تحديث كلمة المرور",
+    "resetDone": "تم تحديث كلمة المرور ✓",
+    "backToLogin": "العودة لتسجيل الدخول"
   },
   "merchant": {
     "dashboardTitle": "متاجري",

@@ -116,7 +116,27 @@ export async function generateMetadata({
   const { lang, id } = await params;
   if (!isLocale(lang)) return {};
   const product = await loadProduct(id);
-  return { title: product ? `${product.name} | Matjar` : "Matjar" };
+  if (!product) return { title: "Matjar" };
+  const description =
+    product.description ||
+    (lang === "ar"
+      ? `${product.name} من ${product.storeName} على متجر.`
+      : `${product.name} from ${product.storeName} on Matjar.`);
+  const image = product.images[0];
+  return {
+    title: product.name,
+    description,
+    openGraph: {
+      title: product.name,
+      description,
+      images: image ? [image] : undefined,
+    },
+    twitter: {
+      card: image ? "summary_large_image" : "summary",
+      title: product.name,
+      description,
+    },
+  };
 }
 
 export default async function ProductPage({

@@ -19,7 +19,13 @@ export async function generateMetadata({
   if (!isLocale(lang) || !isCategoryKey(slug)) return {};
   const dict = await getDictionary(lang);
   const cat = dict.catalog[slug];
-  return { title: `${cat.name} — ${dict.common.brand}`, description: cat.desc };
+  const title = `${cat.name} — ${dict.common.brand}`;
+  return {
+    title,
+    description: cat.desc,
+    openGraph: { title, description: cat.desc },
+    twitter: { card: "summary", title, description: cat.desc },
+  };
 }
 
 export default async function CategoryPage({

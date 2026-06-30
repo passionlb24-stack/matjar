@@ -148,7 +148,27 @@ export async function generateMetadata({
   const { lang, id } = await params;
   if (!isLocale(lang)) return {};
   const store = await loadStore(id, lang);
-  return { title: store?.name ?? "متجر | Matjar" };
+  if (!store) return { title: "متجر | Matjar" };
+  const description =
+    store.description ||
+    (lang === "ar"
+      ? `${store.name} على متجر — اطلب أو تواصل مباشرةً.`
+      : `${store.name} on Matjar — order or contact directly.`);
+  const image = store.coverUrl || store.logoUrl || undefined;
+  return {
+    title: store.name,
+    description,
+    openGraph: {
+      title: store.name,
+      description,
+      images: image ? [image] : undefined,
+    },
+    twitter: {
+      card: image ? "summary_large_image" : "summary",
+      title: store.name,
+      description,
+    },
+  };
 }
 
 export default async function StorePage({

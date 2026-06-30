@@ -120,6 +120,14 @@ export function LoginForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
           showLabel={dict.auth.showPassword}
           hideLabel={dict.auth.hidePassword}
         />
+        <div className="text-end">
+          <Link
+            href={`/${lang}/forgot-password`}
+            className="text-sm font-semibold text-primary hover:underline"
+          >
+            {dict.auth.forgotLink}
+          </Link>
+        </div>
         {error && <p className="text-sm font-medium text-red-600">{error}</p>}
         <button type="submit" disabled={loading} className={submitClass}>
           {loading ? dict.auth.loading : dict.auth.loginButton}
@@ -242,6 +250,117 @@ export function SignupForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
           {dict.auth.loginLink}
         </Link>
       </p>
+    </div>
+  );
+}
+
+export function ForgotPasswordForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    const email = String(new FormData(e.currentTarget).get("email"));
+    const { error } = await createClient().auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/${lang}/reset-password`,
+    });
+    if (error) {
+      setError(dict.auth.errorGeneric);
+      setLoading(false);
+      return;
+    }
+    setSent(true);
+    setLoading(false);
+  }
+
+  if (sent) {
+    return (
+      <div className="rounded-2xl border border-border bg-surface p-8 text-center shadow-sm">
+        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-soft text-primary">
+          <MailCheck className="h-7 w-7" />
+        </span>
+        <h1 className="mt-4 text-xl font-extrabold">{dict.auth.checkEmailTitle}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{dict.auth.resetSent}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm sm:p-8">
+      <Header title={dict.auth.forgotTitle} subtitle={dict.auth.forgotSubtitle} />
+      <form onSubmit={onSubmit} className="space-y-4">
+        <div>
+          <label className={labelClass} htmlFor="email">
+            {dict.auth.email}
+          </label>
+          <input id="email" name="email" type="email" required autoComplete="email" placeholder="name@email.com" className={`${fieldClass} mt-1.5`} />
+        </div>
+        {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+        <button type="submit" disabled={loading} className={submitClass}>
+          {loading ? dict.auth.loading : dict.auth.sendReset}
+        </button>
+      </form>
+      <p className="mt-6 text-center text-sm">
+        <Link href={`/${lang}/login`} className="font-bold text-primary hover:underline">
+          {dict.auth.backToLogin}
+        </Link>
+      </p>
+    </div>
+  );
+}
+
+export function ResetPasswordForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    const password = String(new FormData(e.currentTarget).get("password"));
+    const { error } = await createClient().auth.updateUser({ password });
+    if (error) {
+      setError(dict.auth.errorGeneric);
+      setLoading(false);
+      return;
+    }
+    setDone(true);
+    setLoading(false);
+  }
+
+  if (done) {
+    return (
+      <div className="rounded-2xl border border-border bg-surface p-8 text-center shadow-sm">
+        <h1 className="text-xl font-extrabold text-primary">{dict.auth.resetDone}</h1>
+        <p className="mt-4">
+          <Link href={`/${lang}/login`} className="font-bold text-primary hover:underline">
+            {dict.auth.backToLogin}
+          </Link>
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm sm:p-8">
+      <Header title={dict.auth.resetTitle} subtitle={dict.auth.resetSubtitle} />
+      <form onSubmit={onSubmit} className="space-y-4">
+        <PasswordInput
+          label={dict.auth.newPassword}
+          autoComplete="new-password"
+          minLength={6}
+          showLabel={dict.auth.showPassword}
+          hideLabel={dict.auth.hidePassword}
+        />
+        {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+        <button type="submit" disabled={loading} className={submitClass}>
+          {loading ? dict.auth.loading : dict.auth.updatePassword}
+        </button>
+      </form>
     </div>
   );
 }
