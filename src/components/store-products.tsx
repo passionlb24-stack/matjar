@@ -14,8 +14,31 @@ type Product = {
   id: string;
   name: string;
   price: number;
+  discountPrice?: number | null;
   imageUrl?: string | null;
 };
+
+function effectivePrice(p: Product) {
+  return p.discountPrice != null ? p.discountPrice : p.price;
+}
+
+function PriceTag({ p }: { p: Product }) {
+  if (p.discountPrice != null) {
+    return (
+      <span>
+        <span className="font-bold text-primary">
+          {formatPrice(p.discountPrice)}
+        </span>{" "}
+        <span className="text-xs font-normal text-muted-foreground line-through">
+          {formatPrice(p.price)}
+        </span>
+      </span>
+    );
+  }
+  return (
+    <span className="font-bold text-primary">{formatPrice(p.price)}</span>
+  );
+}
 
 const GRID_CATEGORIES = new Set<CategoryKey>([
   "retail",
@@ -70,7 +93,10 @@ export function StoreProducts({
   }
 
   const items = products.filter((p) => (cart[p.id] ?? 0) > 0);
-  const total = items.reduce((sum, p) => sum + p.price * cart[p.id], 0);
+  const total = items.reduce(
+    (sum, p) => sum + effectivePrice(p) * cart[p.id],
+    0,
+  );
 
   async function confirmOrder(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -109,7 +135,7 @@ export function StoreProducts({
         order_id: order.id,
         product_id: p.id,
         name: p.name,
-        unit_price: p.price,
+        unit_price: effectivePrice(p),
         quantity: cart[p.id],
       })),
     );
@@ -169,7 +195,9 @@ export function StoreProducts({
                 <Card p={p} />
                 <div className="flex flex-1 flex-col p-4">
                   <h3 className="font-bold leading-tight">{p.name}</h3>
-                  <p className="mt-1 font-bold text-primary">{formatPrice(p.price)}</p>
+                  <p className="mt-1">
+                    <PriceTag p={p} />
+                  </p>
                   <div className="mt-3 flex justify-end">
                     {qty > 0 ? (
                       <Stepper id={p.id} qty={qty} />
@@ -196,7 +224,9 @@ export function StoreProducts({
                 <Card p={p} />
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate font-bold">{p.name}</h3>
-                  <p className="mt-0.5 text-sm font-bold">{formatPrice(p.price)}</p>
+                  <p className="mt-0.5 text-sm">
+                    <PriceTag p={p} />
+                  </p>
                 </div>
                 {qty > 0 ? (
                   <Stepper id={p.id} qty={qty} />

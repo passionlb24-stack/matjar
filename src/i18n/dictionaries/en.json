@@ -199,6 +199,7 @@
       "name": "Product name",
       "namePlaceholder": "e.g. Mixed grill",
       "price": "Price ($)",
+      "discountPrice": "Discounted price ($) — optional",
       "description": "Description",
       "descriptionPlaceholder": "Product details (optional)",
       "save": "Save product",

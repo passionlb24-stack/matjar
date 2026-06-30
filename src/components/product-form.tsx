@@ -34,6 +34,7 @@ export function ProductForm({
       store_id: storeId,
       name: String(form.get("name")),
       price: Number(form.get("price")) || 0,
+      discount_price: Number(form.get("discount_price")) || null,
       description: String(form.get("description")) || null,
       image_url: imageUrl,
     });
@@ -66,11 +67,19 @@ export function ProductForm({
         </label>
         <input id="name" name="name" type="text" required placeholder={dict.merchant.products.namePlaceholder} className={field} />
       </div>
-      <div>
-        <label className={label} htmlFor="price">
-          {dict.merchant.products.price}
-        </label>
-        <input id="price" name="price" type="number" min="0" step="0.01" required placeholder="0" className={field} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className={label} htmlFor="price">
+            {dict.merchant.products.price}
+          </label>
+          <input id="price" name="price" type="number" min="0" step="0.01" required placeholder="0" className={field} />
+        </div>
+        <div>
+          <label className={label} htmlFor="discount_price">
+            {dict.merchant.products.discountPrice}
+          </label>
+          <input id="discount_price" name="discount_price" type="number" min="0" step="0.01" placeholder="0" className={field} />
+        </div>
       </div>
       <div>
         <label className={label} htmlFor="description">
