@@ -16,6 +16,7 @@ import { Container } from "@/components/ui/container";
 import { StoreProducts } from "@/components/store-products";
 import { BookingPanel } from "@/components/booking-panel";
 import { StoreReviews, type Review } from "@/components/store-reviews";
+import { FollowButton } from "@/components/follow-button";
 import { ProBadge } from "@/components/pro-badge";
 
 const UUID_RE =
@@ -215,6 +216,17 @@ export default async function StorePage({
       .order("sort_order", { ascending: true });
     doctors = (data ?? []) as DoctorView[];
   }
+
+  let isFollowing = false;
+  if (user && store.isReal && UUID_RE.test(id)) {
+    const { data: fol } = await supabase
+      .from("follows")
+      .select("store_id")
+      .eq("user_id", user.id)
+      .eq("store_id", id)
+      .maybeSingle();
+    isFollowing = !!fol;
+  }
   const avg = reviews.length
     ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
     : null;
@@ -336,6 +348,14 @@ export default async function StorePage({
             </div>
 
             <div className="flex flex-wrap gap-2">
+              {store.isReal && (
+                <FollowButton
+                  storeId={id}
+                  following={isFollowing}
+                  lang={lang}
+                  dict={dict}
+                />
+              )}
               {store.phone && (
                 <a
                   href={`tel:${store.phone}`}

@@ -83,6 +83,12 @@ export default async function AccountPage({
           >
             {dict.favorites.title}
           </Link>
+          <Link
+            href={`/${lang}/following`}
+            className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+          >
+            {dict.following.title}
+          </Link>
         </div>
       </Container>
     </div>

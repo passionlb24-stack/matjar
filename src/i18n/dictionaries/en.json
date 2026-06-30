@@ -136,7 +136,9 @@
     "couponInvalid": "Invalid code",
     "couponExpired": "This code has expired",
     "couponUsedUp": "This code is used up",
-    "couponMinOrder": "Your order is below this code's minimum"
+    "couponMinOrder": "Your order is below this code's minimum",
+    "follow": "Follow",
+    "following": "Following"
   },
   "auth": {
     "loginTitle": "Log in",
@@ -596,6 +598,10 @@
     "title": "Favorites",
     "empty": "You don't have any favorite stores yet."
   },
+  "following": {
+    "title": "Stores you follow",
+    "empty": "You don't follow any stores yet."
+  },
   "offers": {
     "title": "Today's offers",
     "subtitle": "Every discounted product on Matjar, in one place.",
@@ -608,7 +614,8 @@
     "orderNew": "New order on your store",
     "orderStatus": "Your order status changed",
     "bookingNew": "New booking on your store",
-    "bookingStatus": "Your booking status changed"
+    "bookingStatus": "Your booking status changed",
+    "storeProduct": "New product from a store you follow"
   },
   "dashboard": {
     "panel": "Dashboard",

@@ -10,6 +10,7 @@ import { MarkNotificationsRead } from "@/components/mark-notifications-read";
 type Notif = {
   id: string;
   type: string;
+  data: { store_id?: string } | null;
   is_read: boolean;
 };
 
@@ -30,7 +31,7 @@ export default async function NotificationsPage({
 
   const { data } = await supabase
     .from("notifications")
-    .select("id, type, is_read")
+    .select("id, type, data, is_read")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(50);
@@ -45,14 +46,18 @@ export default async function NotificationsPage({
           ? dict.notifications.bookingNew
           : t === "booking_status"
             ? dict.notifications.bookingStatus
-            : t;
+            : t === "store_product"
+              ? dict.notifications.storeProduct
+              : t;
 
-  const linkFor = (t: string) =>
-    t === "order_new" || t === "booking_new"
-      ? `/${lang}/merchant`
-      : t === "order_status"
-        ? `/${lang}/orders`
-        : `/${lang}/bookings`;
+  const linkFor = (n: Notif) =>
+    n.type === "store_product" && n.data?.store_id
+      ? `/${lang}/store/${n.data.store_id}`
+      : n.type === "order_new" || n.type === "booking_new"
+        ? `/${lang}/merchant`
+        : n.type === "order_status"
+          ? `/${lang}/orders`
+          : `/${lang}/bookings`;
 
   return (
     <div className="py-10">
@@ -67,7 +72,7 @@ export default async function NotificationsPage({
             {notifs.map((n) => (
               <Link
                 key={n.id}
-                href={linkFor(n.type)}
+                href={linkFor(n)}
                 className={`block rounded-2xl border p-4 transition-colors ${
                   n.is_read
                     ? "border-border bg-surface"
