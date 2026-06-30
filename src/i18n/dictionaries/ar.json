@@ -138,6 +138,13 @@
   "merchant": {
     "dashboardTitle": "متاجري",
     "dashboardSubtitle": "أدِر متاجرك واطّلع على حالتها.",
+    "stats": {
+      "todayOrders": "طلبات اليوم",
+      "totalOrders": "إجمالي الطلبات",
+      "sales": "المبيعات",
+      "pending": "طلبات جديدة",
+      "bookings": "الحجوزات"
+    },
     "newStore": "متجر جديد",
     "noStoresTitle": "لسا ما عندك متجر",
     "noStoresBody": "افتح متجرك الأول وابدأ استقبال الطلبات والحجوزات.",

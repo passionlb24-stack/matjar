@@ -45,6 +45,33 @@ export default async function MerchantPage({
 
   const stores = (data ?? []) as unknown as StoreRow[];
 
+  const storeIds = stores.map((s) => s.id);
+  let stats = { today: 0, total: 0, sales: 0, pending: 0, bookings: 0 };
+  if (storeIds.length) {
+    const { data: ordersData } = await supabase
+      .from("orders")
+      .select("total, status, created_at")
+      .in("store_id", storeIds);
+    const { count: bookingCount } = await supabase
+      .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .in("store_id", storeIds);
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const orders = (ordersData ?? []) as {
+      total: number;
+      status: string;
+      created_at: string;
+    }[];
+    stats = {
+      today: orders.filter((o) => new Date(o.created_at) >= startOfDay).length,
+      total: orders.length,
+      sales: orders.reduce((s, o) => s + Number(o.total), 0),
+      pending: orders.filter((o) => o.status === "pending").length,
+      bookings: bookingCount ?? 0,
+    };
+  }
+
   return (
     <div className="py-10">
       <Container>
@@ -65,6 +92,28 @@ export default async function MerchantPage({
             {dict.merchant.newStore}
           </Link>
         </div>
+
+        {storeIds.length > 0 && (
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {[
+              { label: dict.merchant.stats.todayOrders, value: stats.today },
+              { label: dict.merchant.stats.pending, value: stats.pending },
+              { label: dict.merchant.stats.totalOrders, value: stats.total },
+              {
+                label: dict.merchant.stats.sales,
+                value: `$${stats.sales.toLocaleString("en-US")}`,
+              },
+              { label: dict.merchant.stats.bookings, value: stats.bookings },
+            ].map((s) => (
+              <div key={s.label} className="rounded-2xl bg-surface-muted/60 p-4">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {s.label}
+                </p>
+                <p className="mt-1 text-2xl font-extrabold">{s.value}</p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {stores.length ? (
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

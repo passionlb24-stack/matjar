@@ -138,6 +138,13 @@
   "merchant": {
     "dashboardTitle": "My stores",
     "dashboardSubtitle": "Manage your stores and track their status.",
+    "stats": {
+      "todayOrders": "Today's orders",
+      "totalOrders": "Total orders",
+      "sales": "Sales",
+      "pending": "New orders",
+      "bookings": "Bookings"
+    },
     "newStore": "New store",
     "noStoresTitle": "You don't have a store yet",
     "noStoresBody": "Open your first store and start receiving orders and bookings.",
