@@ -375,6 +375,20 @@
       "empty": "ما في كوبونات بعد.",
       "used": "استُخدم",
       "inactiveBadge": "معطّل"
+    },
+    "analytics": {
+      "link": "التقارير",
+      "title": "تقارير المتجر",
+      "subtitle": "أداء مبيعاتك بنظرة سريعة.",
+      "totalOrders": "إجمالي الطلبات",
+      "sales": "إجمالي المبيعات",
+      "thisWeek": "هذا الأسبوع",
+      "thisMonth": "هذا الشهر",
+      "ordersOverTime": "الطلبات (آخر 14 يوم)",
+      "topProducts": "الأكثر مبيعاً",
+      "statusBreakdown": "الطلبات حسب الحالة",
+      "noData": "لا توجد بيانات بعد.",
+      "orders": "طلب"
     }
   },
   "admin": {

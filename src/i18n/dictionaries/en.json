@@ -375,6 +375,20 @@
       "empty": "No coupons yet.",
       "used": "used",
       "inactiveBadge": "Inactive"
+    },
+    "analytics": {
+      "link": "Reports",
+      "title": "Store reports",
+      "subtitle": "Your sales performance at a glance.",
+      "totalOrders": "Total orders",
+      "sales": "Total sales",
+      "thisWeek": "This week",
+      "thisMonth": "This month",
+      "ordersOverTime": "Orders (last 14 days)",
+      "topProducts": "Best sellers",
+      "statusBreakdown": "Orders by status",
+      "noData": "No data yet.",
+      "orders": "orders"
     }
   },
   "admin": {
