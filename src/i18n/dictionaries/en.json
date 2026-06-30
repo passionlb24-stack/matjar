@@ -633,6 +633,12 @@
     "buyNow": "Order now",
     "total": "Total",
     "visitStore": "Visit store",
-    "backToStore": "Back to store"
+    "backToStore": "Back to store",
+    "wishlist": "Save for later",
+    "wishlisted": "Saved"
+  },
+  "wishlist": {
+    "title": "Wishlist",
+    "empty": "You haven't saved any products yet."
   }
 }

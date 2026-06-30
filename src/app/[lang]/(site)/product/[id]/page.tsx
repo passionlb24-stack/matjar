@@ -10,6 +10,7 @@ import { attributeSummary } from "@/lib/attributes";
 import { Container } from "@/components/ui/container";
 import { ProductGallery } from "@/components/product-gallery";
 import { ProductOrder, type Variant, type AddOn } from "@/components/product-order";
+import { WishlistButton } from "@/components/wishlist-button";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -182,6 +183,17 @@ export default async function ProductPage({
     }
   }
 
+  let isWishlisted = false;
+  if (user) {
+    const { data: wl } = await supabase
+      .from("wishlist")
+      .select("product_id")
+      .eq("user_id", user.id)
+      .eq("product_id", product.id)
+      .maybeSingle();
+    isWishlisted = !!wl;
+  }
+
   const basePrice = product.discountPrice ?? product.price;
   const attrText = attributeSummary(product.category, product.attributes, l);
   const isBooking = bookingCategories.has(product.category);
@@ -273,6 +285,15 @@ export default async function ProductPage({
                   acceptsPickup={product.acceptsPickup}
                 />
               )}
+            </div>
+
+            <div className="mt-3">
+              <WishlistButton
+                productId={product.id}
+                wishlisted={isWishlisted}
+                lang={lang}
+                dict={dict}
+              />
             </div>
 
             <Link

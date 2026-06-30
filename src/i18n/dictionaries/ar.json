@@ -633,6 +633,12 @@
     "buyNow": "اطلب الآن",
     "total": "المجموع",
     "visitStore": "زيارة المتجر",
-    "backToStore": "عودة للمتجر"
+    "backToStore": "عودة للمتجر",
+    "wishlist": "احفظ لوقت لاحق",
+    "wishlisted": "محفوظ"
+  },
+  "wishlist": {
+    "title": "قائمة الأمنيات",
+    "empty": "لسا ما حفظت أي منتج."
   }
 }
