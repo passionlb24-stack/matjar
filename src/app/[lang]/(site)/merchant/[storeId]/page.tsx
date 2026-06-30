@@ -71,15 +71,23 @@ export default async function ManageStorePage({
           {(store as { name: string }).name}
         </h1>
 
-        <div className="mt-5 flex gap-2">
-          <span className="rounded-lg bg-foreground px-3.5 py-1.5 text-sm font-semibold text-background">
-            {dict.merchant.productsLink}
-          </span>
+        <div className="mt-5 flex items-center justify-between gap-2">
+          <div className="flex gap-2">
+            <span className="rounded-lg bg-foreground px-3.5 py-1.5 text-sm font-semibold text-background">
+              {dict.merchant.productsLink}
+            </span>
+            <Link
+              href={`/${lang}/merchant/${storeId}/orders`}
+              className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
+            >
+              {dict.merchant.ordersLink}
+            </Link>
+          </div>
           <Link
-            href={`/${lang}/merchant/${storeId}/orders`}
-            className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
+            href={`/${lang}/merchant/${storeId}/edit`}
+            className="rounded-lg border border-border px-3.5 py-1.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
           >
-            {dict.merchant.ordersLink}
+            {dict.merchant.edit}
           </Link>
         </div>
 

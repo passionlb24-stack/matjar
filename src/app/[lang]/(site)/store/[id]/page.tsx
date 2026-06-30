@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { MapPin, MessageCircle, Phone, Star } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
@@ -32,6 +33,8 @@ type StoreView = {
   isOpen: boolean;
   rating?: number;
   reviews?: number;
+  logoUrl?: string | null;
+  coverUrl?: string | null;
   isReal: boolean;
   products: {
     id?: string;
@@ -46,7 +49,7 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
     const supabase = await createClient();
     const { data } = await supabase
       .from("stores")
-      .select("name, description, area, status, business_types(slug)")
+      .select("name, description, area, status, logo_url, cover_url, business_types(slug)")
       .eq("id", id)
       .is("deleted_at", null)
       .maybeSingle();
@@ -65,6 +68,8 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
         area: (data.area as string | null) ?? null,
         description: (data.description as string | null) ?? null,
         isOpen: data.status === "active",
+        logoUrl: (data.logo_url as string | null) ?? null,
+        coverUrl: (data.cover_url as string | null) ?? null,
         isReal: true,
         products: (prods ?? []).map((p) => ({
           id: p.id as string,
@@ -123,20 +128,30 @@ export default async function StorePage({
 
   return (
     <div className="pb-16">
-      <div className={`relative h-48 bg-gradient-to-br ${style.cover} sm:h-60`}>
-        <Icon className="absolute end-10 top-10 h-28 w-28 text-black/[0.06]" />
+      <div className="relative h-48 sm:h-60">
+        {store.coverUrl ? (
+          <Image src={store.coverUrl} alt="" fill className="object-cover" sizes="100vw" priority />
+        ) : (
+          <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${style.cover}`}>
+            <Icon className="h-28 w-28 text-black/[0.06]" />
+          </div>
+        )}
       </div>
 
       <Container>
         <div className="-mt-12 rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-start gap-4">
-              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-border bg-surface shadow-sm">
-                <span
-                  className={`flex h-full w-full items-center justify-center rounded-2xl ${style.iconWrap}`}
-                >
-                  <Icon className="h-7 w-7" />
-                </span>
+              <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+                {store.logoUrl ? (
+                  <Image src={store.logoUrl} alt="" width={64} height={64} className="h-full w-full object-cover" sizes="64px" />
+                ) : (
+                  <span
+                    className={`flex h-full w-full items-center justify-center rounded-2xl ${style.iconWrap}`}
+                  >
+                    <Icon className="h-7 w-7" />
+                  </span>
+                )}
               </span>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
