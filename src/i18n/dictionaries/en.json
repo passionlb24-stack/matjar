@@ -105,7 +105,11 @@
     "note": "Note",
     "notePlaceholder": "Any note for the store?",
     "confirmOrder": "Confirm order",
-    "back": "Back"
+    "back": "Back",
+    "minOrder": "Minimum order",
+    "belowMin": "Your order is below the minimum",
+    "payment": "Payment",
+    "prep": "Prep time"
   },
   "auth": {
     "loginTitle": "Log in",
@@ -261,6 +265,20 @@
       "upgradeTitle": "Upgrade to Matjar Pro",
       "upgradeBody": "A full store, unlimited orders, higher search visibility, a Pro badge and better support. Payment is manual for now — contact us to activate Pro after payment.",
       "viewPlans": "View plans & pricing"
+    },
+    "settingsLink": "Settings",
+    "settings": {
+      "title": "Store settings",
+      "subtitle": "Operational settings shown to customers at checkout.",
+      "fulfillment": "Fulfillment options",
+      "delivery": "Delivery",
+      "pickup": "Pickup",
+      "minOrder": "Minimum order ($)",
+      "minOrderHint": "Leave empty for no minimum.",
+      "prepTime": "Preparation time",
+      "prepTimePlaceholder": "e.g. 30-45 min",
+      "paymentNote": "Payment methods / note",
+      "paymentNotePlaceholder": "e.g. Cash on delivery"
     }
   },
   "admin": {

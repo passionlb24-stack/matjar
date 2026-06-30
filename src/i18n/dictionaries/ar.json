@@ -105,7 +105,11 @@
     "note": "ملاحظة",
     "notePlaceholder": "أي ملاحظة للمتجر؟",
     "confirmOrder": "تأكيد الطلب",
-    "back": "رجوع"
+    "back": "رجوع",
+    "minOrder": "الحد الأدنى للطلب",
+    "belowMin": "طلبك تحت الحد الأدنى للطلب",
+    "payment": "الدفع",
+    "prep": "التحضير"
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",
@@ -261,6 +265,20 @@
       "upgradeTitle": "ترقَّ إلى Matjar Pro",
       "upgradeBody": "متجر كامل، طلبات غير محدودة، ظهور أعلى بالبحث، شارة Pro ودعم أفضل. الدفع يدوي حالياً — تواصل معنا لتفعيل Pro بعد الدفع.",
       "viewPlans": "شوف الخطط والأسعار"
+    },
+    "settingsLink": "الإعدادات",
+    "settings": {
+      "title": "إعدادات المتجر",
+      "subtitle": "إعدادات تشغيلية تظهر للزبون عند الطلب.",
+      "fulfillment": "خيارات الاستلام",
+      "delivery": "توصيل",
+      "pickup": "استلام من المتجر",
+      "minOrder": "الحد الأدنى للطلب ($)",
+      "minOrderHint": "اتركه فارغاً لو ما في حد أدنى.",
+      "prepTime": "وقت التحضير",
+      "prepTimePlaceholder": "مثلاً: 30-45 دقيقة",
+      "paymentNote": "طرق الدفع / ملاحظة",
+      "paymentNotePlaceholder": "مثلاً: نقداً عند الاستلام"
     }
   },
   "admin": {

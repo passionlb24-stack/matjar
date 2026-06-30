@@ -27,6 +27,8 @@ type ProductView = {
   id: string;
   storeId: string;
   storeName: string;
+  acceptsDelivery: boolean;
+  acceptsPickup: boolean;
   category: CategoryKey;
   name: string;
   description: string | null;
@@ -45,7 +47,7 @@ async function loadProduct(id: string): Promise<ProductView | null> {
   const { data } = await supabase
     .from("products")
     .select(
-      "id, store_id, name, description, price, discount_price, image_url, gallery, stock, attributes, stores(name, business_types(slug))",
+      "id, store_id, name, description, price, discount_price, image_url, gallery, stock, attributes, stores(name, accepts_delivery, accepts_pickup, business_types(slug))",
     )
     .eq("id", id)
     .is("deleted_at", null)
@@ -54,6 +56,8 @@ async function loadProduct(id: string): Promise<ProductView | null> {
 
   const store = data.stores as unknown as {
     name: string;
+    accepts_delivery: boolean | null;
+    accepts_pickup: boolean | null;
     business_types: { slug: string } | null;
   } | null;
 
@@ -79,6 +83,8 @@ async function loadProduct(id: string): Promise<ProductView | null> {
     id: data.id as string,
     storeId: data.store_id as string,
     storeName: store?.name ?? "",
+    acceptsDelivery: store?.accepts_delivery ?? true,
+    acceptsPickup: store?.accepts_pickup ?? true,
     category: (store?.business_types?.slug as CategoryKey) ?? "retail",
     name: data.name as string,
     description: (data.description as string | null) ?? null,
@@ -243,6 +249,8 @@ export default async function ProductPage({
                   variants={product.variants}
                   addons={product.addons}
                   defaultAddress={defaultAddress}
+                  acceptsDelivery={product.acceptsDelivery}
+                  acceptsPickup={product.acceptsPickup}
                 />
               )}
             </div>

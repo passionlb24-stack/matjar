@@ -34,6 +34,8 @@ export function ProductOrder({
   variants,
   addons,
   defaultAddress = "",
+  acceptsDelivery = true,
+  acceptsPickup = true,
 }: {
   lang: Locale;
   dict: Dictionary;
@@ -45,6 +47,8 @@ export function ProductOrder({
   variants: Variant[];
   addons: AddOn[];
   defaultAddress?: string;
+  acceptsDelivery?: boolean;
+  acceptsPickup?: boolean;
 }) {
   const router = useRouter();
   const [variantId, setVariantId] = useState<string | null>(
@@ -54,8 +58,11 @@ export function ProductOrder({
   const [qty, setQty] = useState(1);
   const [checkingOut, setCheckingOut] = useState(false);
   const [placing, setPlacing] = useState(false);
+  const fulfillmentOptions = (["delivery", "pickup"] as const).filter((o) =>
+    o === "delivery" ? acceptsDelivery : acceptsPickup,
+  );
   const [fulfillment, setFulfillment] = useState<"delivery" | "pickup">(
-    "delivery",
+    acceptsDelivery ? "delivery" : "pickup",
   );
 
   const variant = variants.find((v) => v.id === variantId) ?? null;
@@ -244,25 +251,27 @@ export function ProductOrder({
           <p className="text-lg font-extrabold">
             {dict.product.total}: {formatPrice(total)}
           </p>
-          <div>
-            <span className="text-sm font-semibold">{dict.store.fulfillment}</span>
-            <div className="mt-1.5 grid grid-cols-2 gap-2">
-              {(["delivery", "pickup"] as const).map((opt) => (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() => setFulfillment(opt)}
-                  className={`rounded-xl border px-4 py-2.5 text-sm font-bold transition-colors ${
-                    fulfillment === opt
-                      ? "border-primary bg-primary-soft text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/40"
-                  }`}
-                >
-                  {opt === "delivery" ? dict.store.delivery : dict.store.pickup}
-                </button>
-              ))}
+          {fulfillmentOptions.length > 1 && (
+            <div>
+              <span className="text-sm font-semibold">{dict.store.fulfillment}</span>
+              <div className="mt-1.5 grid grid-cols-2 gap-2">
+                {fulfillmentOptions.map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => setFulfillment(opt)}
+                    className={`rounded-xl border px-4 py-2.5 text-sm font-bold transition-colors ${
+                      fulfillment === opt
+                        ? "border-primary bg-primary-soft text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/40"
+                    }`}
+                  >
+                    {opt === "delivery" ? dict.store.delivery : dict.store.pickup}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
           {fulfillment === "delivery" && (
             <div>
               <label className="text-sm font-semibold" htmlFor="address">

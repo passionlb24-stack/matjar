@@ -66,6 +66,11 @@ export function StoreProducts({
   isBooking,
   products,
   defaultAddress = "",
+  acceptsDelivery = true,
+  acceptsPickup = true,
+  minOrder = null,
+  paymentNote = null,
+  prepTime = null,
 }: {
   storeId: string;
   lang: Locale;
@@ -74,13 +79,21 @@ export function StoreProducts({
   isBooking: boolean;
   products: Product[];
   defaultAddress?: string;
+  acceptsDelivery?: boolean;
+  acceptsPickup?: boolean;
+  minOrder?: number | null;
+  paymentNote?: string | null;
+  prepTime?: string | null;
 }) {
   const router = useRouter();
   const [cart, setCart] = useState<Record<string, number>>({});
   const [placing, setPlacing] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
+  const fulfillmentOptions = (["delivery", "pickup"] as const).filter((o) =>
+    o === "delivery" ? acceptsDelivery : acceptsPickup,
+  );
   const [fulfillment, setFulfillment] = useState<"delivery" | "pickup">(
-    "delivery",
+    acceptsDelivery ? "delivery" : "pickup",
   );
 
   const Icon = categoryIcons[category];
@@ -102,6 +115,7 @@ export function StoreProducts({
     (sum, p) => sum + effectivePrice(p) * cart[p.id],
     0,
   );
+  const belowMin = minOrder != null && total < minOrder;
 
   async function confirmOrder(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -278,25 +292,46 @@ export function StoreProducts({
             <p className="text-lg font-extrabold">
               {dict.store.total}: {formatPrice(total)}
             </p>
-            <div>
-              <span className="text-sm font-semibold">{dict.store.fulfillment}</span>
-              <div className="mt-1.5 grid grid-cols-2 gap-2">
-                {(["delivery", "pickup"] as const).map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setFulfillment(opt)}
-                    className={`rounded-xl border px-4 py-2.5 text-sm font-bold transition-colors ${
-                      fulfillment === opt
-                        ? "border-primary bg-primary-soft text-primary"
-                        : "border-border text-muted-foreground hover:border-primary/40"
-                    }`}
-                  >
-                    {opt === "delivery" ? dict.store.delivery : dict.store.pickup}
-                  </button>
-                ))}
+            {fulfillmentOptions.length > 1 && (
+              <div>
+                <span className="text-sm font-semibold">{dict.store.fulfillment}</span>
+                <div className="mt-1.5 grid grid-cols-2 gap-2">
+                  {fulfillmentOptions.map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setFulfillment(opt)}
+                      className={`rounded-xl border px-4 py-2.5 text-sm font-bold transition-colors ${
+                        fulfillment === opt
+                          ? "border-primary bg-primary-soft text-primary"
+                          : "border-border text-muted-foreground hover:border-primary/40"
+                      }`}
+                    >
+                      {opt === "delivery" ? dict.store.delivery : dict.store.pickup}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
+            {(prepTime || paymentNote) && (
+              <div className="space-y-1 rounded-xl bg-surface-muted/60 px-4 py-3 text-sm text-muted-foreground">
+                {prepTime && (
+                  <p>
+                    <span className="font-semibold">{dict.store.prep}:</span> {prepTime}
+                  </p>
+                )}
+                {paymentNote && (
+                  <p>
+                    <span className="font-semibold">{dict.store.payment}:</span> {paymentNote}
+                  </p>
+                )}
+              </div>
+            )}
+            {belowMin && (
+              <p className="rounded-xl bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-600">
+                {dict.store.belowMin} ({formatPrice(minOrder!)})
+              </p>
+            )}
             {fulfillment === "delivery" && (
               <div>
                 <label className="text-sm font-semibold" htmlFor="address">
@@ -327,7 +362,7 @@ export function StoreProducts({
               </button>
               <button
                 type="submit"
-                disabled={placing}
+                disabled={placing || belowMin}
                 className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
               >
                 {placing ? dict.store.placing : dict.store.confirmOrder}

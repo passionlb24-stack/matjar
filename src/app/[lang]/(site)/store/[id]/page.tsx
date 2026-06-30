@@ -46,6 +46,11 @@ type StoreView = {
   website?: string | null;
   phone?: string | null;
   whatsapp?: string | null;
+  acceptsDelivery?: boolean;
+  acceptsPickup?: boolean;
+  minOrder?: number | null;
+  prepTime?: string | null;
+  paymentNote?: string | null;
   isReal: boolean;
   products: {
     id?: string;
@@ -62,7 +67,7 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
     const supabase = await createClient();
     const { data } = await supabase
       .from("stores")
-      .select("name, description, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, instagram, facebook, website, business_types(slug)")
+      .select("name, description, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, business_types(slug)")
       .eq("id", id)
       .is("deleted_at", null)
       .maybeSingle();
@@ -91,6 +96,11 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
         website: (data.website as string | null) ?? null,
         phone: (data.phone as string | null) ?? null,
         whatsapp: (data.whatsapp as string | null) ?? null,
+        acceptsDelivery: (data.accepts_delivery as boolean | null) ?? true,
+        acceptsPickup: (data.accepts_pickup as boolean | null) ?? true,
+        minOrder: data.min_order != null ? Number(data.min_order) : null,
+        prepTime: (data.prep_time as string | null) ?? null,
+        paymentNote: (data.payment_note as string | null) ?? null,
         isReal: true,
         products: (prods ?? []).map((p) => ({
           id: p.id as string,
@@ -358,6 +368,11 @@ export default async function StorePage({
                 category={store.category}
                 isBooking={isBooking}
                 defaultAddress={defaultAddress}
+                acceptsDelivery={store.acceptsDelivery ?? true}
+                acceptsPickup={store.acceptsPickup ?? true}
+                minOrder={store.minOrder ?? null}
+                paymentNote={store.paymentNote ?? null}
+                prepTime={store.prepTime ?? null}
                 products={store.products
                   .filter((p) => p.id)
                   .map((p) => ({

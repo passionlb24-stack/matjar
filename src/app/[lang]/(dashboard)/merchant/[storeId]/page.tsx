@@ -154,6 +154,14 @@ export default async function ManageStorePage({
                 {dict.merchant.subscriptionLink}
               </Link>
             )}
+            {isOwner && (
+              <Link
+                href={`/${lang}/merchant/${storeId}/settings`}
+                className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
+              >
+                {dict.merchant.settingsLink}
+              </Link>
+            )}
           </div>
           {isOwner && (
             <Link
