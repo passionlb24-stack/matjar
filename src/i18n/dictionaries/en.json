@@ -87,7 +87,8 @@
     "reviews": "Reviews",
     "order": "Add to cart",
     "book": "Book",
-    "from": "From"
+    "from": "From",
+    "noProducts": "No products listed yet."
   },
   "auth": {
     "loginTitle": "Log in",
@@ -140,6 +141,19 @@
       "active": "Active",
       "suspended": "Suspended",
       "rejected": "Rejected"
+    },
+    "products": {
+      "title": "Products",
+      "add": "Add product",
+      "name": "Product name",
+      "namePlaceholder": "e.g. Mixed grill",
+      "price": "Price ($)",
+      "description": "Description",
+      "descriptionPlaceholder": "Product details (optional)",
+      "save": "Save product",
+      "saving": "Saving…",
+      "empty": "No products yet. Add your store's first product.",
+      "back": "Back to my stores"
     }
   },
   "admin": {

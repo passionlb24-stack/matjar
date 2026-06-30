@@ -18,7 +18,9 @@ const UUID_RE =
 const bookingCategories = new Set(["services", "healthcare", "realEstate"]);
 
 function formatPrice(price: number) {
-  return price >= 1000 ? `$${price.toLocaleString("en-US")}` : `$${price}`;
+  return price >= 1000
+    ? `$${Number(price).toLocaleString("en-US")}`
+    : `$${price}`;
 }
 
 type StoreView = {
@@ -29,30 +31,43 @@ type StoreView = {
   isOpen: boolean;
   rating?: number;
   reviews?: number;
+  isReal: boolean;
+  products: { name: string; price: number }[];
 };
 
 async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
-  // Real stores have UUID ids; only query the DB for those.
   if (UUID_RE.test(id)) {
     const supabase = await createClient();
     const { data } = await supabase
       .from("stores")
-      .select("name, description, area, phone, whatsapp, status, business_types(slug, name_ar, name_en)")
+      .select("name, description, area, status, business_types(slug)")
       .eq("id", id)
       .is("deleted_at", null)
       .maybeSingle();
     if (data) {
       const bt = data.business_types as unknown as { slug: string } | null;
+      const { data: prods } = await supabase
+        .from("products")
+        .select("name, price")
+        .eq("store_id", id)
+        .eq("status", "active")
+        .is("deleted_at", null)
+        .order("sort_order", { ascending: true });
       return {
         name: data.name as string,
         category: (bt?.slug as CategoryKey) ?? "retail",
         area: (data.area as string | null) ?? null,
         description: (data.description as string | null) ?? null,
         isOpen: data.status === "active",
+        isReal: true,
+        products: (prods ?? []).map((p) => ({
+          name: p.name as string,
+          price: Number(p.price),
+        })),
       };
     }
   }
-  // Fall back to the demo catalog (seeded sample stores).
+  // Demo catalog fallback.
   const mock = getStoreById(id);
   if (mock) {
     return {
@@ -63,6 +78,11 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
       isOpen: mock.isOpen,
       rating: mock.rating,
       reviews: mock.reviews,
+      isReal: false,
+      products: sampleProducts[mock.category].map((p) => ({
+        name: p.name[lang],
+        price: p.price,
+      })),
     };
   }
   return null;
@@ -83,7 +103,6 @@ export default async function StorePage({
   const Icon = categoryIcons[store.category];
   const style = categoryStyles[store.category];
   const cat = dict.catalog[store.category];
-  const products = sampleProducts[store.category];
   const isBooking = bookingCategories.has(store.category);
 
   return (
@@ -161,32 +180,38 @@ export default async function StorePage({
         </div>
 
         <h2 className="mb-4 mt-10 text-xl font-bold">{dict.store.products}</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((p) => (
-            <div
-              key={p.name.en}
-              className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4"
-            >
-              <span
-                className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${style.cover}`}
+        {store.products.length ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {store.products.map((p, i) => (
+              <div
+                key={`${p.name}-${i}`}
+                className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4"
               >
-                <Icon className="h-7 w-7 text-black/20" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <h3 className="truncate font-bold">{p.name[lang]}</h3>
-                <p className="mt-0.5 text-sm text-muted-foreground">
-                  {dict.store.from}{" "}
-                  <span className="font-bold text-foreground">
-                    {formatPrice(p.price)}
-                  </span>
-                </p>
+                <span
+                  className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${style.cover}`}
+                >
+                  <Icon className="h-7 w-7 text-black/20" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate font-bold">{p.name}</h3>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    {dict.store.from}{" "}
+                    <span className="font-bold text-foreground">
+                      {formatPrice(p.price)}
+                    </span>
+                  </p>
+                </div>
+                <button className="shrink-0 rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover">
+                  {isBooking ? dict.store.book : dict.store.order}
+                </button>
               </div>
-              <button className="shrink-0 rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover">
-                {isBooking ? dict.store.book : dict.store.order}
-              </button>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-border py-14 text-center text-muted-foreground">
+            {dict.store.noProducts}
+          </div>
+        )}
       </Container>
     </div>
   );

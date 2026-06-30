@@ -90,7 +90,7 @@ export default async function MerchantPage({
                   {store.area ? ` · ${store.area}` : null}
                 </p>
                 <Link
-                  href={`/${lang}/store/${store.id}`}
+                  href={`/${lang}/merchant/${store.id}`}
                   className="mt-4 inline-block rounded-lg border border-border px-3.5 py-1.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
                 >
                   {dict.merchant.manage}
