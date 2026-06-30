@@ -11,6 +11,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { categoryIcons } from "@/components/category-icon";
 import { Container } from "@/components/ui/container";
+import { StoreProducts } from "@/components/store-products";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -32,7 +33,7 @@ type StoreView = {
   rating?: number;
   reviews?: number;
   isReal: boolean;
-  products: { name: string; price: number }[];
+  products: { id?: string; name: string; price: number }[];
 };
 
 async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
@@ -48,7 +49,7 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
       const bt = data.business_types as unknown as { slug: string } | null;
       const { data: prods } = await supabase
         .from("products")
-        .select("name, price")
+        .select("id, name, price")
         .eq("store_id", id)
         .eq("status", "active")
         .is("deleted_at", null)
@@ -61,6 +62,7 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
         isOpen: data.status === "active",
         isReal: true,
         products: (prods ?? []).map((p) => ({
+          id: p.id as string,
           name: p.name as string,
           price: Number(p.price),
         })),
@@ -180,7 +182,24 @@ export default async function StorePage({
         </div>
 
         <h2 className="mb-4 mt-10 text-xl font-bold">{dict.store.products}</h2>
-        {store.products.length ? (
+        {store.isReal ? (
+          store.products.length ? (
+            <StoreProducts
+              storeId={id}
+              lang={lang}
+              dict={dict}
+              category={store.category}
+              isBooking={isBooking}
+              products={store.products
+                .filter((p) => p.id)
+                .map((p) => ({ id: p.id as string, name: p.name, price: p.price }))}
+            />
+          ) : (
+            <div className="rounded-2xl border border-dashed border-border py-14 text-center text-muted-foreground">
+              {dict.store.noProducts}
+            </div>
+          )
+        ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {store.products.map((p, i) => (
               <div
@@ -206,10 +225,6 @@ export default async function StorePage({
                 </button>
               </div>
             ))}
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-border py-14 text-center text-muted-foreground">
-            {dict.store.noProducts}
           </div>
         )}
       </Container>

@@ -88,7 +88,11 @@
     "order": "أضف للسلة",
     "book": "احجز",
     "from": "يبدأ من",
-    "noProducts": "لسا ما في منتجات بهالمتجر."
+    "noProducts": "لسا ما في منتجات بهالمتجر.",
+    "yourOrder": "طلبك",
+    "total": "المجموع",
+    "checkout": "أكّد الطلب",
+    "placing": "عم نأكّد…"
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",
@@ -163,5 +167,21 @@
     "noPending": "ما في متاجر بانتظار المراجعة حالياً.",
     "approve": "قبول",
     "reject": "رفض"
+  },
+  "orders": {
+    "title": "طلباتي",
+    "empty": "لسا ما عندك طلبات.",
+    "order": "طلب",
+    "total": "المجموع",
+    "status": {
+      "pending": "بانتظار التأكيد",
+      "accepted": "مقبول",
+      "preparing": "قيد التحضير",
+      "ready": "جاهز",
+      "out_for_delivery": "بالطريق",
+      "completed": "مكتمل",
+      "cancelled": "ملغى",
+      "rejected": "مرفوض"
+    }
   }
 }

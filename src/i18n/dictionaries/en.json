@@ -88,7 +88,11 @@
     "order": "Add to cart",
     "book": "Book",
     "from": "From",
-    "noProducts": "No products listed yet."
+    "noProducts": "No products listed yet.",
+    "yourOrder": "Your order",
+    "total": "Total",
+    "checkout": "Place order",
+    "placing": "Placing…"
   },
   "auth": {
     "loginTitle": "Log in",
@@ -163,5 +167,21 @@
     "noPending": "No stores are awaiting review right now.",
     "approve": "Approve",
     "reject": "Reject"
+  },
+  "orders": {
+    "title": "My orders",
+    "empty": "You don't have any orders yet.",
+    "order": "Order",
+    "total": "Total",
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "out_for_delivery": "On the way",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "rejected": "Rejected"
+    }
   }
 }
