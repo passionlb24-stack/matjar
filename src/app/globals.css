@@ -11,11 +11,11 @@
   --foreground: #0b1620; /* near-black slate ink */
   --muted-foreground: #5d6b72; /* secondary text */
 
-  /* Brand */
-  --primary: #047857; /* deep emerald */
-  --primary-hover: #036249;
+  /* Brand — Matjar blue (matches the logo) */
+  --primary: #1556c2; /* confident blue */
+  --primary-hover: #0f4499;
   --primary-foreground: #ffffff;
-  --primary-soft: #ecfdf5; /* tinted emerald bg */
+  --primary-soft: #e9f1fd; /* tinted blue bg */
 
   /* Accent (ratings, offers) */
   --accent: #f59e0b; /* amber */
@@ -24,7 +24,7 @@
 
   /* Lines */
   --border: #e8e8e2;
-  --ring: #047857;
+  --ring: #1556c2;
 }
 
 @theme inline {
