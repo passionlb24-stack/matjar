@@ -33,7 +33,12 @@ type StoreView = {
   rating?: number;
   reviews?: number;
   isReal: boolean;
-  products: { id?: string; name: string; price: number }[];
+  products: {
+    id?: string;
+    name: string;
+    price: number;
+    imageUrl?: string | null;
+  }[];
 };
 
 async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
@@ -49,7 +54,7 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
       const bt = data.business_types as unknown as { slug: string } | null;
       const { data: prods } = await supabase
         .from("products")
-        .select("id, name, price")
+        .select("id, name, price, image_url")
         .eq("store_id", id)
         .eq("status", "active")
         .is("deleted_at", null)
@@ -65,6 +70,7 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
           id: p.id as string,
           name: p.name as string,
           price: Number(p.price),
+          imageUrl: (p.image_url as string | null) ?? null,
         })),
       };
     }
@@ -192,7 +198,12 @@ export default async function StorePage({
               isBooking={isBooking}
               products={store.products
                 .filter((p) => p.id)
-                .map((p) => ({ id: p.id as string, name: p.name, price: p.price }))}
+                .map((p) => ({
+                  id: p.id as string,
+                  name: p.name,
+                  price: p.price,
+                  imageUrl: p.imageUrl,
+                }))}
             />
           ) : (
             <div className="rounded-2xl border border-dashed border-border py-14 text-center text-muted-foreground">

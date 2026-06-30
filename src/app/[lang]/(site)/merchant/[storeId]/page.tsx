@@ -1,6 +1,7 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Package } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -15,6 +16,7 @@ type ProductRow = {
   name: string;
   price: number;
   is_available: boolean;
+  image_url: string | null;
 };
 
 function formatPrice(price: number) {
@@ -49,7 +51,7 @@ export default async function ManageStorePage({
 
   const { data } = await supabase
     .from("products")
-    .select("id, name, price, is_available")
+    .select("id, name, price, is_available, image_url")
     .eq("store_id", storeId)
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
@@ -91,9 +93,23 @@ export default async function ManageStorePage({
                 {products.map((p) => (
                   <div
                     key={p.id}
-                    className="flex items-center justify-between gap-4 rounded-xl border border-border bg-surface p-4"
+                    className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3"
                   >
-                    <span className="font-semibold">{p.name}</span>
+                    {p.image_url ? (
+                      <Image
+                        src={p.image_url}
+                        alt=""
+                        width={48}
+                        height={48}
+                        className="h-12 w-12 shrink-0 rounded-lg object-cover"
+                        sizes="48px"
+                      />
+                    ) : (
+                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-surface-muted text-muted-foreground">
+                        <Package className="h-5 w-5" />
+                      </span>
+                    )}
+                    <span className="flex-1 font-semibold">{p.name}</span>
                     <span className="font-bold text-primary">
                       {formatPrice(p.price)}
                     </span>

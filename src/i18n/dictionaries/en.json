@@ -158,6 +158,7 @@
     "products": {
       "title": "Products",
       "add": "Add product",
+      "image": "Product image (optional)",
       "name": "Product name",
       "namePlaceholder": "e.g. Mixed grill",
       "price": "Price ($)",

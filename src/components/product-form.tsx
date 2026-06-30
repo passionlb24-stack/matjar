@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { ImageUpload } from "@/components/image-upload";
 
 const field =
   "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
@@ -20,6 +21,7 @@ export function ProductForm({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -33,6 +35,7 @@ export function ProductForm({
       name: String(form.get("name")),
       price: Number(form.get("price")) || 0,
       description: String(form.get("description")) || null,
+      image_url: imageUrl,
     });
     if (error) {
       setError(dict.auth.errorGeneric);
@@ -40,6 +43,7 @@ export function ProductForm({
       return;
     }
     formEl.reset();
+    setImageUrl(null);
     setLoading(false);
     router.refresh();
   }
@@ -50,6 +54,12 @@ export function ProductForm({
       className="space-y-4 rounded-2xl border border-border bg-surface p-5"
     >
       <h3 className="font-bold">{dict.merchant.products.add}</h3>
+      <ImageUpload
+        folder={storeId}
+        value={imageUrl}
+        onChange={setImageUrl}
+        label={dict.merchant.products.image}
+      />
       <div>
         <label className={label} htmlFor="name">
           {dict.merchant.products.name}

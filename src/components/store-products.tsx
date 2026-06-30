@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -9,7 +10,12 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { categoryStyles, type CategoryKey } from "@/lib/catalog";
 import { categoryIcons } from "@/components/category-icon";
 
-type Product = { id: string; name: string; price: number };
+type Product = {
+  id: string;
+  name: string;
+  price: number;
+  imageUrl?: string | null;
+};
 
 function formatPrice(price: number) {
   return price >= 1000
@@ -93,11 +99,22 @@ export function StoreProducts({
               key={p.id}
               className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4"
             >
-              <span
-                className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${style.cover}`}
-              >
-                <Icon className="h-7 w-7 text-black/20" />
-              </span>
+              {p.imageUrl ? (
+                <Image
+                  src={p.imageUrl}
+                  alt=""
+                  width={64}
+                  height={64}
+                  className="h-16 w-16 shrink-0 rounded-xl object-cover"
+                  sizes="64px"
+                />
+              ) : (
+                <span
+                  className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${style.cover}`}
+                >
+                  <Icon className="h-7 w-7 text-black/20" />
+                </span>
+              )}
               <div className="min-w-0 flex-1">
                 <h3 className="truncate font-bold">{p.name}</h3>
                 <p className="mt-0.5 text-sm font-bold">{formatPrice(p.price)}</p>
