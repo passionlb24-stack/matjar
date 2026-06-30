@@ -95,7 +95,17 @@
     "placing": "عم نأكّد…",
     "menu": "القائمة",
     "services": "الخدمات",
-    "listings": "العروض"
+    "listings": "العروض",
+    "fulfillment": "طريقة الاستلام",
+    "delivery": "توصيل",
+    "pickup": "استلام من المتجر",
+    "address": "العنوان",
+    "addressPlaceholder": "عنوانك بالتفصيل",
+    "phone": "رقم الهاتف",
+    "note": "ملاحظة",
+    "notePlaceholder": "أي ملاحظة للمتجر؟",
+    "confirmOrder": "تأكيد الطلب",
+    "back": "رجوع"
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",

@@ -95,7 +95,17 @@
     "placing": "Placing…",
     "menu": "Menu",
     "services": "Services",
-    "listings": "Listings"
+    "listings": "Listings",
+    "fulfillment": "Fulfillment",
+    "delivery": "Delivery",
+    "pickup": "Pickup",
+    "address": "Address",
+    "addressPlaceholder": "Your detailed address",
+    "phone": "Phone number",
+    "note": "Note",
+    "notePlaceholder": "Any note for the store?",
+    "confirmOrder": "Confirm order",
+    "back": "Back"
   },
   "auth": {
     "loginTitle": "Log in",

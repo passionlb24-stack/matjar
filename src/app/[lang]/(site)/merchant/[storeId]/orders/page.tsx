@@ -15,6 +15,10 @@ type OrderRow = {
   id: string;
   status: string;
   total: number;
+  fulfillment: "delivery" | "pickup";
+  address: string | null;
+  phone: string | null;
+  customer_note: string | null;
   order_items: OrderItem[];
 };
 
@@ -50,7 +54,9 @@ export default async function StoreOrdersPage({
 
   const { data } = await supabase
     .from("orders")
-    .select("id, status, total, order_items(name, quantity, unit_price)")
+    .select(
+      "id, status, total, fulfillment, address, phone, customer_note, order_items(name, quantity, unit_price)",
+    )
     .eq("store_id", storeId)
     .order("created_at", { ascending: false });
   const orders = (data ?? []) as unknown as OrderRow[];
@@ -101,6 +107,18 @@ export default async function StoreOrdersPage({
                 <div className="mt-3 flex justify-between border-t border-border pt-3 font-bold">
                   <span>{dict.orders.total}</span>
                   <span>{formatPrice(order.total)}</span>
+                </div>
+                <div className="mt-3 space-y-1 border-t border-border pt-3 text-sm text-muted-foreground">
+                  <p>
+                    {order.fulfillment === "delivery"
+                      ? dict.store.delivery
+                      : dict.store.pickup}
+                    {order.phone ? ` · ${order.phone}` : ""}
+                  </p>
+                  {order.address && <p>{order.address}</p>}
+                  {order.customer_note && (
+                    <p className="italic">“{order.customer_note}”</p>
+                  )}
                 </div>
               </div>
             ))}
