@@ -216,7 +216,21 @@
       "delete": "Delete",
       "hide": "Hide",
       "show": "Show",
-      "back": "Back to my stores"
+      "back": "Back to my stores",
+      "gallery": "Gallery images",
+      "stock": "Stock (leave empty if untracked)",
+      "variantsTitle": "Variants (size, color…)",
+      "variantLabel": "Variant label",
+      "variantLabelPlaceholder": "e.g. Large - Red",
+      "variantPrice": "Price",
+      "variantStock": "Stock",
+      "addVariant": "Add variant",
+      "addonsTitle": "Optional add-ons (extras)",
+      "addonName": "Add-on name",
+      "addonNamePlaceholder": "e.g. Extra cheese",
+      "addonPrice": "Price",
+      "addAddon": "Add",
+      "remove": "Remove"
     }
   },
   "admin": {
@@ -404,5 +418,17 @@
     "visitSite": "Visit site",
     "stores": "My stores",
     "admin": "Admin"
+  },
+  "product": {
+    "description": "Description",
+    "selectVariant": "Choose option",
+    "addons": "Optional add-ons",
+    "quantity": "Quantity",
+    "outOfStock": "Out of stock",
+    "inStock": "In stock",
+    "buyNow": "Order now",
+    "total": "Total",
+    "visitStore": "Visit store",
+    "backToStore": "Back to store"
   }
 }

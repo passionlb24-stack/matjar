@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -196,7 +197,12 @@ export function StoreProducts({
               <div key={p.id} className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface">
                 <Card p={p} />
                 <div className="flex flex-1 flex-col p-4">
-                  <h3 className="font-bold leading-tight">{p.name}</h3>
+                  <Link
+                    href={`/${lang}/product/${p.id}`}
+                    className="font-bold leading-tight transition-colors hover:text-primary"
+                  >
+                    {p.name}
+                  </Link>
                   {attributeSummary(category, p.attributes, lang) && (
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       {attributeSummary(category, p.attributes, lang)}
@@ -230,7 +236,12 @@ export function StoreProducts({
               <div key={p.id} className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4">
                 <Card p={p} />
                 <div className="min-w-0 flex-1">
-                  <h3 className="truncate font-bold">{p.name}</h3>
+                  <Link
+                    href={`/${lang}/product/${p.id}`}
+                    className="block truncate font-bold transition-colors hover:text-primary"
+                  >
+                    {p.name}
+                  </Link>
                   {attributeSummary(category, p.attributes, lang) && (
                     <p className="truncate text-xs text-muted-foreground">
                       {attributeSummary(category, p.attributes, lang)}

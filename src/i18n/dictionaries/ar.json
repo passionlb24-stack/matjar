@@ -216,7 +216,21 @@
       "delete": "حذف",
       "hide": "إخفاء",
       "show": "إظهار",
-      "back": "رجوع لمتاجري"
+      "back": "رجوع لمتاجري",
+      "gallery": "صور إضافية (معرض)",
+      "stock": "المخزون (اتركه فارغاً لو غير محدود)",
+      "variantsTitle": "المتغيّرات (مقاس، لون…)",
+      "variantLabel": "اسم المتغيّر",
+      "variantLabelPlaceholder": "مثلاً: كبير - أحمر",
+      "variantPrice": "السعر",
+      "variantStock": "المخزون",
+      "addVariant": "إضافة متغيّر",
+      "addonsTitle": "إضافات اختيارية (extras)",
+      "addonName": "اسم الإضافة",
+      "addonNamePlaceholder": "مثلاً: جبنة إضافية",
+      "addonPrice": "السعر",
+      "addAddon": "إضافة",
+      "remove": "حذف"
     }
   },
   "admin": {
@@ -404,5 +418,17 @@
     "visitSite": "زيارة الموقع",
     "stores": "متاجري",
     "admin": "الإدارة"
+  },
+  "product": {
+    "description": "الوصف",
+    "selectVariant": "اختر الخيار",
+    "addons": "إضافات اختيارية",
+    "quantity": "الكمية",
+    "outOfStock": "نفد المخزون",
+    "inStock": "متوفّر",
+    "buyNow": "اطلب الآن",
+    "total": "المجموع",
+    "visitStore": "زيارة المتجر",
+    "backToStore": "عودة للمتجر"
   }
 }
