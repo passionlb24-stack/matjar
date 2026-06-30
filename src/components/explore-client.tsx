@@ -24,14 +24,16 @@ export function ExploreClient({
   lang,
   dict,
   stores,
+  initialQuery,
 }: {
   lang: Locale;
   dict: Dictionary;
   stores: Store[];
+  initialQuery?: string;
 }) {
   const [category, setCategory] = useState<CategoryKey | "all">("all");
   const [region, setRegion] = useState<RegionKey | "all">("all");
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery ?? "");
 
   const filtered = stores.filter((s) => {
     if (category !== "all" && s.category !== category) return false;
