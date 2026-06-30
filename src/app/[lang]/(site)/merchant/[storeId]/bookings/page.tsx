@@ -1,0 +1,108 @@
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { ChevronRight } from "lucide-react";
+import { isLocale } from "@/i18n/config";
+import { getDictionary } from "@/i18n/get-dictionary";
+import { createClient } from "@/lib/supabase/server";
+import { Container } from "@/components/ui/container";
+import { BookingStatusControl } from "@/components/booking-status-control";
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+type BookingRow = {
+  id: string;
+  status: string;
+  service_name: string | null;
+  requested_date: string | null;
+  requested_time: string | null;
+  customer_name: string | null;
+  notes: string | null;
+};
+
+export default async function StoreBookingsPage({
+  params,
+}: {
+  params: Promise<{ lang: string; storeId: string }>;
+}) {
+  const { lang, storeId } = await params;
+  if (!isLocale(lang)) notFound();
+  if (!UUID_RE.test(storeId)) redirect(`/${lang}/merchant`);
+  const dict = await getDictionary(lang);
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect(`/${lang}/login`);
+
+  const { data: store } = await supabase
+    .from("stores")
+    .select("id, name")
+    .eq("id", storeId)
+    .eq("owner_id", user.id)
+    .maybeSingle();
+  if (!store) redirect(`/${lang}/merchant`);
+
+  const { data } = await supabase
+    .from("bookings")
+    .select(
+      "id, status, service_name, requested_date, requested_time, customer_name, notes",
+    )
+    .eq("store_id", storeId)
+    .order("created_at", { ascending: false });
+  const bookings = (data ?? []) as BookingRow[];
+
+  return (
+    <div className="py-10">
+      <Container className="max-w-3xl">
+        <Link
+          href={`/${lang}/merchant/${storeId}`}
+          className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+          {(store as { name: string }).name}
+        </Link>
+        <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
+          {dict.booking.myBookings}
+        </h1>
+
+        {bookings.length ? (
+          <div className="mt-8 space-y-4">
+            {bookings.map((b) => (
+              <div
+                key={b.id}
+                className="rounded-2xl border border-border bg-surface p-5"
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-bold">{b.service_name ?? "—"}</p>
+                    <p className="mt-0.5 text-sm text-muted-foreground">
+                      {b.customer_name}
+                      {b.requested_date ? ` · ${b.requested_date}` : ""}
+                      {b.requested_time ? ` ${b.requested_time}` : ""}
+                    </p>
+                  </div>
+                  <BookingStatusControl
+                    bookingId={b.id}
+                    status={b.status}
+                    labels={dict.booking.status}
+                  />
+                </div>
+                {b.notes && (
+                  <p className="mt-3 border-t border-border pt-3 text-sm text-muted-foreground">
+                    {b.notes}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-8 rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
+            {dict.booking.noBookings}
+          </div>
+        )}
+      </Container>
+    </div>
+  );
+}

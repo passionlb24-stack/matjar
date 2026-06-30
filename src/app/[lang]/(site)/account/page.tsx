@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -42,6 +43,21 @@ export default async function AccountPage({
         </h1>
         <div className="mt-6">
           <ProfileForm dict={dict} initial={initial} />
+        </div>
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href={`/${lang}/orders`}
+            className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+          >
+            {dict.orders.title}
+          </Link>
+          <Link
+            href={`/${lang}/bookings`}
+            className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+          >
+            {dict.booking.myBookings}
+          </Link>
         </div>
       </Container>
     </div>

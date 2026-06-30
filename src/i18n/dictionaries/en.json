@@ -157,6 +157,7 @@
     "saving": "Saving…",
     "ordersTitle": "Store orders",
     "ordersLink": "Orders",
+    "bookingsLink": "Bookings",
     "productsLink": "Products",
     "noOrders": "No orders for this store yet.",
     "status": {
@@ -239,5 +240,27 @@
     "startFree": "Start free",
     "goPro": "Go Pro",
     "contactNote": "Payment is manual for now — contact us to activate Pro after payment."
+  },
+  "booking": {
+    "title": "Book an appointment",
+    "selectService": "Select a service",
+    "date": "Date",
+    "time": "Time",
+    "notes": "Notes",
+    "notesPlaceholder": "Any extra details?",
+    "submit": "Request booking",
+    "submitting": "Sending…",
+    "loginToBook": "Log in to book",
+    "myBookings": "My bookings",
+    "noBookings": "You don't have any bookings yet.",
+    "booking": "Booking",
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "scheduled": "Scheduled",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "rejected": "Rejected"
+    }
   }
 }

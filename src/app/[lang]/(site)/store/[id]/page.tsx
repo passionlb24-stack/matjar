@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/server";
 import { categoryIcons } from "@/components/category-icon";
 import { Container } from "@/components/ui/container";
 import { StoreProducts } from "@/components/store-products";
+import { BookingPanel } from "@/components/booking-panel";
 import { StoreReviews, type Review } from "@/components/store-reviews";
 import { ProBadge } from "@/components/pro-badge";
 
@@ -249,21 +250,39 @@ export default async function StorePage({
         <h2 className="mb-4 mt-10 text-xl font-bold">{sectionTitle}</h2>
         {store.isReal ? (
           store.products.length ? (
-            <StoreProducts
-              storeId={id}
-              lang={lang}
-              dict={dict}
-              category={store.category}
-              isBooking={isBooking}
-              products={store.products
-                .filter((p) => p.id)
-                .map((p) => ({
-                  id: p.id as string,
-                  name: p.name,
-                  price: p.price,
-                  imageUrl: p.imageUrl,
-                }))}
-            />
+            isBooking ? (
+              <BookingPanel
+                storeId={id}
+                lang={lang}
+                dict={dict}
+                category={store.category}
+                customerName={currentUser?.name ?? null}
+                services={store.products
+                  .filter((p) => p.id)
+                  .map((p) => ({
+                    id: p.id as string,
+                    name: p.name,
+                    price: p.price,
+                    imageUrl: p.imageUrl,
+                  }))}
+              />
+            ) : (
+              <StoreProducts
+                storeId={id}
+                lang={lang}
+                dict={dict}
+                category={store.category}
+                isBooking={isBooking}
+                products={store.products
+                  .filter((p) => p.id)
+                  .map((p) => ({
+                    id: p.id as string,
+                    name: p.name,
+                    price: p.price,
+                    imageUrl: p.imageUrl,
+                  }))}
+              />
+            )
           ) : (
             <div className="rounded-2xl border border-dashed border-border py-14 text-center text-muted-foreground">
               {dict.store.noProducts}

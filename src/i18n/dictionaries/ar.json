@@ -157,6 +157,7 @@
     "saving": "عم نحفظ…",
     "ordersTitle": "طلبات المتجر",
     "ordersLink": "الطلبات",
+    "bookingsLink": "الحجوزات",
     "productsLink": "المنتجات",
     "noOrders": "لسا ما في طلبات بهالمتجر.",
     "status": {
@@ -239,5 +240,27 @@
     "startFree": "ابدأ مجاناً",
     "goPro": "ترقّى لـ Pro",
     "contactNote": "الدفع يدوي حالياً — تواصل معنا لتفعيل Pro بعد الدفع."
+  },
+  "booking": {
+    "title": "احجز موعد",
+    "selectService": "اختر الخدمة",
+    "date": "التاريخ",
+    "time": "الوقت",
+    "notes": "ملاحظات",
+    "notesPlaceholder": "أي تفاصيل إضافية؟",
+    "submit": "اطلب الحجز",
+    "submitting": "عم نرسل…",
+    "loginToBook": "سجّل دخول لتحجز",
+    "myBookings": "حجوزاتي",
+    "noBookings": "لسا ما عندك حجوزات.",
+    "booking": "حجز",
+    "status": {
+      "pending": "بانتظار التأكيد",
+      "accepted": "مقبول",
+      "scheduled": "مجدول",
+      "completed": "مكتمل",
+      "cancelled": "ملغى",
+      "rejected": "مرفوض"
+    }
   }
 }
