@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/server";
 import { categoryIcons } from "@/components/category-icon";
 import { Container } from "@/components/ui/container";
 import { StoreProducts } from "@/components/store-products";
+import { StoreReviews, type Review } from "@/components/store-reviews";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -114,6 +115,36 @@ export default async function StorePage({
   if (!store) notFound();
 
   const dict = await getDictionary(lang);
+
+  // Reviews + current viewer (only real DB stores carry reviews).
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  let reviews: Review[] = [];
+  if (store.isReal && UUID_RE.test(id)) {
+    const { data } = await supabase
+      .from("reviews")
+      .select("id, customer_id, customer_name, rating, comment")
+      .eq("store_id", id)
+      .order("created_at", { ascending: false });
+    reviews = (data ?? []) as Review[];
+  }
+  const avg = reviews.length
+    ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
+    : null;
+  const headerRating = store.isReal ? avg : (store.rating ?? null);
+  const headerCount = store.isReal ? reviews.length : (store.reviews ?? 0);
+  const currentUser = user
+    ? {
+        id: user.id,
+        name:
+          (user.user_metadata?.full_name as string | undefined) ??
+          user.email ??
+          "",
+      }
+    : null;
+
   const Icon = categoryIcons[store.category];
   const style = categoryStyles[store.category];
   const cat = dict.catalog[store.category];
@@ -167,12 +198,12 @@ export default async function StorePage({
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">{cat.name}</p>
                 <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                  {store.rating !== undefined && (
+                  {headerRating != null && (
                     <span className="flex items-center gap-1">
                       <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                      <span className="font-bold">{store.rating.toFixed(1)}</span>
+                      <span className="font-bold">{headerRating.toFixed(1)}</span>
                       <span className="text-muted-foreground">
-                        ({store.reviews} {dict.featured.reviews})
+                        ({headerCount} {dict.featured.reviews})
                       </span>
                     </span>
                   )}
@@ -261,6 +292,16 @@ export default async function StorePage({
               </div>
             ))}
           </div>
+        )}
+
+        {store.isReal && (
+          <StoreReviews
+            storeId={id}
+            lang={lang}
+            dict={dict}
+            reviews={reviews}
+            currentUser={currentUser}
+          />
         )}
       </Container>
     </div>

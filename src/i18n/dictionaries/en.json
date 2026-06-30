@@ -206,5 +206,16 @@
       "cancelled": "Cancelled",
       "rejected": "Rejected"
     }
+  },
+  "reviews": {
+    "title": "Reviews",
+    "leaveReview": "Rate this store",
+    "yourRating": "Your rating",
+    "comment": "Your comment",
+    "commentPlaceholder": "What did you think?",
+    "submit": "Submit review",
+    "submitting": "Submitting…",
+    "noReviews": "No reviews yet. Be the first to review!",
+    "loginToReview": "Log in to review"
   }
 }

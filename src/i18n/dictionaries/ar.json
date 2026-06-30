@@ -206,5 +206,16 @@
       "cancelled": "ملغى",
       "rejected": "مرفوض"
     }
+  },
+  "reviews": {
+    "title": "التقييمات",
+    "leaveReview": "قيّم هالمتجر",
+    "yourRating": "تقييمك",
+    "comment": "تعليقك",
+    "commentPlaceholder": "شو رأيك بالمتجر؟",
+    "submit": "أرسل التقييم",
+    "submitting": "عم نرسل…",
+    "noReviews": "لسا ما في تقييمات. كن أول مين يقيّم!",
+    "loginToReview": "سجّل دخول لتقيّم"
   }
 }
