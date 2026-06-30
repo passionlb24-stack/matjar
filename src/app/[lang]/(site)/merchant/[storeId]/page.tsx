@@ -43,11 +43,14 @@ export default async function ManageStorePage({
   } = await supabase.auth.getUser();
   if (!user) redirect(`/${lang}/login`);
 
+  const { data: canManage } = await supabase.rpc("can_manage_store", {
+    p_store_id: storeId,
+  });
+  if (!canManage) redirect(`/${lang}/merchant`);
   const { data: store } = await supabase
     .from("stores")
     .select("id, name, business_types(slug)")
     .eq("id", storeId)
-    .eq("owner_id", user.id)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
   const category =
@@ -98,6 +101,12 @@ export default async function ManageStorePage({
               className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
             >
               {dict.merchant.customersLink}
+            </Link>
+            <Link
+              href={`/${lang}/merchant/${storeId}/staff`}
+              className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
+            >
+              {dict.merchant.staffLink}
             </Link>
           </div>
           <Link

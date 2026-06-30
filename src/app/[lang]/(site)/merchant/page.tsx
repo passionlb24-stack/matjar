@@ -72,6 +72,25 @@ export default async function MerchantPage({
     };
   }
 
+  const { data: staffRows } = await supabase
+    .from("store_staff")
+    .select("store_id")
+    .eq("user_id", user.id);
+  const ownIds = new Set(stores.map((s) => s.id));
+  const extraIds = ((staffRows ?? []) as { store_id: string }[])
+    .map((r) => r.store_id)
+    .filter((id) => !ownIds.has(id));
+  let staffStores: StoreRow[] = [];
+  if (extraIds.length) {
+    const { data: ss } = await supabase
+      .from("stores")
+      .select("id, name, status, area, business_types(name_ar, name_en)")
+      .in("id", extraIds)
+      .is("deleted_at", null);
+    staffStores = (ss ?? []) as unknown as StoreRow[];
+  }
+  const allStores = [...stores, ...staffStores];
+
   return (
     <div className="py-10">
       <Container>
@@ -115,9 +134,9 @@ export default async function MerchantPage({
           </div>
         )}
 
-        {stores.length ? (
+        {allStores.length ? (
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {stores.map((store) => (
+            {allStores.map((store) => (
               <div
                 key={store.id}
                 className="rounded-2xl border border-border bg-surface p-5"

@@ -36,11 +36,14 @@ export default async function StoreBookingsPage({
   } = await supabase.auth.getUser();
   if (!user) redirect(`/${lang}/login`);
 
+  const { data: canManage } = await supabase.rpc("can_manage_store", {
+    p_store_id: storeId,
+  });
+  if (!canManage) redirect(`/${lang}/merchant`);
   const { data: store } = await supabase
     .from("stores")
     .select("id, name")
     .eq("id", storeId)
-    .eq("owner_id", user.id)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
 
