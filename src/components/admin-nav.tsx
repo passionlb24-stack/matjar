@@ -7,6 +7,7 @@ import {
   Store as StoreIcon,
   Users,
   Tags,
+  CreditCard,
   BarChart3,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
@@ -18,6 +19,7 @@ const icons = {
   stores: StoreIcon,
   users: Users,
   types: Tags,
+  subscriptions: CreditCard,
   reports: BarChart3,
 } as const;
 
@@ -29,6 +31,7 @@ export function AdminNav({ lang, dict }: { lang: Locale; dict: Dictionary }) {
     { key: "stores", href: `${base}/stores` },
     { key: "users", href: `${base}/users` },
     { key: "types", href: `${base}/business-types` },
+    { key: "subscriptions", href: `${base}/subscriptions` },
     { key: "reports", href: `${base}/reports` },
   ] as const;
 

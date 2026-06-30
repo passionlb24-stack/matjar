@@ -234,6 +234,24 @@
       "addMenuItem": "Add menu item",
       "addService": "Add service",
       "addListing": "Add listing"
+    },
+    "subscriptionLink": "Subscription",
+    "subscription": {
+      "title": "Store subscription",
+      "currentPlan": "Your current plan",
+      "free": "Free",
+      "pro": "Matjar Pro",
+      "active": "Active",
+      "expired": "Expired",
+      "expiresOn": "Expires on",
+      "proActive": "You're subscribed to Matjar Pro 🎉",
+      "paymentsTitle": "Payment history",
+      "noPayments": "No payments yet.",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "upgradeTitle": "Upgrade to Matjar Pro",
+      "upgradeBody": "A full store, unlimited orders, higher search visibility, a Pro badge and better support. Payment is manual for now — contact us to activate Pro after payment.",
+      "viewPlans": "View plans & pricing"
     }
   },
   "admin": {
@@ -258,7 +276,27 @@
       "stores": "Stores",
       "users": "Users",
       "types": "Business types",
+      "subscriptions": "Subscriptions",
       "reports": "Reports"
+    },
+    "subs": {
+      "title": "Subscriptions",
+      "subtitle": "Activate or extend Pro subscriptions and log manual payments.",
+      "search": "Search for a store…",
+      "expires": "Expires",
+      "active": "Active",
+      "expired": "Expired",
+      "period": "Period",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "amount": "Amount ($)",
+      "activate": "Activate / extend Pro",
+      "downgrade": "Downgrade to Free",
+      "free": "Free",
+      "pro": "Pro",
+      "payments": "payments",
+      "empty": "No matching stores.",
+      "saving": "Saving…"
     },
     "usersAdmin": {
       "title": "User management",

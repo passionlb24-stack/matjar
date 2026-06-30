@@ -114,6 +114,12 @@ export default async function ManageStorePage({
             >
               {dict.merchant.staffLink}
             </Link>
+            <Link
+              href={`/${lang}/merchant/${storeId}/subscription`}
+              className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
+            >
+              {dict.merchant.subscriptionLink}
+            </Link>
           </div>
           <Link
             href={`/${lang}/merchant/${storeId}/edit`}

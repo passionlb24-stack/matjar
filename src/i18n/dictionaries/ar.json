@@ -234,6 +234,24 @@
       "addMenuItem": "أضف صنف للمنيو",
       "addService": "أضف خدمة",
       "addListing": "أضف إعلان"
+    },
+    "subscriptionLink": "اشتراكي",
+    "subscription": {
+      "title": "اشتراك المتجر",
+      "currentPlan": "خطتك الحالية",
+      "free": "مجاني",
+      "pro": "Matjar Pro",
+      "active": "فعّال",
+      "expired": "منتهي",
+      "expiresOn": "ينتهي بتاريخ",
+      "proActive": "أنت مشترك في Matjar Pro 🎉",
+      "paymentsTitle": "سجل الدفعات",
+      "noPayments": "لا توجد دفعات بعد.",
+      "monthly": "شهري",
+      "yearly": "سنوي",
+      "upgradeTitle": "ترقَّ إلى Matjar Pro",
+      "upgradeBody": "متجر كامل، طلبات غير محدودة، ظهور أعلى بالبحث، شارة Pro ودعم أفضل. الدفع يدوي حالياً — تواصل معنا لتفعيل Pro بعد الدفع.",
+      "viewPlans": "شوف الخطط والأسعار"
     }
   },
   "admin": {
@@ -258,7 +276,27 @@
       "stores": "المتاجر",
       "users": "المستخدمون",
       "types": "أنواع الأنشطة",
+      "subscriptions": "الاشتراكات",
       "reports": "التقارير"
+    },
+    "subs": {
+      "title": "إدارة الاشتراكات",
+      "subtitle": "فعّل أو مدّد اشتراكات Pro وسجّل الدفعات اليدوية.",
+      "search": "ابحث عن متجر…",
+      "expires": "ينتهي",
+      "active": "فعّال",
+      "expired": "منتهي",
+      "period": "المدة",
+      "monthly": "شهري",
+      "yearly": "سنوي",
+      "amount": "المبلغ ($)",
+      "activate": "تفعيل / تمديد Pro",
+      "downgrade": "إرجاع لمجاني",
+      "free": "مجاني",
+      "pro": "Pro",
+      "payments": "دفعات",
+      "empty": "ما في متاجر مطابقة.",
+      "saving": "عم نحفظ…"
     },
     "usersAdmin": {
       "title": "إدارة المستخدمين",
