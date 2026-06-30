@@ -272,5 +272,9 @@
       "cancelled": "Cancelled",
       "rejected": "Rejected"
     }
+  },
+  "favorites": {
+    "title": "Favorites",
+    "empty": "You don't have any favorite stores yet."
   }
 }

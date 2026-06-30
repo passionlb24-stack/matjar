@@ -58,6 +58,12 @@ export default async function AccountPage({
           >
             {dict.booking.myBookings}
           </Link>
+          <Link
+            href={`/${lang}/favorites`}
+            className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+          >
+            {dict.favorites.title}
+          </Link>
         </div>
       </Container>
     </div>

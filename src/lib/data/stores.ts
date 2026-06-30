@@ -67,21 +67,46 @@ async function fetchActiveStores(): Promise<Store[]> {
   return list;
 }
 
+// Marks which stores the current user has favorited.
+async function markFavorites(list: Store[]): Promise<Store[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return list;
+  const { data: favs } = await supabase
+    .from("favorites")
+    .select("store_id")
+    .eq("customer_id", user.id);
+  const ids = new Set(
+    ((favs ?? []) as { store_id: string }[]).map((f) => f.store_id),
+  );
+  list.forEach((s) => {
+    s.favorited = ids.has(s.id);
+  });
+  return list;
+}
+
 // Real active stores, optionally padded with demo samples so listings aren't
 // empty before the platform fills up.
 export async function getStoresForListing(): Promise<Store[]> {
   const real = await fetchActiveStores();
-  if (!SHOW_DEMO_STORES) return real;
+  if (!SHOW_DEMO_STORES) return markFavorites(real);
   const realIds = new Set(real.map((s) => s.id));
-  return [...real, ...demoStores.filter((s) => !realIds.has(s.id))];
+  return markFavorites([
+    ...real,
+    ...demoStores.filter((s) => !realIds.has(s.id)),
+  ]);
 }
 
 export async function getFeaturedStores(limit = 4): Promise<Store[]> {
   const real = await fetchActiveStores();
-  if (!SHOW_DEMO_STORES) return real.slice(0, limit);
+  if (!SHOW_DEMO_STORES) return markFavorites(real.slice(0, limit));
   const realIds = new Set(real.map((s) => s.id));
-  return [...real, ...featuredStores.filter((s) => !realIds.has(s.id))].slice(
-    0,
-    limit,
+  return markFavorites(
+    [...real, ...featuredStores.filter((s) => !realIds.has(s.id))].slice(
+      0,
+      limit,
+    ),
   );
 }

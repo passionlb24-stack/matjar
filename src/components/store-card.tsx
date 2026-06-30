@@ -5,6 +5,10 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { categoryStyles, type FeaturedStore } from "@/lib/catalog";
 import { categoryIcons } from "@/components/category-icon";
 import { ProBadge } from "@/components/pro-badge";
+import { FavoriteButton } from "@/components/favorite-button";
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function StoreCard({
   store,
@@ -18,12 +22,10 @@ export function StoreCard({
   const Icon = categoryIcons[store.category];
   const cat = dict.catalog[store.category];
   const style = categoryStyles[store.category];
+  const isReal = UUID_RE.test(store.id);
 
   return (
-    <Link
-      href={`/${lang}/store/${store.id}`}
-      className="group block overflow-hidden rounded-2xl border border-border bg-surface transition-all hover:-translate-y-0.5 hover:shadow-md"
-    >
+    <article className="group relative overflow-hidden rounded-2xl border border-border bg-surface transition-all hover:-translate-y-0.5 hover:shadow-md">
       <div className={`relative h-32 bg-gradient-to-br ${style.cover}`}>
         <Icon className="absolute end-4 top-4 h-16 w-16 text-black/[0.06]" />
         <span
@@ -37,6 +39,14 @@ export function StoreCard({
           <span className="absolute bottom-3 start-3 rounded-full bg-surface/90 px-2.5 py-1 text-xs font-semibold backdrop-blur">
             {store.tag[lang]}
           </span>
+        )}
+        {isReal && (
+          <FavoriteButton
+            storeId={store.id}
+            favorited={store.favorited ?? false}
+            lang={lang}
+            className="absolute end-3 top-3 z-10"
+          />
         )}
         <span className="absolute -bottom-6 end-4 flex h-12 w-12 items-center justify-center rounded-xl border-2 border-surface bg-surface shadow-sm">
           <span
@@ -67,6 +77,12 @@ export function StoreCard({
           </div>
         )}
       </div>
-    </Link>
+
+      <Link
+        href={`/${lang}/store/${store.id}`}
+        aria-label={store.name[lang]}
+        className="absolute inset-0 z-0"
+      />
+    </article>
   );
 }
