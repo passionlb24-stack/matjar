@@ -141,5 +141,13 @@
       "suspended": "Suspended",
       "rejected": "Rejected"
     }
+  },
+  "admin": {
+    "title": "Admin panel",
+    "subtitle": "Review new stores and approve or reject them.",
+    "pendingTitle": "Stores awaiting review",
+    "noPending": "No stores are awaiting review right now.",
+    "approve": "Approve",
+    "reject": "Reject"
   }
 }
