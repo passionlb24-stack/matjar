@@ -53,13 +53,15 @@ export function StoreCard({
         <p className="mt-1 text-sm text-muted-foreground">
           {cat.name} · {store.area[lang]}
         </p>
-        <div className="mt-3 flex items-center gap-1.5 text-sm">
-          <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-          <span className="font-bold">{store.rating.toFixed(1)}</span>
-          <span className="text-muted-foreground">
-            ({store.reviews} {dict.featured.reviews})
-          </span>
-        </div>
+        {store.rating != null && (
+          <div className="mt-3 flex items-center gap-1.5 text-sm">
+            <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+            <span className="font-bold">{store.rating.toFixed(1)}</span>
+            <span className="text-muted-foreground">
+              ({store.reviews} {dict.featured.reviews})
+            </span>
+          </div>
+        )}
       </div>
     </Link>
   );

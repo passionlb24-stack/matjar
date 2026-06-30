@@ -46,10 +46,10 @@ export type Store = {
   id: string;
   name: Bilingual;
   area: Bilingual;
-  region: RegionKey;
+  region?: RegionKey;
   category: CategoryKey;
-  rating: number;
-  reviews: number;
+  rating?: number;
+  reviews?: number;
   isOpen: boolean;
   tag?: Bilingual;
   description?: Bilingual;
@@ -163,6 +163,10 @@ export const stores: Store[] = [
 ];
 
 export const featuredStores: Store[] = stores.slice(0, 4);
+
+// Show the demo/sample stores alongside real ones while the platform fills up.
+// Flip to false before launch to display only real, approved stores.
+export const SHOW_DEMO_STORES = true;
 
 export function getStoreById(id: string): Store | undefined {
   return stores.find((store) => store.id === id);

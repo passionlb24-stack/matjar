@@ -1,17 +1,19 @@
 import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
-import { featuredStores } from "@/lib/catalog";
+import { getFeaturedStores } from "@/lib/data/stores";
 import { Container } from "@/components/ui/container";
 import { StoreCard } from "@/components/store-card";
 
-export function FeaturedStores({
+export async function FeaturedStores({
   lang,
   dict,
 }: {
   lang: Locale;
   dict: Dictionary;
 }) {
+  const featuredStores = await getFeaturedStores(4);
+
   return (
     <section className="bg-surface-muted/40 py-14 sm:py-16">
       <Container>

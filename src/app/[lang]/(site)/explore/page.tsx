@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
-import { stores } from "@/lib/catalog";
+import { getStoresForListing } from "@/lib/data/stores";
 import { ExploreClient } from "@/components/explore-client";
 
 export default async function ExplorePage({
@@ -13,6 +13,7 @@ export default async function ExplorePage({
   if (!isLocale(lang)) notFound();
 
   const dict = await getDictionary(lang);
+  const stores = await getStoresForListing();
 
   return <ExploreClient lang={lang} dict={dict} stores={stores} />;
 }

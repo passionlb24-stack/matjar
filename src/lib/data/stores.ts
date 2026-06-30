@@ -1,0 +1,60 @@
+import "server-only";
+import { createClient } from "@/lib/supabase/server";
+import {
+  featuredStores,
+  stores as demoStores,
+  SHOW_DEMO_STORES,
+  type CategoryKey,
+  type RegionKey,
+  type Store,
+} from "@/lib/catalog";
+
+// Maps a database store row into the shape the StoreCard expects.
+function rowToStore(row: {
+  id: string;
+  name: string;
+  area: string | null;
+  region: string | null;
+  business_types: { slug: string } | null;
+}): Store {
+  return {
+    id: row.id,
+    name: { ar: row.name, en: row.name },
+    area: { ar: row.area ?? "", en: row.area ?? "" },
+    region: (row.region as RegionKey) ?? undefined,
+    category: (row.business_types?.slug as CategoryKey) ?? "retail",
+    isOpen: true,
+  };
+}
+
+async function fetchActiveStores(): Promise<Store[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("stores")
+    .select("id, name, area, region, business_types(slug)")
+    .eq("status", "active")
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
+  return ((data ?? []) as unknown as Parameters<typeof rowToStore>[0][]).map(
+    rowToStore,
+  );
+}
+
+// Real active stores, optionally padded with demo samples so listings aren't
+// empty before the platform fills up.
+export async function getStoresForListing(): Promise<Store[]> {
+  const real = await fetchActiveStores();
+  if (!SHOW_DEMO_STORES) return real;
+  const realIds = new Set(real.map((s) => s.id));
+  return [...real, ...demoStores.filter((s) => !realIds.has(s.id))];
+}
+
+export async function getFeaturedStores(limit = 4): Promise<Store[]> {
+  const real = await fetchActiveStores();
+  if (!SHOW_DEMO_STORES) return real.slice(0, limit);
+  const realIds = new Set(real.map((s) => s.id));
+  return [...real, ...featuredStores.filter((s) => !realIds.has(s.id))].slice(
+    0,
+    limit,
+  );
+}
