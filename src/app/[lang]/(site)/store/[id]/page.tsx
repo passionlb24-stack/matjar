@@ -52,6 +52,7 @@ type StoreView = {
     price: number;
     discountPrice?: number | null;
     imageUrl?: string | null;
+    attributes?: Record<string, string> | null;
   }[];
 };
 
@@ -68,7 +69,7 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
       const bt = data.business_types as unknown as { slug: string } | null;
       const { data: prods } = await supabase
         .from("products")
-        .select("id, name, price, discount_price, image_url")
+        .select("id, name, price, discount_price, image_url, attributes")
         .eq("store_id", id)
         .eq("status", "active")
         .eq("is_available", true)
@@ -97,6 +98,8 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
           discountPrice:
             p.discount_price != null ? Number(p.discount_price) : null,
           imageUrl: (p.image_url as string | null) ?? null,
+          attributes:
+            (p.attributes as Record<string, string> | null) ?? null,
         })),
       };
     }
@@ -306,6 +309,7 @@ export default async function StorePage({
                     name: p.name,
                     price: p.price,
                     imageUrl: p.imageUrl,
+                    attributes: p.attributes,
                   }))}
               />
             ) : (
@@ -323,6 +327,7 @@ export default async function StorePage({
                     price: p.price,
                     discountPrice: p.discountPrice,
                     imageUrl: p.imageUrl,
+                    attributes: p.attributes,
                   }))}
               />
             )

@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { categoryStyles, type CategoryKey } from "@/lib/catalog";
+import { attributeSummary } from "@/lib/attributes";
 import { categoryIcons } from "@/components/category-icon";
 
 type Service = {
@@ -16,6 +17,7 @@ type Service = {
   name: string;
   price: number;
   imageUrl?: string | null;
+  attributes?: Record<string, string> | null;
 };
 
 const fieldClass =
@@ -93,6 +95,11 @@ export function BookingPanel({
             )}
             <div className="min-w-0 flex-1">
               <h3 className="truncate font-bold">{s.name}</h3>
+              {attributeSummary(category, s.attributes, lang) && (
+                <p className="truncate text-xs text-muted-foreground">
+                  {attributeSummary(category, s.attributes, lang)}
+                </p>
+              )}
               <p className="mt-0.5 text-sm font-bold">{formatPrice(s.price)}</p>
             </div>
           </div>

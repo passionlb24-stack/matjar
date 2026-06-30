@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { categoryStyles, type CategoryKey } from "@/lib/catalog";
+import { attributeSummary } from "@/lib/attributes";
 import { categoryIcons } from "@/components/category-icon";
 
 type Product = {
@@ -16,6 +17,7 @@ type Product = {
   price: number;
   discountPrice?: number | null;
   imageUrl?: string | null;
+  attributes?: Record<string, string> | null;
 };
 
 function effectivePrice(p: Product) {
@@ -195,6 +197,11 @@ export function StoreProducts({
                 <Card p={p} />
                 <div className="flex flex-1 flex-col p-4">
                   <h3 className="font-bold leading-tight">{p.name}</h3>
+                  {attributeSummary(category, p.attributes, lang) && (
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {attributeSummary(category, p.attributes, lang)}
+                    </p>
+                  )}
                   <p className="mt-1">
                     <PriceTag p={p} />
                   </p>
@@ -224,6 +231,11 @@ export function StoreProducts({
                 <Card p={p} />
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate font-bold">{p.name}</h3>
+                  {attributeSummary(category, p.attributes, lang) && (
+                    <p className="truncate text-xs text-muted-foreground">
+                      {attributeSummary(category, p.attributes, lang)}
+                    </p>
+                  )}
                   <p className="mt-0.5 text-sm">
                     <PriceTag p={p} />
                   </p>

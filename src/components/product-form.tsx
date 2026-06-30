@@ -4,7 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import type { CategoryKey } from "@/lib/catalog";
+import { categoryAttributes } from "@/lib/attributes";
 import { ImageUpload } from "@/components/image-upload";
 
 const field =
@@ -13,15 +16,20 @@ const label = "text-sm font-semibold";
 
 export function ProductForm({
   storeId,
+  lang,
+  category,
   dict,
 }: {
   storeId: string;
+  lang: Locale;
+  category: CategoryKey;
   dict: Dictionary;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const attrFields = categoryAttributes[category] ?? [];
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -30,6 +38,11 @@ export function ProductForm({
     setError(null);
     const form = new FormData(formEl);
     const supabase = createClient();
+    const attributes: Record<string, string> = {};
+    attrFields.forEach((f) => {
+      const v = String(form.get(`attr_${f.key}`) ?? "").trim();
+      if (v) attributes[f.key] = v;
+    });
     const { error } = await supabase.from("products").insert({
       store_id: storeId,
       name: String(form.get("name")),
@@ -37,6 +50,7 @@ export function ProductForm({
       discount_price: Number(form.get("discount_price")) || null,
       description: String(form.get("description")) || null,
       image_url: imageUrl,
+      attributes,
     });
     if (error) {
       setError(dict.auth.errorGeneric);
@@ -87,6 +101,19 @@ export function ProductForm({
         </label>
         <textarea id="description" name="description" rows={2} placeholder={dict.merchant.products.descriptionPlaceholder} className={field} />
       </div>
+      {attrFields.length > 0 && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {attrFields.map((f) => (
+            <div key={f.key}>
+              <label className={label} htmlFor={`attr_${f.key}`}>
+                {lang === "ar" ? f.ar : f.en}
+              </label>
+              <input id={`attr_${f.key}`} name={`attr_${f.key}`} type={f.type} className={field} />
+            </div>
+          ))}
+        </div>
+      )}
+
       {error && <p className="text-sm font-medium text-red-600">{error}</p>}
       <button
         type="submit"

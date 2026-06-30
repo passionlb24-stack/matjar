@@ -5,6 +5,7 @@ import { ChevronRight, Package } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import type { CategoryKey } from "@/lib/catalog";
 import { Container } from "@/components/ui/container";
 import { ProductForm } from "@/components/product-form";
 import { ProductRowActions } from "@/components/product-row-actions";
@@ -44,11 +45,14 @@ export default async function ManageStorePage({
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name")
+    .select("id, name, business_types(slug)")
     .eq("id", storeId)
     .eq("owner_id", user.id)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
+  const category =
+    ((store as unknown as { business_types: { slug: string } | null })
+      .business_types?.slug as CategoryKey) ?? "retail";
 
   const { data } = await supabase
     .from("products")
@@ -151,7 +155,12 @@ export default async function ManageStorePage({
             )}
           </div>
 
-          <ProductForm storeId={storeId} dict={dict} />
+          <ProductForm
+            storeId={storeId}
+            lang={lang}
+            category={category}
+            dict={dict}
+          />
         </div>
       </Container>
     </div>
