@@ -5,7 +5,7 @@ import { Store as StoreIcon, ArrowLeft } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
-import { type CategoryKey } from "@/lib/catalog";
+import { regions, type CategoryKey } from "@/lib/catalog";
 import { attributeSummary } from "@/lib/attributes";
 import { Container } from "@/components/ui/container";
 import { ProductGallery } from "@/components/product-gallery";
@@ -125,6 +125,37 @@ export default async function ProductPage({
 
   const dict = await getDictionary(lang);
   const l = lang as Locale;
+
+  // Prefill checkout from the customer's saved address.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  let defaultAddress = "";
+  if (user) {
+    const { data: addr } = await supabase
+      .from("addresses")
+      .select("region, city, street, building, floor, details")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (addr) {
+      const regionName =
+        regions.find((r) => r.key === addr.region)?.name[l] ??
+        (addr.region as string | null) ??
+        "";
+      defaultAddress = [
+        addr.street,
+        addr.building,
+        addr.floor,
+        addr.city,
+        regionName,
+        addr.details,
+      ]
+        .filter(Boolean)
+        .join("، ");
+    }
+  }
+
   const basePrice = product.discountPrice ?? product.price;
   const attrText = attributeSummary(product.category, product.attributes, l);
   const isBooking = bookingCategories.has(product.category);
@@ -211,6 +242,7 @@ export default async function ProductPage({
                   stock={product.stock}
                   variants={product.variants}
                   addons={product.addons}
+                  defaultAddress={defaultAddress}
                 />
               )}
             </div>

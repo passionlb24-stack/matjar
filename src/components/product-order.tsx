@@ -33,6 +33,7 @@ export function ProductOrder({
   stock,
   variants,
   addons,
+  defaultAddress = "",
 }: {
   lang: Locale;
   dict: Dictionary;
@@ -43,6 +44,7 @@ export function ProductOrder({
   stock: number | null;
   variants: Variant[];
   addons: AddOn[];
+  defaultAddress?: string;
 }) {
   const router = useRouter();
   const [variantId, setVariantId] = useState<string | null>(
@@ -266,7 +268,7 @@ export function ProductOrder({
               <label className="text-sm font-semibold" htmlFor="address">
                 {dict.store.address}
               </label>
-              <input id="address" name="address" type="text" required placeholder={dict.store.addressPlaceholder} className={fieldClass} />
+              <input id="address" name="address" type="text" required defaultValue={defaultAddress} placeholder={dict.store.addressPlaceholder} className={fieldClass} />
             </div>
           )}
           <div>

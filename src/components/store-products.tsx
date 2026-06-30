@@ -65,6 +65,7 @@ export function StoreProducts({
   category,
   isBooking,
   products,
+  defaultAddress = "",
 }: {
   storeId: string;
   lang: Locale;
@@ -72,6 +73,7 @@ export function StoreProducts({
   category: CategoryKey;
   isBooking: boolean;
   products: Product[];
+  defaultAddress?: string;
 }) {
   const router = useRouter();
   const [cart, setCart] = useState<Record<string, number>>({});
@@ -300,7 +302,7 @@ export function StoreProducts({
                 <label className="text-sm font-semibold" htmlFor="address">
                   {dict.store.address}
                 </label>
-                <input id="address" name="address" type="text" required placeholder={dict.store.addressPlaceholder} className={fieldClass} />
+                <input id="address" name="address" type="text" required defaultValue={defaultAddress} placeholder={dict.store.addressPlaceholder} className={fieldClass} />
               </div>
             )}
             <div>

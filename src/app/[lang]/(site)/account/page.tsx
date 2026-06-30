@@ -5,6 +5,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { ProfileForm } from "@/components/profile-form";
+import { AddressForm } from "@/components/address-form";
 
 export default async function AccountPage({
   params,
@@ -35,6 +36,21 @@ export default async function AccountPage({
     phone: (profile?.phone as string | null) ?? "",
   };
 
+  const { data: address } = await supabase
+    .from("addresses")
+    .select("region, city, street, building, floor, details, phone")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const addressInitial = {
+    region: (address?.region as string | null) ?? "",
+    city: (address?.city as string | null) ?? "",
+    street: (address?.street as string | null) ?? "",
+    building: (address?.building as string | null) ?? "",
+    floor: (address?.floor as string | null) ?? "",
+    details: (address?.details as string | null) ?? "",
+    phone: (address?.phone as string | null) ?? "",
+  };
+
   return (
     <div className="py-10">
       <Container className="max-w-xl">
@@ -43,6 +59,9 @@ export default async function AccountPage({
         </h1>
         <div className="mt-6">
           <ProfileForm dict={dict} initial={initial} />
+        </div>
+        <div className="mt-6">
+          <AddressForm lang={lang} dict={dict} initial={addressInitial} />
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3">

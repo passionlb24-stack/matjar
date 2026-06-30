@@ -6,6 +6,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import {
   categoryStyles,
   getStoreById,
+  regions,
   sampleProducts,
   type CategoryKey,
 } from "@/lib/catalog";
@@ -178,6 +179,32 @@ export default async function StorePage({
       }
     : null;
 
+  // Prefill checkout from the customer's saved address.
+  let defaultAddress = "";
+  if (user) {
+    const { data: addr } = await supabase
+      .from("addresses")
+      .select("region, city, street, building, floor, details")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (addr) {
+      const regionName =
+        regions.find((r) => r.key === addr.region)?.name[lang] ??
+        (addr.region as string | null) ??
+        "";
+      defaultAddress = [
+        addr.street,
+        addr.building,
+        addr.floor,
+        addr.city,
+        regionName,
+        addr.details,
+      ]
+        .filter(Boolean)
+        .join("، ");
+    }
+  }
+
   const Icon = categoryIcons[store.category];
   const style = categoryStyles[store.category];
   const cat = dict.catalog[store.category];
@@ -330,6 +357,7 @@ export default async function StorePage({
                 dict={dict}
                 category={store.category}
                 isBooking={isBooking}
+                defaultAddress={defaultAddress}
                 products={store.products
                   .filter((p) => p.id)
                   .map((p) => ({

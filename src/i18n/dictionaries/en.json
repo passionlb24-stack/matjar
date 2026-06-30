@@ -369,7 +369,20 @@
     "phone": "Phone number",
     "save": "Save",
     "saving": "Saving…",
-    "saved": "Saved ✓"
+    "saved": "Saved ✓",
+    "address": {
+      "title": "Delivery address",
+      "subtitle": "Save your detailed address so it auto-fills at checkout.",
+      "region": "Region",
+      "selectRegion": "Select a region",
+      "city": "City / town",
+      "street": "Street",
+      "building": "Building",
+      "floor": "Floor",
+      "details": "Extra details",
+      "detailsPlaceholder": "Landmark, directions…",
+      "phone": "Delivery phone"
+    }
   },
   "pricing": {
     "title": "Pricing",
