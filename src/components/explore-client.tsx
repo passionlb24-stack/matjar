@@ -25,13 +25,15 @@ export function ExploreClient({
   dict,
   stores,
   initialQuery,
+  initialCategory = "all",
 }: {
   lang: Locale;
   dict: Dictionary;
   stores: Store[];
   initialQuery?: string;
+  initialCategory?: CategoryKey | "all";
 }) {
-  const [category, setCategory] = useState<CategoryKey | "all">("all");
+  const [category, setCategory] = useState<CategoryKey | "all">(initialCategory);
   const [region, setRegion] = useState<RegionKey | "all">("all");
   const [query, setQuery] = useState(initialQuery ?? "");
 
