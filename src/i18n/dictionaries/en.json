@@ -219,7 +219,14 @@
     "reject": "Reject",
     "activeStores": "Active stores",
     "makePro": "Make Pro",
-    "makeFree": "Make Free"
+    "makeFree": "Make Free",
+    "overview": "Overview",
+    "totalStores": "Total stores",
+    "users": "Users",
+    "ordersTotal": "Orders",
+    "reviewsTitle": "Recent reviews",
+    "deleteReview": "Delete",
+    "noReviews": "No reviews."
   },
   "orders": {
     "title": "My orders",

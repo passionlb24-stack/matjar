@@ -219,7 +219,14 @@
     "reject": "رفض",
     "activeStores": "المتاجر المفعّلة",
     "makePro": "ترقية لـ Pro",
-    "makeFree": "إرجاع لمجاني"
+    "makeFree": "إرجاع لمجاني",
+    "overview": "نظرة عامة",
+    "totalStores": "إجمالي المتاجر",
+    "users": "المستخدمين",
+    "ordersTotal": "الطلبات",
+    "reviewsTitle": "أحدث التقييمات",
+    "deleteReview": "حذف",
+    "noReviews": "ما في تقييمات."
   },
   "orders": {
     "title": "طلباتي",

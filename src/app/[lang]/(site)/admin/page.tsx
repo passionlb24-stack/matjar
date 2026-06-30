@@ -1,12 +1,21 @@
 import { notFound, redirect } from "next/navigation";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Star } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { AdminStoreActions } from "@/components/admin-store-actions";
 import { AdminPlanToggle } from "@/components/admin-plan-toggle";
+import { AdminReviewDelete } from "@/components/admin-review-delete";
 import { ProBadge } from "@/components/pro-badge";
+
+type ReviewRow = {
+  id: string;
+  customer_name: string | null;
+  rating: number;
+  comment: string | null;
+  stores: { name: string } | null;
+};
 
 type PendingStore = {
   id: string;
@@ -58,6 +67,21 @@ export default async function AdminPage({
     plan: "free" | "pro";
   }[];
 
+  const [storesRes, usersRes, ordersRes] = await Promise.all([
+    supabase
+      .from("stores")
+      .select("id", { count: "exact", head: true })
+      .is("deleted_at", null),
+    supabase.from("profiles").select("id", { count: "exact", head: true }),
+    supabase.from("orders").select("id", { count: "exact", head: true }),
+  ]);
+  const { data: reviewData } = await supabase
+    .from("reviews")
+    .select("id, customer_name, rating, comment, stores(name)")
+    .order("created_at", { ascending: false })
+    .limit(20);
+  const reviews = (reviewData ?? []) as unknown as ReviewRow[];
+
   return (
     <div className="py-10">
       <Container>
@@ -68,6 +92,22 @@ export default async function AdminPage({
           </h1>
         </div>
         <p className="mt-2 text-muted-foreground">{dict.admin.subtitle}</p>
+
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            { label: dict.admin.totalStores, value: storesRes.count ?? 0 },
+            { label: dict.admin.pendingTitle, value: pending.length },
+            { label: dict.admin.users, value: usersRes.count ?? 0 },
+            { label: dict.admin.ordersTotal, value: ordersRes.count ?? 0 },
+          ].map((s) => (
+            <div key={s.label} className="rounded-2xl bg-surface-muted/60 p-4">
+              <p className="text-xs font-medium text-muted-foreground">
+                {s.label}
+              </p>
+              <p className="mt-1 text-2xl font-extrabold">{s.value}</p>
+            </div>
+          ))}
+        </div>
 
         <h2 className="mb-4 mt-8 text-lg font-bold">{dict.admin.pendingTitle}</h2>
 
@@ -123,6 +163,44 @@ export default async function AdminPage({
                     plan={s.plan}
                     proLabel={dict.admin.makePro}
                     freeLabel={dict.admin.makeFree}
+                  />
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {reviews.length > 0 && (
+          <>
+            <h2 className="mb-4 mt-10 text-lg font-bold">
+              {dict.admin.reviewsTitle}
+            </h2>
+            <div className="space-y-3">
+              {reviews.map((r) => (
+                <div
+                  key={r.id}
+                  className="flex items-start justify-between gap-4 rounded-2xl border border-border bg-surface p-5"
+                >
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-bold">{r.customer_name ?? "—"}</span>
+                      <span className="text-sm text-muted-foreground">
+                        · {r.stores?.name}
+                      </span>
+                      <span className="flex items-center gap-0.5 text-sm font-bold">
+                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                        {r.rating}
+                      </span>
+                    </div>
+                    {r.comment && (
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {r.comment}
+                      </p>
+                    )}
+                  </div>
+                  <AdminReviewDelete
+                    reviewId={r.id}
+                    label={dict.admin.deleteReview}
                   />
                 </div>
               ))}
