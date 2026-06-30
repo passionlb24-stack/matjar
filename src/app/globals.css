@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+/* Matjar design tokens — clean light theme, emerald brand. */
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --primary: #059669;
+  --primary-foreground: #ffffff;
+  --muted: #f1f5f9;
+  --border: #e2e8f0;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --font-sans: var(--font-cairo);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}

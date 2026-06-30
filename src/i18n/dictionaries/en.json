@@ -1,0 +1,30 @@
+{
+  "common": {
+    "brand": "Matjar",
+    "tagline": "Your local commerce platform for Lebanon",
+    "getStarted": "Get Started",
+    "explore": "Explore Stores",
+    "language": "Language"
+  },
+  "landing": {
+    "heroTitle": "Every store, product, and service in Lebanon — in one place",
+    "heroSubtitle": "Restaurants, shops, services, clinics, real estate and cars. Launch your online store or business page in minutes.",
+    "ctaMerchant": "Open your store",
+    "ctaCustomer": "Start shopping",
+    "featuresTitle": "Why Matjar?",
+    "features": {
+      "modular": {
+        "title": "Modular by design",
+        "body": "Each business type has its own modules — food, retail, services, healthcare, real estate, and automotive."
+      },
+      "easy": {
+        "title": "Effortless",
+        "body": "A simple dashboard built for business owners, no technical experience required."
+      },
+      "local": {
+        "title": "100% local",
+        "body": "Search by area and category, then order or book directly from your favorite store."
+      }
+    }
+  }
+}
