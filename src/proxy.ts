@@ -1,21 +1,24 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { locales, defaultLocale } from "@/i18n/config";
+import { updateSession } from "@/lib/supabase/proxy-session";
 
 // Next.js 16 renamed `middleware` to `proxy` (nodejs runtime only).
-// This proxy ensures every request carries a locale prefix (/ar, /en).
-// Lebanon-first: we default to Arabic and let visitors switch to English
-// via the language toggle, rather than guessing from the browser header.
+// Ensures every request carries a locale prefix (/ar, /en) and keeps the
+// Supabase session fresh. Lebanon-first: default to Arabic, switch via toggle.
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const pathnameHasLocale = locales.some(
     (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`),
   );
-  if (pathnameHasLocale) return;
 
-  request.nextUrl.pathname = `/${defaultLocale}${pathname}`;
-  return NextResponse.redirect(request.nextUrl);
+  if (!pathnameHasLocale) {
+    request.nextUrl.pathname = `/${defaultLocale}${pathname}`;
+    return NextResponse.redirect(request.nextUrl);
+  }
+
+  return updateSession(request);
 }
 
 export const config = {

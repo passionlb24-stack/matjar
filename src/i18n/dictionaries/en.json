@@ -88,5 +88,28 @@
     "order": "Add to cart",
     "book": "Book",
     "from": "From"
+  },
+  "auth": {
+    "loginTitle": "Log in",
+    "loginSubtitle": "Welcome back! Log in to continue.",
+    "signupTitle": "Create account",
+    "signupSubtitle": "Join Matjar and start shopping or open your store.",
+    "fullName": "Full name",
+    "fullNamePlaceholder": "Your full name",
+    "email": "Email",
+    "password": "Password",
+    "loginButton": "Log in",
+    "signupButton": "Create account",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "createOne": "Create one",
+    "loginLink": "Log in",
+    "loading": "Just a moment…",
+    "checkEmailTitle": "Check your email",
+    "checkEmail": "We sent you a confirmation email. Open it to activate your account and log in.",
+    "errorInvalid": "Invalid email or password.",
+    "errorGeneric": "Something went wrong, please try again.",
+    "logout": "Log out",
+    "account": "My account"
   }
 }

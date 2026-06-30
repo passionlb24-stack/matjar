@@ -88,5 +88,28 @@
     "order": "أضف للسلة",
     "book": "احجز",
     "from": "يبدأ من"
+  },
+  "auth": {
+    "loginTitle": "تسجيل الدخول",
+    "loginSubtitle": "أهلاً فيك من جديد! سجّل دخولك لتتابع.",
+    "signupTitle": "إنشاء حساب",
+    "signupSubtitle": "انضمّ لـ متجر وابدأ التسوّق أو افتح متجرك.",
+    "fullName": "الاسم الكامل",
+    "fullNamePlaceholder": "اسمك الكامل",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "loginButton": "دخول",
+    "signupButton": "إنشاء الحساب",
+    "noAccount": "ما عندك حساب؟",
+    "haveAccount": "عندك حساب؟",
+    "createOne": "أنشئ واحد",
+    "loginLink": "سجّل دخول",
+    "loading": "لحظة…",
+    "checkEmailTitle": "افحص بريدك",
+    "checkEmail": "بعتنالك إيميل تأكيد. افتحه لتفعيل حسابك وتسجّل دخول.",
+    "errorInvalid": "البريد أو كلمة المرور غير صحيحة.",
+    "errorGeneric": "صار خطأ، جرّب مرّة تانية.",
+    "logout": "تسجيل الخروج",
+    "account": "حسابي"
   }
 }

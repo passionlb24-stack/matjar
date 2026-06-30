@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
+import { createClient } from "@/lib/supabase/server";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 
@@ -16,9 +17,20 @@ export default async function SiteLayout({
   if (!isLocale(lang)) notFound();
   const dict = await getDictionary(lang);
 
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const displayName =
+    (user?.user_metadata?.full_name as string | undefined) ?? user?.email ?? "";
+
   return (
     <>
-      <SiteHeader lang={lang} dict={dict} />
+      <SiteHeader
+        lang={lang}
+        dict={dict}
+        user={user ? { name: displayName } : null}
+      />
       <main className="flex-1">{children}</main>
       <SiteFooter lang={lang} dict={dict} />
     </>
