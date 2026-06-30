@@ -23,14 +23,19 @@ export function ProductForm({
   lang,
   category,
   dict,
+  addKey = "add",
+  simplified = false,
 }: {
   storeId: string;
   lang: Locale;
   category: CategoryKey;
   dict: Dictionary;
+  addKey?: "add" | "addMenuItem" | "addService" | "addListing";
+  simplified?: boolean;
 }) {
   const router = useRouter();
   const p = dict.merchant.products;
+  const addLabel = p[addKey] ?? p.add;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -113,7 +118,7 @@ export function ProductForm({
       onSubmit={onSubmit}
       className="space-y-4 rounded-2xl border border-border bg-surface p-5"
     >
-      <h3 className="font-bold">{p.add}</h3>
+      <h3 className="font-bold">{addLabel}</h3>
       <ImageUpload
         folder={storeId}
         value={imageUrl}
@@ -164,7 +169,7 @@ export function ProductForm({
         </label>
         <input id="name" name="name" type="text" required placeholder={p.namePlaceholder} className={field} />
       </div>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className={`grid gap-4 ${simplified ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
         <div>
           <label className={label} htmlFor="price">
             {p.price}
@@ -177,12 +182,14 @@ export function ProductForm({
           </label>
           <input id="discount_price" name="discount_price" type="number" min="0" step="0.01" placeholder="0" className={field} />
         </div>
-        <div>
-          <label className={label} htmlFor="stock">
-            {p.stock}
-          </label>
-          <input id="stock" name="stock" type="number" min="0" step="1" placeholder="∞" className={field} />
-        </div>
+        {!simplified && (
+          <div>
+            <label className={label} htmlFor="stock">
+              {p.stock}
+            </label>
+            <input id="stock" name="stock" type="number" min="0" step="1" placeholder="∞" className={field} />
+          </div>
+        )}
       </div>
       <div>
         <label className={label} htmlFor="description">
@@ -204,6 +211,8 @@ export function ProductForm({
         </div>
       )}
 
+      {!simplified && (
+      <>
       {/* Variants */}
       <div className="rounded-xl border border-border/70 p-4">
         <div className="flex items-center justify-between">
@@ -312,6 +321,8 @@ export function ProductForm({
           ))}
         </div>
       </div>
+      </>
+      )}
 
       {error && <p className="text-sm font-medium text-red-600">{error}</p>}
       <button

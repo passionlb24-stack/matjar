@@ -230,7 +230,10 @@
       "addonNamePlaceholder": "e.g. Extra cheese",
       "addonPrice": "Price",
       "addAddon": "Add",
-      "remove": "Remove"
+      "remove": "Remove",
+      "addMenuItem": "Add menu item",
+      "addService": "Add service",
+      "addListing": "Add listing"
     }
   },
   "admin": {

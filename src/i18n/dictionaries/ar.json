@@ -230,7 +230,10 @@
       "addonNamePlaceholder": "مثلاً: جبنة إضافية",
       "addonPrice": "السعر",
       "addAddon": "إضافة",
-      "remove": "حذف"
+      "remove": "حذف",
+      "addMenuItem": "أضف صنف للمنيو",
+      "addService": "أضف خدمة",
+      "addListing": "أضف إعلان"
     }
   },
   "admin": {

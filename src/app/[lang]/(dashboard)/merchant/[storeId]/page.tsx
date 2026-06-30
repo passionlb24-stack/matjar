@@ -6,6 +6,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import type { CategoryKey } from "@/lib/catalog";
+import { categoryModule } from "@/lib/modules";
 import { Container } from "@/components/ui/container";
 import { ProductForm } from "@/components/product-form";
 import { ProductRowActions } from "@/components/product-row-actions";
@@ -56,6 +57,8 @@ export default async function ManageStorePage({
   const category =
     ((store as unknown as { business_types: { slug: string } | null })
       .business_types?.slug as CategoryKey) ?? "retail";
+  const mod = categoryModule[category];
+  const itemsLabel = dict.store[mod.itemsKey];
 
   const { data } = await supabase
     .from("products")
@@ -80,22 +83,25 @@ export default async function ManageStorePage({
         </h1>
 
         <div className="mt-5 flex items-center justify-between gap-2">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <span className="rounded-lg bg-foreground px-3.5 py-1.5 text-sm font-semibold text-background">
-              {dict.merchant.productsLink}
+              {itemsLabel}
             </span>
-            <Link
-              href={`/${lang}/merchant/${storeId}/orders`}
-              className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
-            >
-              {dict.merchant.ordersLink}
-            </Link>
-            <Link
-              href={`/${lang}/merchant/${storeId}/bookings`}
-              className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
-            >
-              {dict.merchant.bookingsLink}
-            </Link>
+            {mod.kind === "commerce" ? (
+              <Link
+                href={`/${lang}/merchant/${storeId}/orders`}
+                className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
+              >
+                {dict.merchant.ordersLink}
+              </Link>
+            ) : (
+              <Link
+                href={`/${lang}/merchant/${storeId}/bookings`}
+                className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
+              >
+                {dict.merchant.bookingsLink}
+              </Link>
+            )}
             <Link
               href={`/${lang}/merchant/${storeId}/customers`}
               className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
@@ -119,9 +125,7 @@ export default async function ManageStorePage({
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
           <div>
-            <h2 className="mb-4 text-lg font-bold">
-              {dict.merchant.products.title}
-            </h2>
+            <h2 className="mb-4 text-lg font-bold">{itemsLabel}</h2>
             {products.length ? (
               <div className="space-y-3">
                 {products.map((p) => (
@@ -169,6 +173,8 @@ export default async function ManageStorePage({
             lang={lang}
             category={category}
             dict={dict}
+            addKey={mod.addKey}
+            simplified={mod.simplifiedItem}
           />
         </div>
       </Container>
