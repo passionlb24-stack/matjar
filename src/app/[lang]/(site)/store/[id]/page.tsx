@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { MapPin, MessageCircle, Phone, Star } from "lucide-react";
+import { Clock, MapPin, MessageCircle, Phone, Star } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import {
@@ -39,6 +39,12 @@ type StoreView = {
   reviews?: number;
   logoUrl?: string | null;
   coverUrl?: string | null;
+  openingHours?: string | null;
+  instagram?: string | null;
+  facebook?: string | null;
+  website?: string | null;
+  phone?: string | null;
+  whatsapp?: string | null;
   isReal: boolean;
   products: {
     id?: string;
@@ -53,7 +59,7 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
     const supabase = await createClient();
     const { data } = await supabase
       .from("stores")
-      .select("name, description, area, status, plan, logo_url, cover_url, business_types(slug)")
+      .select("name, description, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, instagram, facebook, website, business_types(slug)")
       .eq("id", id)
       .is("deleted_at", null)
       .maybeSingle();
@@ -76,6 +82,12 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
         plan: (data.plan as "free" | "pro" | null) ?? "free",
         logoUrl: (data.logo_url as string | null) ?? null,
         coverUrl: (data.cover_url as string | null) ?? null,
+        openingHours: (data.opening_hours as string | null) ?? null,
+        instagram: (data.instagram as string | null) ?? null,
+        facebook: (data.facebook as string | null) ?? null,
+        website: (data.website as string | null) ?? null,
+        phone: (data.phone as string | null) ?? null,
+        whatsapp: (data.whatsapp as string | null) ?? null,
         isReal: true,
         products: (prods ?? []).map((p) => ({
           id: p.id as string,
@@ -218,25 +230,52 @@ export default async function StorePage({
                       {store.area}
                     </span>
                   )}
+                  {store.openingHours && (
+                    <span className="flex items-center gap-1 text-muted-foreground">
+                      <Clock className="h-4 w-4" />
+                      {store.openingHours}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <a
-                href="#"
-                className="flex items-center gap-1.5 rounded-xl border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted"
-              >
-                <Phone className="h-4 w-4" />
-                {dict.store.call}
-              </a>
-              <a
-                href="#"
-                className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
-              >
-                <MessageCircle className="h-4 w-4" />
-                {dict.store.whatsapp}
-              </a>
+            <div className="flex flex-wrap gap-2">
+              {store.phone && (
+                <a
+                  href={`tel:${store.phone}`}
+                  className="flex items-center gap-1.5 rounded-xl border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted"
+                >
+                  <Phone className="h-4 w-4" />
+                  {dict.store.call}
+                </a>
+              )}
+              {store.whatsapp && (
+                <a
+                  href={`https://wa.me/${store.whatsapp.replace(/[^0-9]/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  {dict.store.whatsapp}
+                </a>
+              )}
+              {store.instagram && (
+                <a href={store.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center rounded-xl border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted">
+                  {dict.merchant.instagram}
+                </a>
+              )}
+              {store.facebook && (
+                <a href={store.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center rounded-xl border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted">
+                  {dict.merchant.facebook}
+                </a>
+              )}
+              {store.website && (
+                <a href={store.website} target="_blank" rel="noopener noreferrer" className="flex items-center rounded-xl border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted">
+                  {dict.merchant.website}
+                </a>
+              )}
             </div>
           </div>
 

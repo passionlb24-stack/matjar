@@ -89,6 +89,8 @@ export function StoreProducts({
       .insert({
         store_id: storeId,
         customer_id: user.id,
+        customer_name:
+          (user.user_metadata?.full_name as string | undefined) ?? null,
         subtotal: total,
         total,
         fulfillment,

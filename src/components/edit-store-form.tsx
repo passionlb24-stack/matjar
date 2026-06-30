@@ -19,6 +19,10 @@ type Initial = {
   whatsapp: string | null;
   logo_url: string | null;
   cover_url: string | null;
+  opening_hours: string | null;
+  instagram: string | null;
+  facebook: string | null;
+  website: string | null;
 };
 
 const fieldClass =
@@ -64,6 +68,10 @@ export function EditStoreForm({
         whatsapp: String(form.get("whatsapp")) || null,
         logo_url: logo,
         cover_url: cover,
+        opening_hours: String(form.get("opening_hours")) || null,
+        instagram: String(form.get("instagram")) || null,
+        facebook: String(form.get("facebook")) || null,
+        website: String(form.get("website")) || null,
       })
       .eq("id", storeId);
     if (error) {
@@ -152,6 +160,35 @@ export function EditStoreForm({
           {dict.merchant.description}
         </label>
         <textarea id="description" name="description" rows={3} defaultValue={initial.description ?? ""} placeholder={dict.merchant.descriptionPlaceholder} className={fieldClass} />
+      </div>
+
+      <div>
+        <label className={labelClass} htmlFor="opening_hours">
+          {dict.merchant.openingHours}
+        </label>
+        <input id="opening_hours" name="opening_hours" type="text" defaultValue={initial.opening_hours ?? ""} placeholder={dict.merchant.openingHoursPlaceholder} className={fieldClass} />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className={labelClass} htmlFor="instagram">
+            {dict.merchant.instagram}
+          </label>
+          <input id="instagram" name="instagram" type="url" defaultValue={initial.instagram ?? ""} placeholder="https://instagram.com/…" className={fieldClass} />
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="facebook">
+            {dict.merchant.facebook}
+          </label>
+          <input id="facebook" name="facebook" type="url" defaultValue={initial.facebook ?? ""} placeholder="https://facebook.com/…" className={fieldClass} />
+        </div>
+      </div>
+
+      <div>
+        <label className={labelClass} htmlFor="website">
+          {dict.merchant.website}
+        </label>
+        <input id="website" name="website" type="url" defaultValue={initial.website ?? ""} placeholder="https://…" className={fieldClass} />
       </div>
 
       {error && <p className="text-sm font-medium text-red-600">{error}</p>}
