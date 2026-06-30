@@ -17,6 +17,14 @@ type Product = {
   imageUrl?: string | null;
 };
 
+// Retail-style sectors display as an image-forward shop grid; food and
+// service sectors display as a menu/service list.
+const GRID_CATEGORIES = new Set<CategoryKey>([
+  "retail",
+  "realEstate",
+  "automotive",
+]);
+
 function formatPrice(price: number) {
   return price >= 1000
     ? `$${Number(price).toLocaleString("en-US")}`
@@ -44,6 +52,8 @@ export function StoreProducts({
 
   const Icon = categoryIcons[category];
   const style = categoryStyles[category];
+  const isGrid = GRID_CATEGORIES.has(category);
+  const addLabel = isBooking ? dict.store.book : dict.store.order;
 
   function setQty(id: string, qty: number) {
     setCart((c) => {
@@ -89,66 +99,123 @@ export function StoreProducts({
     router.refresh();
   }
 
+  function Stepper({ id, qty }: { id: string; qty: number }) {
+    return (
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setQty(id, qty - 1)}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-border transition-colors hover:bg-surface-muted"
+          aria-label="-"
+        >
+          <Minus className="h-4 w-4" />
+        </button>
+        <span className="w-5 text-center font-bold">{qty}</span>
+        <button
+          onClick={() => setQty(id, qty + 1)}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-border transition-colors hover:bg-surface-muted"
+          aria-label="+"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {products.map((p) => {
-          const qty = cart[p.id] ?? 0;
-          return (
-            <div
-              key={p.id}
-              className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4"
-            >
-              {p.imageUrl ? (
-                <Image
-                  src={p.imageUrl}
-                  alt=""
-                  width={64}
-                  height={64}
-                  className="h-16 w-16 shrink-0 rounded-xl object-cover"
-                  sizes="64px"
-                />
-              ) : (
-                <span
-                  className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${style.cover}`}
-                >
-                  <Icon className="h-7 w-7 text-black/20" />
-                </span>
-              )}
-              <div className="min-w-0 flex-1">
-                <h3 className="truncate font-bold">{p.name}</h3>
-                <p className="mt-0.5 text-sm font-bold">{formatPrice(p.price)}</p>
-              </div>
-              {qty > 0 ? (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setQty(p.id, qty - 1)}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-border transition-colors hover:bg-surface-muted"
-                    aria-label="-"
+      {isGrid ? (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          {products.map((p) => {
+            const qty = cart[p.id] ?? 0;
+            return (
+              <div
+                key={p.id}
+                className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface"
+              >
+                {p.imageUrl ? (
+                  <Image
+                    src={p.imageUrl}
+                    alt=""
+                    width={300}
+                    height={200}
+                    className="h-40 w-full object-cover"
+                    sizes="(max-width: 640px) 50vw, 25vw"
+                  />
+                ) : (
+                  <div
+                    className={`flex h-40 w-full items-center justify-center bg-gradient-to-br ${style.cover}`}
                   >
-                    <Minus className="h-4 w-4" />
-                  </button>
-                  <span className="w-5 text-center font-bold">{qty}</span>
-                  <button
-                    onClick={() => setQty(p.id, qty + 1)}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-border transition-colors hover:bg-surface-muted"
-                    aria-label="+"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
+                    <Icon className="h-10 w-10 text-black/20" />
+                  </div>
+                )}
+                <div className="flex flex-1 flex-col p-4">
+                  <h3 className="font-bold leading-tight">{p.name}</h3>
+                  <p className="mt-1 font-bold text-primary">
+                    {formatPrice(p.price)}
+                  </p>
+                  <div className="mt-3 flex justify-end">
+                    {qty > 0 ? (
+                      <Stepper id={p.id} qty={qty} />
+                    ) : (
+                      <button
+                        onClick={() => setQty(p.id, 1)}
+                        className="w-full rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                      >
+                        {addLabel}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              ) : (
-                <button
-                  onClick={() => setQty(p.id, 1)}
-                  className="shrink-0 rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-                >
-                  {isBooking ? dict.store.book : dict.store.order}
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {products.map((p) => {
+            const qty = cart[p.id] ?? 0;
+            return (
+              <div
+                key={p.id}
+                className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4"
+              >
+                {p.imageUrl ? (
+                  <Image
+                    src={p.imageUrl}
+                    alt=""
+                    width={64}
+                    height={64}
+                    className="h-16 w-16 shrink-0 rounded-xl object-cover"
+                    sizes="64px"
+                  />
+                ) : (
+                  <span
+                    className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${style.cover}`}
+                  >
+                    <Icon className="h-7 w-7 text-black/20" />
+                  </span>
+                )}
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate font-bold">{p.name}</h3>
+                  <p className="mt-0.5 text-sm font-bold">
+                    {formatPrice(p.price)}
+                  </p>
+                </div>
+                {qty > 0 ? (
+                  <Stepper id={p.id} qty={qty} />
+                ) : (
+                  <button
+                    onClick={() => setQty(p.id, 1)}
+                    className="shrink-0 rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                  >
+                    {addLabel}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {items.length > 0 && (
         <div className="sticky bottom-4 mt-6 flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface p-4 shadow-lg">

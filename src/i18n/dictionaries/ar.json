@@ -92,7 +92,10 @@
     "yourOrder": "طلبك",
     "total": "المجموع",
     "checkout": "أكّد الطلب",
-    "placing": "عم نأكّد…"
+    "placing": "عم نأكّد…",
+    "menu": "القائمة",
+    "services": "الخدمات",
+    "listings": "العروض"
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",

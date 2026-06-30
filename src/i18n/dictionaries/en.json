@@ -92,7 +92,10 @@
     "yourOrder": "Your order",
     "total": "Total",
     "checkout": "Place order",
-    "placing": "Placing…"
+    "placing": "Placing…",
+    "menu": "Menu",
+    "services": "Services",
+    "listings": "Listings"
   },
   "auth": {
     "loginTitle": "Log in",

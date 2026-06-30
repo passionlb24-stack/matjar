@@ -112,6 +112,14 @@ export default async function StorePage({
   const style = categoryStyles[store.category];
   const cat = dict.catalog[store.category];
   const isBooking = bookingCategories.has(store.category);
+  const sectionTitle =
+    store.category === "food"
+      ? dict.store.menu
+      : store.category === "services" || store.category === "healthcare"
+        ? dict.store.services
+        : store.category === "realEstate" || store.category === "automotive"
+          ? dict.store.listings
+          : dict.store.products;
 
   return (
     <div className="pb-16">
@@ -187,7 +195,7 @@ export default async function StorePage({
           )}
         </div>
 
-        <h2 className="mb-4 mt-10 text-xl font-bold">{dict.store.products}</h2>
+        <h2 className="mb-4 mt-10 text-xl font-bold">{sectionTitle}</h2>
         {store.isReal ? (
           store.products.length ? (
             <StoreProducts
