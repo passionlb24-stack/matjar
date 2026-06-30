@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { locales, localeNames, type Locale } from "@/i18n/config";
 
-// Swaps the leading locale segment of the current path while preserving the rest.
+// Segmented toggle that swaps the leading locale segment of the current path.
 export function LanguageSwitcher({
   currentLocale,
   pathname,
@@ -9,22 +9,22 @@ export function LanguageSwitcher({
   currentLocale: Locale;
   pathname: string;
 }) {
-  const rest = pathname.replace(/^\/(ar|en)(?=\/|$)/, "") || "/";
+  const rest = pathname.replace(/^\/(ar|en)(?=\/|$)/, "");
 
   return (
-    <div className="flex items-center gap-1 text-sm">
+    <div className="inline-flex items-center rounded-lg border border-border bg-surface p-0.5">
       {locales.map((locale) => {
-        const href = `/${locale}${rest === "/" ? "" : rest}` || `/${locale}`;
+        const href = `/${locale}${rest}`;
         const isActive = locale === currentLocale;
         return (
           <Link
             key={locale}
-            href={href || `/${locale}`}
-            className={
+            href={href}
+            className={`rounded-md px-2.5 py-1 text-sm font-semibold transition-colors ${
               isActive
-                ? "rounded-md bg-foreground px-3 py-1.5 font-medium text-background"
-                : "rounded-md px-3 py-1.5 text-foreground/70 hover:bg-foreground/5"
-            }
+                ? "bg-foreground text-background"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
           >
             {localeNames[locale]}
           </Link>

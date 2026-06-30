@@ -1,26 +1,65 @@
 @import "tailwindcss";
 
-/* Matjar design tokens — clean light theme, emerald brand. */
+/* ===== Matjar design system — premium light theme ===== */
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
-  --primary: #059669;
+  /* Surfaces */
+  --background: #fbfbf9; /* warm off-white page */
+  --surface: #ffffff; /* cards */
+  --surface-muted: #f4f5f3; /* subtle fills */
+
+  /* Text */
+  --foreground: #0b1620; /* near-black slate ink */
+  --muted-foreground: #5d6b72; /* secondary text */
+
+  /* Brand */
+  --primary: #047857; /* deep emerald */
+  --primary-hover: #036249;
   --primary-foreground: #ffffff;
-  --muted: #f1f5f9;
-  --border: #e2e8f0;
+  --primary-soft: #ecfdf5; /* tinted emerald bg */
+
+  /* Accent (ratings, offers) */
+  --accent: #f59e0b; /* amber */
+  --accent-foreground: #7c2d12;
+  --accent-soft: #fef3c7;
+
+  /* Lines */
+  --border: #e8e8e2;
+  --ring: #047857;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
   --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
-  --color-muted: var(--muted);
+  --color-primary-soft: var(--primary-soft);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-soft: var(--accent-soft);
   --color-border: var(--border);
-  --font-sans: var(--font-cairo);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-tajawal);
+
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+}
+
+* {
+  border-color: var(--border);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--primary-soft);
+  color: var(--primary-hover);
 }

@@ -3,22 +3,8 @@ import { locales, defaultLocale } from "@/i18n/config";
 
 // Next.js 16 renamed `middleware` to `proxy` (nodejs runtime only).
 // This proxy ensures every request carries a locale prefix (/ar, /en).
-
-function getLocale(request: NextRequest): string {
-  const acceptLang = request.headers.get("accept-language");
-  if (!acceptLang) return defaultLocale;
-
-  // Parse "en-US,en;q=0.9,ar;q=0.8" into ordered base languages.
-  const preferred = acceptLang
-    .split(",")
-    .map((part) => part.split(";")[0].trim().toLowerCase().split("-")[0]);
-
-  for (const lang of preferred) {
-    const match = locales.find((locale) => locale === lang);
-    if (match) return match;
-  }
-  return defaultLocale;
-}
+// Lebanon-first: we default to Arabic and let visitors switch to English
+// via the language toggle, rather than guessing from the browser header.
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -28,8 +14,7 @@ export function proxy(request: NextRequest) {
   );
   if (pathnameHasLocale) return;
 
-  const locale = getLocale(request);
-  request.nextUrl.pathname = `/${locale}${pathname}`;
+  request.nextUrl.pathname = `/${defaultLocale}${pathname}`;
   return NextResponse.redirect(request.nextUrl);
 }
 

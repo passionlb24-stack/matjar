@@ -1,30 +1,72 @@
 {
   "common": {
     "brand": "Matjar",
-    "tagline": "Your local commerce platform for Lebanon",
-    "getStarted": "Get Started",
-    "explore": "Explore Stores",
-    "language": "Language"
+    "login": "Log in",
+    "signup": "Sign up",
+    "forMerchants": "For merchants",
+    "explore": "Explore stores",
+    "openStore": "Open your store"
   },
-  "landing": {
-    "heroTitle": "Every store, product, and service in Lebanon — in one place",
-    "heroSubtitle": "Restaurants, shops, services, clinics, real estate and cars. Launch your online store or business page in minutes.",
-    "ctaMerchant": "Open your store",
-    "ctaCustomer": "Start shopping",
-    "featuresTitle": "Why Matjar?",
-    "features": {
-      "modular": {
-        "title": "Modular by design",
-        "body": "Each business type has its own modules — food, retail, services, healthcare, real estate, and automotive."
-      },
-      "easy": {
-        "title": "Effortless",
-        "body": "A simple dashboard built for business owners, no technical experience required."
-      },
-      "local": {
-        "title": "100% local",
-        "body": "Search by area and category, then order or book directly from your favorite store."
-      }
-    }
+  "hero": {
+    "badge": "Lebanon's local commerce platform",
+    "title": "Every store, product, and service in Lebanon,",
+    "titleHighlight": "in one place",
+    "subtitle": "Restaurants, shops, services, clinics, real estate and cars. Order, book, or discover the nearest store to you in seconds.",
+    "searchPlaceholder": "Search for a store, product, or service…",
+    "locationAll": "All Lebanon",
+    "searchButton": "Search",
+    "popular": "Trending"
+  },
+  "categories": {
+    "title": "Browse by category",
+    "subtitle": "Every sector with its own modules — all you need in one place."
+  },
+  "catalog": {
+    "food": { "name": "Food & dining", "desc": "Restaurants, cafés, sweets and bakeries" },
+    "retail": { "name": "Shopping", "desc": "Clothing, electronics, perfumes and more" },
+    "services": { "name": "Services", "desc": "Cleaning, maintenance, photography, advice" },
+    "healthcare": { "name": "Health & clinics", "desc": "Clinics, labs and pharmacies" },
+    "realEstate": { "name": "Real estate", "desc": "Apartments, shops and land to buy or rent" },
+    "automotive": { "name": "Automotive", "desc": "Showrooms, rentals and spare parts" }
+  },
+  "featured": {
+    "title": "Featured stores",
+    "subtitle": "The newest and top-rated stores near you.",
+    "viewAll": "View all",
+    "open": "Open",
+    "closed": "Closed",
+    "reviews": "reviews"
+  },
+  "howItWorks": {
+    "title": "How Matjar works",
+    "steps": [
+      { "title": "Discover", "body": "Search by area and category to find the nearest store or service to you." },
+      { "title": "Order or book", "body": "Add to cart and order, or book a service in one tap — straight from the store." },
+      { "title": "Track", "body": "Follow your order step by step and rate your experience when it's done." }
+    ]
+  },
+  "merchantCta": {
+    "title": "Have a store or business? Get online in minutes.",
+    "subtitle": "Launch your online store or business page, receive orders and bookings, and reach new customers across Lebanon.",
+    "button": "Open your store for free",
+    "secondary": "See Pro plan"
+  },
+  "footer": {
+    "tagline": "Your local commerce platform for Lebanon.",
+    "exploreTitle": "Explore",
+    "merchantsTitle": "For merchants",
+    "companyTitle": "Company",
+    "links": {
+      "stores": "Stores",
+      "categories": "Categories",
+      "offers": "Offers",
+      "openStore": "Open a store",
+      "pricing": "Pricing",
+      "merchantLogin": "Merchant login",
+      "about": "About us",
+      "contact": "Contact",
+      "privacy": "Privacy"
+    },
+    "rights": "All rights reserved."
   }
 }
