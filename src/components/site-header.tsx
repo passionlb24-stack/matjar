@@ -46,10 +46,13 @@ export function SiteHeader({
           <LanguageSwitcher currentLocale={lang} pathname={`/${lang}`} />
           {user ? (
             <>
-              <span className="hidden items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold sm:flex">
+              <Link
+                href={`/${lang}/account`}
+                className="hidden items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted sm:flex"
+              >
                 <User className="h-4 w-4 text-primary" />
                 {user.name}
-              </span>
+              </Link>
               <LogoutButton label={dict.auth.logout} />
             </>
           ) : (

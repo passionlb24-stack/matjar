@@ -217,5 +217,13 @@
     "submitting": "Submitting…",
     "noReviews": "No reviews yet. Be the first to review!",
     "loginToReview": "Log in to review"
+  },
+  "account": {
+    "title": "My account",
+    "fullName": "Full name",
+    "phone": "Phone number",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved ✓"
   }
 }
