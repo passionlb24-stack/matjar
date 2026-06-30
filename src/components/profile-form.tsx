@@ -19,11 +19,13 @@ export function ProfileForm({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setSaved(false);
+    setError(null);
     const form = new FormData(e.currentTarget);
     const fullName = String(form.get("full_name"));
     const phone = String(form.get("phone")) || null;
@@ -35,10 +37,15 @@ export function ProfileForm({
       setLoading(false);
       return;
     }
-    await supabase
+    const { error: updateError } = await supabase
       .from("profiles")
       .update({ full_name: fullName, phone })
       .eq("id", user.id);
+    if (updateError) {
+      setError(dict.auth.errorGeneric);
+      setLoading(false);
+      return;
+    }
     await supabase.auth.updateUser({ data: { full_name: fullName } });
     setLoading(false);
     setSaved(true);
@@ -74,6 +81,9 @@ export function ProfileForm({
           <span className="text-sm font-semibold text-primary">
             {dict.account.saved}
           </span>
+        )}
+        {error && (
+          <span className="text-sm font-semibold text-red-600">{error}</span>
         )}
       </div>
     </form>

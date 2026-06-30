@@ -88,6 +88,7 @@ export function StoreProducts({
   const router = useRouter();
   const [cart, setCart] = useState<Record<string, number>>({});
   const [placing, setPlacing] = useState(false);
+  const [orderError, setOrderError] = useState<string | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
   const fulfillmentOptions = (["delivery", "pickup"] as const).filter((o) =>
     o === "delivery" ? acceptsDelivery : acceptsPickup,
@@ -120,12 +121,14 @@ export function StoreProducts({
   async function confirmOrder(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setPlacing(true);
+    setOrderError(null);
     const form = new FormData(e.currentTarget);
     const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
+      setPlacing(false);
       router.push(`/${lang}/login`);
       return;
     }
@@ -146,10 +149,11 @@ export function StoreProducts({
       .select("id")
       .single();
     if (error || !order) {
+      setOrderError(dict.auth.errorGeneric);
       setPlacing(false);
       return;
     }
-    await supabase.from("order_items").insert(
+    const { error: itemsError } = await supabase.from("order_items").insert(
       items.map((p) => ({
         order_id: order.id,
         product_id: p.id,
@@ -158,6 +162,13 @@ export function StoreProducts({
         quantity: cart[p.id],
       })),
     );
+    if (itemsError) {
+      // Roll back the empty order so the customer doesn't see a phantom order.
+      await supabase.from("orders").delete().eq("id", order.id);
+      setOrderError(dict.auth.errorGeneric);
+      setPlacing(false);
+      return;
+    }
     router.push(`/${lang}/orders`);
     router.refresh();
   }
@@ -352,6 +363,9 @@ export function StoreProducts({
               </label>
               <textarea id="note" name="note" rows={2} placeholder={dict.store.notePlaceholder} className={fieldClass} />
             </div>
+            {orderError && (
+              <p className="text-sm font-medium text-red-600">{orderError}</p>
+            )}
             <div className="flex gap-2">
               <button
                 type="button"

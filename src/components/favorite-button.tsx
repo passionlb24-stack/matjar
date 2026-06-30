@@ -31,21 +31,25 @@ export function FavoriteButton({
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
+      setBusy(false);
       router.push(`/${lang}/login`);
       return;
     }
-    if (fav) {
-      await supabase
-        .from("favorites")
-        .delete()
-        .eq("store_id", storeId)
-        .eq("customer_id", user.id);
-      setFav(false);
-    } else {
-      await supabase
-        .from("favorites")
-        .insert({ store_id: storeId, customer_id: user.id });
-      setFav(true);
+    const next = !fav;
+    setFav(next); // optimistic
+    const { error } = next
+      ? await supabase
+          .from("favorites")
+          .insert({ store_id: storeId, customer_id: user.id })
+      : await supabase
+          .from("favorites")
+          .delete()
+          .eq("store_id", storeId)
+          .eq("customer_id", user.id);
+    if (error) {
+      setFav(!next); // revert on failure
+      setBusy(false);
+      return;
     }
     setBusy(false);
     router.refresh();

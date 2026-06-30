@@ -23,11 +23,13 @@ export function ReviewForm({
   const [rating, setRating] = useState(initialRating ?? 0);
   const [hover, setHover] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (rating < 1) return;
     setLoading(true);
+    setError(null);
     const form = new FormData(e.currentTarget);
     const supabase = createClient();
     const {
@@ -37,7 +39,7 @@ export function ReviewForm({
       setLoading(false);
       return;
     }
-    await supabase.from("reviews").upsert(
+    const { error: reviewError } = await supabase.from("reviews").upsert(
       {
         store_id: storeId,
         customer_id: user.id,
@@ -47,6 +49,11 @@ export function ReviewForm({
       },
       { onConflict: "store_id,customer_id" },
     );
+    if (reviewError) {
+      setError(dict.auth.errorGeneric);
+      setLoading(false);
+      return;
+    }
     setLoading(false);
     router.refresh();
   }
@@ -84,6 +91,9 @@ export function ReviewForm({
         placeholder={dict.reviews.commentPlaceholder}
         className="mt-3 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground"
       />
+      {error && (
+        <p className="mt-3 text-sm font-medium text-red-600">{error}</p>
+      )}
       <button
         type="submit"
         disabled={loading || rating < 1}

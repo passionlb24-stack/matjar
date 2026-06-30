@@ -34,6 +34,7 @@ export function StoreSettingsForm({
   const t = dict.merchant.settings;
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [delivery, setDelivery] = useState(initial.accepts_delivery);
   const [pickup, setPickup] = useState(initial.accepts_pickup);
 
@@ -41,9 +42,10 @@ export function StoreSettingsForm({
     e.preventDefault();
     setLoading(true);
     setSaved(false);
+    setError(null);
     const form = new FormData(e.currentTarget);
     const minRaw = String(form.get("min_order") ?? "").trim();
-    await createClient()
+    const { error: saveError } = await createClient()
       .from("stores")
       .update({
         accepts_delivery: delivery,
@@ -56,6 +58,11 @@ export function StoreSettingsForm({
         updated_at: new Date().toISOString(),
       })
       .eq("id", storeId);
+    if (saveError) {
+      setError(dict.auth.errorGeneric);
+      setLoading(false);
+      return;
+    }
     setLoading(false);
     setSaved(true);
     router.refresh();
@@ -126,6 +133,9 @@ export function StoreSettingsForm({
         </button>
         {saved && (
           <span className="text-sm font-semibold text-primary">{dict.account.saved}</span>
+        )}
+        {error && (
+          <span className="text-sm font-semibold text-red-600">{error}</span>
         )}
       </div>
     </form>

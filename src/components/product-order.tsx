@@ -58,6 +58,7 @@ export function ProductOrder({
   const [qty, setQty] = useState(1);
   const [checkingOut, setCheckingOut] = useState(false);
   const [placing, setPlacing] = useState(false);
+  const [orderError, setOrderError] = useState<string | null>(null);
   const fulfillmentOptions = (["delivery", "pickup"] as const).filter((o) =>
     o === "delivery" ? acceptsDelivery : acceptsPickup,
   );
@@ -88,12 +89,14 @@ export function ProductOrder({
   async function confirmOrder(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setPlacing(true);
+    setOrderError(null);
     const form = new FormData(e.currentTarget);
     const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
+      setPlacing(false);
       router.push(`/${lang}/login`);
       return;
     }
@@ -122,16 +125,23 @@ export function ProductOrder({
       .select("id")
       .single();
     if (error || !order) {
+      setOrderError(dict.auth.errorGeneric);
       setPlacing(false);
       return;
     }
-    await supabase.from("order_items").insert({
+    const { error: itemsError } = await supabase.from("order_items").insert({
       order_id: order.id,
       product_id: productId,
       name: itemName,
       unit_price: unitPrice,
       quantity: qty,
     });
+    if (itemsError) {
+      await supabase.from("orders").delete().eq("id", order.id);
+      setOrderError(dict.auth.errorGeneric);
+      setPlacing(false);
+      return;
+    }
     router.push(`/${lang}/orders`);
     router.refresh();
   }
@@ -292,6 +302,9 @@ export function ProductOrder({
             </label>
             <textarea id="note" name="note" rows={2} placeholder={dict.store.notePlaceholder} className={fieldClass} />
           </div>
+          {orderError && (
+            <p className="text-sm font-medium text-red-600">{orderError}</p>
+          )}
           <div className="flex gap-2">
             <button
               type="button"

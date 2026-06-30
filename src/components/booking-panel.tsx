@@ -49,22 +49,25 @@ export function BookingPanel({
   const Icon = categoryIcons[category];
   const style = categoryStyles[category];
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     const form = new FormData(e.currentTarget);
     const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
+      setLoading(false);
       router.push(`/${lang}/login`);
       return;
     }
     const serviceId = String(form.get("service_id"));
     const service = services.find((s) => s.id === serviceId);
-    await supabase.from("bookings").insert({
+    const { error: bookingError } = await supabase.from("bookings").insert({
       store_id: storeId,
       customer_id: user.id,
       product_id: serviceId || null,
@@ -74,6 +77,11 @@ export function BookingPanel({
       customer_name: customerName,
       notes: String(form.get("notes")) || null,
     });
+    if (bookingError) {
+      setError(dict.auth.errorGeneric);
+      setLoading(false);
+      return;
+    }
     router.push(`/${lang}/bookings`);
     router.refresh();
   }
@@ -148,6 +156,9 @@ export function BookingPanel({
               </label>
               <textarea id="notes" name="notes" rows={2} placeholder={dict.booking.notesPlaceholder} className={fieldClass} />
             </div>
+            {error && (
+              <p className="text-sm font-medium text-red-600">{error}</p>
+            )}
             <button
               type="submit"
               disabled={loading}

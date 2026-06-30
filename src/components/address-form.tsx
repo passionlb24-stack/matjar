@@ -35,11 +35,13 @@ export function AddressForm({
   const t = dict.account.address;
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setSaved(false);
+    setError(null);
     const form = new FormData(e.currentTarget);
     const supabase = createClient();
     const {
@@ -49,7 +51,7 @@ export function AddressForm({
       setLoading(false);
       return;
     }
-    await supabase.from("addresses").upsert(
+    const { error: saveError } = await supabase.from("addresses").upsert(
       {
         user_id: user.id,
         region: String(form.get("region")) || null,
@@ -63,6 +65,11 @@ export function AddressForm({
       },
       { onConflict: "user_id" },
     );
+    if (saveError) {
+      setError(dict.auth.errorGeneric);
+      setLoading(false);
+      return;
+    }
     setLoading(false);
     setSaved(true);
     router.refresh();
@@ -145,6 +152,9 @@ export function AddressForm({
           <span className="text-sm font-semibold text-primary">
             {dict.account.saved}
           </span>
+        )}
+        {error && (
+          <span className="text-sm font-semibold text-red-600">{error}</span>
         )}
       </div>
     </form>

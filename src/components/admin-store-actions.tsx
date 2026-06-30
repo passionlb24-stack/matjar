@@ -20,6 +20,7 @@ export function AdminStoreActions({
   async function setStatus(status: "active" | "rejected") {
     setBusy(true);
     await createClient().from("stores").update({ status }).eq("id", storeId);
+    setBusy(false);
     router.refresh();
   }
 

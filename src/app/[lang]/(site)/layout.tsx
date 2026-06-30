@@ -4,6 +4,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { LogoutButton } from "@/components/logout-button";
 
 // Shared chrome (header + footer) for all public marketing/browse pages.
 export default async function SiteLayout({
@@ -26,13 +27,16 @@ export default async function SiteLayout({
 
   let unread = 0;
   let dashboardHref: string | null = null;
+  let suspended = false;
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role")
+      .select("role, is_active")
       .eq("id", user.id)
       .maybeSingle();
     const role = (profile as { role?: string } | null)?.role;
+    suspended =
+      (profile as { is_active?: boolean } | null)?.is_active === false;
     if (role === "super_admin") dashboardHref = `/${lang}/admin`;
     else if (role === "merchant") dashboardHref = `/${lang}/merchant`;
     const { count } = await supabase
@@ -41,6 +45,18 @@ export default async function SiteLayout({
       .eq("user_id", user.id)
       .eq("is_read", false);
     unread = count ?? 0;
+  }
+
+  if (suspended) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-4 p-6 text-center">
+        <h1 className="text-2xl font-extrabold">{dict.admin.suspendedTitle}</h1>
+        <p className="max-w-sm text-muted-foreground">
+          {dict.admin.suspendedBody}
+        </p>
+        <LogoutButton label={dict.auth.logout} />
+      </div>
+    );
   }
 
   return (

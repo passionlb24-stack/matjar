@@ -167,8 +167,9 @@ export const stores: Store[] = [
 export const featuredStores: Store[] = stores.slice(0, 4);
 
 // Show the demo/sample stores alongside real ones while the platform fills up.
-// Flip to false before launch to display only real, approved stores.
-export const SHOW_DEMO_STORES = true;
+// Off for launch: only real, approved stores are shown. Flip to true locally if
+// you want the sample catalog back while developing.
+export const SHOW_DEMO_STORES = false;
 
 export function getStoreById(id: string): Store | undefined {
   return stores.find((store) => store.id === id);
