@@ -111,5 +111,35 @@
     "errorGeneric": "Something went wrong, please try again.",
     "logout": "Log out",
     "account": "My account"
+  },
+  "merchant": {
+    "dashboardTitle": "My stores",
+    "dashboardSubtitle": "Manage your stores and track their status.",
+    "newStore": "New store",
+    "noStoresTitle": "You don't have a store yet",
+    "noStoresBody": "Open your first store and start receiving orders and bookings.",
+    "createTitle": "Open your store",
+    "createSubtitle": "Fill in the basics and get going — you can complete the details later.",
+    "storeName": "Store name",
+    "storeNamePlaceholder": "e.g. Beit El Zeitoun",
+    "businessType": "Business type",
+    "selectType": "Select a business type",
+    "region": "Region",
+    "selectRegion": "Select a region",
+    "area": "Detailed address",
+    "areaPlaceholder": "e.g. Achrafieh, Beirut",
+    "phone": "Phone number",
+    "whatsapp": "WhatsApp",
+    "description": "Short description",
+    "descriptionPlaceholder": "What is your store about?",
+    "create": "Create store",
+    "creating": "Creating…",
+    "manage": "Manage",
+    "status": {
+      "pending": "Under review",
+      "active": "Active",
+      "suspended": "Suspended",
+      "rejected": "Rejected"
+    }
   }
 }

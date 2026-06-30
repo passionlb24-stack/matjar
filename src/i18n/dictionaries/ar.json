@@ -111,5 +111,35 @@
     "errorGeneric": "صار خطأ، جرّب مرّة تانية.",
     "logout": "تسجيل الخروج",
     "account": "حسابي"
+  },
+  "merchant": {
+    "dashboardTitle": "متاجري",
+    "dashboardSubtitle": "أدِر متاجرك واطّلع على حالتها.",
+    "newStore": "متجر جديد",
+    "noStoresTitle": "لسا ما عندك متجر",
+    "noStoresBody": "افتح متجرك الأول وابدأ استقبال الطلبات والحجوزات.",
+    "createTitle": "افتح متجرك",
+    "createSubtitle": "املأ المعلومات الأساسية وانطلق — فيك تكمّل التفاصيل لاحقاً.",
+    "storeName": "اسم المتجر",
+    "storeNamePlaceholder": "مثلاً: مطعم بيت الزيتون",
+    "businessType": "نوع النشاط",
+    "selectType": "اختر نوع النشاط",
+    "region": "المنطقة",
+    "selectRegion": "اختر المنطقة",
+    "area": "العنوان بالتفصيل",
+    "areaPlaceholder": "مثلاً: الأشرفية، بيروت",
+    "phone": "رقم الهاتف",
+    "whatsapp": "واتساب",
+    "description": "وصف مختصر",
+    "descriptionPlaceholder": "عن شو متجرك؟",
+    "create": "إنشاء المتجر",
+    "creating": "عم ننشئ…",
+    "manage": "إدارة",
+    "status": {
+      "pending": "قيد المراجعة",
+      "active": "مفعّل",
+      "suspended": "موقوف",
+      "rejected": "مرفوض"
+    }
   }
 }
