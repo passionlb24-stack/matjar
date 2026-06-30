@@ -331,6 +331,19 @@
       "cancel": "Cancel",
       "delete": "Delete",
       "empty": "No doctors yet. Add your first one."
+    },
+    "checklist": {
+      "title": "Complete your store",
+      "subtitle": "A complete store means more trust and more orders.",
+      "logo": "Add a logo",
+      "cover": "Add a cover image",
+      "description": "Add a store description",
+      "hours": "Add opening hours",
+      "whatsapp": "Add a WhatsApp number",
+      "products": "Add at least 3 items",
+      "fix": "Complete",
+      "addItems": "Add items",
+      "completeBadge": "Store complete ✓"
     }
   },
   "admin": {

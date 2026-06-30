@@ -10,6 +10,10 @@ import { categoryModule } from "@/lib/modules";
 import { Container } from "@/components/ui/container";
 import { ProductForm } from "@/components/product-form";
 import { ProductRowActions } from "@/components/product-row-actions";
+import {
+  StoreChecklist,
+  type ChecklistState,
+} from "@/components/store-checklist";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -50,7 +54,7 @@ export default async function ManageStorePage({
   if (!canManage) redirect(`/${lang}/merchant`);
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, owner_id, business_types(slug)")
+    .select("id, name, owner_id, logo_url, cover_url, description, opening_hours, whatsapp, business_types(slug)")
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
@@ -93,6 +97,24 @@ export default async function ManageStorePage({
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
   const products = (data ?? []) as ProductRow[];
+
+  // Store-completion checklist (owner onboarding nudge).
+  const s = store as unknown as {
+    logo_url: string | null;
+    cover_url: string | null;
+    description: string | null;
+    opening_hours: string | null;
+    whatsapp: string | null;
+  };
+  const checklist: ChecklistState = {
+    logo: !!s.logo_url,
+    cover: !!s.cover_url,
+    description: !!s.description?.trim(),
+    hours: !!s.opening_hours?.trim(),
+    whatsapp: !!s.whatsapp?.trim(),
+    products: products.length >= 3,
+  };
+  const checklistComplete = Object.values(checklist).every(Boolean);
 
   return (
     <div className="py-10">
@@ -180,6 +202,17 @@ export default async function ManageStorePage({
             </Link>
           )}
         </div>
+
+        {isOwner && !checklistComplete && (
+          <div className="mt-6">
+            <StoreChecklist
+              lang={lang}
+              dict={dict}
+              storeId={storeId}
+              state={checklist}
+            />
+          </div>
+        )}
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
           <div>
