@@ -204,7 +204,7 @@ export default async function StorePage({
       </div>
 
       <Container>
-        <div className="-mt-12 rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
+        <div className="-mt-6 rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-start gap-4">
               <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
