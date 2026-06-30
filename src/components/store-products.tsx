@@ -4,12 +4,13 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Minus, Plus, ShoppingCart } from "lucide-react";
+import { Minus, Plus, ShoppingCart, MessageCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { categoryStyles, type CategoryKey } from "@/lib/catalog";
 import { attributeSummary } from "@/lib/attributes";
+import { waLink, buildOrderMessage } from "@/lib/whatsapp";
 import { categoryIcons } from "@/components/category-icon";
 
 type Product = {
@@ -71,6 +72,8 @@ export function StoreProducts({
   minOrder = null,
   paymentNote = null,
   prepTime = null,
+  whatsapp = null,
+  storeName = "",
 }: {
   storeId: string;
   lang: Locale;
@@ -84,6 +87,8 @@ export function StoreProducts({
   minOrder?: number | null;
   paymentNote?: string | null;
   prepTime?: string | null;
+  whatsapp?: string | null;
+  storeName?: string;
 }) {
   const router = useRouter();
   const [cart, setCart] = useState<Record<string, number>>({});
@@ -117,6 +122,25 @@ export function StoreProducts({
     0,
   );
   const belowMin = minOrder != null && total < minOrder;
+
+  const waUrl =
+    whatsapp && items.length
+      ? waLink(
+          whatsapp,
+          buildOrderMessage({
+            greeting: dict.store.waGreeting,
+            storeName,
+            lines: items.map((p) => ({
+              name: p.name,
+              qty: cart[p.id],
+              lineTotal: formatPrice(effectivePrice(p) * cart[p.id]),
+            })),
+            totalLabel: dict.store.total,
+            total: formatPrice(total),
+            address: defaultAddress || null,
+          }),
+        )
+      : null;
 
   async function confirmOrder(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -303,6 +327,9 @@ export function StoreProducts({
             <p className="text-lg font-extrabold">
               {dict.store.total}: {formatPrice(total)}
             </p>
+            <p className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700">
+              💵 {dict.store.codNote}
+            </p>
             {fulfillmentOptions.length > 1 && (
               <div>
                 <span className="text-sm font-semibold">{dict.store.fulfillment}</span>
@@ -391,13 +418,26 @@ export function StoreProducts({
                 {dict.store.total}: {formatPrice(total)}
               </p>
             </div>
-            <button
-              onClick={() => setCheckingOut(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-primary px-6 py-3 font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-            >
-              <ShoppingCart className="h-4 w-4" />
-              {dict.store.checkout}
-            </button>
+            <div className="flex items-center gap-2">
+              {waUrl && (
+                <a
+                  href={waUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white transition-colors hover:bg-emerald-700"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  <span className="hidden sm:inline">{dict.store.orderWhatsapp}</span>
+                </a>
+              )}
+              <button
+                onClick={() => setCheckingOut(true)}
+                className="flex items-center gap-1.5 rounded-xl bg-primary px-6 py-3 font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                {dict.store.checkout}
+              </button>
+            </div>
           </div>
         ))}
     </div>

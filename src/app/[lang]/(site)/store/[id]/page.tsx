@@ -414,6 +414,8 @@ export default async function StorePage({
                 minOrder={store.minOrder ?? null}
                 paymentNote={store.paymentNote ?? null}
                 prepTime={store.prepTime ?? null}
+                whatsapp={store.whatsapp ?? null}
+                storeName={store.name}
                 products={store.products
                   .filter((p) => p.id)
                   .map((p) => ({

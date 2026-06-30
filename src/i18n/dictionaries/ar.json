@@ -112,7 +112,10 @@
     "prep": "التحضير",
     "doctorsTitle": "الأطباء",
     "specialtiesTitle": "التخصصات",
-    "insuranceTitle": "التأمين المقبول"
+    "insuranceTitle": "التأمين المقبول",
+    "orderWhatsapp": "اطلب عبر WhatsApp",
+    "waGreeting": "مرحبا، بدّي اطلب من",
+    "codNote": "الدفع عند الاستلام"
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",
@@ -521,6 +524,12 @@
   "favorites": {
     "title": "المفضّلة",
     "empty": "لسا ما عندك متاجر مفضّلة."
+  },
+  "offers": {
+    "title": "عروض اليوم",
+    "subtitle": "كل المنتجات المخفّضة على متجر، بمكان واحد.",
+    "off": "خصم",
+    "empty": "ما في عروض حالياً. ارجع بكرا!"
   },
   "notifications": {
     "title": "الإشعارات",
