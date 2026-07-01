@@ -654,7 +654,9 @@
     "visitStore": "زيارة المتجر",
     "backToStore": "عودة للمتجر",
     "wishlist": "احفظ لوقت لاحق",
-    "wishlisted": "محفوظ"
+    "wishlisted": "محفوظ",
+    "moreFromStore": "منتجات أخرى من نفس المتجر",
+    "similar": "منتجات مشابهة"
   },
   "wishlist": {
     "title": "قائمة الأمنيات",

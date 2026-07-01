@@ -8,7 +8,9 @@ import { createClient } from "@/lib/supabase/server";
 import { regions, type CategoryKey } from "@/lib/catalog";
 import { attributeSummary } from "@/lib/attributes";
 import { getUsdLbpRate } from "@/lib/data/settings";
+import { getMoreFromStore, getSimilarProducts } from "@/lib/data/related";
 import { formatLbp } from "@/lib/currency";
+import { ProductMiniCard } from "@/components/product-mini-card";
 import { Container } from "@/components/ui/container";
 import { ProductGallery } from "@/components/product-gallery";
 import { ProductOrder, type Variant, type AddOn } from "@/components/product-order";
@@ -199,6 +201,10 @@ export default async function ProductPage({
 
   const basePrice = product.discountPrice ?? product.price;
   const lbpRate = await getUsdLbpRate();
+  const [moreFromStore, similar] = await Promise.all([
+    getMoreFromStore(product.storeId, product.id),
+    getSimilarProducts(product.category, product.storeId, product.id),
+  ]);
   const attrText = attributeSummary(product.category, product.attributes, l);
   const isBooking = bookingCategories.has(product.category);
   const soldOut = product.stock != null && product.stock <= 0;
@@ -319,6 +325,49 @@ export default async function ProductPage({
             </Link>
           </div>
         </div>
+
+        {moreFromStore.length > 0 && (
+          <section className="mt-12">
+            <h2 className="mb-4 text-xl font-bold">
+              {dict.product.moreFromStore}
+            </h2>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {moreFromStore.map((p) => (
+                <ProductMiniCard
+                  key={p.id}
+                  lang={lang}
+                  id={p.id}
+                  name={p.name}
+                  price={p.price}
+                  discountPrice={p.discountPrice}
+                  imageUrl={p.imageUrl}
+                  lbpRate={lbpRate}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {similar.length > 0 && (
+          <section className="mt-10">
+            <h2 className="mb-4 text-xl font-bold">{dict.product.similar}</h2>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {similar.map((p) => (
+                <ProductMiniCard
+                  key={p.id}
+                  lang={lang}
+                  id={p.id}
+                  name={p.name}
+                  price={p.price}
+                  discountPrice={p.discountPrice}
+                  imageUrl={p.imageUrl}
+                  storeName={p.storeName}
+                  lbpRate={lbpRate}
+                />
+              ))}
+            </div>
+          </section>
+        )}
       </Container>
     </div>
   );

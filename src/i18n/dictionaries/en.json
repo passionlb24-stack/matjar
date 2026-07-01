@@ -654,7 +654,9 @@
     "visitStore": "Visit store",
     "backToStore": "Back to store",
     "wishlist": "Save for later",
-    "wishlisted": "Saved"
+    "wishlisted": "Saved",
+    "moreFromStore": "More from this store",
+    "similar": "Similar products"
   },
   "wishlist": {
     "title": "Wishlist",

@@ -1,0 +1,85 @@
+import { createClient } from "@/lib/supabase/server";
+import type { CategoryKey } from "@/lib/catalog";
+
+export type RelatedProduct = {
+  id: string;
+  name: string;
+  price: number;
+  discountPrice: number | null;
+  imageUrl: string | null;
+  storeName: string;
+};
+
+function mapRows(
+  rows: {
+    id: string;
+    name: string;
+    price: number;
+    discount_price: number | null;
+    image_url: string | null;
+    stores: { name: string } | null;
+  }[],
+): RelatedProduct[] {
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    price: Number(r.price),
+    discountPrice: r.discount_price != null ? Number(r.discount_price) : null,
+    imageUrl: r.image_url,
+    storeName: r.stores?.name ?? "",
+  }));
+}
+
+/** Other active products from the same store. */
+export async function getMoreFromStore(
+  storeId: string,
+  excludeId: string,
+  limit = 6,
+): Promise<RelatedProduct[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("products")
+    .select("id, name, price, discount_price, image_url, stores(name)")
+    .eq("store_id", storeId)
+    .eq("status", "active")
+    .eq("is_available", true)
+    .is("deleted_at", null)
+    .neq("id", excludeId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return mapRows((data ?? []) as unknown as Parameters<typeof mapRows>[0]);
+}
+
+/** Active products in the same sector (business type) from other stores. */
+export async function getSimilarProducts(
+  category: CategoryKey,
+  excludeStoreId: string,
+  excludeId: string,
+  limit = 6,
+): Promise<RelatedProduct[]> {
+  const supabase = await createClient();
+  const { data: bt } = await supabase
+    .from("business_types")
+    .select("id")
+    .eq("slug", category)
+    .limit(1)
+    .maybeSingle();
+  const btId = (bt as { id?: string } | null)?.id;
+  if (!btId) return [];
+
+  const { data } = await supabase
+    .from("products")
+    .select(
+      "id, name, price, discount_price, image_url, store_id, stores!inner(name, status, business_type_id)",
+    )
+    .eq("status", "active")
+    .eq("is_available", true)
+    .is("deleted_at", null)
+    .eq("stores.status", "active")
+    .eq("stores.business_type_id", btId)
+    .neq("id", excludeId)
+    .neq("store_id", excludeStoreId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return mapRows((data ?? []) as unknown as Parameters<typeof mapRows>[0]);
+}
