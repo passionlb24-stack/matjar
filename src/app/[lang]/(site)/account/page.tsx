@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { isLocale } from "@/i18n/config";
+import { Plus } from "lucide-react";
+import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { getMyListings } from "@/lib/data/market";
 import { Container } from "@/components/ui/container";
 import { ProfileForm } from "@/components/profile-form";
 import { AddressForm } from "@/components/address-form";
+import { MyListingsManager } from "@/components/my-listings-manager";
 
 export default async function AccountPage({
   params,
@@ -51,6 +54,8 @@ export default async function AccountPage({
     phone: (address?.phone as string | null) ?? "",
   };
 
+  const myListings = await getMyListings(user.id, lang as Locale);
+
   return (
     <div className="py-10">
       <Container className="max-w-xl">
@@ -64,7 +69,27 @@ export default async function AccountPage({
           <AddressForm lang={lang} dict={dict} initial={addressInitial} />
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-3">
+        <div className="mt-10 flex items-center justify-between gap-4">
+          <h2 className="text-2xl font-extrabold tracking-tight">
+            {dict.market.myListings}
+          </h2>
+          <Link
+            href={`/${lang}/market/new`}
+            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+          >
+            <Plus className="h-4 w-4" />
+            {dict.market.publish}
+          </Link>
+        </div>
+        <div className="mt-4">
+          <MyListingsManager
+            listings={myListings}
+            lang={lang as Locale}
+            dict={dict}
+          />
+        </div>
+
+        <div className="mt-10 flex flex-wrap gap-3">
           <Link
             href={`/${lang}/orders`}
             className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"

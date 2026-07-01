@@ -42,6 +42,12 @@ export function SiteHeader({
               {dict.common.explore}
             </Link>
             <Link
+              href={`/${lang}/market`}
+              className="rounded-lg px-3 py-2 text-sm font-bold text-primary transition-colors hover:bg-surface-muted"
+            >
+              {dict.market.nav}
+            </Link>
+            <Link
               href={`/${lang}/offers`}
               className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
             >

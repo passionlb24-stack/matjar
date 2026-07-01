@@ -1,0 +1,158 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Eye, MapPin, User, BadgeCheck, Store as StoreIcon } from "lucide-react";
+import { isLocale, type Locale } from "@/i18n/config";
+import { getDictionary } from "@/i18n/get-dictionary";
+import { createClient } from "@/lib/supabase/server";
+import { getListingById } from "@/lib/data/market";
+import { Container } from "@/components/ui/container";
+import { ProductGallery } from "@/components/product-gallery";
+import { ListingFavoriteButton } from "@/components/listing-favorite-button";
+import { ListingReport } from "@/components/listing-report";
+import { ListingViewTracker } from "@/components/listing-view-tracker";
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function formatPrice(price: number) {
+  return price >= 1000 ? `$${Number(price).toLocaleString("en-US")}` : `$${price}`;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string; id: string }>;
+}): Promise<Metadata> {
+  const { lang, id } = await params;
+  if (!isLocale(lang) || !UUID_RE.test(id)) return {};
+  const listing = await getListingById(id, lang as Locale, null);
+  if (!listing) return { title: "Matjar" };
+  return {
+    title: `${listing.title} | Matjar`,
+    description: listing.description ?? undefined,
+    openGraph: {
+      title: listing.title,
+      description: listing.description ?? undefined,
+      images: listing.image ? [listing.image] : undefined,
+    },
+  };
+}
+
+export default async function ListingPage({
+  params,
+}: {
+  params: Promise<{ lang: string; id: string }>;
+}) {
+  const { lang, id } = await params;
+  if (!isLocale(lang) || !UUID_RE.test(id)) notFound();
+  const dict = await getDictionary(lang);
+  const l = lang as Locale;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const listing = await getListingById(id, l, user?.id ?? null);
+  if (!listing) notFound();
+
+  const fmtDate = (iso: string) =>
+    new Date(iso).toLocaleDateString(lang === "ar" ? "ar" : "en", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+
+  return (
+    <div className="py-8">
+      <ListingViewTracker listingId={id} />
+      <Container>
+        <Link
+          href={`/${lang}/market`}
+          className="text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+        >
+          ← {dict.market.title}
+        </Link>
+
+        <div className="mt-4 grid gap-8 lg:grid-cols-2">
+          <ProductGallery images={listing.images} />
+
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-3xl font-extrabold tracking-tight">
+                {listing.title}
+              </h1>
+              {listing.status === "sold" && (
+                <span className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs font-bold text-white">
+                  {dict.market.soldBadge}
+                </span>
+              )}
+            </div>
+
+            {listing.price != null && (
+              <p className="mt-3 text-2xl font-extrabold text-primary">
+                {formatPrice(listing.price)}
+              </p>
+            )}
+
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <MapPin className="h-4 w-4" />
+                {[listing.city, listing.categoryName].filter(Boolean).join(" · ")}
+              </span>
+              <span className="flex items-center gap-1">
+                <Eye className="h-4 w-4" />
+                {listing.views} {dict.market.views}
+              </span>
+              <span>
+                {dict.market.postedOn} {fmtDate(listing.createdAt)}
+              </span>
+            </div>
+
+            {/* Seller identity */}
+            <div className="mt-5 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-surface p-4">
+              {listing.storeId ? (
+                <>
+                  <span className="flex items-center gap-1.5 font-bold text-primary">
+                    <BadgeCheck className="h-5 w-5" />
+                    {dict.market.sellerMerchant}
+                  </span>
+                  <Link
+                    href={`/${lang}/store/${listing.storeId}`}
+                    className="ms-auto flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                  >
+                    <StoreIcon className="h-4 w-4" />
+                    {dict.market.visitStore}
+                  </Link>
+                </>
+              ) : (
+                <span className="flex items-center gap-1.5 font-bold">
+                  <User className="h-5 w-5 text-muted-foreground" />
+                  {dict.market.sellerUser}
+                </span>
+              )}
+            </div>
+
+            {listing.description && (
+              <p className="mt-5 whitespace-pre-line leading-relaxed">
+                {listing.description}
+              </p>
+            )}
+
+            <div className="mt-6 flex items-center gap-4">
+              <ListingFavoriteButton
+                listingId={id}
+                favorited={listing.isFavorited}
+                savesCount={listing.savesCount}
+                lang={lang}
+                dict={dict}
+              />
+              <ListingReport listingId={id} lang={lang} dict={dict} />
+            </div>
+          </div>
+        </div>
+      </Container>
+    </div>
+  );
+}
