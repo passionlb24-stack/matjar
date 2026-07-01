@@ -293,7 +293,12 @@
       "addListing": "Add listing",
       "editTitle": "Edit product",
       "editAction": "Edit",
-      "update": "Save changes"
+      "update": "Save changes",
+      "showIn": "Show in",
+      "channelStore": "Store",
+      "channelMarket": "Sunday Market",
+      "channelOffers": "Offers",
+      "channelClearance": "Clearance"
     },
     "subscriptionLink": "Subscription",
     "subscription": {
@@ -632,6 +637,11 @@
     "subtitle": "Every discounted product on Matjar, in one place.",
     "off": "off",
     "empty": "No offers right now. Check back tomorrow!"
+  },
+  "clearance": {
+    "title": "Clearance",
+    "subtitle": "Clearance-priced products from our stores.",
+    "empty": "No clearance products right now."
   },
   "bestSellers": {
     "title": "Best sellers",

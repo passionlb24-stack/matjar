@@ -293,7 +293,12 @@
       "addListing": "أضف إعلان",
       "editTitle": "تعديل المنتج",
       "editAction": "تعديل",
-      "update": "حفظ التعديلات"
+      "update": "حفظ التعديلات",
+      "showIn": "عرض في",
+      "channelStore": "المتجر",
+      "channelMarket": "سوق الأحد",
+      "channelOffers": "العروض",
+      "channelClearance": "التصفية"
     },
     "subscriptionLink": "اشتراكي",
     "subscription": {
@@ -632,6 +637,11 @@
     "subtitle": "كل المنتجات المخفّضة على متجر، بمكان واحد.",
     "off": "خصم",
     "empty": "ما في عروض حالياً. ارجع بكرا!"
+  },
+  "clearance": {
+    "title": "التصفية",
+    "subtitle": "منتجات بأسعار تصفية من متاجرنا.",
+    "empty": "ما في منتجات تصفية حالياً."
   },
   "bestSellers": {
     "title": "الأكثر مبيعاً",

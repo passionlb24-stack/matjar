@@ -75,11 +75,13 @@ export async function OffersTeaser({
                 </h3>
                 <p className="mt-2">
                   <span className="font-bold text-primary">
-                    {formatPrice(p.discountPrice)}
+                    {formatPrice(p.discountPrice ?? p.price)}
                   </span>{" "}
-                  <span className="text-xs text-muted-foreground line-through">
-                    {formatPrice(p.price)}
-                  </span>
+                  {p.discountPrice != null && (
+                    <span className="text-xs text-muted-foreground line-through">
+                      {formatPrice(p.price)}
+                    </span>
+                  )}
                 </p>
               </div>
             </Link>

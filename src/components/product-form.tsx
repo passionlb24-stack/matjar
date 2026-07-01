@@ -43,6 +43,9 @@ export function ProductForm({
   const [adderKey, setAdderKey] = useState(0);
   const [variants, setVariants] = useState<VariantRow[]>([]);
   const [options, setOptions] = useState<OptionRow[]>([]);
+  const [inOffers, setInOffers] = useState(false);
+  const [inClearance, setInClearance] = useState(false);
+  const [inMarket, setInMarket] = useState(false);
   const attrFields = categoryAttributes[category] ?? [];
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -71,6 +74,8 @@ export function ProductForm({
         gallery,
         stock: stockRaw === "" ? null : Number(stockRaw),
         attributes,
+        in_offers: inOffers,
+        in_clearance: inClearance,
       })
       .select("id")
       .single();
@@ -104,11 +109,35 @@ export function ProductForm({
     if (cleanOptions.length)
       await supabase.from("product_options").insert(cleanOptions);
 
+    // Cross-post to سوق الأحد if selected (a pending listing derived from the
+    // product; the merchant can refine it later from "My listings").
+    if (inMarket) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const priceVal = Number(form.get("price")) || 0;
+        const discountVal = Number(form.get("discount_price")) || null;
+        await supabase.from("listings").insert({
+          seller_id: user.id,
+          store_id: storeId,
+          title: String(form.get("name")),
+          description: String(form.get("description")) || null,
+          price: discountVal ?? priceVal,
+          images: [imageUrl, ...gallery].filter(Boolean),
+          status: "pending",
+        });
+      }
+    }
+
     formEl.reset();
     setImageUrl(null);
     setGallery([]);
     setVariants([]);
     setOptions([]);
+    setInOffers(false);
+    setInClearance(false);
+    setInMarket(false);
     setLoading(false);
     router.refresh();
   }
@@ -323,6 +352,32 @@ export function ProductForm({
       </div>
       </>
       )}
+
+      {/* عرض في (distribution channels) */}
+      <div className="rounded-xl border border-border/70 p-4">
+        <span className={label}>{p.showIn}</span>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <span className="flex items-center gap-1.5 rounded-lg border border-primary bg-primary-soft px-3 py-1.5 text-sm font-bold text-primary">
+            <input type="checkbox" checked disabled className="h-4 w-4 accent-primary" />
+            {p.channelStore}
+          </span>
+          {[
+            { on: inMarket, set: setInMarket, txt: p.channelMarket },
+            { on: inOffers, set: setInOffers, txt: p.channelOffers },
+            { on: inClearance, set: setInClearance, txt: p.channelClearance },
+          ].map((c) => (
+            <label
+              key={c.txt}
+              className={`flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-bold transition-colors ${
+                c.on ? "border-primary bg-primary-soft text-primary" : "border-border text-muted-foreground"
+              }`}
+            >
+              <input type="checkbox" checked={c.on} onChange={(e) => c.set(e.target.checked)} className="h-4 w-4 accent-primary" />
+              {c.txt}
+            </label>
+          ))}
+        </div>
+      </div>
 
       {error && <p className="text-sm font-medium text-red-600">{error}</p>}
       <button
