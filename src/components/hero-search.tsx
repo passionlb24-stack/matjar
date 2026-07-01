@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, MapPin, Search } from "lucide-react";
+import { MapPin, Search } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { regions } from "@/lib/catalog";
 
 export function HeroSearch({
   lang,
@@ -17,12 +18,15 @@ export function HeroSearch({
 }) {
   const router = useRouter();
   const [q, setQ] = useState("");
+  const [region, setRegion] = useState("all");
 
   function go(term?: string) {
     const query = (term ?? q).trim();
-    router.push(
-      `/${lang}/explore${query ? `?q=${encodeURIComponent(query)}` : ""}`,
-    );
+    const params = new URLSearchParams();
+    if (query) params.set("q", query);
+    if (region !== "all") params.set("region", region);
+    const qs = params.toString();
+    router.push(`/${lang}/explore${qs ? `?${qs}` : ""}`);
   }
 
   return (
@@ -35,11 +39,20 @@ export function HeroSearch({
         className="flex flex-col gap-2 rounded-2xl border border-border bg-surface p-2 shadow-sm sm:flex-row sm:items-center sm:gap-0 sm:rounded-full"
       >
         <div className="flex items-center gap-2 px-3 text-sm sm:border-e sm:border-border">
-          <MapPin className="h-4 w-4 text-primary" />
-          <span className="whitespace-nowrap font-semibold">
-            {dict.hero.locationAll}
-          </span>
-          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          <MapPin className="h-4 w-4 shrink-0 text-primary" />
+          <select
+            value={region}
+            onChange={(e) => setRegion(e.target.value)}
+            aria-label={dict.hero.locationAll}
+            className="cursor-pointer whitespace-nowrap bg-transparent py-2.5 font-semibold outline-none"
+          >
+            <option value="all">{dict.hero.locationAll}</option>
+            {regions.map((r) => (
+              <option key={r.key} value={r.key}>
+                {r.name[lang]}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="flex flex-1 items-center gap-2 px-3">
           <Search className="h-5 w-5 shrink-0 text-muted-foreground" />

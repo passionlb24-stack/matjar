@@ -26,15 +26,17 @@ export function ExploreClient({
   stores,
   initialQuery,
   initialCategory = "all",
+  initialRegion = "all",
 }: {
   lang: Locale;
   dict: Dictionary;
   stores: Store[];
   initialQuery?: string;
   initialCategory?: CategoryKey | "all";
+  initialRegion?: RegionKey | "all";
 }) {
   const [category, setCategory] = useState<CategoryKey | "all">(initialCategory);
-  const [region, setRegion] = useState<RegionKey | "all">("all");
+  const [region, setRegion] = useState<RegionKey | "all">(initialRegion);
   const [query, setQuery] = useState(initialQuery ?? "");
 
   const filtered = stores.filter((s) => {
