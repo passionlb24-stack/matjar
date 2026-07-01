@@ -437,7 +437,41 @@
       "types": "Business types",
       "subscriptions": "Subscriptions",
       "reports": "Reports",
-      "settings": "Settings"
+      "settings": "Settings",
+      "market": "Sunday Market"
+    },
+    "market": {
+      "title": "Sunday Market moderation",
+      "subtitle": "Review, approve or reject listings.",
+      "search": "Search a listing…",
+      "allStatuses": "All",
+      "approve": "Approve",
+      "reject": "Reject",
+      "feature": "Feature",
+      "unfeature": "Unfeature",
+      "delete": "Delete",
+      "empty": "No matching listings.",
+      "seller": "Seller",
+      "merchant": "Merchant",
+      "user": "User",
+      "categoriesLink": "Categories",
+      "reportsLink": "Reports",
+      "featuredBadge": "Featured",
+      "statusLabels": {
+        "draft": "Draft",
+        "pending": "Pending",
+        "active": "Active",
+        "sold": "Sold",
+        "rejected": "Rejected"
+      },
+      "reportsTitle": "Reports",
+      "reportsSubtitle": "User reports about listings.",
+      "noReports": "No reports.",
+      "markReviewed": "Mark reviewed",
+      "viewListing": "View listing",
+      "reasonLabel": "Reason",
+      "categoriesTitle": "Sunday Market categories",
+      "categoriesSubtitle": "Categories sellers can choose from."
     },
     "platform": {
       "title": "Platform settings",

@@ -437,7 +437,41 @@
       "types": "أنواع الأنشطة",
       "subscriptions": "الاشتراكات",
       "reports": "التقارير",
-      "settings": "الإعدادات"
+      "settings": "الإعدادات",
+      "market": "سوق الأحد"
+    },
+    "market": {
+      "title": "إدارة سوق الأحد",
+      "subtitle": "راجع الإعلانات ووافق عليها أو ارفضها.",
+      "search": "ابحث عن إعلان…",
+      "allStatuses": "كل الحالات",
+      "approve": "قبول",
+      "reject": "رفض",
+      "feature": "تمييز",
+      "unfeature": "إلغاء التمييز",
+      "delete": "حذف",
+      "empty": "ما في إعلانات مطابقة.",
+      "seller": "البائع",
+      "merchant": "تاجر",
+      "user": "مستخدم",
+      "categoriesLink": "التصنيفات",
+      "reportsLink": "البلاغات",
+      "featuredBadge": "مميّز",
+      "statusLabels": {
+        "draft": "مسودة",
+        "pending": "قيد المراجعة",
+        "active": "نشط",
+        "sold": "مباع",
+        "rejected": "مرفوض"
+      },
+      "reportsTitle": "البلاغات",
+      "reportsSubtitle": "بلاغات المستخدمين عن الإعلانات.",
+      "noReports": "ما في بلاغات.",
+      "markReviewed": "تمّت المراجعة",
+      "viewListing": "عرض الإعلان",
+      "reasonLabel": "السبب",
+      "categoriesTitle": "تصنيفات سوق الأحد",
+      "categoriesSubtitle": "التصنيفات اللي يختار منها الناشر."
     },
     "platform": {
       "title": "إعدادات المنصّة",
