@@ -18,6 +18,7 @@ import { StoreProducts } from "@/components/store-products";
 import { BookingPanel } from "@/components/booking-panel";
 import { StoreReviews, type Review } from "@/components/store-reviews";
 import { FollowButton } from "@/components/follow-button";
+import { ShareButton } from "@/components/share-button";
 import { ProBadge } from "@/components/pro-badge";
 
 const UUID_RE =
@@ -358,6 +359,7 @@ export default async function StorePage({
                   dict={dict}
                 />
               )}
+              <ShareButton title={store.name} dict={dict} />
               {store.phone && (
                 <a
                   href={`tel:${store.phone}`}

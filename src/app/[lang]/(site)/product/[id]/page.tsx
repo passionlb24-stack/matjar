@@ -13,6 +13,7 @@ import { Container } from "@/components/ui/container";
 import { ProductGallery } from "@/components/product-gallery";
 import { ProductOrder, type Variant, type AddOn } from "@/components/product-order";
 import { WishlistButton } from "@/components/wishlist-button";
+import { ShareButton } from "@/components/share-button";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -304,6 +305,9 @@ export default async function ProductPage({
                 lang={lang}
                 dict={dict}
               />
+            </div>
+            <div className="mt-3">
+              <ShareButton title={product.name} dict={dict} />
             </div>
 
             <Link

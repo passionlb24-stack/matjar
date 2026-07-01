@@ -139,7 +139,9 @@
     "couponUsedUp": "This code is used up",
     "couponMinOrder": "Your order is below this code's minimum",
     "follow": "Follow",
-    "following": "Following"
+    "following": "Following",
+    "share": "Share",
+    "copied": "Link copied ✓"
   },
   "auth": {
     "loginTitle": "Log in",

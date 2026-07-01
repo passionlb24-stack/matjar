@@ -139,7 +139,9 @@
     "couponUsedUp": "الكود استنفد عدد الاستخدامات",
     "couponMinOrder": "طلبك تحت الحد الأدنى لهذا الكود",
     "follow": "تابِع",
-    "following": "متابَع"
+    "following": "متابَع",
+    "share": "مشاركة",
+    "copied": "تم نسخ الرابط ✓"
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",
