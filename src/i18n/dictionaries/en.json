@@ -462,7 +462,8 @@
         "pending": "Pending",
         "active": "Active",
         "sold": "Sold",
-        "rejected": "Rejected"
+        "rejected": "Rejected",
+        "expired": "Expired"
       },
       "reportsTitle": "Reports",
       "reportsSubtitle": "User reports about listings.",
@@ -767,13 +768,15 @@
       "pending": "Under review",
       "active": "Active",
       "sold": "Sold",
-      "rejected": "Rejected"
+      "rejected": "Rejected",
+      "expired": "Expired"
     },
     "tabs": {
       "all": "All",
       "active": "Active",
       "sold": "Sold",
       "pending": "Under review",
+      "expired": "Expired",
       "rejected": "Rejected",
       "draft": "Drafts"
     }

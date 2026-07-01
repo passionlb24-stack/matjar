@@ -26,7 +26,7 @@ export type AdminListing = {
   price: number;
   city: string | null;
   region: string | null;
-  status: "draft" | "pending" | "active" | "sold" | "rejected";
+  status: "draft" | "pending" | "active" | "sold" | "rejected" | "expired";
   isFeatured: boolean;
   image: string | null;
   storeName: string | null;
@@ -41,6 +41,7 @@ const STATUS_TABS = [
   "rejected",
   "featured",
   "sold",
+  "expired",
   "draft",
 ] as const;
 type Tab = (typeof STATUS_TABS)[number];
@@ -51,6 +52,7 @@ const statusStyle: Record<AdminListing["status"], string> = {
   active: "bg-emerald-100 text-emerald-700",
   sold: "bg-blue-100 text-blue-700",
   rejected: "bg-red-100 text-red-700",
+  expired: "bg-orange-100 text-orange-700",
 };
 
 function formatPrice(price: number) {
@@ -82,6 +84,7 @@ export function AdminMarketClient({
       rejected: 0,
       featured: 0,
       sold: 0,
+      expired: 0,
       draft: 0,
     };
     for (const l of listings) {

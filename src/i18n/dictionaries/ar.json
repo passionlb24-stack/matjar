@@ -462,7 +462,8 @@
         "pending": "قيد المراجعة",
         "active": "نشط",
         "sold": "مباع",
-        "rejected": "مرفوض"
+        "rejected": "مرفوض",
+        "expired": "منتهي"
       },
       "reportsTitle": "البلاغات",
       "reportsSubtitle": "بلاغات المستخدمين عن الإعلانات.",
@@ -767,13 +768,15 @@
       "pending": "قيد المراجعة",
       "active": "نشط",
       "sold": "مباع",
-      "rejected": "مرفوض"
+      "rejected": "مرفوض",
+      "expired": "منتهي"
     },
     "tabs": {
       "all": "الكل",
       "active": "النشطة",
       "sold": "المباعة",
       "pending": "قيد المراجعة",
+      "expired": "المنتهية",
       "rejected": "المرفوضة",
       "draft": "المسودات"
     }

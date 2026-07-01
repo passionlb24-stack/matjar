@@ -10,12 +10,13 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { ListingCard } from "@/lib/data/market";
 
-const STATUSES = ["all", "active", "pending", "sold", "rejected", "draft"] as const;
+const STATUSES = ["all", "active", "pending", "sold", "expired", "rejected", "draft"] as const;
 
 const statusStyle: Record<string, string> = {
   active: "bg-emerald-100 text-emerald-700",
   pending: "bg-amber-100 text-amber-700",
   sold: "bg-zinc-800 text-white",
+  expired: "bg-orange-100 text-orange-700",
   rejected: "bg-red-100 text-red-700",
   draft: "bg-zinc-200 text-zinc-600",
 };
@@ -111,8 +112,8 @@ export function MyListingsManager({
                     </button>
                   </>
                 )}
-                {l.status === "sold" && (
-                  <button disabled={busy === l.id} onClick={() => patch(l.id, { status: "active" })} title={t.form.markActive} className="flex h-8 items-center gap-1 rounded-lg border border-border px-2.5 text-xs font-semibold transition-colors hover:bg-surface-muted disabled:opacity-60">
+                {(l.status === "sold" || l.status === "expired") && (
+                  <button disabled={busy === l.id} onClick={() => patch(l.id, { status: "active", created_at: new Date().toISOString() })} title={l.status === "expired" ? t.form.renew : t.form.markActive} className="flex h-8 items-center gap-1 rounded-lg border border-border px-2.5 text-xs font-semibold transition-colors hover:bg-surface-muted disabled:opacity-60">
                     <RotateCcw className="h-3.5 w-3.5" />
                   </button>
                 )}
