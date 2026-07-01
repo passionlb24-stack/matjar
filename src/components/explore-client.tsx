@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Navigation, Loader2 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import {
@@ -11,6 +11,7 @@ import {
   type RegionKey,
   type Store,
 } from "@/lib/catalog";
+import { distanceKm } from "@/lib/geo";
 import { Container } from "@/components/ui/container";
 import { StoreCard } from "@/components/store-card";
 
@@ -38,6 +39,31 @@ export function ExploreClient({
   const [category, setCategory] = useState<CategoryKey | "all">(initialCategory);
   const [region, setRegion] = useState<RegionKey | "all">(initialRegion);
   const [query, setQuery] = useState(initialQuery ?? "");
+  const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(
+    null,
+  );
+  const [locating, setLocating] = useState(false);
+  const [geoError, setGeoError] = useState<string | null>(null);
+
+  function findNearMe() {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setGeoError(dict.explore.locationError);
+      return;
+    }
+    setLocating(true);
+    setGeoError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocating(false);
+      },
+      () => {
+        setGeoError(dict.explore.locationError);
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10_000 },
+    );
+  }
 
   const filtered = stores.filter((s) => {
     if (category !== "all" && s.category !== category) return false;
@@ -53,6 +79,23 @@ export function ExploreClient({
     }
     return true;
   });
+
+  // When the buyer shares their location, annotate distance and sort nearest
+  // first (stores without coordinates fall to the end).
+  const displayed = userLoc
+    ? filtered
+        .map((s) => ({
+          ...s,
+          distanceKm:
+            s.lat != null && s.lng != null
+              ? distanceKm(userLoc.lat, userLoc.lng, s.lat, s.lng)
+              : undefined,
+        }))
+        .sort(
+          (a, b) =>
+            (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity),
+        )
+    : filtered;
 
   return (
     <div className="py-10">
@@ -108,13 +151,35 @@ export function ExploreClient({
           ))}
         </div>
 
+        <div className="mt-4">
+          <button
+            onClick={findNearMe}
+            disabled={locating}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60 ${
+              userLoc
+                ? "border-primary bg-primary-soft text-primary"
+                : "border-border hover:border-primary hover:text-primary"
+            }`}
+          >
+            {locating ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Navigation className="h-4 w-4" />
+            )}
+            {locating ? dict.explore.locating : dict.explore.nearest}
+          </button>
+          {geoError && (
+            <p className="mt-2 text-sm font-medium text-red-600">{geoError}</p>
+          )}
+        </div>
+
         <p className="mt-6 text-sm text-muted-foreground">
-          {filtered.length} {dict.explore.results}
+          {displayed.length} {dict.explore.results}
         </p>
 
-        {filtered.length ? (
+        {displayed.length ? (
           <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((s) => (
+            {displayed.map((s) => (
               <StoreCard key={s.id} store={s} lang={lang} dict={dict} />
             ))}
           </div>

@@ -90,7 +90,11 @@
     "allCategories": "كل التصنيفات",
     "allRegions": "كل المناطق",
     "results": "متجر",
-    "empty": "ما في نتائج مطابقة. جرّب فلتر تاني."
+    "empty": "ما في نتائج مطابقة. جرّب فلتر تاني.",
+    "nearest": "الأقرب إليك",
+    "locating": "عم نحدّد موقعك…",
+    "locationError": "ما قدرنا نحدّد موقعك. فعّل صلاحية الموقع.",
+    "km": "كم"
   },
   "store": {
     "openNow": "مفتوح الآن",
@@ -325,7 +329,15 @@
       "specialties": "التخصصات (للقطاع الصحي)",
       "specialtiesPlaceholder": "مثلاً: قلبية، جلدية، أطفال",
       "insurance": "التأمين المقبول (للقطاع الصحي)",
-      "insurancePlaceholder": "مثلاً: ضمان، NSSF، GlobeMed"
+      "insurancePlaceholder": "مثلاً: ضمان، NSSF، GlobeMed",
+      "location": "الموقع الجغرافي",
+      "locationHint": "يساعد الزبائن يلاقوا محلك ويشوفوه ضمن الأقرب إليهم.",
+      "useMyLocation": "استخدم موقعي الحالي",
+      "locating": "عم نحدّد الموقع…",
+      "locationError": "ما قدرنا نحدّد الموقع. فعّل صلاحية الموقع وجرّب مرّة تانية.",
+      "lat": "خط العرض",
+      "lng": "خط الطول",
+      "locationSet": "تم تحديد الموقع ✓"
     },
     "doctorsLink": "الأطباء",
     "doctors": {

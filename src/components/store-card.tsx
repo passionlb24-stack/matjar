@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Star, BadgeCheck } from "lucide-react";
+import { Star, BadgeCheck, Navigation } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { categoryStyles, type FeaturedStore } from "@/lib/catalog";
@@ -73,6 +73,12 @@ export function StoreCard({
         <p className="mt-1 text-sm text-muted-foreground">
           {cat.name} · {store.area[lang]}
         </p>
+        {store.distanceKm != null && (
+          <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 text-xs font-bold text-primary">
+            <Navigation className="h-3 w-3" />
+            {store.distanceKm.toFixed(1)} {dict.explore.km}
+          </span>
+        )}
         {store.rating != null && (
           <div className="mt-3 flex items-center gap-1.5 text-sm">
             <Star className="h-4 w-4 fill-amber-400 text-amber-400" />

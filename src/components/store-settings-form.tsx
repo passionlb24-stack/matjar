@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Navigation, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
@@ -17,6 +18,8 @@ export type StoreSettings = {
   payment_note: string;
   specialties: string;
   insurance: string;
+  lat: string;
+  lng: string;
 };
 
 export function StoreSettingsForm({
@@ -37,6 +40,31 @@ export function StoreSettingsForm({
   const [error, setError] = useState<string | null>(null);
   const [delivery, setDelivery] = useState(initial.accepts_delivery);
   const [pickup, setPickup] = useState(initial.accepts_pickup);
+  const [lat, setLat] = useState(initial.lat);
+  const [lng, setLng] = useState(initial.lng);
+  const [locating, setLocating] = useState(false);
+  const [geoError, setGeoError] = useState<string | null>(null);
+
+  function useMyLocation() {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setGeoError(t.locationError);
+      return;
+    }
+    setLocating(true);
+    setGeoError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLat(pos.coords.latitude.toFixed(6));
+        setLng(pos.coords.longitude.toFixed(6));
+        setLocating(false);
+      },
+      () => {
+        setGeoError(t.locationError);
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10_000 },
+    );
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -55,6 +83,8 @@ export function StoreSettingsForm({
         payment_note: String(form.get("payment_note")) || null,
         specialties: String(form.get("specialties") ?? "") || null,
         insurance: String(form.get("insurance") ?? "") || null,
+        lat: lat.trim() === "" ? null : Number(lat),
+        lng: lng.trim() === "" ? null : Number(lng),
         updated_at: new Date().toISOString(),
       })
       .eq("id", storeId);
@@ -122,6 +152,46 @@ export function StoreSettingsForm({
           </div>
         </>
       )}
+
+      <div>
+        <span className={labelClass}>{t.location}</span>
+        <p className="text-xs text-muted-foreground">{t.locationHint}</p>
+        <button
+          type="button"
+          onClick={useMyLocation}
+          disabled={locating}
+          className="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-border px-4 py-2 text-sm font-bold transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
+        >
+          {locating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Navigation className="h-4 w-4" />
+          )}
+          {locating ? t.locating : t.useMyLocation}
+        </button>
+        {geoError && (
+          <p className="mt-1 text-sm font-medium text-red-600">{geoError}</p>
+        )}
+        {lat && lng && !geoError && (
+          <p className="mt-1 text-sm font-semibold text-primary">
+            {t.locationSet}
+          </p>
+        )}
+        <div className="mt-2 grid grid-cols-2 gap-3">
+          <div>
+            <label className={labelClass} htmlFor="lat">
+              {t.lat}
+            </label>
+            <input id="lat" type="number" step="any" value={lat} onChange={(e) => setLat(e.target.value)} className={fieldClass} />
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="lng">
+              {t.lng}
+            </label>
+            <input id="lng" type="number" step="any" value={lng} onChange={(e) => setLng(e.target.value)} className={fieldClass} />
+          </div>
+        </div>
+      </div>
 
       <div className="flex items-center gap-3">
         <button

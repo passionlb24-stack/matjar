@@ -90,7 +90,11 @@
     "allCategories": "All categories",
     "allRegions": "All regions",
     "results": "stores",
-    "empty": "No matching results. Try a different filter."
+    "empty": "No matching results. Try a different filter.",
+    "nearest": "Nearest to you",
+    "locating": "Locating…",
+    "locationError": "Couldn't get your location. Enable location permission.",
+    "km": "km"
   },
   "store": {
     "openNow": "Open now",
@@ -325,7 +329,15 @@
       "specialties": "Specialties (healthcare)",
       "specialtiesPlaceholder": "e.g. Cardiology, Dermatology, Pediatrics",
       "insurance": "Accepted insurance (healthcare)",
-      "insurancePlaceholder": "e.g. NSSF, GlobeMed, Bankers"
+      "insurancePlaceholder": "e.g. NSSF, GlobeMed, Bankers",
+      "location": "Location",
+      "locationHint": "Helps customers find your shop and see it among the nearest to them.",
+      "useMyLocation": "Use my current location",
+      "locating": "Locating…",
+      "locationError": "Couldn't get the location. Enable location permission and try again.",
+      "lat": "Latitude",
+      "lng": "Longitude",
+      "locationSet": "Location set ✓"
     },
     "doctorsLink": "Doctors",
     "doctors": {

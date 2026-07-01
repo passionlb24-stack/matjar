@@ -54,6 +54,9 @@ export type Store = {
   plan?: "free" | "pro";
   verified?: boolean;
   favorited?: boolean;
+  lat?: number | null;
+  lng?: number | null;
+  distanceKm?: number;
   tag?: Bilingual;
   description?: Bilingual;
 };
