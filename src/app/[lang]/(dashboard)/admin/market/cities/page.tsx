@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { getMarketRegions } from "@/lib/data/market";
 import {
   MarketCityManager,
   type MarketCityRow,
@@ -17,12 +18,22 @@ export default async function AdminMarketCitiesPage({
   const dict = await getDictionary(lang);
 
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("market_cities")
-    .select("id, region, name_ar, name_en, sort_order, is_active")
-    .order("region", { ascending: true })
-    .order("sort_order", { ascending: true });
+  const [{ data }, regions] = await Promise.all([
+    supabase
+      .from("market_cities")
+      .select("id, region, name_ar, name_en, sort_order, is_active")
+      .order("region", { ascending: true })
+      .order("sort_order", { ascending: true }),
+    getMarketRegions(lang),
+  ]);
   const cities = (data ?? []) as MarketCityRow[];
 
-  return <MarketCityManager lang={lang} dict={dict} cities={cities} />;
+  return (
+    <MarketCityManager
+      lang={lang}
+      dict={dict}
+      cities={cities}
+      regions={regions}
+    />
+  );
 }

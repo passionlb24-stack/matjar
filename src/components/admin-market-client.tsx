@@ -12,6 +12,7 @@ import {
   ExternalLink,
   Tags,
   MapPin,
+  Map,
   Flag,
   ImageIcon,
 } from "lucide-react";
@@ -153,6 +154,13 @@ export function AdminMarketClient({
             >
               <MapPin className="h-4 w-4" />
               {t.citiesLink}
+            </Link>
+            <Link
+              href={`/${lang}/admin/market/regions`}
+              className="flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted"
+            >
+              <Map className="h-4 w-4" />
+              {t.regionsLink}
             </Link>
             <Link
               href={`/${lang}/admin/market/reports`}

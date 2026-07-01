@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Star, BadgeCheck, Navigation } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -27,7 +28,17 @@ export function StoreCard({
   return (
     <article className="group relative overflow-hidden rounded-2xl border border-border bg-surface transition-all hover:-translate-y-0.5 hover:shadow-md">
       <div className={`relative h-32 bg-gradient-to-br ${style.cover}`}>
-        <Icon className="absolute end-4 top-4 h-16 w-16 text-black/[0.06]" />
+        {store.coverUrl ? (
+          <Image
+            src={store.coverUrl}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, 320px"
+          />
+        ) : (
+          <Icon className="absolute end-4 top-4 h-16 w-16 text-black/[0.06]" />
+        )}
         <span
           className={`absolute start-3 top-3 rounded-full px-2.5 py-1 text-xs font-bold text-white ${
             store.isOpen ? "bg-emerald-600" : "bg-slate-500"
@@ -48,12 +59,22 @@ export function StoreCard({
             className="absolute end-3 top-3 z-10"
           />
         )}
-        <span className="absolute -bottom-6 end-4 flex h-12 w-12 items-center justify-center rounded-xl border-2 border-surface bg-surface shadow-sm">
-          <span
-            className={`flex h-full w-full items-center justify-center rounded-[10px] ${style.iconWrap}`}
-          >
-            <Icon className="h-5 w-5" />
-          </span>
+        <span className="absolute -bottom-6 end-4 z-10 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border-2 border-surface bg-surface shadow-sm">
+          {store.logoUrl ? (
+            <Image
+              src={store.logoUrl}
+              alt={store.name[lang]}
+              width={48}
+              height={48}
+              className="h-full w-full rounded-[10px] object-cover"
+            />
+          ) : (
+            <span
+              className={`flex h-full w-full items-center justify-center rounded-[10px] ${style.iconWrap}`}
+            >
+              <Icon className="h-5 w-5" />
+            </span>
+          )}
         </span>
       </div>
 

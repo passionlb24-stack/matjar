@@ -5,8 +5,12 @@ import { useRouter } from "next/navigation";
 import { Search, SlidersHorizontal } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
-import { regions } from "@/lib/catalog";
-import type { MarketCategory, MarketCity } from "@/lib/data/market";
+import { regions as catalogRegions } from "@/lib/catalog";
+import type {
+  MarketCategory,
+  MarketCity,
+  MarketRegion,
+} from "@/lib/data/market";
 
 export type MarketFilterValues = {
   q: string;
@@ -15,6 +19,7 @@ export type MarketFilterValues = {
   city: string;
   priceMin: string;
   priceMax: string;
+  datePosted: string;
   sort: string;
 };
 
@@ -26,14 +31,20 @@ export function MarketFilters({
   dict,
   categories,
   cities,
+  regions,
   initial,
 }: {
   lang: Locale;
   dict: Dictionary;
   categories: MarketCategory[];
   cities: MarketCity[];
+  regions?: MarketRegion[];
   initial: MarketFilterValues;
 }) {
+  const regionList: MarketRegion[] =
+    regions && regions.length
+      ? regions
+      : catalogRegions.map((r) => ({ key: r.key, name: r.name[lang] }));
   const router = useRouter();
   const t = dict.market;
   const [q, setQ] = useState(initial.q);
@@ -42,10 +53,11 @@ export function MarketFilters({
   const [city, setCity] = useState(initial.city);
   const [priceMin, setPriceMin] = useState(initial.priceMin);
   const [priceMax, setPriceMax] = useState(initial.priceMax);
+  const [datePosted, setDatePosted] = useState(initial.datePosted);
   const [sort, setSort] = useState(initial.sort);
 
   function navigate(overrides: Partial<MarketFilterValues> = {}) {
-    const s = { q, category, region, city, priceMin, priceMax, sort, ...overrides };
+    const s = { q, category, region, city, priceMin, priceMax, datePosted, sort, ...overrides };
     const p = new URLSearchParams();
     if (s.q.trim()) p.set("q", s.q.trim());
     if (s.category !== "all") p.set("category", s.category);
@@ -53,6 +65,7 @@ export function MarketFilters({
     if (s.city.trim()) p.set("city", s.city.trim());
     if (s.priceMin) p.set("min", s.priceMin);
     if (s.priceMax) p.set("max", s.priceMax);
+    if (s.datePosted !== "any") p.set("date", s.datePosted);
     if (s.sort !== "newest") p.set("sort", s.sort);
     const qs = p.toString();
     router.push(`/${lang}/market${qs ? `?${qs}` : ""}`);
@@ -113,9 +126,9 @@ export function MarketFilters({
         <SlidersHorizontal className="h-4 w-4 self-center text-muted-foreground" />
         <select value={region} onChange={(e) => setRegion(e.target.value)} className={field}>
           <option value="all">{t.allRegions}</option>
-          {regions.map((r) => (
+          {regionList.map((r) => (
             <option key={r.key} value={r.key}>
-              {r.name[lang]}
+              {r.name}
             </option>
           ))}
         </select>
@@ -129,6 +142,12 @@ export function MarketFilters({
         </datalist>
         <input value={priceMin} onChange={(e) => setPriceMin(e.target.value)} type="number" min="0" placeholder={t.priceMin} className={`${field} w-24`} />
         <input value={priceMax} onChange={(e) => setPriceMax(e.target.value)} type="number" min="0" placeholder={t.priceMax} className={`${field} w-24`} />
+        <select value={datePosted} onChange={(e) => setDatePosted(e.target.value)} className={field}>
+          <option value="any">{t.dateAny}</option>
+          <option value="24h">{t.date24h}</option>
+          <option value="7d">{t.date7d}</option>
+          <option value="30d">{t.date30d}</option>
+        </select>
         <select value={sort} onChange={(e) => setSort(e.target.value)} className={field}>
           <option value="newest">{t.sortNewest}</option>
           <option value="oldest">{t.sortOldest}</option>

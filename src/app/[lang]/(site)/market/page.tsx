@@ -7,6 +7,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import {
   getMarketCategories,
   getMarketCities,
+  getMarketRegions,
   getActiveListings,
   type ListingFilters,
 } from "@/lib/data/market";
@@ -49,12 +50,14 @@ export default async function MarketPage({
     city: sp.city,
     priceMin: sp.min ? Number(sp.min) : undefined,
     priceMax: sp.max ? Number(sp.max) : undefined,
+    datePosted: sp.date as ListingFilters["datePosted"],
     sort: (sp.sort as ListingFilters["sort"]) ?? "newest",
   };
 
-  const [categories, cities, listings] = await Promise.all([
+  const [categories, cities, marketRegions, listings] = await Promise.all([
     getMarketCategories(l),
     getMarketCities(l),
+    getMarketRegions(l),
     getActiveListings(l, filters),
   ]);
   const featured = listings.filter((x) => x.isFeatured);
@@ -88,6 +91,7 @@ export default async function MarketPage({
             dict={dict}
             categories={categories}
             cities={cities}
+            regions={marketRegions}
             initial={{
               q: sp.q ?? "",
               category: sp.category ?? "all",
@@ -95,6 +99,7 @@ export default async function MarketPage({
               city: sp.city ?? "",
               priceMin: sp.min ?? "",
               priceMax: sp.max ?? "",
+              datePosted: sp.date ?? "any",
               sort: sp.sort ?? "newest",
             }}
           />

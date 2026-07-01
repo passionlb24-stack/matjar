@@ -54,6 +54,8 @@ export type Store = {
   plan?: "free" | "pro";
   verified?: boolean;
   favorited?: boolean;
+  logoUrl?: string | null;
+  coverUrl?: string | null;
   lat?: number | null;
   lng?: number | null;
   distanceKm?: number;

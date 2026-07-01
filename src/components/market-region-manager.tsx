@@ -7,22 +7,20 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
 import { Container } from "@/components/ui/container";
-import { regions as catalogRegions } from "@/lib/catalog";
-import type { MarketRegion } from "@/lib/data/market";
 
-export type MarketCityRow = {
+export type MarketRegionRow = {
   id: string;
-  region: string;
+  key: string;
   name_ar: string;
   name_en: string;
   sort_order: number;
   is_active: boolean;
 };
 
-type Draft = Omit<MarketCityRow, "id">;
+type Draft = Omit<MarketRegionRow, "id">;
 
 const empty: Draft = {
-  region: "",
+  key: "",
   name_ar: "",
   name_en: "",
   sort_order: 0,
@@ -32,40 +30,27 @@ const empty: Draft = {
 const fieldClass =
   "w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary";
 
-export function MarketCityManager({
+export function MarketRegionManager({
   lang,
   dict,
-  cities,
   regions,
 }: {
   lang: Locale;
   dict: Dictionary;
-  cities: MarketCityRow[];
-  regions?: MarketRegion[];
+  regions: MarketRegionRow[];
 }) {
   const router = useRouter();
   const t = dict.admin.types; // reuse generic field labels
   const m = dict.admin.market;
-  const regionList: MarketRegion[] =
-    regions && regions.length
-      ? regions
-      : catalogRegions.map((r) => ({ key: r.key, name: r.name[lang] }));
   const [editingId, setEditingId] = useState<string | "new" | null>(null);
   const [draft, setDraft] = useState<Draft>(empty);
   const [busy, setBusy] = useState(false);
 
-  const regionName = (key: string) =>
-    regionList.find((r) => r.key === key)?.name ?? key;
-
   function startNew() {
-    setDraft({
-      ...empty,
-      region: regionList[0]?.key ?? "",
-      sort_order: cities.length,
-    });
+    setDraft({ ...empty, sort_order: regions.length });
     setEditingId("new");
   }
-  function startEdit(item: MarketCityRow) {
+  function startEdit(item: MarketRegionRow) {
     const { id: _id, ...rest } = item;
     void _id;
     setDraft(rest);
@@ -80,9 +65,9 @@ export function MarketCityManager({
     setBusy(true);
     const supabase = createClient();
     if (editingId === "new") {
-      await supabase.from("market_cities").insert(draft);
+      await supabase.from("market_regions").insert(draft);
     } else if (editingId) {
-      await supabase.from("market_cities").update(draft).eq("id", editingId);
+      await supabase.from("market_regions").update(draft).eq("id", editingId);
     }
     setBusy(false);
     cancel();
@@ -92,7 +77,7 @@ export function MarketCityManager({
   async function remove(id: string) {
     if (!window.confirm(t.confirmDelete)) return;
     setBusy(true);
-    await createClient().from("market_cities").delete().eq("id", id);
+    await createClient().from("market_regions").delete().eq("id", id);
     setBusy(false);
     router.refresh();
   }
@@ -100,31 +85,6 @@ export function MarketCityManager({
   const form = (
     <div className="rounded-2xl border border-primary/30 bg-surface p-5">
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="text-sm font-semibold">
-          {m.regionLabel}
-          <select
-            className={`${fieldClass} mt-1`}
-            value={draft.region}
-            onChange={(e) => setDraft({ ...draft, region: e.target.value })}
-          >
-            {regionList.map((r) => (
-              <option key={r.key} value={r.key}>
-                {r.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm font-semibold">
-          {t.sortOrder}
-          <input
-            type="number"
-            className={`${fieldClass} mt-1`}
-            value={draft.sort_order}
-            onChange={(e) =>
-              setDraft({ ...draft, sort_order: Number(e.target.value) })
-            }
-          />
-        </label>
         <label className="text-sm font-semibold">
           {t.nameAr}
           <input
@@ -141,6 +101,25 @@ export function MarketCityManager({
             onChange={(e) => setDraft({ ...draft, name_en: e.target.value })}
           />
         </label>
+        <label className="text-sm font-semibold">
+          {t.slug}
+          <input
+            className={`${fieldClass} mt-1`}
+            value={draft.key}
+            onChange={(e) => setDraft({ ...draft, key: e.target.value })}
+          />
+        </label>
+        <label className="text-sm font-semibold">
+          {t.sortOrder}
+          <input
+            type="number"
+            className={`${fieldClass} mt-1`}
+            value={draft.sort_order}
+            onChange={(e) =>
+              setDraft({ ...draft, sort_order: Number(e.target.value) })
+            }
+          />
+        </label>
         <label className="flex items-center gap-2 self-end text-sm font-semibold">
           <input
             type="checkbox"
@@ -153,7 +132,7 @@ export function MarketCityManager({
       </div>
       <div className="mt-4 flex gap-2">
         <button
-          disabled={busy || !draft.name_ar || !draft.name_en}
+          disabled={busy || !draft.name_ar || !draft.name_en || !draft.key}
           onClick={save}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
         >
@@ -176,9 +155,9 @@ export function MarketCityManager({
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight">
-              {m.citiesTitle}
+              {m.regionsTitle}
             </h1>
-            <p className="mt-2 text-muted-foreground">{m.citiesSubtitle}</p>
+            <p className="mt-2 text-muted-foreground">{m.regionsSubtitle}</p>
           </div>
           {editingId === null && (
             <button
@@ -194,12 +173,12 @@ export function MarketCityManager({
         {editingId === "new" && <div className="mt-6">{form}</div>}
 
         <div className="mt-6 space-y-2">
-          {cities.length === 0 && editingId !== "new" && (
+          {regions.length === 0 && editingId !== "new" && (
             <div className="rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
               {t.empty}
             </div>
           )}
-          {cities.map((item) =>
+          {regions.map((item) =>
             editingId === item.id ? (
               <div key={item.id}>{form}</div>
             ) : (
@@ -212,8 +191,8 @@ export function MarketCityManager({
                     <span className="font-bold">
                       {lang === "ar" ? item.name_ar : item.name_en}
                     </span>
-                    <span className="rounded-full bg-surface-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
-                      {regionName(item.region)}
+                    <span className="text-xs text-muted-foreground">
+                      {item.key}
                     </span>
                     {!item.is_active && (
                       <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-xs font-bold text-zinc-600">

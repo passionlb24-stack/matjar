@@ -3,12 +3,16 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { X, ArrowLeft, ArrowRight, Star, Send, Save } from "lucide-react";
+import { X, ArrowLeft, ArrowRight, Star, Send, Save, Eye, User, BadgeCheck, MapPin } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
-import { regions } from "@/lib/catalog";
-import type { MarketCategory, MarketCity } from "@/lib/data/market";
+import { regions as catalogRegions } from "@/lib/catalog";
+import type {
+  MarketCategory,
+  MarketCity,
+  MarketRegion,
+} from "@/lib/data/market";
 import { ImageUpload } from "@/components/image-upload";
 
 const field =
@@ -31,6 +35,7 @@ export function ListingForm({
   dict,
   categories,
   cities,
+  regions,
   storeId,
   initial,
   listingId,
@@ -39,10 +44,15 @@ export function ListingForm({
   dict: Dictionary;
   categories: MarketCategory[];
   cities: MarketCity[];
+  regions?: MarketRegion[];
   storeId: string | null;
   initial?: ListingInitial;
   listingId?: string;
 }) {
+  const regionList: MarketRegion[] =
+    regions && regions.length
+      ? regions
+      : catalogRegions.map((r) => ({ key: r.key, name: r.name[lang] }));
   const router = useRouter();
   const t = dict.market.form;
   const [images, setImages] = useState<string[]>(initial?.images ?? []);
@@ -55,12 +65,26 @@ export function ListingForm({
   const [region, setRegion] = useState(initial?.region ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [preview, setPreview] = useState(false);
+
+  const regionName = region
+    ? (regionList.find((r) => r.key === region)?.name ?? region)
+    : "";
+  const categoryName = categories.find((c) => c.id === categoryId)?.name ?? "";
 
   function move(i: number, dir: -1 | 1) {
     const j = i + dir;
     if (j < 0 || j >= images.length) return;
     const next = [...images];
     [next[i], next[j]] = [next[j], next[i]];
+    setImages(next);
+  }
+  function reorder(from: number, to: number) {
+    if (from === to || from < 0 || to < 0) return;
+    const next = [...images];
+    const [pick] = next.splice(from, 1);
+    next.splice(to, 0, pick);
     setImages(next);
   }
   function makeMain(i: number) {
@@ -133,9 +157,20 @@ export function ListingForm({
           {images.map((url, i) => (
             <div
               key={url}
-              className="relative h-24 w-24 overflow-hidden rounded-xl border border-border"
+              draggable
+              onDragStart={() => setDragIndex(i)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragIndex !== null) reorder(dragIndex, i);
+                setDragIndex(null);
+              }}
+              onDragEnd={() => setDragIndex(null)}
+              className={`relative h-24 w-24 cursor-grab overflow-hidden rounded-xl border border-border active:cursor-grabbing ${
+                dragIndex === i ? "opacity-40 ring-2 ring-primary" : ""
+              }`}
             >
-              <Image src={url} alt="" fill className="object-cover" sizes="96px" />
+              <Image src={url} alt="" fill className="pointer-events-none object-cover" sizes="96px" />
               {i === 0 && (
                 <span className="absolute start-1 top-1 rounded bg-primary px-1 text-[10px] font-bold text-primary-foreground">
                   ★
@@ -195,8 +230,8 @@ export function ListingForm({
           <label className={label} htmlFor="region">{t.region}</label>
           <select id="region" value={region} onChange={(e) => setRegion(e.target.value)} className={field}>
             <option value="">{t.selectRegion}</option>
-            {regions.map((r) => (
-              <option key={r.key} value={r.key}>{r.name[lang]}</option>
+            {regionList.map((r) => (
+              <option key={r.key} value={r.key}>{r.name}</option>
             ))}
           </select>
         </div>
@@ -239,6 +274,15 @@ export function ListingForm({
         <button
           type="button"
           disabled={busy || !title.trim()}
+          onClick={() => setPreview(true)}
+          className="flex items-center gap-1.5 rounded-xl border border-border px-6 py-3 text-sm font-bold transition-colors hover:bg-surface-muted disabled:opacity-60"
+        >
+          <Eye className="h-4 w-4" />
+          {t.preview}
+        </button>
+        <button
+          type="button"
+          disabled={busy || !title.trim()}
           onClick={() => submit("draft")}
           className="flex items-center gap-1.5 rounded-xl border border-border px-6 py-3 text-sm font-bold transition-colors hover:bg-surface-muted disabled:opacity-60"
         >
@@ -246,6 +290,68 @@ export function ListingForm({
           {t.saveDraft}
         </button>
       </div>
+
+      {preview && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setPreview(false)}
+        >
+          <div
+            className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-surface p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-muted-foreground">
+                {t.previewTitle}
+              </span>
+              <button
+                type="button"
+                onClick={() => setPreview(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-surface-muted"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {images[0] && (
+              <div className="relative mt-3 h-56 w-full overflow-hidden rounded-xl border border-border">
+                <Image src={images[0]} alt="" fill className="object-cover" sizes="400px" />
+              </div>
+            )}
+
+            <h2 className="mt-3 text-xl font-extrabold">{title || "—"}</h2>
+            {price && (
+              <p className="mt-1 text-lg font-extrabold text-primary">
+                ${Number(price).toLocaleString("en-US")}
+              </p>
+            )}
+            <div className="mt-2 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+              <MapPin className="h-4 w-4" />
+              {[city, regionName, categoryName].filter(Boolean).join(" · ") || "—"}
+            </div>
+
+            <div className="mt-3 flex items-center gap-1.5 rounded-xl border border-border p-3 text-sm font-bold">
+              {storeId ? (
+                <>
+                  <BadgeCheck className="h-4 w-4 text-primary" />
+                  {dict.market.sellerMerchant}
+                </>
+              ) : (
+                <>
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  {dict.market.sellerUser}
+                </>
+              )}
+            </div>
+
+            {description && (
+              <p className="mt-3 whitespace-pre-line text-sm leading-relaxed">
+                {description}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

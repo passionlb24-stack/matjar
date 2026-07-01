@@ -478,7 +478,10 @@
       "citiesLink": "المدن",
       "citiesTitle": "مدن سوق الأحد",
       "citiesSubtitle": "المدن المقترحة للناشرين، مرتبطة بالمنطقة.",
-      "regionLabel": "المنطقة"
+      "regionLabel": "المنطقة",
+      "regionsLink": "المناطق",
+      "regionsTitle": "مناطق سوق الأحد",
+      "regionsSubtitle": "المناطق اللي يختار منها الناشرون في السوق."
     },
     "platform": {
       "title": "إعدادات المنصّة",
@@ -706,6 +709,10 @@
     "cityPlaceholder": "مثلاً: طرابلس",
     "priceMin": "من ($)",
     "priceMax": "إلى ($)",
+    "dateAny": "أي وقت",
+    "date24h": "آخر ٢٤ ساعة",
+    "date7d": "آخر ٧ أيام",
+    "date30d": "آخر ٣٠ يوم",
     "sort": "الترتيب",
     "sortNewest": "الأحدث",
     "sortOldest": "الأقدم",
@@ -753,6 +760,8 @@
       "imagesHint": "اسحب لإعادة الترتيب. أول صورة تكون الرئيسية.",
       "makeMain": "اجعلها رئيسية",
       "saveDraft": "حفظ كمسودة",
+      "preview": "معاينة",
+      "previewTitle": "معاينة الإعلان",
       "publish": "نشر",
       "update": "حفظ التعديلات",
       "saving": "عم نحفظ…",

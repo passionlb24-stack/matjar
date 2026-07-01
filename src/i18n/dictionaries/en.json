@@ -478,7 +478,10 @@
       "citiesLink": "Cities",
       "citiesTitle": "Sunday Market cities",
       "citiesSubtitle": "Suggested cities for sellers, grouped by region.",
-      "regionLabel": "Region"
+      "regionLabel": "Region",
+      "regionsLink": "Regions",
+      "regionsTitle": "Sunday Market regions",
+      "regionsSubtitle": "Regions sellers can choose from in the market."
     },
     "platform": {
       "title": "Platform settings",
@@ -706,6 +709,10 @@
     "cityPlaceholder": "e.g. Tripoli",
     "priceMin": "From ($)",
     "priceMax": "To ($)",
+    "dateAny": "Any time",
+    "date24h": "Last 24 hours",
+    "date7d": "Last 7 days",
+    "date30d": "Last 30 days",
     "sort": "Sort",
     "sortNewest": "Newest",
     "sortOldest": "Oldest",
@@ -753,6 +760,8 @@
       "imagesHint": "Drag to reorder. The first image is the main one.",
       "makeMain": "Make main",
       "saveDraft": "Save as draft",
+      "preview": "Preview",
+      "previewTitle": "Listing preview",
       "publish": "Publish",
       "update": "Save changes",
       "saving": "Saving…",

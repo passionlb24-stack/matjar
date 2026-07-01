@@ -92,6 +92,22 @@ export async function getMarketCategories(
   }));
 }
 
+export type MarketRegion = { key: string; name: string };
+
+// Admin-managed region list (active only). Falls back to nothing if the table
+// is empty — callers can default to the catalog regions.
+export async function getMarketRegions(lang: Locale): Promise<MarketRegion[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("market_regions")
+    .select("key, name_ar, name_en")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true });
+  return (
+    (data ?? []) as { key: string; name_ar: string; name_en: string }[]
+  ).map((r) => ({ key: r.key, name: lang === "ar" ? r.name_ar : r.name_en }));
+}
+
 export type MarketCity = { id: string; region: string; name: string };
 
 // Admin-managed city list (active only), ordered by region then sort_order.
@@ -124,7 +140,14 @@ export type ListingFilters = {
   city?: string;
   priceMin?: number;
   priceMax?: number;
+  datePosted?: "24h" | "7d" | "30d";
   sort?: "newest" | "oldest" | "cheapest" | "expensive";
+};
+
+const DATE_WINDOWS: Record<string, number> = {
+  "24h": 1,
+  "7d": 7,
+  "30d": 30,
 };
 
 const SELECT =
@@ -153,6 +176,12 @@ export async function getActiveListings(
   if (filters.city?.trim()) query = query.ilike("city", `%${filters.city.trim()}%`);
   if (filters.priceMin != null) query = query.gte("price", filters.priceMin);
   if (filters.priceMax != null) query = query.lte("price", filters.priceMax);
+  if (filters.datePosted && DATE_WINDOWS[filters.datePosted]) {
+    const cutoff = new Date(
+      Date.now() - DATE_WINDOWS[filters.datePosted] * 24 * 60 * 60 * 1000,
+    ).toISOString();
+    query = query.gte("created_at", cutoff);
+  }
 
   switch (filters.sort) {
     case "oldest":

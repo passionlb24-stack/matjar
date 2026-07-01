@@ -5,7 +5,8 @@ import { Eye, MapPin, User, BadgeCheck, Store as StoreIcon } from "lucide-react"
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
-import { getListingById } from "@/lib/data/market";
+import { regions as catalogRegions } from "@/lib/catalog";
+import { getListingById, getMarketRegions } from "@/lib/data/market";
 import { Container } from "@/components/ui/container";
 import { ProductGallery } from "@/components/product-gallery";
 import { ListingFavoriteButton } from "@/components/listing-favorite-button";
@@ -57,6 +58,13 @@ export default async function ListingPage({
   const listing = await getListingById(id, l, user?.id ?? null);
   if (!listing) notFound();
 
+  const marketRegions = await getMarketRegions(l);
+  const regionName = listing.region
+    ? (marketRegions.find((r) => r.key === listing.region)?.name ??
+      catalogRegions.find((r) => r.key === listing.region)?.name[l] ??
+      listing.region)
+    : null;
+
   const fmtDate = (iso: string) =>
     new Date(iso).toLocaleDateString(lang === "ar" ? "ar" : "en", {
       year: "numeric",
@@ -99,7 +107,9 @@ export default async function ListingPage({
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
               <span className="flex items-center gap-1">
                 <MapPin className="h-4 w-4" />
-                {[listing.city, listing.categoryName].filter(Boolean).join(" · ")}
+                {[listing.city, regionName, listing.categoryName]
+                  .filter(Boolean)
+                  .join(" · ")}
               </span>
               <span className="flex items-center gap-1">
                 <Eye className="h-4 w-4" />

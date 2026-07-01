@@ -17,6 +17,8 @@ function rowToStore(row: {
   region: string | null;
   plan: "free" | "pro" | null;
   is_verified: boolean | null;
+  logo_url: string | null;
+  cover_url: string | null;
   lat: number | null;
   lng: number | null;
   business_types: { slug: string } | null;
@@ -30,6 +32,8 @@ function rowToStore(row: {
     isOpen: true,
     plan: row.plan ?? "free",
     verified: row.is_verified ?? false,
+    logoUrl: row.logo_url,
+    coverUrl: row.cover_url,
     lat: row.lat != null ? Number(row.lat) : null,
     lng: row.lng != null ? Number(row.lng) : null,
   };
@@ -39,7 +43,7 @@ async function fetchActiveStores(): Promise<Store[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("stores")
-    .select("id, name, area, region, plan, is_verified, lat, lng, business_types(slug)")
+    .select("id, name, area, region, plan, is_verified, logo_url, cover_url, lat, lng, business_types(slug)")
     .eq("status", "active")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
