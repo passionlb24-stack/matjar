@@ -54,6 +54,12 @@ export function SiteHeader({
               {dict.bestSellers.title}
             </Link>
             <Link
+              href={`/${lang}/map`}
+              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
+            >
+              {dict.map.title}
+            </Link>
+            <Link
               href={`/${lang}/pricing`}
               className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
             >

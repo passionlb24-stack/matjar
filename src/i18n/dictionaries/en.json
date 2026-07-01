@@ -639,6 +639,11 @@
     "sold": "sold",
     "empty": "Not enough sales yet. Check back soon!"
   },
+  "map": {
+    "title": "Store map",
+    "subtitle": "See stores on the map and find the nearest to you.",
+    "empty": "No stores have pinned their location on the map yet."
+  },
   "notifications": {
     "title": "Notifications",
     "empty": "No notifications yet.",
