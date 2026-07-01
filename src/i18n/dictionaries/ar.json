@@ -471,7 +471,9 @@
       "viewListing": "عرض الإعلان",
       "reasonLabel": "السبب",
       "categoriesTitle": "تصنيفات سوق الأحد",
-      "categoriesSubtitle": "التصنيفات اللي يختار منها الناشر."
+      "categoriesSubtitle": "التصنيفات اللي يختار منها الناشر.",
+      "statViews": "إجمالي المشاهدات",
+      "statReports": "بلاغات مفتوحة"
     },
     "platform": {
       "title": "إعدادات المنصّة",
@@ -779,7 +781,9 @@
     "orderStatus": "تغيّرت حالة طلبك",
     "bookingNew": "حجز جديد على متجرك",
     "bookingStatus": "تغيّرت حالة حجزك",
-    "storeProduct": "منتج جديد من متجر بتتابعه"
+    "storeProduct": "منتج جديد من متجر بتتابعه",
+    "listingApproved": "تمت الموافقة على إعلانك في سوق الأحد",
+    "listingRejected": "تم رفض إعلانك في سوق الأحد"
   },
   "dashboard": {
     "panel": "لوحة التحكم",

@@ -471,7 +471,9 @@
       "viewListing": "View listing",
       "reasonLabel": "Reason",
       "categoriesTitle": "Sunday Market categories",
-      "categoriesSubtitle": "Categories sellers can choose from."
+      "categoriesSubtitle": "Categories sellers can choose from.",
+      "statViews": "Total views",
+      "statReports": "Open reports"
     },
     "platform": {
       "title": "Platform settings",
@@ -779,7 +781,9 @@
     "orderStatus": "Your order status changed",
     "bookingNew": "New booking on your store",
     "bookingStatus": "Your booking status changed",
-    "storeProduct": "New product from a store you follow"
+    "storeProduct": "New product from a store you follow",
+    "listingApproved": "Your Sunday Market listing was approved",
+    "listingRejected": "Your Sunday Market listing was rejected"
   },
   "dashboard": {
     "panel": "Dashboard",

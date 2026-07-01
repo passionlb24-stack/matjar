@@ -29,6 +29,7 @@ export type AdminListing = {
   isFeatured: boolean;
   image: string | null;
   storeName: string | null;
+  views: number;
   createdAt: string;
 };
 
@@ -59,10 +60,12 @@ export function AdminMarketClient({
   lang,
   dict,
   listings,
+  openReports,
 }: {
   lang: Locale;
   dict: Dictionary;
   listings: AdminListing[];
+  openReports: number;
 }) {
   const router = useRouter();
   const t = dict.admin.market;
@@ -86,6 +89,11 @@ export function AdminMarketClient({
     }
     return c;
   }, [listings]);
+
+  const totalViews = useMemo(
+    () => listings.reduce((sum, l) => sum + (l.views || 0), 0),
+    [listings],
+  );
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -143,6 +151,32 @@ export function AdminMarketClient({
               {t.reportsLink}
             </Link>
           </div>
+        </div>
+
+        {/* Stats */}
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {(
+            [
+              { label: t.allStatuses, value: counts.all },
+              { label: t.statusLabels.active, value: counts.active },
+              { label: t.statusLabels.pending, value: counts.pending },
+              { label: t.featuredBadge, value: counts.featured },
+              { label: t.statViews, value: totalViews },
+              { label: t.statReports, value: openReports },
+            ] as const
+          ).map((s, i) => (
+            <div
+              key={i}
+              className="rounded-2xl border border-border bg-surface p-4"
+            >
+              <div className="text-2xl font-extrabold text-primary">
+                {s.value.toLocaleString("en-US")}
+              </div>
+              <div className="mt-1 text-xs font-semibold text-muted-foreground">
+                {s.label}
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Tabs */}

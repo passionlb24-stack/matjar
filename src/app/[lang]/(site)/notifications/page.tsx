@@ -10,7 +10,7 @@ import { MarkNotificationsRead } from "@/components/mark-notifications-read";
 type Notif = {
   id: string;
   type: string;
-  data: { store_id?: string } | null;
+  data: { store_id?: string; listing_id?: string } | null;
   is_read: boolean;
 };
 
@@ -48,16 +48,25 @@ export default async function NotificationsPage({
             ? dict.notifications.bookingStatus
             : t === "store_product"
               ? dict.notifications.storeProduct
-              : t;
+              : t === "listing_approved"
+                ? dict.notifications.listingApproved
+                : t === "listing_rejected"
+                  ? dict.notifications.listingRejected
+                  : t;
 
   const linkFor = (n: Notif) =>
-    n.type === "store_product" && n.data?.store_id
-      ? `/${lang}/store/${n.data.store_id}`
-      : n.type === "order_new" || n.type === "booking_new"
-        ? `/${lang}/merchant`
-        : n.type === "order_status"
-          ? `/${lang}/orders`
-          : `/${lang}/bookings`;
+    (n.type === "listing_approved" || n.type === "listing_rejected") &&
+    n.data?.listing_id
+      ? n.type === "listing_approved"
+        ? `/${lang}/market/${n.data.listing_id}`
+        : `/${lang}/account`
+      : n.type === "store_product" && n.data?.store_id
+        ? `/${lang}/store/${n.data.store_id}`
+        : n.type === "order_new" || n.type === "booking_new"
+          ? `/${lang}/merchant`
+          : n.type === "order_status"
+            ? `/${lang}/orders`
+            : `/${lang}/bookings`;
 
   return (
     <div className="py-10">

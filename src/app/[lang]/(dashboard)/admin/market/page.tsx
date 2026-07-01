@@ -17,13 +17,19 @@ export default async function AdminMarketPage({
   const dict = await getDictionary(lang);
 
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("listings")
-    .select(
-      "id, title, price, city, region, status, is_featured, images, created_at, stores(name)",
-    )
-    .order("created_at", { ascending: false })
-    .limit(500);
+  const [{ data }, { count: openReports }] = await Promise.all([
+    supabase
+      .from("listings")
+      .select(
+        "id, title, price, city, region, status, is_featured, images, views, created_at, stores(name)",
+      )
+      .order("created_at", { ascending: false })
+      .limit(500),
+    supabase
+      .from("listing_reports")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "open"),
+  ]);
 
   const rows = (data ?? []) as unknown as {
     id: string;
@@ -34,6 +40,7 @@ export default async function AdminMarketPage({
     status: AdminListing["status"];
     is_featured: boolean;
     images: string[] | null;
+    views: number;
     created_at: string;
     stores: { name: string } | null;
   }[];
@@ -48,8 +55,16 @@ export default async function AdminMarketPage({
     isFeatured: r.is_featured,
     image: Array.isArray(r.images) && r.images.length ? r.images[0] : null,
     storeName: r.stores?.name ?? null,
+    views: r.views ?? 0,
     createdAt: r.created_at,
   }));
 
-  return <AdminMarketClient lang={lang} dict={dict} listings={listings} />;
+  return (
+    <AdminMarketClient
+      lang={lang}
+      dict={dict}
+      listings={listings}
+      openReports={openReports ?? 0}
+    />
+  );
 }
