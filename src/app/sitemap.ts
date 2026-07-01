@@ -8,6 +8,9 @@ const STATIC_PATHS = [
   "",
   "/explore",
   "/categories",
+  "/market",
+  "/offers",
+  "/clearance",
   "/pricing",
   "/about",
   "/contact",
@@ -38,19 +41,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Real, public stores + products (RLS already limits to active ones).
   try {
     const supabase = await createClient();
-    const [{ data: stores }, { data: products }] = await Promise.all([
-      supabase
-        .from("stores")
-        .select("id, updated_at")
-        .eq("status", "active")
-        .is("deleted_at", null),
-      supabase
-        .from("products")
-        .select("id, updated_at")
-        .eq("status", "active")
-        .eq("is_available", true)
-        .is("deleted_at", null),
-    ]);
+    const [{ data: stores }, { data: products }, { data: listings }] =
+      await Promise.all([
+        supabase
+          .from("stores")
+          .select("id, updated_at")
+          .eq("status", "active")
+          .is("deleted_at", null),
+        supabase
+          .from("products")
+          .select("id, updated_at")
+          .eq("status", "active")
+          .eq("is_available", true)
+          .is("deleted_at", null),
+        supabase
+          .from("listings")
+          .select("id, updated_at")
+          .eq("status", "active"),
+      ]);
     for (const lang of locales) {
       for (const s of stores ?? []) {
         entries.push({
@@ -65,6 +73,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           url: `${SITE_URL}/${lang}/product/${p.id}`,
           lastModified: p.updated_at ? new Date(p.updated_at as string) : undefined,
           changeFrequency: "weekly",
+          priority: 0.7,
+        });
+      }
+      for (const li of listings ?? []) {
+        entries.push({
+          url: `${SITE_URL}/${lang}/market/${li.id}`,
+          lastModified: li.updated_at
+            ? new Date(li.updated_at as string)
+            : undefined,
+          changeFrequency: "daily",
           priority: 0.7,
         });
       }
