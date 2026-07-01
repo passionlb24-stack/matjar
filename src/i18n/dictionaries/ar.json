@@ -473,7 +473,11 @@
       "categoriesTitle": "تصنيفات سوق الأحد",
       "categoriesSubtitle": "التصنيفات اللي يختار منها الناشر.",
       "statViews": "إجمالي المشاهدات",
-      "statReports": "بلاغات مفتوحة"
+      "statReports": "بلاغات مفتوحة",
+      "citiesLink": "المدن",
+      "citiesTitle": "مدن سوق الأحد",
+      "citiesSubtitle": "المدن المقترحة للناشرين، مرتبطة بالمنطقة.",
+      "regionLabel": "المنطقة"
     },
     "platform": {
       "title": "إعدادات المنصّة",

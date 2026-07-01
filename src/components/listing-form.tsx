@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { regions } from "@/lib/catalog";
-import type { MarketCategory } from "@/lib/data/market";
+import type { MarketCategory, MarketCity } from "@/lib/data/market";
 import { ImageUpload } from "@/components/image-upload";
 
 const field =
@@ -30,6 +30,7 @@ export function ListingForm({
   lang,
   dict,
   categories,
+  cities,
   storeId,
   initial,
   listingId,
@@ -37,6 +38,7 @@ export function ListingForm({
   lang: Locale;
   dict: Dictionary;
   categories: MarketCategory[];
+  cities: MarketCity[];
   storeId: string | null;
   initial?: ListingInitial;
   listingId?: string;
@@ -200,7 +202,20 @@ export function ListingForm({
         </div>
         <div>
           <label className={label} htmlFor="city">{t.city}</label>
-          <input id="city" value={city} onChange={(e) => setCity(e.target.value)} className={field} />
+          <input
+            id="city"
+            list="market-cities"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            className={field}
+          />
+          <datalist id="market-cities">
+            {cities
+              .filter((c) => !region || c.region === region)
+              .map((c) => (
+                <option key={c.id} value={c.name} />
+              ))}
+          </datalist>
         </div>
       </div>
 

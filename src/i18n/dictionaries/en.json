@@ -473,7 +473,11 @@
       "categoriesTitle": "Sunday Market categories",
       "categoriesSubtitle": "Categories sellers can choose from.",
       "statViews": "Total views",
-      "statReports": "Open reports"
+      "statReports": "Open reports",
+      "citiesLink": "Cities",
+      "citiesTitle": "Sunday Market cities",
+      "citiesSubtitle": "Suggested cities for sellers, grouped by region.",
+      "regionLabel": "Region"
     },
     "platform": {
       "title": "Platform settings",

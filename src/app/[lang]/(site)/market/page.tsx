@@ -6,6 +6,7 @@ import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import {
   getMarketCategories,
+  getMarketCities,
   getActiveListings,
   type ListingFilters,
 } from "@/lib/data/market";
@@ -51,8 +52,9 @@ export default async function MarketPage({
     sort: (sp.sort as ListingFilters["sort"]) ?? "newest",
   };
 
-  const [categories, listings] = await Promise.all([
+  const [categories, cities, listings] = await Promise.all([
     getMarketCategories(l),
+    getMarketCities(l),
     getActiveListings(l, filters),
   ]);
   const featured = listings.filter((x) => x.isFeatured);
@@ -85,6 +87,7 @@ export default async function MarketPage({
             lang={lang}
             dict={dict}
             categories={categories}
+            cities={cities}
             initial={{
               q: sp.q ?? "",
               category: sp.category ?? "all",

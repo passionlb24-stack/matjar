@@ -6,7 +6,7 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { regions } from "@/lib/catalog";
-import type { MarketCategory } from "@/lib/data/market";
+import type { MarketCategory, MarketCity } from "@/lib/data/market";
 
 export type MarketFilterValues = {
   q: string;
@@ -25,11 +25,13 @@ export function MarketFilters({
   lang,
   dict,
   categories,
+  cities,
   initial,
 }: {
   lang: Locale;
   dict: Dictionary;
   categories: MarketCategory[];
+  cities: MarketCity[];
   initial: MarketFilterValues;
 }) {
   const router = useRouter();
@@ -117,7 +119,14 @@ export function MarketFilters({
             </option>
           ))}
         </select>
-        <input value={city} onChange={(e) => setCity(e.target.value)} placeholder={t.city} className={`${field} w-28`} />
+        <input value={city} onChange={(e) => setCity(e.target.value)} list="market-filter-cities" placeholder={t.city} className={`${field} w-28`} />
+        <datalist id="market-filter-cities">
+          {cities
+            .filter((c) => region === "all" || c.region === region)
+            .map((c) => (
+              <option key={c.id} value={c.name} />
+            ))}
+        </datalist>
         <input value={priceMin} onChange={(e) => setPriceMin(e.target.value)} type="number" min="0" placeholder={t.priceMin} className={`${field} w-24`} />
         <input value={priceMax} onChange={(e) => setPriceMax(e.target.value)} type="number" min="0" placeholder={t.priceMax} className={`${field} w-24`} />
         <select value={sort} onChange={(e) => setSort(e.target.value)} className={field}>

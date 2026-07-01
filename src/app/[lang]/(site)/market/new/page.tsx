@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
-import { getMarketCategories } from "@/lib/data/market";
+import { getMarketCategories, getMarketCities } from "@/lib/data/market";
 import { Container } from "@/components/ui/container";
 import { ListingForm } from "@/components/listing-form";
 
@@ -22,8 +22,9 @@ export default async function NewListingPage({
   } = await supabase.auth.getUser();
   if (!user) redirect(`/${lang}/login`);
 
-  const [categories, { data: store }] = await Promise.all([
+  const [categories, cities, { data: store }] = await Promise.all([
     getMarketCategories(l),
+    getMarketCities(l),
     supabase
       .from("stores")
       .select("id")
@@ -45,6 +46,7 @@ export default async function NewListingPage({
             lang={lang}
             dict={dict}
             categories={categories}
+            cities={cities}
             storeId={storeId}
           />
         </div>

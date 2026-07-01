@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
-import { getMarketCategories } from "@/lib/data/market";
+import { getMarketCategories, getMarketCities } from "@/lib/data/market";
 import { Container } from "@/components/ui/container";
 import { ListingForm, type ListingInitial } from "@/components/listing-form";
 
@@ -47,7 +47,10 @@ export default async function EditListingPage({
     | null;
   if (!row || row.seller_id !== user.id) redirect(`/${lang}/account`);
 
-  const categories = await getMarketCategories(l);
+  const [categories, cities] = await Promise.all([
+    getMarketCategories(l),
+    getMarketCities(l),
+  ]);
   const initial: ListingInitial = {
     title: row.title,
     description: row.description ?? "",
@@ -70,6 +73,7 @@ export default async function EditListingPage({
             lang={lang}
             dict={dict}
             categories={categories}
+            cities={cities}
             storeId={row.store_id}
             initial={initial}
             listingId={id}

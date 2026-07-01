@@ -92,6 +92,31 @@ export async function getMarketCategories(
   }));
 }
 
+export type MarketCity = { id: string; region: string; name: string };
+
+// Admin-managed city list (active only), ordered by region then sort_order.
+export async function getMarketCities(lang: Locale): Promise<MarketCity[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("market_cities")
+    .select("id, region, name_ar, name_en")
+    .eq("is_active", true)
+    .order("region", { ascending: true })
+    .order("sort_order", { ascending: true });
+  return (
+    (data ?? []) as {
+      id: string;
+      region: string;
+      name_ar: string;
+      name_en: string;
+    }[]
+  ).map((c) => ({
+    id: c.id,
+    region: c.region,
+    name: lang === "ar" ? c.name_ar : c.name_en,
+  }));
+}
+
 export type ListingFilters = {
   q?: string;
   category?: string; // slug
