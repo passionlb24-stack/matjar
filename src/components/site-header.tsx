@@ -6,6 +6,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LogoutButton } from "@/components/logout-button";
+import { MobileMenu } from "@/components/mobile-menu";
 
 export function SiteHeader({
   lang,
@@ -116,12 +117,18 @@ export function SiteHeader({
               </Link>
               <Link
                 href={`/${lang}/merchant/new`}
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                className="rounded-lg bg-primary px-3 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover sm:px-4"
               >
                 {dict.common.openStore}
               </Link>
             </>
           )}
+          <MobileMenu
+            lang={lang}
+            dict={dict}
+            user={user}
+            dashboardHref={dashboardHref}
+          />
         </div>
       </Container>
     </header>
