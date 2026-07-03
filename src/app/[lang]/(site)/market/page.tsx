@@ -128,39 +128,37 @@ export default async function MarketPage({
           )}
         </div>
         {listings.length > 0 ? (
-          <>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-              {listings.map((x) => (
-                <MarketListingCard key={x.id} listing={x} lang={lang} dict={dict} />
-              ))}
-            </div>
-
-            {(page > 1 || hasMore) && (
-              <div className="mt-8 flex items-center justify-center gap-3">
-                {page > 1 ? (
-                  <Link
-                    href={pageHref(page - 1)}
-                    className="rounded-xl border border-border px-5 py-2.5 text-sm font-bold transition-colors hover:bg-surface-muted"
-                  >
-                    {dict.market.prevPage}
-                  </Link>
-                ) : (
-                  <span />
-                )}
-                {hasMore && (
-                  <Link
-                    href={pageHref(page + 1)}
-                    className="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-                  >
-                    {dict.market.nextPage}
-                  </Link>
-                )}
-              </div>
-            )}
-          </>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {listings.map((x) => (
+              <MarketListingCard key={x.id} listing={x} lang={lang} dict={dict} />
+            ))}
+          </div>
         ) : (
           <div className="rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
             {page > 1 ? dict.market.noMore : dict.market.empty}
+          </div>
+        )}
+
+        {(page > 1 || hasMore) && (
+          <div className="mt-8 flex items-center justify-center gap-3">
+            {page > 1 ? (
+              <Link
+                href={pageHref(page - 1)}
+                className="rounded-xl border border-border px-5 py-2.5 text-sm font-bold transition-colors hover:bg-surface-muted"
+              >
+                {dict.market.prevPage}
+              </Link>
+            ) : (
+              <span />
+            )}
+            {hasMore && (
+              <Link
+                href={pageHref(page + 1)}
+                className="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+              >
+                {dict.market.nextPage}
+              </Link>
+            )}
           </div>
         )}
       </Container>
