@@ -22,10 +22,12 @@ export function ListingReport({
   const t = dict.market;
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function report(reason: string) {
     setBusy(true);
+    setError(null);
     const supabase = createClient();
     const {
       data: { user },
@@ -35,10 +37,15 @@ export function ListingReport({
       router.push(`/${lang}/login`);
       return;
     }
-    await supabase
+    const { error: e } = await supabase
       .from("listing_reports")
       .insert({ listing_id: listingId, reporter_id: user.id, reason });
     setBusy(false);
+    // 23505 = duplicate → the user already reported this listing; treat as done.
+    if (e && e.code !== "23505") {
+      setError(dict.auth.errorGeneric);
+      return;
+    }
     setOpen(false);
     setSent(true);
   }
@@ -76,6 +83,9 @@ export function ListingReport({
               {t.reasons[r]}
             </button>
           ))}
+          {error && (
+            <p className="px-2 py-1 text-xs font-medium text-red-600">{error}</p>
+          )}
         </div>
       )}
     </div>
