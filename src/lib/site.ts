@@ -2,7 +2,7 @@
 // with NEXT_PUBLIC_SITE_URL once the custom domain (matjarlb.com) is connected.
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
-  "https://matjar-rouge.vercel.app";
+  "https://matjarlb.com";
 
 // Per-page canonical + hreflang alternates for a bilingual page. `path` is the
 // locale-less path (e.g. "/store/123", or "" for the home page). Values are
