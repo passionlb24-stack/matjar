@@ -157,6 +157,7 @@ export async function getActiveListings(
   lang: Locale,
   filters: ListingFilters = {},
   limit = 60,
+  offset = 0,
 ): Promise<ListingCard[]> {
   const supabase = await createClient();
   let query = supabase.from("listings").select(SELECT).eq("status", "active");
@@ -183,6 +184,8 @@ export async function getActiveListings(
     query = query.gte("created_at", cutoff);
   }
 
+  // Featured listings float to the top of the first page.
+  query = query.order("is_featured", { ascending: false });
   switch (filters.sort) {
     case "oldest":
       query = query.order("created_at", { ascending: true });
@@ -197,7 +200,7 @@ export async function getActiveListings(
       query = query.order("created_at", { ascending: false });
   }
 
-  const { data } = await query.limit(limit);
+  const { data } = await query.range(offset, offset + limit - 1);
   return ((data ?? []) as unknown as Row[]).map((r) => toCard(r, lang));
 }
 

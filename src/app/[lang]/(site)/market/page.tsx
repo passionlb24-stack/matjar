@@ -54,14 +54,28 @@ export default async function MarketPage({
     sort: (sp.sort as ListingFilters["sort"]) ?? "newest",
   };
 
+  const PAGE_SIZE = 24;
+  const page = Math.max(1, Number(sp.page) || 1);
+  const offset = (page - 1) * PAGE_SIZE;
+
   const [categories, cities, marketRegions, listings] = await Promise.all([
     getMarketCategories(l),
     getMarketCities(l),
     getMarketRegions(l),
-    getActiveListings(l, filters),
+    getActiveListings(l, filters, PAGE_SIZE, offset),
   ]);
-  const featured = listings.filter((x) => x.isFeatured);
-  const rest = listings.filter((x) => !x.isFeatured);
+  const hasMore = listings.length === PAGE_SIZE;
+
+  // Preserve active filters across page links (drop the page param itself).
+  const pageHref = (p: number) => {
+    const params = new URLSearchParams();
+    for (const [k, v] of Object.entries(sp)) {
+      if (v && k !== "page") params.set(k, v);
+    }
+    if (p > 1) params.set("page", String(p));
+    const qs = params.toString();
+    return `/${lang}/market${qs ? `?${qs}` : ""}`;
+  };
 
   return (
     <div className="py-10">
@@ -105,32 +119,48 @@ export default async function MarketPage({
           />
         </div>
 
-        {featured.length > 0 && (
+        <div className="mb-4 mt-8 flex items-center justify-between">
+          <h2 className="text-xl font-bold">{dict.market.newest}</h2>
+          {page > 1 && (
+            <span className="text-sm text-muted-foreground">
+              {dict.market.page} {page}
+            </span>
+          )}
+        </div>
+        {listings.length > 0 ? (
           <>
-            <h2 className="mb-4 mt-8 text-xl font-bold">{dict.market.featured}</h2>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-              {featured.map((x) => (
+              {listings.map((x) => (
                 <MarketListingCard key={x.id} listing={x} lang={lang} dict={dict} />
               ))}
             </div>
-          </>
-        )}
 
-        <div className="mb-4 mt-8 flex items-center justify-between">
-          <h2 className="text-xl font-bold">{dict.market.newest}</h2>
-          <span className="text-sm text-muted-foreground">
-            {listings.length} {dict.market.results}
-          </span>
-        </div>
-        {rest.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {rest.map((x) => (
-              <MarketListingCard key={x.id} listing={x} lang={lang} dict={dict} />
-            ))}
-          </div>
+            {(page > 1 || hasMore) && (
+              <div className="mt-8 flex items-center justify-center gap-3">
+                {page > 1 ? (
+                  <Link
+                    href={pageHref(page - 1)}
+                    className="rounded-xl border border-border px-5 py-2.5 text-sm font-bold transition-colors hover:bg-surface-muted"
+                  >
+                    {dict.market.prevPage}
+                  </Link>
+                ) : (
+                  <span />
+                )}
+                {hasMore && (
+                  <Link
+                    href={pageHref(page + 1)}
+                    className="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                  >
+                    {dict.market.nextPage}
+                  </Link>
+                )}
+              </div>
+            )}
+          </>
         ) : (
           <div className="rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
-            {dict.market.empty}
+            {page > 1 ? dict.market.noMore : dict.market.empty}
           </div>
         )}
       </Container>
