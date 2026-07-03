@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LogoutButton } from "@/components/logout-button";
+import { DashboardMobileMenu } from "@/components/dashboard-mobile-menu";
 
 // Dedicated control-panel chrome for merchants and admins — distinct from the
 // customer marketplace. Logged-in only.
@@ -93,6 +94,7 @@ export default async function DashboardLayout({
             <LanguageSwitcher currentLocale={lang} pathname={`/${lang}/merchant`} />
             <span className="hidden text-sm font-semibold sm:block">{name}</span>
             <LogoutButton label={dict.auth.logout} />
+            <DashboardMobileMenu lang={lang} dict={dict} isAdmin={isAdmin} />
           </div>
         </Container>
       </header>

@@ -1,0 +1,68 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { Menu, X, Store, Shield, ExternalLink } from "lucide-react";
+import type { Locale } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/get-dictionary";
+
+export function DashboardMobileMenu({
+  lang,
+  dict,
+  isAdmin,
+}: {
+  lang: Locale;
+  dict: Dictionary;
+  isAdmin: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const items = [
+    { href: `/${lang}/merchant`, label: dict.dashboard.stores, icon: Store },
+    ...(isAdmin
+      ? [{ href: `/${lang}/admin`, label: dict.dashboard.admin, icon: Shield }]
+      : []),
+    { href: `/${lang}`, label: dict.dashboard.visitSite, icon: ExternalLink },
+  ];
+
+  return (
+    <div className="md:hidden">
+      <button
+        type="button"
+        aria-label="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-surface-muted"
+      >
+        {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+      </button>
+
+      {open && (
+        <>
+          <div
+            className="fixed inset-0 top-16 z-40 bg-black/30"
+            onClick={() => setOpen(false)}
+          />
+          <nav className="fixed inset-x-0 top-16 z-40 border-b border-border bg-background p-3 shadow-lg">
+            <div className="space-y-1">
+              {items.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted"
+                  >
+                    <Icon className="h-5 w-5 shrink-0" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
+        </>
+      )}
+    </div>
+  );
+}
