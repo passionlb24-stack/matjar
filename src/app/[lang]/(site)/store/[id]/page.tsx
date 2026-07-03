@@ -11,6 +11,7 @@ import {
   type CategoryKey,
 } from "@/lib/catalog";
 import { createClient } from "@/lib/supabase/server";
+import { localeAlternates } from "@/lib/site";
 import { getUsdLbpRate } from "@/lib/data/settings";
 import { categoryIcons } from "@/components/category-icon";
 import { Container } from "@/components/ui/container";
@@ -161,6 +162,7 @@ export async function generateMetadata({
   return {
     title: store.name,
     description,
+    alternates: localeAlternates(lang, `/store/${id}`),
     openGraph: {
       title: store.name,
       description,

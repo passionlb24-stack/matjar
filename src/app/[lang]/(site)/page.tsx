@@ -1,6 +1,8 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
+import { localeAlternates } from "@/lib/site";
 import { Hero } from "@/components/hero";
 import { TrustStrip } from "@/components/trust-strip";
 import { CategoryGrid } from "@/components/category-grid";
@@ -9,6 +11,16 @@ import { BestSellersTeaser } from "@/components/best-sellers-teaser";
 import { FeaturedStores } from "@/components/featured-stores";
 import { HowItWorks } from "@/components/how-it-works";
 import { MerchantCta } from "@/components/merchant-cta";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  if (!isLocale(lang)) return {};
+  return { alternates: localeAlternates(lang, "") };
+}
 
 export default async function Home({
   params,

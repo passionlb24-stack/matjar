@@ -6,6 +6,7 @@ import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { regions as catalogRegions } from "@/lib/catalog";
+import { localeAlternates } from "@/lib/site";
 import { getListingById, getMarketRegions } from "@/lib/data/market";
 import { Container } from "@/components/ui/container";
 import { ProductGallery } from "@/components/product-gallery";
@@ -32,6 +33,7 @@ export async function generateMetadata({
   return {
     title: `${listing.title} | Matjar`,
     description: listing.description ?? undefined,
+    alternates: localeAlternates(lang, `/market/${id}`),
     openGraph: {
       title: listing.title,
       description: listing.description ?? undefined,

@@ -5,6 +5,7 @@ import { Store as StoreIcon, ArrowLeft } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { localeAlternates } from "@/lib/site";
 import { regions, type CategoryKey } from "@/lib/catalog";
 import { attributeSummary } from "@/lib/attributes";
 import { getUsdLbpRate } from "@/lib/data/settings";
@@ -132,6 +133,7 @@ export async function generateMetadata({
   return {
     title: product.name,
     description,
+    alternates: localeAlternates(lang, `/product/${id}`),
     openGraph: {
       title: product.name,
       description,

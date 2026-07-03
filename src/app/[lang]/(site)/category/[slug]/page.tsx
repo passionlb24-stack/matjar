@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { categoryKeys, type CategoryKey } from "@/lib/catalog";
+import { localeAlternates } from "@/lib/site";
 import { getStoresForListing } from "@/lib/data/stores";
 import { ExploreClient } from "@/components/explore-client";
 
@@ -23,6 +24,7 @@ export async function generateMetadata({
   return {
     title,
     description: cat.desc,
+    alternates: localeAlternates(lang, `/category/${slug}`),
     openGraph: { title, description: cat.desc },
     twitter: { card: "summary", title, description: cat.desc },
   };
