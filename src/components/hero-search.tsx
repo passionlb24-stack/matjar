@@ -26,7 +26,10 @@ export function HeroSearch({
     if (query) params.set("q", query);
     if (region !== "all") params.set("region", region);
     const qs = params.toString();
-    router.push(`/${lang}/explore${qs ? `?${qs}` : ""}`);
+    // A search term goes to the unified results page (stores + products +
+    // listings); a bare region browse stays on explore.
+    const dest = query ? "search" : "explore";
+    router.push(`/${lang}/${dest}${qs ? `?${qs}` : ""}`);
   }
 
   return (

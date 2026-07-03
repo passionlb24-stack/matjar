@@ -109,6 +109,30 @@ export async function getStoresForListing(): Promise<Store[]> {
   ]);
 }
 
+// Name search for the unified search page (trigram-backed ilike).
+export async function searchStores(
+  q: string,
+  region?: string,
+): Promise<Store[]> {
+  const term = q.trim();
+  if (!term) return [];
+  const supabase = await createClient();
+  let query = supabase
+    .from("stores")
+    .select(
+      "id, name, area, region, plan, is_verified, logo_url, cover_url, lat, lng, business_types(slug)",
+    )
+    .eq("status", "active")
+    .is("deleted_at", null)
+    .ilike("name", `%${term}%`);
+  if (region && region !== "all") query = query.eq("region", region);
+  const { data } = await query.limit(24);
+  const list = ((data ?? []) as unknown as Parameters<typeof rowToStore>[0][]).map(
+    rowToStore,
+  );
+  return markFavorites(list);
+}
+
 export async function getFeaturedStores(limit = 4): Promise<Store[]> {
   const real = await fetchActiveStores();
   if (!SHOW_DEMO_STORES) return markFavorites(real.slice(0, limit));

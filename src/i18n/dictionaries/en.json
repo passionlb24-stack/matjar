@@ -698,6 +698,17 @@
     "subtitle": "See stores on the map and find the nearest to you.",
     "empty": "No stores have pinned their location on the map yet."
   },
+  "search": {
+    "title": "Search",
+    "prompt": "Type a store, product, or listing name to start searching.",
+    "resultsFor": "Results for",
+    "resultsCount": "results",
+    "stores": "Stores",
+    "products": "Products",
+    "listings": "Sunday Market listings",
+    "empty": "No matching results.",
+    "emptyHint": "Try a shorter word or a different spelling."
+  },
   "market": {
     "nav": "Sunday Market",
     "title": "Sunday Market",
