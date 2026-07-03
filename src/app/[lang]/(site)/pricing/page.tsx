@@ -14,42 +14,8 @@ export default async function PricingPage({
   if (!isLocale(lang)) notFound();
   const dict = await getDictionary(lang);
 
-  const freeFeatures =
-    lang === "ar"
-      ? [
-          "صفحة أعمال أساسية",
-          "معلومات التواصل وواتساب",
-          "صور محدودة",
-          "ظهور عادي بالبحث",
-          "عدد محدود من المنتجات",
-        ]
-      : [
-          "Basic business page",
-          "Contact info + WhatsApp",
-          "Limited images",
-          "Standard search visibility",
-          "Limited products",
-        ];
-  const proFeatures =
-    lang === "ar"
-      ? [
-          "متجر إلكتروني كامل",
-          "منتجات غير محدودة",
-          "إدارة الطلبات والحجوزات",
-          "لوحة تحكم وإحصائيات",
-          "ظهور أعلى بالبحث",
-          "شارة Pro موثّقة",
-          "دعم أفضل",
-        ]
-      : [
-          "Full online store",
-          "Unlimited products",
-          "Orders + bookings management",
-          "Dashboard + analytics",
-          "Higher search visibility",
-          "Verified Pro badge",
-          "Priority support",
-        ];
+  const freeFeatures = dict.pricing.freeFeatures;
+  const proFeatures = dict.pricing.proFeatures;
 
   return (
     <div className="py-14 sm:py-16">

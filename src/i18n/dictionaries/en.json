@@ -644,7 +644,29 @@
     "popular": "Most popular",
     "startFree": "Start free",
     "goPro": "Go Pro",
-    "contactNote": "Payment is manual for now — contact us to activate Pro after payment."
+    "contactNote": "Payment is manual for now — contact us to activate Pro after payment.",
+    "freeFeatures": [
+      "Basic business page",
+      "Contact info + WhatsApp",
+      "Limited images",
+      "Standard search visibility",
+      "Limited products"
+    ],
+    "proFeatures": [
+      "Full online store",
+      "Unlimited products",
+      "Orders + bookings management",
+      "Dashboard + analytics",
+      "Higher search visibility",
+      "Verified Pro badge",
+      "Priority support"
+    ]
+  },
+  "aboutPage": {
+    "body": "Matjar is Lebanon's local commerce platform — one place that brings together stores, products, and services, helping business owners reach their customers with ease. Our goal is to make local shopping and booking faster and simpler, and to give every merchant their own online store in minutes."
+  },
+  "contactPage": {
+    "intro": "For inquiries or support, reach out — we reply as soon as possible."
   },
   "booking": {
     "title": "Book an appointment",

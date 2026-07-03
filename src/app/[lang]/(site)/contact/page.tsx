@@ -20,9 +20,7 @@ export default async function ContactPage({
           {dict.footer.links.contact}
         </h1>
         <p className="mt-5 leading-8 text-muted-foreground">
-          {lang === "ar"
-            ? "للاستفسارات أو الدعم، تواصل معنا — بنردّ بأسرع وقت."
-            : "For inquiries or support, reach out — we reply as soon as possible."}
+          {dict.contactPage.intro}
         </p>
         <div className="mt-6 space-y-3">
           <a
