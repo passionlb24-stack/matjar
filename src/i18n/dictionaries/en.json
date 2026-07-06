@@ -133,6 +133,7 @@
     "insuranceTitle": "Accepted insurance",
     "orderWhatsapp": "Order via WhatsApp",
     "waGreeting": "Hi, I'd like to order from",
+    "outOfStock": "Sorry, the requested quantity is no longer available. Adjust your cart and try again.",
     "orderPlacedTitle": "Your order was received ✅",
     "orderPlacedNote": "For faster confirmation, notify the merchant on WhatsApp — it reaches them instantly.",
     "notifyMerchantWa": "Notify merchant on WhatsApp",

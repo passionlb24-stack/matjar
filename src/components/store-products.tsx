@@ -231,8 +231,12 @@ export function StoreProducts({
     if (itemsError) {
       // Roll back the empty order so the customer doesn't see a phantom order.
       await supabase.from("orders").delete().eq("id", order.id);
-      setOrderError(dict.auth.errorGeneric);
+      // The stock-guard trigger raises 'insufficient_stock' when an item ran
+      // out between page load and checkout — show a clear message, not a generic one.
+      const outOfStock = itemsError.message?.includes("insufficient_stock");
+      setOrderError(outOfStock ? dict.store.outOfStock : dict.auth.errorGeneric);
       setPlacing(false);
+      router.refresh();
       return;
     }
     // Order recorded. Instead of a silent redirect, show a confirmation that
