@@ -7,6 +7,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { regions as catalogRegions } from "@/lib/catalog";
 import { localeAlternates } from "@/lib/site";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { getListingById, getMarketRegions } from "@/lib/data/market";
 import { Container } from "@/components/ui/container";
 import { ProductGallery } from "@/components/product-gallery";
@@ -78,12 +79,13 @@ export default async function ListingPage({
     <div className="py-8">
       <ListingViewTracker listingId={id} />
       <Container>
-        <Link
-          href={`/${lang}/market`}
-          className="text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
-        >
-          ← {dict.market.title}
-        </Link>
+        <Breadcrumbs
+          items={[
+            { label: dict.common.brand, href: `/${lang}` },
+            { label: dict.market.title, href: `/${lang}/market` },
+            { label: listing.title },
+          ]}
+        />
 
         <div className="mt-4 grid gap-8 lg:grid-cols-2">
           <ProductGallery images={listing.images} alt={listing.title} />

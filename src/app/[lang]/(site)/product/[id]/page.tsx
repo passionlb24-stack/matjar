@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Store as StoreIcon, ArrowLeft } from "lucide-react";
+import { Store as StoreIcon } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { localeAlternates, SITE_URL } from "@/lib/site";
 import { productJsonLd, jsonLdScript } from "@/lib/jsonld";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { regions, type CategoryKey } from "@/lib/catalog";
 import { attributeSummary } from "@/lib/attributes";
 import { getUsdLbpRate } from "@/lib/data/settings";
@@ -232,13 +233,16 @@ export default async function ProductPage({
         }}
       />
       <Container>
-        <Link
-          href={`/${lang}/store/${product.storeId}`}
-          className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
-          {product.storeName || dict.product.backToStore}
-        </Link>
+        <Breadcrumbs
+          items={[
+            { label: dict.common.brand, href: `/${lang}` },
+            {
+              label: product.storeName || dict.product.backToStore,
+              href: `/${lang}/store/${product.storeId}`,
+            },
+            { label: product.name },
+          ]}
+        />
 
         <div className="grid gap-8 lg:grid-cols-2">
           <ProductGallery images={product.images} alt={product.name} />
