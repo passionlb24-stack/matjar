@@ -98,6 +98,48 @@ export default async function ManageStorePage({
     .order("created_at", { ascending: false });
   const products = (data ?? []) as ProductRow[];
 
+  // Live pulse for the top of the dashboard (cheap head-count queries).
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const [pendingOrdersRes, todayOrdersRes, pendingBookingsRes] =
+    await Promise.all([
+      supabase
+        .from("orders")
+        .select("id", { count: "exact", head: true })
+        .eq("store_id", storeId)
+        .eq("status", "pending"),
+      supabase
+        .from("orders")
+        .select("id", { count: "exact", head: true })
+        .eq("store_id", storeId)
+        .gte("created_at", startOfToday.toISOString()),
+      supabase
+        .from("bookings")
+        .select("id", { count: "exact", head: true })
+        .eq("store_id", storeId)
+        .eq("status", "pending"),
+    ]);
+  const kpis = [
+    {
+      label: dict.merchant.kpi.pendingOrders,
+      value: pendingOrdersRes.count ?? 0,
+      href: `/${lang}/merchant/${storeId}/orders`,
+      highlight: (pendingOrdersRes.count ?? 0) > 0,
+    },
+    {
+      label: dict.merchant.kpi.todayOrders,
+      value: todayOrdersRes.count ?? 0,
+      href: `/${lang}/merchant/${storeId}/orders`,
+      highlight: false,
+    },
+    {
+      label: dict.merchant.kpi.pendingBookings,
+      value: pendingBookingsRes.count ?? 0,
+      href: `/${lang}/merchant/${storeId}/bookings`,
+      highlight: (pendingBookingsRes.count ?? 0) > 0,
+    },
+  ];
+
   // Store-completion checklist (owner onboarding nudge).
   const s = store as unknown as {
     logo_url: string | null;
@@ -129,6 +171,30 @@ export default async function ManageStorePage({
         <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
           {(store as { name: string }).name}
         </h1>
+
+        {/* Live pulse — actionable stats so the merchant sees what needs attention. */}
+        <div className="mt-5 grid grid-cols-3 gap-3">
+          {kpis.map((k) => (
+            <Link
+              key={k.label}
+              href={k.href}
+              className={`rounded-2xl border p-4 transition-colors ${
+                k.highlight
+                  ? "border-primary/40 bg-primary-soft"
+                  : "border-border bg-surface hover:bg-surface-muted"
+              }`}
+            >
+              <div
+                className={`text-2xl font-extrabold ${k.highlight ? "text-primary" : ""}`}
+              >
+                {k.value}
+              </div>
+              <div className="mt-1 text-xs font-semibold text-muted-foreground">
+                {k.label}
+              </div>
+            </Link>
+          ))}
+        </div>
 
         <div className="mt-5 flex items-center justify-between gap-2">
           <div className="flex flex-wrap gap-2">

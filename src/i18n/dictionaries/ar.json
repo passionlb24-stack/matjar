@@ -255,6 +255,11 @@
     "ordersLink": "الطلبات",
     "bookingsLink": "الحجوزات",
     "productsLink": "المنتجات",
+    "kpi": {
+      "pendingOrders": "طلبات معلّقة",
+      "todayOrders": "طلبات اليوم",
+      "pendingBookings": "حجوزات معلّقة"
+    },
     "noOrders": "لسا ما في طلبات بهالمتجر.",
     "status": {
       "pending": "قيد المراجعة",

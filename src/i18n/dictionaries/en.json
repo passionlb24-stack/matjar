@@ -255,6 +255,11 @@
     "ordersLink": "Orders",
     "bookingsLink": "Bookings",
     "productsLink": "Products",
+    "kpi": {
+      "pendingOrders": "Pending orders",
+      "todayOrders": "Orders today",
+      "pendingBookings": "Pending bookings"
+    },
     "noOrders": "No orders for this store yet.",
     "status": {
       "pending": "Under review",
