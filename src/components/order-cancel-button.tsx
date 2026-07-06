@@ -20,9 +20,12 @@ export function OrderCancelButton({
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const label = kind === "booking" ? dict.booking.cancel : dict.orders.cancel;
+  const confirmMsg =
+    kind === "booking" ? dict.booking.cancelConfirm : dict.orders.cancelConfirm;
 
   async function cancel() {
-    if (!window.confirm(dict.orders.cancelConfirm)) return;
+    if (!window.confirm(confirmMsg)) return;
     setBusy(true);
     setError(null);
     const rpc = kind === "order" ? "cancel_my_order" : "cancel_my_booking";
@@ -43,7 +46,7 @@ export function OrderCancelButton({
         className="flex items-center gap-1.5 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-bold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
       >
         <X className="h-4 w-4" />
-        {dict.orders.cancel}
+        {label}
       </button>
       {error && <p className="mt-1 text-xs font-medium text-red-600">{error}</p>}
     </div>

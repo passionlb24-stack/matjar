@@ -4,6 +4,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { OrderCancelButton } from "@/components/order-cancel-button";
 
 type BookingStatus =
   | "pending"
@@ -75,11 +76,18 @@ export default async function BookingsPage({
                     {b.requested_time ? ` ${b.requested_time}` : ""}
                   </p>
                 </div>
-                <span
-                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${statusStyle[b.status]}`}
-                >
-                  {dict.booking.status[b.status]}
-                </span>
+                <div className="flex shrink-0 flex-col items-end gap-2">
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-bold ${statusStyle[b.status]}`}
+                  >
+                    {dict.booking.status[b.status]}
+                  </span>
+                  {(b.status === "pending" ||
+                    b.status === "accepted" ||
+                    b.status === "scheduled") && (
+                    <OrderCancelButton id={b.id} kind="booking" dict={dict} />
+                  )}
+                </div>
               </div>
             ))}
           </div>

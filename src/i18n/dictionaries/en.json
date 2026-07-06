@@ -696,6 +696,8 @@
     "submit": "Request booking",
     "submitting": "Sending…",
     "loginToBook": "Log in to book",
+    "cancel": "Cancel booking",
+    "cancelConfirm": "Are you sure you want to cancel this booking?",
     "waGreeting": "Hi, I'd like to book an appointment at",
     "bookedTitle": "Your booking request was received ✅",
     "bookedNote": "To confirm your slot faster, notify the place on WhatsApp.",
