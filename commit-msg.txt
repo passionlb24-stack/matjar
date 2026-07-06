@@ -1,0 +1,9 @@
+﻿feat(bookings): WhatsApp-notify confirmation so appointments never get missed
+
+Same fix as orders, now for the booking flow (clinics/services). A booking
+used to silently redirect to /bookings; the clinic only saw it if they
+opened the dashboard. Now BookingPanel receives the store WhatsApp + name,
+and on success shows a confirmation with a "notify on WhatsApp" button
+(pre-filled: service + date/time + notes) plus a track-bookings link.
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>

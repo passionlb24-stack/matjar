@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Minus, Plus, ShoppingCart, MessageCircle } from "lucide-react";
+import { Minus, Plus, ShoppingCart, MessageCircle, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -98,6 +98,7 @@ export function StoreProducts({
   const [placing, setPlacing] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
+  const [orderPlaced, setOrderPlaced] = useState(false);
   const fulfillmentOptions = (["delivery", "pickup"] as const).filter((o) =>
     o === "delivery" ? acceptsDelivery : acceptsPickup,
   );
@@ -234,7 +235,12 @@ export function StoreProducts({
       setPlacing(false);
       return;
     }
-    router.push(`/${lang}/orders`);
+    // Order recorded. Instead of a silent redirect, show a confirmation that
+    // lets the customer ping the merchant on WhatsApp — so a merchant who
+    // doesn't watch the dashboard still learns about the order immediately.
+    setPlacing(false);
+    setCheckingOut(false);
+    setOrderPlaced(true);
     router.refresh();
   }
 
@@ -359,7 +365,38 @@ export function StoreProducts({
         </div>
       )}
 
-      {items.length > 0 &&
+      {orderPlaced ? (
+        <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white">
+            <Check className="h-6 w-6" />
+          </div>
+          <h3 className="mt-3 text-lg font-extrabold">
+            {dict.store.orderPlacedTitle}
+          </h3>
+          <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+            {dict.store.orderPlacedNote}
+          </p>
+          <div className="mt-5 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
+            {waUrl && (
+              <a
+                href={waUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-700"
+              >
+                <MessageCircle className="h-4 w-4" />
+                {dict.store.notifyMerchantWa}
+              </a>
+            )}
+            <Link
+              href={`/${lang}/orders`}
+              className="rounded-xl border border-border bg-surface px-5 py-3 text-sm font-bold transition-colors hover:border-primary hover:text-primary"
+            >
+              {dict.store.viewMyOrders}
+            </Link>
+          </div>
+        </div>
+      ) : items.length > 0 &&
         (checkingOut ? (
           <form
             onSubmit={confirmOrder}

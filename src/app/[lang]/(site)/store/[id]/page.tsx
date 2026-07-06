@@ -417,6 +417,8 @@ export default async function StorePage({
                 dict={dict}
                 category={store.category}
                 customerName={currentUser?.name ?? null}
+                whatsapp={store.whatsapp ?? null}
+                storeName={store.name}
                 services={store.products
                   .filter((p) => p.id)
                   .map((p) => ({

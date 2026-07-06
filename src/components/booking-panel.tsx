@@ -4,12 +4,13 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CalendarCheck } from "lucide-react";
+import { CalendarCheck, Check, MessageCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { categoryStyles, type CategoryKey } from "@/lib/catalog";
 import { attributeSummary } from "@/lib/attributes";
+import { waLink } from "@/lib/whatsapp";
 import { categoryIcons } from "@/components/category-icon";
 
 type Service = {
@@ -37,6 +38,8 @@ export function BookingPanel({
   category,
   services,
   customerName,
+  whatsapp = null,
+  storeName = "",
 }: {
   storeId: string;
   lang: Locale;
@@ -44,12 +47,16 @@ export function BookingPanel({
   category: CategoryKey;
   services: Service[];
   customerName: string | null;
+  whatsapp?: string | null;
+  storeName?: string;
 }) {
   const router = useRouter();
   const Icon = categoryIcons[category];
   const style = categoryStyles[category];
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [bookedWaUrl, setBookedWaUrl] = useState<string | null>(null);
+  const [booked, setBooked] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -82,8 +89,60 @@ export function BookingPanel({
       setLoading(false);
       return;
     }
-    router.push(`/${lang}/bookings`);
+    // Pre-build a WhatsApp message so the customer can notify the clinic
+    // instantly instead of relying on the merchant checking the dashboard.
+    if (whatsapp) {
+      const date = String(form.get("date")) || "";
+      const time = String(form.get("time")) || "";
+      const notes = String(form.get("notes")) || "";
+      const msg = [
+        `${dict.booking.waGreeting} ${storeName}`.trim(),
+        service?.name ? `• ${service.name}` : "",
+        [date, time].filter(Boolean).join(" "),
+        notes,
+      ]
+        .filter(Boolean)
+        .join("\n");
+      setBookedWaUrl(waLink(whatsapp, msg));
+    }
+    setLoading(false);
+    setBooked(true);
     router.refresh();
+  }
+
+  if (booked) {
+    return (
+      <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white">
+          <Check className="h-6 w-6" />
+        </div>
+        <h3 className="mt-3 text-lg font-extrabold">
+          {dict.booking.bookedTitle}
+        </h3>
+        <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+          {dict.booking.bookedNote}
+        </p>
+        <div className="mt-5 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
+          {bookedWaUrl && (
+            <a
+              href={bookedWaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-700"
+            >
+              <MessageCircle className="h-4 w-4" />
+              {dict.booking.notifyMerchantWa}
+            </a>
+          )}
+          <Link
+            href={`/${lang}/bookings`}
+            className="rounded-xl border border-border bg-surface px-5 py-3 text-sm font-bold transition-colors hover:border-primary hover:text-primary"
+          >
+            {dict.booking.viewMyBookings}
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
