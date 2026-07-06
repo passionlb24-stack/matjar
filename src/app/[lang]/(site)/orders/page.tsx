@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
-import { Package } from "lucide-react";
+import Link from "next/link";
+import { Package, ChevronLeft } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -72,9 +73,10 @@ export default async function OrdersPage({
         {orders.length ? (
           <div className="mt-8 space-y-3">
             {orders.map((order) => (
-              <div
+              <Link
                 key={order.id}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface p-5"
+                href={`/${lang}/orders/${order.id}`}
+                className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-primary/40"
               >
                 <div>
                   <p className="font-bold">{order.stores?.name ?? "—"}</p>
@@ -83,12 +85,15 @@ export default async function OrdersPage({
                     {formatPrice(order.total)}
                   </p>
                 </div>
-                <span
-                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${statusStyle[order.status]}`}
-                >
-                  {dict.orders.status[order.status]}
-                </span>
-              </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-bold ${statusStyle[order.status]}`}
+                  >
+                    {dict.orders.status[order.status]}
+                  </span>
+                  <ChevronLeft className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
+                </div>
+              </Link>
             ))}
           </div>
         ) : (

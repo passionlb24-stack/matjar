@@ -603,6 +603,13 @@
     "empty": "لسا ما عندك طلبات.",
     "order": "طلب",
     "total": "المجموع",
+    "items": "المنتجات",
+    "subtotal": "المجموع الفرعي",
+    "discount": "الخصم",
+    "placedOn": "بتاريخ",
+    "backToOrders": "رجوع للطلبات",
+    "cancel": "إلغاء الطلب",
+    "cancelConfirm": "متأكد إنك بدّك تلغي الطلب؟",
     "status": {
       "pending": "بانتظار التأكيد",
       "accepted": "مقبول",

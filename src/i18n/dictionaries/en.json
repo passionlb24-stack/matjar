@@ -603,6 +603,13 @@
     "empty": "You don't have any orders yet.",
     "order": "Order",
     "total": "Total",
+    "items": "Items",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "placedOn": "on",
+    "backToOrders": "Back to orders",
+    "cancel": "Cancel order",
+    "cancelConfirm": "Are you sure you want to cancel this order?",
     "status": {
       "pending": "Pending",
       "accepted": "Accepted",
