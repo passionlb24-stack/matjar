@@ -57,7 +57,7 @@ export default async function ClearancePage({
                 className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all hover:-translate-y-0.5 hover:shadow-md"
               >
                 {p.imageUrl ? (
-                  <Image src={p.imageUrl} alt="" width={300} height={200} className="h-36 w-full object-cover" sizes="(max-width: 640px) 50vw, 25vw" />
+                  <Image src={p.imageUrl} alt={p.name} width={300} height={200} className="h-36 w-full object-cover" sizes="(max-width: 640px) 50vw, 25vw" />
                 ) : (
                   <div className="flex h-36 w-full items-center justify-center bg-surface-muted">
                     <ImageIcon className="h-10 w-10 text-black/10" />

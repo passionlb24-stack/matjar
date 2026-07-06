@@ -29,12 +29,14 @@ function PasswordInput({
   minLength,
   showLabel,
   hideLabel,
+  hint,
 }: {
   label: string;
   autoComplete: string;
   minLength?: number;
   showLabel: string;
   hideLabel: string;
+  hint?: string;
 }) {
   const [show, setShow] = useState(false);
   return (
@@ -51,6 +53,7 @@ function PasswordInput({
           minLength={minLength}
           autoComplete={autoComplete}
           placeholder="••••••••"
+          aria-describedby={hint ? "password-hint" : undefined}
           className={`${fieldClass} pe-11`}
         />
         <button
@@ -62,6 +65,11 @@ function PasswordInput({
           {show ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
         </button>
       </div>
+      {hint && (
+        <p id="password-hint" className="mt-1 text-xs text-muted-foreground">
+          {hint}
+        </p>
+      )}
     </div>
   );
 }
@@ -235,7 +243,8 @@ export function SignupForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
         <PasswordInput
           label={dict.auth.password}
           autoComplete="new-password"
-          minLength={6}
+          minLength={8}
+          hint={dict.auth.passwordHint}
           showLabel={dict.auth.showPassword}
           hideLabel={dict.auth.hidePassword}
         />
@@ -352,7 +361,8 @@ export function ResetPasswordForm({ lang, dict }: { lang: Locale; dict: Dictiona
         <PasswordInput
           label={dict.auth.newPassword}
           autoComplete="new-password"
-          minLength={6}
+          minLength={8}
+          hint={dict.auth.passwordHint}
           showLabel={dict.auth.showPassword}
           hideLabel={dict.auth.hidePassword}
         />

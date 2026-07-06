@@ -52,7 +52,7 @@ export async function OffersTeaser({
                 {p.imageUrl ? (
                   <Image
                     src={p.imageUrl}
-                    alt=""
+                    alt={p.name}
                     width={300}
                     height={200}
                     className="h-36 w-full object-cover"

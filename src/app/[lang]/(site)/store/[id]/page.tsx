@@ -311,7 +311,7 @@ export default async function StorePage({
       )}
       <div className="relative h-48 sm:h-60">
         {store.coverUrl ? (
-          <Image src={store.coverUrl} alt="" fill className="object-cover" sizes="100vw" priority />
+          <Image src={store.coverUrl} alt={store.name} fill className="object-cover" sizes="100vw" priority />
         ) : (
           <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${style.cover}`}>
             <Icon className="h-28 w-28 text-black/[0.06]" />
@@ -325,7 +325,7 @@ export default async function StorePage({
             <div className="flex items-start gap-4">
               <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
                 {store.logoUrl ? (
-                  <Image src={store.logoUrl} alt="" width={64} height={64} className="h-full w-full object-cover" sizes="64px" />
+                  <Image src={store.logoUrl} alt={store.name} width={64} height={64} className="h-full w-full object-cover" sizes="64px" />
                 ) : (
                   <span
                     className={`flex h-full w-full items-center justify-center rounded-2xl ${style.iconWrap}`}

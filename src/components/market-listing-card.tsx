@@ -27,7 +27,7 @@ export function MarketListingCard({
         {listing.image ? (
           <Image
             src={listing.image}
-            alt=""
+            alt={listing.title}
             width={300}
             height={220}
             className="h-40 w-full object-cover"

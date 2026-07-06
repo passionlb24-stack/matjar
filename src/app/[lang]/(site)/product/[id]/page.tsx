@@ -241,7 +241,7 @@ export default async function ProductPage({
         </Link>
 
         <div className="grid gap-8 lg:grid-cols-2">
-          <ProductGallery images={product.images} />
+          <ProductGallery images={product.images} alt={product.name} />
 
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight">

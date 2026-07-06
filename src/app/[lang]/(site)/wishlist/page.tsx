@@ -75,7 +75,7 @@ export default async function WishlistPage({
                   {p.image_url ? (
                     <Image
                       src={p.image_url}
-                      alt=""
+                      alt={p.name}
                       width={300}
                       height={200}
                       className="h-36 w-full object-cover"

@@ -274,7 +274,7 @@ export function StoreProducts({
     return p.imageUrl ? (
       <Image
         src={p.imageUrl}
-        alt=""
+        alt={p.name}
         width={isGrid ? 300 : 64}
         height={isGrid ? 200 : 64}
         className={isGrid ? "h-40 w-full object-cover" : "h-16 w-16 shrink-0 rounded-xl object-cover"}

@@ -4,7 +4,13 @@ import { useState } from "react";
 import Image from "next/image";
 import { ImageIcon } from "lucide-react";
 
-export function ProductGallery({ images }: { images: string[] }) {
+export function ProductGallery({
+  images,
+  alt = "",
+}: {
+  images: string[];
+  alt?: string;
+}) {
   const [active, setActive] = useState(0);
 
   if (images.length === 0) {
@@ -20,7 +26,7 @@ export function ProductGallery({ images }: { images: string[] }) {
       <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-border">
         <Image
           src={images[active]}
-          alt=""
+          alt={alt}
           fill
           className="object-cover"
           sizes="(max-width: 1024px) 100vw, 50vw"

@@ -154,7 +154,7 @@ export function BookingPanel({
             className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4"
           >
             {s.imageUrl ? (
-              <Image src={s.imageUrl} alt="" width={64} height={64} className="h-16 w-16 shrink-0 rounded-xl object-cover" sizes="64px" />
+              <Image src={s.imageUrl} alt={s.name} width={64} height={64} className="h-16 w-16 shrink-0 rounded-xl object-cover" sizes="64px" />
             ) : (
               <span className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${style.cover}`}>
                 <Icon className="h-7 w-7 text-black/20" />

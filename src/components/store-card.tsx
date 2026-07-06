@@ -31,7 +31,7 @@ export function StoreCard({
         {store.coverUrl ? (
           <Image
             src={store.coverUrl}
-            alt=""
+            alt={store.name[lang]}
             fill
             className="object-cover"
             sizes="(max-width: 640px) 100vw, 320px"

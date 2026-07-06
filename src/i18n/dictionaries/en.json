@@ -177,6 +177,7 @@
     "accountType": "Account type",
     "asCustomer": "Customer",
     "asMerchant": "Merchant",
+    "passwordHint": "At least 8 characters — mixing letters and numbers is best.",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "forgotLink": "Forgot password?",

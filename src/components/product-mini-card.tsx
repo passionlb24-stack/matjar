@@ -37,7 +37,7 @@ export function ProductMiniCard({
       {imageUrl ? (
         <Image
           src={imageUrl}
-          alt=""
+          alt={name}
           width={300}
           height={200}
           className="h-32 w-full object-cover"

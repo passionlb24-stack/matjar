@@ -86,7 +86,7 @@ export default async function ListingPage({
         </Link>
 
         <div className="mt-4 grid gap-8 lg:grid-cols-2">
-          <ProductGallery images={listing.images} />
+          <ProductGallery images={listing.images} alt={listing.title} />
 
           <div>
             <div className="flex flex-wrap items-center gap-2">

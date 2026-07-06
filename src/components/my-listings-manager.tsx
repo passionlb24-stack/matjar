@@ -81,7 +81,7 @@ export function MyListingsManager({
               className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3"
             >
               {l.image ? (
-                <Image src={l.image} alt="" width={56} height={56} className="h-14 w-14 shrink-0 rounded-lg object-cover" sizes="56px" />
+                <Image src={l.image} alt={l.title} width={56} height={56} className="h-14 w-14 shrink-0 rounded-lg object-cover" sizes="56px" />
               ) : (
                 <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-surface-muted text-muted-foreground">
                   <ImageIcon className="h-5 w-5" />

@@ -177,6 +177,7 @@
     "accountType": "نوع الحساب",
     "asCustomer": "عميل",
     "asMerchant": "تاجر",
+    "passwordHint": "٨ أحرف على الأقل — يُفضّل مزج حروف وأرقام.",
     "showPassword": "إظهار كلمة المرور",
     "hidePassword": "إخفاء كلمة المرور",
     "forgotLink": "نسيت كلمة المرور؟",
