@@ -3,6 +3,12 @@
 
 import type { Locale } from "@/i18n/config";
 
+/** "$1,200" / "$50" — canonical USD price formatter (thousands separator ≥1000).
+ *  Single source of truth; replaces the ad-hoc formatPrice copies across pages. */
+export function formatUsd(price: number): string {
+  return price >= 1000 ? `$${Number(price).toLocaleString("en-US")}` : `$${price}`;
+}
+
 /** "≈ 4,475,000 ل.ل." — an approximate LBP value for a USD amount. */
 export function formatLbp(usd: number, rate: number, lang: Locale): string {
   if (!rate || usd <= 0) return "";

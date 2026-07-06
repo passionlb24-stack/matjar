@@ -5,7 +5,8 @@ import { Store as StoreIcon, ArrowLeft } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
-import { localeAlternates } from "@/lib/site";
+import { localeAlternates, SITE_URL } from "@/lib/site";
+import { productJsonLd, jsonLdScript } from "@/lib/jsonld";
 import { regions, type CategoryKey } from "@/lib/catalog";
 import { attributeSummary } from "@/lib/attributes";
 import { getUsdLbpRate } from "@/lib/data/settings";
@@ -213,6 +214,23 @@ export default async function ProductPage({
 
   return (
     <div className="py-8">
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{
+          __html: jsonLdScript(
+            productJsonLd({
+              name: product.name,
+              description: product.description,
+              image: product.images[0],
+              url: `${SITE_URL}/${lang}/product/${id}`,
+              price: basePrice,
+              storeName: product.storeName,
+              available: !soldOut,
+            }),
+          ),
+        }}
+      />
       <Container>
         <Link
           href={`/${lang}/store/${product.storeId}`}

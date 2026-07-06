@@ -11,7 +11,8 @@ import {
   type CategoryKey,
 } from "@/lib/catalog";
 import { createClient } from "@/lib/supabase/server";
-import { localeAlternates } from "@/lib/site";
+import { localeAlternates, SITE_URL } from "@/lib/site";
+import { storeJsonLd, jsonLdScript } from "@/lib/jsonld";
 import { getUsdLbpRate } from "@/lib/data/settings";
 import { categoryIcons } from "@/components/category-icon";
 import { Container } from "@/components/ui/container";
@@ -288,6 +289,26 @@ export default async function StorePage({
 
   return (
     <div className="pb-16">
+      {store.isReal && (
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html: jsonLdScript(
+              storeJsonLd({
+                name: store.name,
+                description: store.description,
+                image: store.logoUrl ?? store.coverUrl,
+                url: `${SITE_URL}/${lang}/store/${id}`,
+                telephone: store.whatsapp ?? store.phone,
+                area: store.area,
+                rating: headerRating,
+                reviewCount: headerCount,
+              }),
+            ),
+          }}
+        />
+      )}
       <div className="relative h-48 sm:h-60">
         {store.coverUrl ? (
           <Image src={store.coverUrl} alt="" fill className="object-cover" sizes="100vw" priority />
