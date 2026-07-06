@@ -217,7 +217,6 @@ export default async function ProductPage({
     <div className="py-8">
       <script
         type="application/ld+json"
-        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{
           __html: jsonLdScript(
             productJsonLd({

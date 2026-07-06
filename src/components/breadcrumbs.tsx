@@ -23,7 +23,6 @@ export function Breadcrumbs({ items }: { items: Crumb[] }) {
     <nav aria-label="breadcrumb" className="mb-4">
       <script
         type="application/ld+json"
-        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: jsonLdScript(listLd) }}
       />
       <ol className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground">

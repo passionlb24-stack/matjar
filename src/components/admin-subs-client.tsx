@@ -32,6 +32,8 @@ function Row({
   const [amount, setAmount] = useState("12");
   const [busy, setBusy] = useState(false);
 
+  // Read the clock once for the expiry badge; harmless in render for a status display.
+  // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
   const expiresMs = row.expiresAt ? new Date(row.expiresAt).getTime() : null;
   const isPro = row.plan === "pro";

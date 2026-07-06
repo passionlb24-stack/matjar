@@ -113,6 +113,8 @@ export default async function StoreReportsPage({
     quantity: number;
   }[];
 
+  // Server component: reads the clock once per request for time-window stats.
+  // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
   const live = orders.filter((o) => !DEAD.has(o.status));
   const totalSales = live.reduce((s, o) => s + Number(o.total), 0);
