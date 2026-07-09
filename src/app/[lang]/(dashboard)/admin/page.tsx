@@ -4,6 +4,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { AdminBroadcast } from "@/components/admin-broadcast";
 import { AdminStoreActions } from "@/components/admin-store-actions";
 import { AdminReviewDelete } from "@/components/admin-review-delete";
 
@@ -83,6 +84,10 @@ export default async function AdminOverviewPage({
               <p className="mt-1 text-2xl font-extrabold">{s.value}</p>
             </div>
           ))}
+        </div>
+
+        <div className="mt-6">
+          <AdminBroadcast dict={dict} />
         </div>
 
         <h2 className="mb-4 mt-8 text-lg font-bold">{dict.admin.pendingTitle}</h2>

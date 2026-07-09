@@ -9,6 +9,7 @@ import { Container } from "@/components/ui/container";
 import { ProfileForm } from "@/components/profile-form";
 import { AddressForm } from "@/components/address-form";
 import { MyListingsManager } from "@/components/my-listings-manager";
+import { PushOptIn } from "@/components/push-opt-in";
 
 export default async function AccountPage({
   params,
@@ -62,6 +63,12 @@ export default async function AccountPage({
         <h1 className="text-3xl font-extrabold tracking-tight">
           {dict.account.title}
         </h1>
+
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary-soft p-4">
+          <p className="text-sm font-semibold">{dict.push.prompt}</p>
+          <PushOptIn dict={dict} />
+        </div>
+
         <div className="mt-6">
           <ProfileForm dict={dict} initial={initial} />
         </div>

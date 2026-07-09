@@ -751,6 +751,17 @@
     "endsIn": "Ends in",
     "cta": "Get it now"
   },
+  "push": {
+    "enable": "Enable notifications",
+    "enabled": "Notifications on",
+    "prompt": "Turn on notifications for the daily deal and order updates.",
+    "adminTitle": "Send a broadcast",
+    "adminField": "Notification text",
+    "adminHeading": "Title (optional)",
+    "adminSend": "Send",
+    "adminSent": "Sent to",
+    "adminNotConfigured": "Push isn't configured — add VAPID_PRIVATE_KEY in Vercel settings."
+  },
   "search": {
     "title": "Search",
     "prompt": "Type a store, product, or listing name to start searching.",
