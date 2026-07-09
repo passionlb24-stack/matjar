@@ -44,7 +44,11 @@ export function PushOptIn({ dict }: { dict: Dictionary }) {
       await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        // Cast: a Uint8Array is a valid BufferSource at runtime; TS's newer
+        // lib types narrow this and reject the ArrayBufferLike buffer.
+        applicationServerKey: urlBase64ToUint8Array(
+          VAPID_PUBLIC_KEY,
+        ) as BufferSource,
       });
       const json = sub.toJSON();
       const supabase = createClient();
