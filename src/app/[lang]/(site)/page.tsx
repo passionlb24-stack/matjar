@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
+import { getDailyDeal } from "@/lib/data/offers";
+import { getUsdLbpRate } from "@/lib/data/settings";
+import { DealOfTheDay } from "@/components/deal-of-the-day";
 import { Hero } from "@/components/hero";
 import { TrustStrip } from "@/components/trust-strip";
 import { CategoryGrid } from "@/components/category-grid";
@@ -31,11 +34,15 @@ export default async function Home({
   if (!isLocale(lang)) notFound();
 
   const dict = await getDictionary(lang);
+  const [deal, lbpRate] = await Promise.all([getDailyDeal(), getUsdLbpRate()]);
 
   return (
     <>
       <Hero lang={lang} dict={dict} />
       <TrustStrip dict={dict} />
+      {deal && (
+        <DealOfTheDay deal={deal} lang={lang} dict={dict} lbpRate={lbpRate} />
+      )}
       <CategoryGrid lang={lang} dict={dict} />
       <OffersTeaser lang={lang} dict={dict} />
       <FeaturedStores lang={lang} dict={dict} />

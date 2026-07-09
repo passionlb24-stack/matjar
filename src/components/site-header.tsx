@@ -14,12 +14,14 @@ export function SiteHeader({
   user,
   unread = 0,
   dashboardHref = null,
+  lbpRate = 0,
 }: {
   lang: Locale;
   dict: Dictionary;
   user: { name: string } | null;
   unread?: number;
   dashboardHref?: string | null;
+  lbpRate?: number;
 }) {
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-md">
@@ -75,6 +77,16 @@ export function SiteHeader({
           </nav>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Daily habit hook: Lebanese users check the USD rate constantly. */}
+          {lbpRate > 0 && (
+            <span
+              title={dict.common.rateTitle}
+              className="hidden whitespace-nowrap rounded-full bg-surface-muted px-3 py-1.5 text-xs font-bold text-muted-foreground lg:block"
+            >
+              $1 = {lbpRate.toLocaleString("en-US")}{" "}
+              {lang === "ar" ? "ل.ل." : "LBP"}
+            </span>
+          )}
           <LanguageSwitcher currentLocale={lang} pathname={`/${lang}`} />
           {user ? (
             <>
@@ -128,6 +140,7 @@ export function SiteHeader({
             dict={dict}
             user={user}
             dashboardHref={dashboardHref}
+            lbpRate={lbpRate}
           />
         </div>
       </Container>

@@ -1,6 +1,7 @@
 {
   "common": {
     "brand": "Matjar",
+    "rateTitle": "Platform USD exchange rate",
     "login": "Log in",
     "signup": "Sign up",
     "forMerchants": "For merchants",
@@ -744,6 +745,11 @@
     "title": "Store map",
     "subtitle": "See stores on the map and find the nearest to you.",
     "empty": "No stores have pinned their location on the map yet."
+  },
+  "deal": {
+    "title": "Deal of the Day",
+    "endsIn": "Ends in",
+    "cta": "Get it now"
   },
   "search": {
     "title": "Search",

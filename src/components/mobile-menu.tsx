@@ -25,11 +25,13 @@ export function MobileMenu({
   dict,
   user,
   dashboardHref = null,
+  lbpRate = 0,
 }: {
   lang: Locale;
   dict: Dictionary;
   user: { name: string } | null;
   dashboardHref?: string | null;
+  lbpRate?: number;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -70,6 +72,12 @@ export function MobileMenu({
             onClick={() => setOpen(false)}
           />
           <nav className="fixed inset-x-0 top-16 z-40 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-border bg-background p-3 shadow-lg">
+            {lbpRate > 0 && (
+              <div className="mb-2 rounded-xl bg-surface-muted px-3 py-2 text-center text-sm font-bold text-muted-foreground">
+                $1 = {lbpRate.toLocaleString("en-US")}{" "}
+                {lang === "ar" ? "ل.ل." : "LBP"}
+              </div>
+            )}
             <div className="space-y-1">
               {nav.map((item) => {
                 const Icon = item.icon;
