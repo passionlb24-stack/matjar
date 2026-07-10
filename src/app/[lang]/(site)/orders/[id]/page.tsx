@@ -10,6 +10,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { OrderCancelButton } from "@/components/order-cancel-button";
 import { ReorderButton } from "@/components/reorder-button";
 import { PrintInvoiceButton } from "@/components/print-invoice-button";
+import { ReviewForm } from "@/components/review-form";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -72,6 +73,22 @@ export default async function OrderDetailPage({
 
   // Only the owner may view their order detail.
   if (!order || order.customer_id !== user.id) notFound();
+
+  // Nudge a review once the order is completed and not yet reviewed.
+  let showReviewPrompt = false;
+  if (order.status === "completed") {
+    const { data: existing } = await supabase
+      .from("reviews")
+      .select("id")
+      .eq("store_id", order.store_id)
+      .eq("customer_id", user.id)
+      .maybeSingle();
+    showReviewPrompt = !existing;
+  }
+  const customerName =
+    (user.user_metadata?.full_name as string | undefined) ??
+    user.email ??
+    "";
 
   const t = dict.orders;
   const cancelled = order.status === "cancelled" || order.status === "rejected";
@@ -146,6 +163,20 @@ export default async function OrderDetailPage({
               );
             })}
           </ol>
+        )}
+
+        {/* Review prompt (completed + not yet reviewed) */}
+        {showReviewPrompt && order.stores && (
+          <div className="mt-6 rounded-2xl border border-primary/30 bg-primary-soft/40 p-5 print:hidden">
+            <p className="mb-3 font-bold">
+              {dict.reviews.ratePrompt.replace("{store}", order.stores.name)}
+            </p>
+            <ReviewForm
+              storeId={order.store_id}
+              dict={dict}
+              customerName={customerName}
+            />
+          </div>
         )}
 
         {/* Items */}

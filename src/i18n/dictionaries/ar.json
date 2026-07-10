@@ -658,7 +658,9 @@
     "submit": "أرسل التقييم",
     "submitting": "عم نرسل…",
     "noReviews": "لسا ما في تقييمات. كن أول مين يقيّم!",
-    "loginToReview": "سجّل دخول لتقيّم"
+    "loginToReview": "سجّل دخول لتقيّم",
+    "ratePrompt": "طلبك وصل! كيف كانت تجربتك مع {store}؟",
+    "rateThanks": "شكراً لتقييمك! 🙏"
   },
   "account": {
     "title": "حسابي",

@@ -658,7 +658,9 @@
     "submit": "Submit review",
     "submitting": "Submitting…",
     "noReviews": "No reviews yet. Be the first to review!",
-    "loginToReview": "Log in to review"
+    "loginToReview": "Log in to review",
+    "ratePrompt": "Your order arrived! How was your experience with {store}?",
+    "rateThanks": "Thanks for your review! 🙏"
   },
   "account": {
     "title": "My account",
