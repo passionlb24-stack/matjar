@@ -787,6 +787,19 @@
     "reasonRedeem": "Redeemed",
     "empty": "No points yet. Your first order gets you started!"
   },
+  "flash": {
+    "title": "Flash sales",
+    "subtitle": "Limited-time deals — gone when the timer runs out!",
+    "badge": "Flash sale",
+    "endsIn": "Ends in",
+    "empty": "No flash sales right now. Check back soon!",
+    "merchantTitle": "Flash sale",
+    "merchantHint": "A discounted price for a set window; it reverts automatically when it ends.",
+    "flashPrice": "Flash price ($)",
+    "flashStart": "Starts",
+    "flashEnd": "Ends",
+    "clear": "Clear flash sale"
+  },
   "offers": {
     "title": "Today's offers",
     "subtitle": "Every discounted product on Matjar, in one place.",

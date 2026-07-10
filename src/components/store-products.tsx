@@ -4,12 +4,13 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Minus, Plus, ShoppingCart, MessageCircle, Check } from "lucide-react";
+import { Minus, Plus, ShoppingCart, MessageCircle, Check, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { categoryStyles, type CategoryKey } from "@/lib/catalog";
 import { attributeSummary } from "@/lib/attributes";
+import { effectivePrice, compareAtPrice, isFlashActive } from "@/lib/pricing";
 import { waLink, buildOrderMessage } from "@/lib/whatsapp";
 import { formatLbp } from "@/lib/currency";
 import { categoryIcons } from "@/components/category-icon";
@@ -21,27 +22,27 @@ type Product = {
   discountPrice?: number | null;
   imageUrl?: string | null;
   attributes?: Record<string, string> | null;
+  flashPrice?: number | null;
+  flashStart?: string | null;
+  flashEnd?: string | null;
 };
 
-function effectivePrice(p: Product) {
-  return p.discountPrice != null ? p.discountPrice : p.price;
-}
-
 function PriceTag({ p }: { p: Product }) {
-  if (p.discountPrice != null) {
-    return (
-      <span>
-        <span className="font-bold text-primary">
-          {formatPrice(p.discountPrice)}
-        </span>{" "}
-        <span className="text-xs font-normal text-muted-foreground line-through">
-          {formatPrice(p.price)}
-        </span>
-      </span>
-    );
-  }
+  const eff = effectivePrice(p);
+  const compare = compareAtPrice(p);
+  const flash = isFlashActive(p);
   return (
-    <span className="font-bold text-primary">{formatPrice(p.price)}</span>
+    <span className="inline-flex items-center gap-1.5">
+      <span className={`font-bold ${flash ? "text-amber-600" : "text-primary"}`}>
+        {formatPrice(eff)}
+      </span>
+      {compare != null && (
+        <span className="text-xs font-normal text-muted-foreground line-through">
+          {formatPrice(compare)}
+        </span>
+      )}
+      {flash && <Zap className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />}
+    </span>
   );
 }
 
