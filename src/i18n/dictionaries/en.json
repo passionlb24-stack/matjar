@@ -664,8 +664,8 @@
     "saving": "Saving…",
     "saved": "Saved ✓",
     "address": {
-      "title": "Delivery address",
-      "subtitle": "Save your detailed address so it auto-fills at checkout.",
+      "title": "Delivery addresses",
+      "subtitle": "Save your detailed addresses so they auto-fill at checkout.",
       "region": "Region",
       "selectRegion": "Select a region",
       "city": "City / town",
@@ -674,7 +674,18 @@
       "floor": "Floor",
       "details": "Extra details",
       "detailsPlaceholder": "Landmark, directions…",
-      "phone": "Delivery phone"
+      "phone": "Delivery phone",
+      "label": "Address name",
+      "labelPlaceholder": "Home, Work…",
+      "addNew": "Add a new address",
+      "makeDefault": "Set as default",
+      "defaultBadge": "Default",
+      "edit": "Edit",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "confirmDelete": "Delete this address?",
+      "empty": "No saved addresses yet.",
+      "useSaved": "Choose a saved address"
     }
   },
   "pricing": {

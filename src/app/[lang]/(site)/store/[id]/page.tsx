@@ -255,20 +255,22 @@ export default async function StorePage({
       }
     : null;
 
-  // Prefill checkout from the customer's saved address.
+  // Prefill checkout from the customer's saved addresses (default first).
   let defaultAddress = "";
+  const savedAddresses: { label: string; value: string }[] = [];
   if (user) {
-    const { data: addr } = await supabase
+    const { data: addrs } = await supabase
       .from("addresses")
-      .select("region, city, street, building, floor, details")
+      .select("label, region, city, street, building, floor, details, is_default")
       .eq("user_id", user.id)
-      .maybeSingle();
-    if (addr) {
+      .order("is_default", { ascending: false })
+      .order("updated_at", { ascending: false });
+    for (const addr of addrs ?? []) {
       const regionName =
         regions.find((r) => r.key === addr.region)?.name[lang] ??
         (addr.region as string | null) ??
         "";
-      defaultAddress = [
+      const value = [
         addr.street,
         addr.building,
         addr.floor,
@@ -278,6 +280,16 @@ export default async function StorePage({
       ]
         .filter(Boolean)
         .join("، ");
+      if (!value) continue;
+      savedAddresses.push({
+        label: (addr.label as string | null) || value,
+        value,
+      });
+      if (addr.is_default && !defaultAddress) defaultAddress = value;
+    }
+    // Fall back to the first saved address if none is flagged default.
+    if (!defaultAddress && savedAddresses.length > 0) {
+      defaultAddress = savedAddresses[0].value;
     }
   }
 
@@ -479,6 +491,7 @@ export default async function StorePage({
                 category={store.category}
                 isBooking={isBooking}
                 defaultAddress={defaultAddress}
+                savedAddresses={savedAddresses}
                 acceptsDelivery={store.acceptsDelivery ?? true}
                 acceptsPickup={store.acceptsPickup ?? true}
                 minOrder={store.minOrder ?? null}
