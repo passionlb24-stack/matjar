@@ -32,7 +32,6 @@ export function RecentlyViewed({
 }) {
   const [items, setItems] = useState<Row[]>([]);
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     let ids: string[] = [];
     try {
@@ -85,7 +84,6 @@ export function RecentlyViewed({
       setItems(others.map((id) => map.get(id)).filter(Boolean) as Row[]);
     })();
   }, [currentId]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (items.length === 0) return null;
 
