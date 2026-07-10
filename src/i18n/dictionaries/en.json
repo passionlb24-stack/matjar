@@ -773,6 +773,18 @@
     "endsIn": "Ends in",
     "cta": "Get it now"
   },
+  "productQa": {
+    "title": "Questions & answers",
+    "ask": "Ask",
+    "askPlaceholder": "Have a question about this product? Ask the merchant…",
+    "empty": "No questions yet. Be the first to ask!",
+    "q": "Q:",
+    "a": "A:",
+    "answer": "Answer",
+    "answerPlaceholder": "Write your answer…",
+    "sendAnswer": "Send",
+    "awaiting": "Awaiting the merchant's reply"
+  },
   "productReviews": {
     "title": "Product reviews",
     "count": "reviews",

@@ -13,7 +13,9 @@ import { attributeSummary } from "@/lib/attributes";
 import { getUsdLbpRate } from "@/lib/data/settings";
 import { getMoreFromStore, getSimilarProducts } from "@/lib/data/related";
 import { getProductReviews } from "@/lib/data/product-reviews";
+import { getProductQuestions } from "@/lib/data/product-qa";
 import { ProductReviews } from "@/components/product-reviews";
+import { ProductQA } from "@/components/product-qa";
 import { RecentlyViewed } from "@/components/recently-viewed";
 import { formatLbp } from "@/lib/currency";
 import { ProductMiniCard } from "@/components/product-mini-card";
@@ -209,13 +211,25 @@ export default async function ProductPage({
 
   const basePrice = product.discountPrice ?? product.price;
   const lbpRate = await getUsdLbpRate();
-  const [moreFromStore, similar, productReviews, soldRes] = await Promise.all([
-    getMoreFromStore(product.storeId, product.id),
-    getSimilarProducts(product.category, product.storeId, product.id),
-    getProductReviews(product.id, user?.id ?? null),
-    supabase.rpc("product_sold_count", { p_product_id: product.id }),
-  ]);
+  const [moreFromStore, similar, productReviews, questions, soldRes] =
+    await Promise.all([
+      getMoreFromStore(product.storeId, product.id),
+      getSimilarProducts(product.category, product.storeId, product.id),
+      getProductReviews(product.id, user?.id ?? null),
+      getProductQuestions(product.id, user?.id ?? null),
+      supabase.rpc("product_sold_count", { p_product_id: product.id }),
+    ]);
   const soldCount = (soldRes.data as number | null) ?? 0;
+
+  let isStoreOwner = false;
+  if (user) {
+    const { data: st } = await supabase
+      .from("stores")
+      .select("owner_id")
+      .eq("id", product.storeId)
+      .maybeSingle();
+    isStoreOwner = (st as { owner_id?: string } | null)?.owner_id === user.id;
+  }
   const attrText = attributeSummary(product.category, product.attributes, l);
   const isBooking = bookingCategories.has(product.category);
   const soldOut = product.stock != null && product.stock <= 0;
@@ -380,6 +394,14 @@ export default async function ProductPage({
           productId={product.id}
           canWrite={!!user}
           lang={l}
+          dict={dict}
+        />
+
+        <ProductQA
+          productId={product.id}
+          questions={questions}
+          canAsk={!!user}
+          canAnswer={isStoreOwner}
           dict={dict}
         />
 
