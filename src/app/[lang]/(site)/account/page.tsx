@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getMyListings } from "@/lib/data/market";
 import { Container } from "@/components/ui/container";
 import { ProfileForm } from "@/components/profile-form";
-import { AddressForm } from "@/components/address-form";
+import { AddressManager, type AddressRow } from "@/components/address-manager";
 import { MyListingsManager } from "@/components/my-listings-manager";
 import { PushOptIn } from "@/components/push-opt-in";
 import {
@@ -44,20 +44,12 @@ export default async function AccountPage({
     phone: (profile?.phone as string | null) ?? "",
   };
 
-  const { data: address } = await supabase
+  const { data: addressRows } = await supabase
     .from("addresses")
-    .select("region, city, street, building, floor, details, phone")
+    .select("id, label, region, city, street, building, floor, details, phone, is_default")
     .eq("user_id", user.id)
-    .maybeSingle();
-  const addressInitial = {
-    region: (address?.region as string | null) ?? "",
-    city: (address?.city as string | null) ?? "",
-    street: (address?.street as string | null) ?? "",
-    building: (address?.building as string | null) ?? "",
-    floor: (address?.floor as string | null) ?? "",
-    details: (address?.details as string | null) ?? "",
-    phone: (address?.phone as string | null) ?? "",
-  };
+    .order("is_default", { ascending: false })
+    .order("updated_at", { ascending: false });
 
   const myListings = await getMyListings(user.id, lang as Locale);
 
@@ -83,7 +75,11 @@ export default async function AccountPage({
           <ProfileForm dict={dict} initial={initial} />
         </div>
         <div className="mt-6">
-          <AddressForm lang={lang} dict={dict} initial={addressInitial} />
+          <AddressManager
+            lang={lang as Locale}
+            dict={dict}
+            rows={(addressRows ?? []) as AddressRow[]}
+          />
         </div>
 
         <div className="mt-10 flex items-center justify-between gap-4">

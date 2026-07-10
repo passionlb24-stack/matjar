@@ -68,6 +68,7 @@ export function StoreProducts({
   isBooking,
   products,
   defaultAddress = "",
+  savedAddresses = [],
   acceptsDelivery = true,
   acceptsPickup = true,
   minOrder = null,
@@ -84,6 +85,7 @@ export function StoreProducts({
   isBooking: boolean;
   products: Product[];
   defaultAddress?: string;
+  savedAddresses?: { label: string; value: string }[];
   acceptsDelivery?: boolean;
   acceptsPickup?: boolean;
   minOrder?: number | null;
@@ -137,6 +139,7 @@ export function StoreProducts({
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
   const [couponBusy, setCouponBusy] = useState(false);
+  const [addressValue, setAddressValue] = useState(defaultAddress);
 
   const Icon = categoryIcons[category];
   const style = categoryStyles[category];
@@ -535,7 +538,35 @@ export function StoreProducts({
                 <label className="text-sm font-semibold" htmlFor="address">
                   {dict.store.address}
                 </label>
-                <input id="address" name="address" type="text" required defaultValue={defaultAddress} placeholder={dict.store.addressPlaceholder} className={fieldClass} />
+                {savedAddresses.length > 1 && (
+                  <select
+                    aria-label={dict.account.address.useSaved}
+                    className={fieldClass}
+                    value={
+                      savedAddresses.some((a) => a.value === addressValue)
+                        ? addressValue
+                        : ""
+                    }
+                    onChange={(e) => setAddressValue(e.target.value)}
+                  >
+                    <option value="">{dict.account.address.useSaved}</option>
+                    {savedAddresses.map((a, i) => (
+                      <option key={i} value={a.value}>
+                        {a.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <input
+                  id="address"
+                  name="address"
+                  type="text"
+                  required
+                  value={addressValue}
+                  onChange={(e) => setAddressValue(e.target.value)}
+                  placeholder={dict.store.addressPlaceholder}
+                  className={fieldClass}
+                />
               </div>
             )}
             <div>
