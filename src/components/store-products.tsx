@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -95,6 +95,33 @@ export function StoreProducts({
 }) {
   const router = useRouter();
   const [cart, setCart] = useState<Record<string, number>>({});
+  const cartKey = `matjar-cart-${storeId}`;
+
+  // Persist the cart per store so a refresh / accidental navigation doesn't
+  // wipe it (a common drop-off point). Loaded on mount to avoid SSR mismatch.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(cartKey);
+      if (saved) setCart(JSON.parse(saved));
+    } catch {
+      /* ignore corrupt storage */
+    }
+  }, [cartKey]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  useEffect(() => {
+    try {
+      if (Object.keys(cart).length) {
+        localStorage.setItem(cartKey, JSON.stringify(cart));
+      } else {
+        localStorage.removeItem(cartKey);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [cart, cartKey]);
+
   const [placing, setPlacing] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
@@ -245,6 +272,7 @@ export function StoreProducts({
     setPlacing(false);
     setCheckingOut(false);
     setOrderPlaced(true);
+    setCart({}); // clears persisted cart via the storage effect
     router.refresh();
   }
 

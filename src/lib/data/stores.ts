@@ -39,6 +39,12 @@ function rowToStore(row: {
   };
 }
 
+// Bounded so the explore/category pages never issue an unbounded query. The
+// client still filters + sorts (incl. "near me", which needs coordinates in
+// memory) within this window; beyond it, users rely on search. Raise or move
+// to server-side pagination / PostGIS nearest-search when store count nears it.
+const STORE_FETCH_LIMIT = 200;
+
 async function fetchActiveStores(): Promise<Store[]> {
   const supabase = await createClient();
   const { data } = await supabase
@@ -46,7 +52,8 @@ async function fetchActiveStores(): Promise<Store[]> {
     .select("id, name, area, region, plan, is_verified, logo_url, cover_url, lat, lng, business_types(slug)")
     .eq("status", "active")
     .is("deleted_at", null)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(STORE_FETCH_LIMIT);
   const list = ((data ?? []) as unknown as Parameters<typeof rowToStore>[0][]).map(
     rowToStore,
   );
