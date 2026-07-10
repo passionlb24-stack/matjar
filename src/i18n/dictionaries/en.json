@@ -757,7 +757,9 @@
     "subtitle": "Print the code or share the link — customers scan and land on your store.",
     "copy": "Copy",
     "copied": "Copied ✓",
-    "download": "Download QR code"
+    "download": "Download QR code",
+    "story": "Story card",
+    "scanToOrder": "Scan to order · matjarlb.com"
   },
   "push": {
     "enable": "Enable notifications",

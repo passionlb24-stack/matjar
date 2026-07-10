@@ -19,6 +19,7 @@ import { ProductGallery } from "@/components/product-gallery";
 import { ProductOrder, type Variant, type AddOn } from "@/components/product-order";
 import { WishlistButton } from "@/components/wishlist-button";
 import { ShareButton } from "@/components/share-button";
+import { ProductStoryCard } from "@/components/product-story-card";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -335,8 +336,16 @@ export default async function ProductPage({
                 dict={dict}
               />
             </div>
-            <div className="mt-3">
+            <div className="mt-3 flex flex-wrap gap-2">
               <ShareButton title={product.name} dict={dict} />
+              <ProductStoryCard
+                productId={product.id}
+                name={product.name}
+                price={basePrice}
+                imageUrl={product.images[0] ?? null}
+                baseUrl={SITE_URL}
+                dict={dict}
+              />
             </div>
 
             <Link
