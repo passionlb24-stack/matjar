@@ -84,7 +84,7 @@ async function fetchActiveStores(): Promise<Store[]> {
   return list;
 }
 
-// Marks which stores the current user has favorited.
+// Marks which stores the current user has saved (followed).
 async function markFavorites(list: Store[]): Promise<Store[]> {
   const supabase = await createClient();
   const {
@@ -92,9 +92,9 @@ async function markFavorites(list: Store[]): Promise<Store[]> {
   } = await supabase.auth.getUser();
   if (!user) return list;
   const { data: favs } = await supabase
-    .from("favorites")
+    .from("follows")
     .select("store_id")
-    .eq("customer_id", user.id);
+    .eq("user_id", user.id);
   const ids = new Set(
     ((favs ?? []) as { store_id: string }[]).map((f) => f.store_id),
   );
