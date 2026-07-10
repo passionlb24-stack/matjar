@@ -962,7 +962,8 @@
     "wishlisted": "محفوظ",
     "moreFromStore": "منتجات أخرى من نفس المتجر",
     "similar": "منتجات مشابهة",
-    "recentlyViewed": "شاهدتها مؤخراً"
+    "recentlyViewed": "شاهدتها مؤخراً",
+    "boughtTogether": "يُشترى عادةً مع"
   },
   "wishlist": {
     "title": "قائمة الأمنيات",

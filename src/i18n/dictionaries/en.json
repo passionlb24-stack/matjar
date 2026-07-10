@@ -962,7 +962,8 @@
     "wishlisted": "Saved",
     "moreFromStore": "More from this store",
     "similar": "Similar products",
-    "recentlyViewed": "Recently viewed"
+    "recentlyViewed": "Recently viewed",
+    "boughtTogether": "Frequently bought together"
   },
   "wishlist": {
     "title": "Wishlist",

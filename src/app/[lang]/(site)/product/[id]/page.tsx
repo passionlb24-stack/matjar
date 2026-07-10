@@ -11,7 +11,11 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { regions, type CategoryKey } from "@/lib/catalog";
 import { attributeSummary } from "@/lib/attributes";
 import { getUsdLbpRate } from "@/lib/data/settings";
-import { getMoreFromStore, getSimilarProducts } from "@/lib/data/related";
+import {
+  getMoreFromStore,
+  getSimilarProducts,
+  getBoughtTogether,
+} from "@/lib/data/related";
 import { getProductReviews } from "@/lib/data/product-reviews";
 import { getProductQuestions } from "@/lib/data/product-qa";
 import { ProductReviews } from "@/components/product-reviews";
@@ -211,10 +215,11 @@ export default async function ProductPage({
 
   const basePrice = product.discountPrice ?? product.price;
   const lbpRate = await getUsdLbpRate();
-  const [moreFromStore, similar, productReviews, questions, soldRes] =
+  const [moreFromStore, similar, boughtTogether, productReviews, questions, soldRes] =
     await Promise.all([
       getMoreFromStore(product.storeId, product.id),
       getSimilarProducts(product.category, product.storeId, product.id),
+      getBoughtTogether(product.id),
       getProductReviews(product.id, user?.id ?? null),
       getProductQuestions(product.id, user?.id ?? null),
       supabase.rpc("product_sold_count", { p_product_id: product.id }),
@@ -388,6 +393,29 @@ export default async function ProductPage({
             </Link>
           </div>
         </div>
+
+        {boughtTogether.length > 0 && (
+          <section className="mt-12">
+            <h2 className="mb-4 text-xl font-bold">
+              {dict.product.boughtTogether}
+            </h2>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {boughtTogether.map((p) => (
+                <ProductMiniCard
+                  key={p.id}
+                  lang={lang}
+                  id={p.id}
+                  name={p.name}
+                  price={p.price}
+                  discountPrice={p.discountPrice}
+                  imageUrl={p.imageUrl}
+                  storeName={p.storeName}
+                  lbpRate={lbpRate}
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
         <ProductReviews
           data={productReviews}
