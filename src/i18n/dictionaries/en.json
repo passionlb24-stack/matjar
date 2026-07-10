@@ -277,6 +277,7 @@
       "namePlaceholder": "e.g. Mixed grill",
       "price": "Price ($)",
       "discountPrice": "Discounted price ($) — optional",
+      "dealToday": "Feature this product as the home-page Deal of the Day",
       "description": "Description",
       "descriptionPlaceholder": "Product details (optional)",
       "save": "Save product",

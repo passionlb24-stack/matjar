@@ -22,6 +22,7 @@ export async function getDailyDeal(): Promise<OfferProduct | null> {
     .eq("is_available", true)
     .is("deleted_at", null)
     .eq("deal_date", new Date().toISOString().slice(0, 10))
+    .order("updated_at", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (!data) return null;

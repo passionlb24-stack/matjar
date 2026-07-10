@@ -26,6 +26,7 @@ export type ProductInitial = {
   imageUrl: string | null;
   gallery: string[];
   stock: string;
+  dealToday: boolean;
   attributes: Record<string, string>;
   variants: VariantRow[];
   options: OptionRow[];
@@ -57,6 +58,7 @@ export function ProductEditForm({
   const [adderKey, setAdderKey] = useState(0);
   const [variants, setVariants] = useState<VariantRow[]>(initial.variants);
   const [options, setOptions] = useState<OptionRow[]>(initial.options);
+  const [dealToday, setDealToday] = useState(initial.dealToday);
   const attrFields = categoryAttributes[category] ?? [];
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -82,6 +84,7 @@ export function ProductEditForm({
         image_url: imageUrl,
         gallery,
         stock: stockRaw === "" ? null : Number(stockRaw),
+        deal_date: dealToday ? new Date().toISOString().slice(0, 10) : null,
         attributes,
         updated_at: new Date().toISOString(),
       })
@@ -187,6 +190,16 @@ export function ProductEditForm({
           </div>
         )}
       </div>
+      <label className="flex items-center gap-2 rounded-xl border border-border bg-surface-muted/40 p-3 text-sm font-semibold">
+        <input
+          type="checkbox"
+          checked={dealToday}
+          onChange={(e) => setDealToday(e.target.checked)}
+          className="h-4 w-4 accent-primary"
+        />
+        {p.dealToday}
+      </label>
+
       <div>
         <label className={label} htmlFor="description">{p.description}</label>
         <textarea id="description" name="description" rows={2} defaultValue={initial.description} className={field} />

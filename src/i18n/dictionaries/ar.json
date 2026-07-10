@@ -277,6 +277,7 @@
       "namePlaceholder": "مثلاً: وجبة مشاوي",
       "price": "السعر ($)",
       "discountPrice": "سعر بعد الخصم ($) — اختياري",
+      "dealToday": "رشّح هذا المنتج كـ«عرض اليوم» على الصفحة الرئيسية",
       "description": "الوصف",
       "descriptionPlaceholder": "تفاصيل المنتج (اختياري)",
       "save": "حفظ المنتج",
