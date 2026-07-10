@@ -22,6 +22,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Run on everything except Next internals, API routes, and static files.
-  matcher: ["/((?!_next|api|.*\\..*).*)"],
+  // Run on everything except Next internals, API routes, short-link
+  // redirects (/s/...), and static files.
+  matcher: ["/((?!_next|api|s/|.*\\..*).*)"],
 };

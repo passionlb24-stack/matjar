@@ -7,7 +7,9 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import type { CategoryKey } from "@/lib/catalog";
 import { categoryModule } from "@/lib/modules";
+import { SITE_URL } from "@/lib/site";
 import { Container } from "@/components/ui/container";
+import { StoreShareCard } from "@/components/store-share-card";
 import { ProductForm } from "@/components/product-form";
 import { ProductRowActions } from "@/components/product-row-actions";
 import {
@@ -54,7 +56,7 @@ export default async function ManageStorePage({
   if (!canManage) redirect(`/${lang}/merchant`);
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, owner_id, logo_url, cover_url, description, opening_hours, whatsapp, business_types(slug)")
+    .select("id, name, owner_id, short_code, logo_url, cover_url, description, opening_hours, whatsapp, business_types(slug)")
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
@@ -194,6 +196,14 @@ export default async function ManageStorePage({
               </div>
             </Link>
           ))}
+        </div>
+
+        <div className="mt-5">
+          <StoreShareCard
+            code={(store as unknown as { short_code: string }).short_code}
+            baseUrl={SITE_URL}
+            dict={dict}
+          />
         </div>
 
         <div className="mt-5 flex items-center justify-between gap-2">

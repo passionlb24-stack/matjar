@@ -751,6 +751,13 @@
     "endsIn": "Ends in",
     "cta": "Get it now"
   },
+  "share": {
+    "title": "Share your store",
+    "subtitle": "Print the code or share the link — customers scan and land on your store.",
+    "copy": "Copy",
+    "copied": "Copied ✓",
+    "download": "Download QR code"
+  },
   "push": {
     "enable": "Enable notifications",
     "enabled": "Notifications on",
