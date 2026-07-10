@@ -67,6 +67,7 @@ export function StoreProducts({
   category,
   isBooking,
   products,
+  loggedIn = true,
   defaultAddress = "",
   savedAddresses = [],
   acceptsDelivery = true,
@@ -84,6 +85,7 @@ export function StoreProducts({
   category: CategoryKey;
   isBooking: boolean;
   products: Product[];
+  loggedIn?: boolean;
   defaultAddress?: string;
   savedAddresses?: { label: string; value: string }[];
   acceptsDelivery?: boolean;
@@ -221,11 +223,42 @@ export function StoreProducts({
     const {
       data: { user },
     } = await supabase.auth.getUser();
+
+    // Guest checkout: no account needed. A SECURITY DEFINER RPC validates the
+    // store, recomputes prices server-side and records the order + items.
     if (!user) {
+      const { data: guestOrderId, error: guestError } = await supabase.rpc(
+        "place_guest_order",
+        {
+          p_store_id: storeId,
+          p_customer_name: String(form.get("name") ?? ""),
+          p_phone: String(form.get("phone") ?? ""),
+          p_address:
+            fulfillment === "delivery" ? String(form.get("address") ?? "") : "",
+          p_fulfillment: fulfillment,
+          p_note: String(form.get("note") ?? ""),
+          p_coupon: appliedCode,
+          p_items: items.map((p) => ({
+            product_id: p.id,
+            quantity: cart[p.id],
+          })),
+        },
+      );
       setPlacing(false);
-      router.push(`/${lang}/login`);
+      if (guestError || !guestOrderId) {
+        const outOfStock = guestError?.message?.includes("insufficient_stock");
+        setOrderError(
+          outOfStock ? dict.store.outOfStock : dict.auth.errorGeneric,
+        );
+        router.refresh();
+        return;
+      }
+      setCheckingOut(false);
+      setOrderPlaced(true);
+      setCart({});
       return;
     }
+
     const { data: order, error } = await supabase
       .from("orders")
       .insert({
@@ -423,12 +456,14 @@ export function StoreProducts({
                 {dict.store.notifyMerchantWa}
               </a>
             )}
-            <Link
-              href={`/${lang}/orders`}
-              className="rounded-xl border border-border bg-surface px-5 py-3 text-sm font-bold transition-colors hover:border-primary hover:text-primary"
-            >
-              {dict.store.viewMyOrders}
-            </Link>
+            {loggedIn && (
+              <Link
+                href={`/${lang}/orders`}
+                className="rounded-xl border border-border bg-surface px-5 py-3 text-sm font-bold transition-colors hover:border-primary hover:text-primary"
+              >
+                {dict.store.viewMyOrders}
+              </Link>
+            )}
           </div>
         </div>
       ) : items.length > 0 &&
@@ -569,6 +604,14 @@ export function StoreProducts({
                 />
               </div>
             )}
+            {!loggedIn && (
+              <div>
+                <label className="text-sm font-semibold" htmlFor="name">
+                  {dict.store.name}
+                </label>
+                <input id="name" name="name" type="text" required placeholder={dict.store.namePlaceholder} className={fieldClass} />
+              </div>
+            )}
             <div>
               <label className="text-sm font-semibold" htmlFor="phone">
                 {dict.store.phone}
@@ -581,6 +624,17 @@ export function StoreProducts({
               </label>
               <textarea id="note" name="note" rows={2} placeholder={dict.store.notePlaceholder} className={fieldClass} />
             </div>
+            {!loggedIn && (
+              <p className="text-xs text-muted-foreground">
+                {dict.store.guestHint}{" "}
+                <Link
+                  href={`/${lang}/login`}
+                  className="font-semibold text-primary hover:underline"
+                >
+                  {dict.store.guestLogin}
+                </Link>
+              </p>
+            )}
             {orderError && (
               <p className="text-sm font-medium text-red-600">{orderError}</p>
             )}

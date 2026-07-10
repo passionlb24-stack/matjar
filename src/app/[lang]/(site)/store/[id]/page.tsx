@@ -490,6 +490,7 @@ export default async function StorePage({
                 dict={dict}
                 category={store.category}
                 isBooking={isBooking}
+                loggedIn={!!user}
                 defaultAddress={defaultAddress}
                 savedAddresses={savedAddresses}
                 acceptsDelivery={store.acceptsDelivery ?? true}
