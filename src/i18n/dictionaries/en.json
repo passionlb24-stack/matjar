@@ -770,6 +770,15 @@
     "endsIn": "Ends in",
     "cta": "Get it now"
   },
+  "productReviews": {
+    "title": "Product reviews",
+    "count": "reviews",
+    "empty": "No reviews yet. Be the first to review!",
+    "write": "Write your review",
+    "commentPlaceholder": "Share your thoughts about this product…",
+    "submit": "Submit review",
+    "verified": "Verified purchase"
+  },
   "savedSearch": {
     "title": "Saved searches",
     "allListings": "All new listings"
@@ -928,6 +937,7 @@
     "quantity": "Quantity",
     "outOfStock": "Out of stock",
     "inStock": "In stock",
+    "lowStock": "Only {n} left",
     "buyNow": "Order now",
     "total": "Total",
     "visitStore": "Visit store",

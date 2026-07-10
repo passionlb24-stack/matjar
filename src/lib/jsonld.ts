@@ -51,6 +51,8 @@ export function productJsonLd(opts: {
   price: number;
   storeName?: Nullable<string>;
   available?: boolean;
+  rating?: Nullable<number>;
+  reviewCount?: Nullable<number>;
 }) {
   const data: Record<string, unknown> = {
     "@context": "https://schema.org",
@@ -71,6 +73,14 @@ export function productJsonLd(opts: {
   if (opts.description) data.description = opts.description;
   if (opts.image) data.image = opts.image;
   if (opts.storeName) data.brand = { "@type": "Brand", name: opts.storeName };
+  if (opts.rating && opts.reviewCount) {
+    data.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: Number(opts.rating.toFixed(1)),
+      reviewCount: opts.reviewCount,
+      bestRating: 5,
+    };
+  }
   return data;
 }
 

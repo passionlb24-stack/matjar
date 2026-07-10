@@ -12,6 +12,8 @@ import { regions, type CategoryKey } from "@/lib/catalog";
 import { attributeSummary } from "@/lib/attributes";
 import { getUsdLbpRate } from "@/lib/data/settings";
 import { getMoreFromStore, getSimilarProducts } from "@/lib/data/related";
+import { getProductReviews } from "@/lib/data/product-reviews";
+import { ProductReviews } from "@/components/product-reviews";
 import { formatLbp } from "@/lib/currency";
 import { ProductMiniCard } from "@/components/product-mini-card";
 import { Container } from "@/components/ui/container";
@@ -206,9 +208,10 @@ export default async function ProductPage({
 
   const basePrice = product.discountPrice ?? product.price;
   const lbpRate = await getUsdLbpRate();
-  const [moreFromStore, similar] = await Promise.all([
+  const [moreFromStore, similar, productReviews] = await Promise.all([
     getMoreFromStore(product.storeId, product.id),
     getSimilarProducts(product.category, product.storeId, product.id),
+    getProductReviews(product.id, user?.id ?? null),
   ]);
   const attrText = attributeSummary(product.category, product.attributes, l);
   const isBooking = bookingCategories.has(product.category);
@@ -228,6 +231,8 @@ export default async function ProductPage({
               price: basePrice,
               storeName: product.storeName,
               available: !soldOut,
+              rating: productReviews.avg,
+              reviewCount: productReviews.count,
             }),
           ),
         }}
@@ -267,17 +272,20 @@ export default async function ProductPage({
                   {formatPrice(product.price)}
                 </span>
               )}
-              {product.stock != null && (
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                    soldOut
-                      ? "bg-red-100 text-red-700"
-                      : "bg-emerald-100 text-emerald-700"
-                  }`}
-                >
-                  {soldOut ? dict.product.outOfStock : dict.product.inStock}
-                </span>
-              )}
+              {product.stock != null &&
+                (soldOut ? (
+                  <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-700">
+                    {dict.product.outOfStock}
+                  </span>
+                ) : product.stock <= 5 ? (
+                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-700">
+                    {dict.product.lowStock.replace("{n}", String(product.stock))}
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
+                    {dict.product.inStock}
+                  </span>
+                ))}
             </div>
 
             {lbpRate > 0 && (
@@ -357,6 +365,14 @@ export default async function ProductPage({
             </Link>
           </div>
         </div>
+
+        <ProductReviews
+          data={productReviews}
+          productId={product.id}
+          canWrite={!!user}
+          lang={l}
+          dict={dict}
+        />
 
         {moreFromStore.length > 0 && (
           <section className="mt-12">
