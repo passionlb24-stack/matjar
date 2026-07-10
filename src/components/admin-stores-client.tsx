@@ -10,6 +10,7 @@ import {
   Play,
   BadgeCheck,
   Crown,
+  Sparkles,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -24,6 +25,7 @@ export type AdminStore = {
   status: "pending" | "active" | "suspended" | "rejected";
   plan: "free" | "pro";
   isVerified: boolean;
+  featuredUntil: string | null;
   typeName: string | null;
   ownerName: string | null;
 };
@@ -224,6 +226,33 @@ export function AdminStoresClient({
                     <Crown className="h-4 w-4" />
                     {s.plan === "pro" ? dict.admin.makeFree : dict.admin.makePro}
                   </button>
+                  {(() => {
+                    const featured =
+                      s.featuredUntil != null &&
+                      new Date(s.featuredUntil) > new Date();
+                    return (
+                      <button
+                        disabled={busy === s.id}
+                        onClick={() =>
+                          patch(s.id, {
+                            featured_until: featured
+                              ? null
+                              : new Date(
+                                  Date.now() + 30 * 24 * 60 * 60 * 1000,
+                                ).toISOString(),
+                          })
+                        }
+                        className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold transition-colors disabled:opacity-60 ${
+                          featured
+                            ? "border border-border text-muted-foreground hover:bg-surface-muted"
+                            : "bg-amber-500 text-white hover:bg-amber-600"
+                        }`}
+                      >
+                        <Sparkles className="h-4 w-4" />
+                        {featured ? dict.admin.unfeature : dict.admin.feature}
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
             ))}

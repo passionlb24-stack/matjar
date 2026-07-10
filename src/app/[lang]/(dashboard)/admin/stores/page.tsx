@@ -12,6 +12,7 @@ type StoreRow = {
   status: "pending" | "active" | "suspended" | "rejected";
   plan: "free" | "pro";
   is_verified: boolean;
+  featured_until: string | null;
   business_types: { name_ar: string; name_en: string } | null;
 };
 
@@ -28,7 +29,7 @@ export default async function AdminStoresPage({
   const { data } = await supabase
     .from("stores")
     .select(
-      "id, name, owner_id, region, status, plan, is_verified, business_types(name_ar, name_en)",
+      "id, name, owner_id, region, status, plan, is_verified, featured_until, business_types(name_ar, name_en)",
     )
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
@@ -54,6 +55,7 @@ export default async function AdminStoresPage({
     status: r.status,
     plan: r.plan,
     isVerified: r.is_verified,
+    featuredUntil: r.featured_until,
     typeName: r.business_types
       ? lang === "ar"
         ? r.business_types.name_ar

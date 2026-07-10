@@ -38,6 +38,7 @@
     "closed": "Closed",
     "reviews": "reviews",
     "verified": "Verified",
+    "featured": "Featured",
     "emptyTitle": "Be the first store on Matjar",
     "emptyBody": "Open your store for free and start receiving orders across Lebanon.",
     "emptyCta": "Open your store"
@@ -443,6 +444,8 @@
     "activeStores": "Active stores",
     "makePro": "Make Pro",
     "makeFree": "Make Free",
+    "feature": "Feature 30d",
+    "unfeature": "Unfeature",
     "overview": "Overview",
     "totalStores": "Total stores",
     "users": "Users",
