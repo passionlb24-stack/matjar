@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, MailCheck, ShoppingBag, Store } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
@@ -153,12 +153,26 @@ export function LoginForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
 
 export function SignupForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [accountType, setAccountType] = useState<"customer" | "merchant">(
     "customer",
   );
+
+  // Remember an inbound referral code so it survives email confirmation; it's
+  // redeemed once the referred user is authenticated (see LoyaltyPanel).
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref) {
+      try {
+        localStorage.setItem("matjar-ref", ref);
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [searchParams]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -187,6 +201,16 @@ export function SignupForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
       setSent(true);
       setLoading(false);
       return;
+    }
+    // Logged in immediately — attribute the referral now if one was shared.
+    const ref = searchParams.get("ref");
+    if (ref) {
+      await supabase.rpc("record_referral", { p_code: ref });
+      try {
+        localStorage.removeItem("matjar-ref");
+      } catch {
+        /* ignore */
+      }
     }
     router.push(accountType === "merchant" ? `/${lang}/merchant` : `/${lang}`);
     router.refresh();

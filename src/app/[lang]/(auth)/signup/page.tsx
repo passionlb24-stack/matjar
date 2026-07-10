@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -12,5 +13,11 @@ export default async function SignupPage({
   if (!isLocale(lang)) notFound();
   const dict = await getDictionary(lang);
 
-  return <SignupForm lang={lang} dict={dict} />;
+  // SignupForm reads ?ref via useSearchParams, which needs a Suspense boundary
+  // during prerender.
+  return (
+    <Suspense>
+      <SignupForm lang={lang} dict={dict} />
+    </Suspense>
+  );
 }
