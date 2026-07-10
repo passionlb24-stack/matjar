@@ -5,8 +5,10 @@ import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { getMyListings } from "@/lib/data/market";
+import { SITE_URL } from "@/lib/site";
 import { Container } from "@/components/ui/container";
 import { ProfileForm } from "@/components/profile-form";
+import { LoyaltyPanel } from "@/components/loyalty-panel";
 import { AddressManager, type AddressRow } from "@/components/address-manager";
 import { MyListingsManager } from "@/components/my-listings-manager";
 import { PushOptIn } from "@/components/push-opt-in";
@@ -51,6 +53,23 @@ export default async function AccountPage({
     .order("is_default", { ascending: false })
     .order("updated_at", { ascending: false });
 
+  // Loyalty + referral.
+  const [{ data: referralCode }, { data: pointsBalance }, refsRes, historyRes] =
+    await Promise.all([
+      supabase.rpc("get_my_referral_code"),
+      supabase.rpc("loyalty_balance", { p_user: user.id }),
+      supabase.from("referrals").select("status").eq("referrer_id", user.id),
+      supabase
+        .from("loyalty_ledger")
+        .select("delta, reason, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(10),
+    ]);
+  const referralCount = ((refsRes.data ?? []) as { status: string }[]).filter(
+    (r) => r.status === "rewarded",
+  ).length;
+
   const myListings = await getMyListings(user.id, lang as Locale);
 
   const { data: savedSearches } = await supabase
@@ -71,6 +90,21 @@ export default async function AccountPage({
           <PushOptIn dict={dict} />
         </div>
 
+        <div className="mt-6">
+          <LoyaltyPanel
+            lang={lang as Locale}
+            dict={dict}
+            balance={(pointsBalance as number | null) ?? 0}
+            code={(referralCode as string | null) ?? ""}
+            referralCount={referralCount}
+            history={(historyRes.data ?? []) as {
+              delta: number;
+              reason: string;
+              created_at: string;
+            }[]}
+            siteUrl={SITE_URL}
+          />
+        </div>
         <div className="mt-6">
           <ProfileForm dict={dict} initial={initial} />
         </div>
