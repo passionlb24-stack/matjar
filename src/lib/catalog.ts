@@ -53,6 +53,7 @@ export type Store = {
   isOpen: boolean;
   plan?: "free" | "pro";
   verified?: boolean;
+  featured?: boolean;
   favorited?: boolean;
   logoUrl?: string | null;
   coverUrl?: string | null;

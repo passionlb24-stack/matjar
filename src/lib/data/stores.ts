@@ -17,6 +17,7 @@ function rowToStore(row: {
   region: string | null;
   plan: "free" | "pro" | null;
   is_verified: boolean | null;
+  featured_until: string | null;
   logo_url: string | null;
   cover_url: string | null;
   lat: number | null;
@@ -32,6 +33,8 @@ function rowToStore(row: {
     isOpen: true,
     plan: row.plan ?? "free",
     verified: row.is_verified ?? false,
+    featured:
+      row.featured_until != null && new Date(row.featured_until) > new Date(),
     logoUrl: row.logo_url,
     coverUrl: row.cover_url,
     lat: row.lat != null ? Number(row.lat) : null,
@@ -49,7 +52,7 @@ async function fetchActiveStores(): Promise<Store[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("stores")
-    .select("id, name, area, region, plan, is_verified, logo_url, cover_url, lat, lng, business_types(slug)")
+    .select("id, name, area, region, plan, is_verified, featured_until, logo_url, cover_url, lat, lng, business_types(slug)")
     .eq("status", "active")
     .is("deleted_at", null)
     .order("created_at", { ascending: false })
@@ -57,6 +60,9 @@ async function fetchActiveStores(): Promise<Store[]> {
   const list = ((data ?? []) as unknown as Parameters<typeof rowToStore>[0][]).map(
     rowToStore,
   );
+  // Paid featured stores float to the top of the default listing (stable
+  // otherwise — the pages re-sort for "near me"/rating when the user asks).
+  list.sort((a, b) => Number(b.featured ?? false) - Number(a.featured ?? false));
 
   // Attach real average ratings from reviews.
   if (list.length) {

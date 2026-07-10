@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Star, BadgeCheck, Navigation } from "lucide-react";
+import { Star, BadgeCheck, Navigation, Sparkles } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { categoryStyles, type FeaturedStore } from "@/lib/catalog";
@@ -46,7 +46,13 @@ export function StoreCard({
         >
           {store.isOpen ? dict.featured.open : dict.featured.closed}
         </span>
-        {store.tag && (
+        {store.featured && (
+          <span className="absolute bottom-3 start-3 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-xs font-bold text-white shadow-sm">
+            <Sparkles className="h-3 w-3" />
+            {dict.featured.featured}
+          </span>
+        )}
+        {store.tag && !store.featured && (
           <span className="absolute bottom-3 start-3 rounded-full bg-surface/90 px-2.5 py-1 text-xs font-semibold backdrop-blur">
             {store.tag[lang]}
           </span>
