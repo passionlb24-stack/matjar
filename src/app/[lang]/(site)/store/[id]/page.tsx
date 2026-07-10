@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Clock, MapPin, MessageCircle, Phone, Star, Stethoscope } from "lucide-react";
+import { Clock, MapPin, MessageCircle, Phone, Star, Stethoscope, BadgeCheck } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import {
@@ -233,6 +233,13 @@ export default async function StorePage({
     isFollowing = !!fol;
   }
   const lbpRate = await getUsdLbpRate();
+  let ordersFulfilled = 0;
+  if (store.isReal && UUID_RE.test(id)) {
+    const { data: fc } = await supabase.rpc("store_fulfilled_count", {
+      p_store_id: id,
+    });
+    ordersFulfilled = (fc as number | null) ?? 0;
+  }
   const avg = reviews.length
     ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
     : null;
@@ -354,6 +361,21 @@ export default async function StorePage({
                       <span className="text-muted-foreground">
                         ({headerCount} {dict.featured.reviews})
                       </span>
+                    </span>
+                  )}
+                  {ordersFulfilled > 0 && (
+                    <span className="flex items-center gap-1 font-semibold text-emerald-700">
+                      <BadgeCheck className="h-4 w-4" />
+                      {dict.store.ordersFulfilled.replace(
+                        "{n}",
+                        String(ordersFulfilled),
+                      )}
+                    </span>
+                  )}
+                  {store.prepTime && store.acceptsDelivery && (
+                    <span className="flex items-center gap-1 text-muted-foreground">
+                      <Clock className="h-4 w-4" />
+                      {dict.store.deliveryIn.replace("{t}", store.prepTime)}
                     </span>
                   )}
                   {store.area && (

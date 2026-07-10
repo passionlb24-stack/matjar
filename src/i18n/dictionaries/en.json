@@ -99,6 +99,8 @@
   },
   "store": {
     "openNow": "Open now",
+    "ordersFulfilled": "{n} orders fulfilled",
+    "deliveryIn": "Delivers in {t}",
     "closed": "Closed",
     "call": "Call",
     "whatsapp": "WhatsApp",

@@ -99,6 +99,8 @@
   },
   "store": {
     "openNow": "مفتوح الآن",
+    "ordersFulfilled": "{n} طلب منفّذ",
+    "deliveryIn": "يوصل خلال {t}",
     "closed": "مسكّر",
     "call": "اتصال",
     "whatsapp": "واتساب",

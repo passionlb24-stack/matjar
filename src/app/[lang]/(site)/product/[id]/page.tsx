@@ -213,12 +213,9 @@ export default async function ProductPage({
     getMoreFromStore(product.storeId, product.id),
     getSimilarProducts(product.category, product.storeId, product.id),
     getProductReviews(product.id, user?.id ?? null),
-    supabase
-      .from("order_items")
-      .select("id", { count: "exact", head: true })
-      .eq("product_id", product.id),
+    supabase.rpc("product_sold_count", { p_product_id: product.id }),
   ]);
-  const soldCount = soldRes.count ?? 0;
+  const soldCount = (soldRes.data as number | null) ?? 0;
   const attrText = attributeSummary(product.category, product.attributes, l);
   const isBooking = bookingCategories.has(product.category);
   const soldOut = product.stock != null && product.stock <= 0;
