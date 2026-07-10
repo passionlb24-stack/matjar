@@ -79,6 +79,7 @@
       "pricing": "Pricing",
       "merchantLogin": "Merchant login",
       "about": "About us",
+      "help": "Help",
       "contact": "Contact",
       "privacy": "Privacy"
     },
@@ -772,6 +773,37 @@
     "title": "Deal of the Day",
     "endsIn": "Ends in",
     "cta": "Get it now"
+  },
+  "faq": {
+    "title": "Help & FAQ",
+    "subtitle": "Everything you need to know about Matjar.",
+    "items": [
+      {
+        "q": "How do I order a product?",
+        "a": "Open a store or product, add it to the cart, tap \"Order\", fill in your address and phone, and confirm. The order reaches the merchant instantly and you can track it under \"My orders\". Payment is cash on delivery."
+      },
+      {
+        "q": "How do I open my store?",
+        "a": "Tap \"Open your store\", pick your business type, fill in your store name and details, and add products. Your store is ready in minutes with a short link and QR code to share."
+      },
+      {
+        "q": "What is the commission?",
+        "a": "Zero commission on sales — the customer, their number, and the profit are all yours. There's an optional Pro plan ($12/mo) for higher visibility, analytics, and a verified badge."
+      },
+      {
+        "q": "What is Sunday Market?",
+        "a": "A classifieds section where any user can post listings — buy and sell easily. You can save a search and get notified the moment a matching listing appears."
+      },
+      {
+        "q": "How do I get notifications?",
+        "a": "From your account page tap \"Enable notifications\" and allow your browser. You'll get order updates, the daily deal, and saved-search matches — even when the site is closed."
+      },
+      {
+        "q": "Payment methods?",
+        "a": "Currently cash on delivery, with the option to contact and order directly via WhatsApp with the merchant."
+      }
+    ],
+    "contactCta": "Still have a question? Contact us"
   },
   "productQa": {
     "title": "Questions & answers",

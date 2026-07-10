@@ -29,6 +29,7 @@ export function SiteFooter({ lang, dict }: { lang: Locale; dict: Dictionary }) {
       title: dict.footer.companyTitle,
       links: [
         { label: L.about, href: `/${lang}/about` },
+        { label: L.help, href: `/${lang}/help` },
         { label: L.contact, href: `/${lang}/contact` },
         { label: L.privacy, href: `/${lang}/privacy` },
       ],

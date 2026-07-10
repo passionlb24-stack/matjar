@@ -13,6 +13,7 @@ const STATIC_PATHS = [
   "/clearance",
   "/pricing",
   "/about",
+  "/help",
   "/contact",
   "/privacy",
 ];
