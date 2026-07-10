@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, BellPlus, Check } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { createClient } from "@/lib/supabase/client";
 import { regions as catalogRegions } from "@/lib/catalog";
 import type {
   MarketCategory,
@@ -55,6 +56,30 @@ export function MarketFilters({
   const [priceMax, setPriceMax] = useState(initial.priceMax);
   const [datePosted, setDatePosted] = useState(initial.datePosted);
   const [sort, setSort] = useState(initial.sort);
+  const [saved, setSaved] = useState(false);
+
+  const hasCriteria =
+    !!q.trim() || category !== "all" || region !== "all" || !!city.trim();
+
+  async function saveSearch() {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      router.push(`/${lang}/login`);
+      return;
+    }
+    await supabase.from("saved_searches").insert({
+      user_id: user.id,
+      q: q.trim() || null,
+      category: category !== "all" ? category : null,
+      region: region !== "all" ? region : null,
+      city: city.trim() || null,
+    });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  }
 
   function navigate(overrides: Partial<MarketFilterValues> = {}) {
     const s = { q, category, region, city, priceMin, priceMax, datePosted, sort, ...overrides };
@@ -158,6 +183,21 @@ export function MarketFilters({
           {t.sort}
         </button>
       </div>
+
+      {hasCriteria && (
+        <button
+          onClick={saveSearch}
+          disabled={saved}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-sm font-semibold transition-colors hover:border-primary hover:text-primary disabled:opacity-70"
+        >
+          {saved ? (
+            <Check className="h-4 w-4 text-primary" />
+          ) : (
+            <BellPlus className="h-4 w-4" />
+          )}
+          {saved ? t.searchSaved : t.saveSearch}
+        </button>
+      )}
     </div>
   );
 }

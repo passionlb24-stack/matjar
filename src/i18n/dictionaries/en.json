@@ -752,6 +752,10 @@
     "endsIn": "Ends in",
     "cta": "Get it now"
   },
+  "savedSearch": {
+    "title": "Saved searches",
+    "allListings": "All new listings"
+  },
   "share": {
     "title": "Share your store",
     "subtitle": "Print the code or share the link — customers scan and land on your store.",
@@ -810,6 +814,8 @@
     "prevPage": "Previous",
     "nextPage": "Next",
     "noMore": "No more listings.",
+    "saveSearch": "Notify me of new ones 🔔",
+    "searchSaved": "Saved — we'll notify you",
     "empty": "No matching listings.",
     "views": "views",
     "saves": "saves",
@@ -888,7 +894,8 @@
     "bookingStatus": "Your booking status changed",
     "storeProduct": "New product from a store you follow",
     "listingApproved": "Your Sunday Market listing was approved",
-    "listingRejected": "Your Sunday Market listing was rejected"
+    "listingRejected": "Your Sunday Market listing was rejected",
+    "listingMatch": "A new listing matches your saved search 🔔"
   },
   "dashboard": {
     "panel": "Dashboard",

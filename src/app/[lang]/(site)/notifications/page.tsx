@@ -52,14 +52,18 @@ export default async function NotificationsPage({
                 ? dict.notifications.listingApproved
                 : t === "listing_rejected"
                   ? dict.notifications.listingRejected
-                  : t;
+                  : t === "listing_match"
+                    ? dict.notifications.listingMatch
+                    : t;
 
   const linkFor = (n: Notif) =>
-    (n.type === "listing_approved" || n.type === "listing_rejected") &&
+    (n.type === "listing_approved" ||
+      n.type === "listing_rejected" ||
+      n.type === "listing_match") &&
     n.data?.listing_id
-      ? n.type === "listing_approved"
-        ? `/${lang}/market/${n.data.listing_id}`
-        : `/${lang}/account`
+      ? n.type === "listing_rejected"
+        ? `/${lang}/account`
+        : `/${lang}/market/${n.data.listing_id}`
       : n.type === "store_product" && n.data?.store_id
         ? `/${lang}/store/${n.data.store_id}`
         : n.type === "order_new" || n.type === "booking_new"

@@ -10,6 +10,10 @@ import { ProfileForm } from "@/components/profile-form";
 import { AddressForm } from "@/components/address-form";
 import { MyListingsManager } from "@/components/my-listings-manager";
 import { PushOptIn } from "@/components/push-opt-in";
+import {
+  SavedSearchesManager,
+  type SavedSearchRow,
+} from "@/components/saved-searches-manager";
 
 export default async function AccountPage({
   params,
@@ -57,6 +61,12 @@ export default async function AccountPage({
 
   const myListings = await getMyListings(user.id, lang as Locale);
 
+  const { data: savedSearches } = await supabase
+    .from("saved_searches")
+    .select("id, q, category, region, city")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
   return (
     <div className="py-10">
       <Container className="max-w-xl">
@@ -95,6 +105,12 @@ export default async function AccountPage({
             dict={dict}
           />
         </div>
+
+        <SavedSearchesManager
+          rows={(savedSearches ?? []) as SavedSearchRow[]}
+          lang={lang as Locale}
+          dict={dict}
+        />
 
         <div className="mt-10 flex flex-wrap gap-3">
           <Link
