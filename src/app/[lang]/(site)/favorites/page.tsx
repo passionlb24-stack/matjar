@@ -34,9 +34,9 @@ export default async function FavoritesPage({
   if (!user) redirect(`/${lang}/login`);
 
   const { data } = await supabase
-    .from("favorites")
+    .from("follows")
     .select("stores(id, name, area, region, plan, business_types(slug))")
-    .eq("customer_id", user.id);
+    .eq("user_id", user.id);
 
   const stores: Store[] = ((data ?? []) as unknown as FavRow[])
     .map((f) => f.stores)

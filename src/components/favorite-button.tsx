@@ -39,13 +39,13 @@ export function FavoriteButton({
     setFav(next); // optimistic
     const { error } = next
       ? await supabase
-          .from("favorites")
-          .insert({ store_id: storeId, customer_id: user.id })
+          .from("follows")
+          .insert({ store_id: storeId, user_id: user.id })
       : await supabase
-          .from("favorites")
+          .from("follows")
           .delete()
           .eq("store_id", storeId)
-          .eq("customer_id", user.id);
+          .eq("user_id", user.id);
     if (error) {
       setFav(!next); // revert on failure
       setBusy(false);
