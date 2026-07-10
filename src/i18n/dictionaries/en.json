@@ -451,7 +451,24 @@
       "subscriptions": "Subscriptions",
       "reports": "Reports",
       "settings": "Settings",
-      "market": "Sunday Market"
+      "market": "Sunday Market",
+      "reviews": "Reviews",
+      "audit": "Audit log"
+    },
+    "reviews": {
+      "title": "Review moderation",
+      "subtitle": "Lowest-rated first, for review and moderation.",
+      "empty": "No reviews.",
+      "delete": "Delete"
+    },
+    "audit": {
+      "title": "Audit log",
+      "subtitle": "Record of sensitive platform actions.",
+      "empty": "No entries.",
+      "actor": "User",
+      "action": "Action",
+      "entity": "Entity",
+      "when": "When"
     },
     "market": {
       "title": "Sunday Market moderation",

@@ -11,6 +11,8 @@ import {
   BarChart3,
   Settings,
   ShoppingBag,
+  Star,
+  ScrollText,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -22,8 +24,10 @@ const icons = {
   users: Users,
   types: Tags,
   market: ShoppingBag,
+  reviews: Star,
   subscriptions: CreditCard,
   reports: BarChart3,
+  audit: ScrollText,
   settings: Settings,
 } as const;
 
@@ -36,8 +40,10 @@ export function AdminNav({ lang, dict }: { lang: Locale; dict: Dictionary }) {
     { key: "users", href: `${base}/users` },
     { key: "types", href: `${base}/business-types` },
     { key: "market", href: `${base}/market` },
+    { key: "reviews", href: `${base}/reviews` },
     { key: "subscriptions", href: `${base}/subscriptions` },
     { key: "reports", href: `${base}/reports` },
+    { key: "audit", href: `${base}/audit` },
     { key: "settings", href: `${base}/settings` },
   ] as const;
 
