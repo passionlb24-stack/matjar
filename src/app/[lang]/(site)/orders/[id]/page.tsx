@@ -8,6 +8,7 @@ import { formatUsd } from "@/lib/currency";
 import { Container } from "@/components/ui/container";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { OrderCancelButton } from "@/components/order-cancel-button";
+import { ReorderButton } from "@/components/reorder-button";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -41,7 +42,7 @@ export default async function OrderDetailPage({
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, status, subtotal, discount, total, fulfillment, address, phone, customer_note, created_at, customer_id, stores(name), order_items(name, unit_price, quantity)",
+      "id, status, subtotal, discount, total, fulfillment, address, phone, customer_note, created_at, customer_id, store_id, stores(name), order_items(name, unit_price, quantity, product_id)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -58,8 +59,14 @@ export default async function OrderDetailPage({
     customer_note: string | null;
     created_at: string;
     customer_id: string;
+    store_id: string;
     stores: { name: string } | null;
-    order_items: { name: string; unit_price: number; quantity: number }[];
+    order_items: {
+      name: string;
+      unit_price: number;
+      quantity: number;
+      product_id: string | null;
+    }[];
   } | null;
 
   // Only the owner may view their order detail.
@@ -95,9 +102,17 @@ export default async function OrderDetailPage({
               {order.stores?.name ?? "—"} · {t.placedOn} {fmtDate(order.created_at)}
             </p>
           </div>
-          {order.status === "pending" && (
-            <OrderCancelButton id={order.id} kind="order" dict={dict} />
-          )}
+          <div className="flex shrink-0 flex-wrap gap-2">
+            {order.status === "pending" && (
+              <OrderCancelButton id={order.id} kind="order" dict={dict} />
+            )}
+            <ReorderButton
+              storeId={order.store_id}
+              items={order.order_items}
+              lang={lang}
+              dict={dict}
+            />
+          </div>
         </div>
 
         {/* Status */}

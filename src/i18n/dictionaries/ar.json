@@ -612,6 +612,7 @@
     "backToOrders": "رجوع للطلبات",
     "cancel": "إلغاء الطلب",
     "cancelConfirm": "متأكد إنك بدّك تلغي الطلب؟",
+    "reorder": "أعد الطلب",
     "status": {
       "pending": "بانتظار التأكيد",
       "accepted": "مقبول",

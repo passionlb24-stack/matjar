@@ -612,6 +612,7 @@
     "backToOrders": "Back to orders",
     "cancel": "Cancel order",
     "cancelConfirm": "Are you sure you want to cancel this order?",
+    "reorder": "Reorder",
     "status": {
       "pending": "Pending",
       "accepted": "Accepted",
