@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Save, X, Trash2, Plus } from "lucide-react";
+import { Save, X, Trash2, Plus, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -14,6 +14,15 @@ import { ImageUpload } from "@/components/image-upload";
 const field =
   "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
 const label = "text-sm font-semibold";
+
+// ISO timestamp → a datetime-local input value in the browser's local time.
+function toLocalInput(iso: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 type VariantRow = { label: string; price: string; stock: string };
 type OptionRow = { name: string; price: string };
@@ -27,6 +36,9 @@ export type ProductInitial = {
   gallery: string[];
   stock: string;
   dealToday: boolean;
+  flashPrice: string;
+  flashStart: string; // datetime-local value ("YYYY-MM-DDTHH:MM") or ""
+  flashEnd: string;
   attributes: Record<string, string>;
   variants: VariantRow[];
   options: OptionRow[];
@@ -74,6 +86,18 @@ export function ProductEditForm({
     });
     const stockRaw = String(form.get("stock") ?? "").trim();
 
+    // Flash sale: all three fields required together, else it's cleared.
+    const flashPriceRaw = String(form.get("flash_price") ?? "").trim();
+    const flashStartRaw = String(form.get("flash_start") ?? "").trim();
+    const flashEndRaw = String(form.get("flash_end") ?? "").trim();
+    const hasFlash =
+      flashPriceRaw !== "" && flashStartRaw !== "" && flashEndRaw !== "";
+    if (hasFlash && new Date(flashEndRaw) <= new Date(flashStartRaw)) {
+      setError(dict.auth.errorGeneric);
+      setLoading(false);
+      return;
+    }
+
     const { error: updateError } = await supabase
       .from("products")
       .update({
@@ -85,6 +109,9 @@ export function ProductEditForm({
         gallery,
         stock: stockRaw === "" ? null : Number(stockRaw),
         deal_date: dealToday ? new Date().toISOString().slice(0, 10) : null,
+        flash_price: hasFlash ? Number(flashPriceRaw) : null,
+        flash_start: hasFlash ? new Date(flashStartRaw).toISOString() : null,
+        flash_end: hasFlash ? new Date(flashEndRaw).toISOString() : null,
         attributes,
         updated_at: new Date().toISOString(),
       })
@@ -199,6 +226,36 @@ export function ProductEditForm({
         />
         {p.dealToday}
       </label>
+
+      <div className="rounded-xl border border-amber-300/60 bg-amber-50/40 p-4">
+        <div className="flex items-center gap-2">
+          <Zap className="h-4 w-4 text-amber-600" />
+          <span className={label}>{dict.flash.merchantTitle}</span>
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {dict.flash.merchantHint}
+        </p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          <div>
+            <label className={label} htmlFor="flash_price">
+              {dict.flash.flashPrice}
+            </label>
+            <input id="flash_price" name="flash_price" type="number" min="0" step="0.01" defaultValue={initial.flashPrice} className={field} />
+          </div>
+          <div>
+            <label className={label} htmlFor="flash_start">
+              {dict.flash.flashStart}
+            </label>
+            <input id="flash_start" name="flash_start" type="datetime-local" defaultValue={toLocalInput(initial.flashStart)} className={field} />
+          </div>
+          <div>
+            <label className={label} htmlFor="flash_end">
+              {dict.flash.flashEnd}
+            </label>
+            <input id="flash_end" name="flash_end" type="datetime-local" defaultValue={toLocalInput(initial.flashEnd)} className={field} />
+          </div>
+        </div>
+      </div>
 
       <div>
         <label className={label} htmlFor="description">{p.description}</label>

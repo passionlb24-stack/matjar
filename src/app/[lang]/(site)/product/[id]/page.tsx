@@ -10,6 +10,8 @@ import { productJsonLd, jsonLdScript } from "@/lib/jsonld";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { regions, type CategoryKey } from "@/lib/catalog";
 import { attributeSummary } from "@/lib/attributes";
+import { effectivePrice, compareAtPrice, flashEndsAt } from "@/lib/pricing";
+import { FlashCountdown } from "@/components/flash-countdown";
 import { getUsdLbpRate } from "@/lib/data/settings";
 import {
   getMoreFromStore,
@@ -53,6 +55,9 @@ type ProductView = {
   description: string | null;
   price: number;
   discountPrice: number | null;
+  flashPrice: number | null;
+  flashStart: string | null;
+  flashEnd: string | null;
   stock: number | null;
   images: string[];
   attributes: Record<string, string> | null;
@@ -66,7 +71,7 @@ async function loadProduct(id: string): Promise<ProductView | null> {
   const { data } = await supabase
     .from("products")
     .select(
-      "id, store_id, name, description, price, discount_price, image_url, gallery, stock, attributes, stores(name, accepts_delivery, accepts_pickup, business_types(slug))",
+      "id, store_id, name, description, price, discount_price, flash_price, flash_start, flash_end, image_url, gallery, stock, attributes, stores(name, accepts_delivery, accepts_pickup, business_types(slug))",
     )
     .eq("id", id)
     .is("deleted_at", null)
@@ -109,6 +114,9 @@ async function loadProduct(id: string): Promise<ProductView | null> {
     description: (data.description as string | null) ?? null,
     price: Number(data.price),
     discountPrice: data.discount_price != null ? Number(data.discount_price) : null,
+    flashPrice: data.flash_price != null ? Number(data.flash_price) : null,
+    flashStart: (data.flash_start as string | null) ?? null,
+    flashEnd: (data.flash_end as string | null) ?? null,
     stock: data.stock != null ? Number(data.stock) : null,
     images,
     attributes: (data.attributes as Record<string, string> | null) ?? null,
@@ -213,7 +221,9 @@ export default async function ProductPage({
     isWishlisted = !!wl;
   }
 
-  const basePrice = product.discountPrice ?? product.price;
+  const basePrice = effectivePrice(product);
+  const compareAt = compareAtPrice(product);
+  const flashEnd = flashEndsAt(product);
   const lbpRate = await getUsdLbpRate();
   const [moreFromStore, similar, boughtTogether, productReviews, questions, soldRes] =
     await Promise.all([
@@ -279,20 +289,19 @@ export default async function ProductPage({
               {product.name}
             </h1>
 
-            <div className="mt-3 flex items-center gap-3">
-              {product.discountPrice != null ? (
-                <>
-                  <span className="text-2xl font-extrabold text-primary">
-                    {formatPrice(product.discountPrice)}
-                  </span>
-                  <span className="text-lg text-muted-foreground line-through">
-                    {formatPrice(product.price)}
-                  </span>
-                </>
-              ) : (
-                <span className="text-2xl font-extrabold text-primary">
-                  {formatPrice(product.price)}
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <span
+                className={`text-2xl font-extrabold ${flashEnd != null ? "text-amber-600" : "text-primary"}`}
+              >
+                {formatPrice(basePrice)}
+              </span>
+              {compareAt != null && (
+                <span className="text-lg text-muted-foreground line-through">
+                  {formatPrice(compareAt)}
                 </span>
+              )}
+              {flashEnd != null && (
+                <FlashCountdown endsAt={flashEnd} dict={dict} />
               )}
               {product.stock != null &&
                 (soldOut ? (
