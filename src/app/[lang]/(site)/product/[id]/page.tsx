@@ -14,6 +14,7 @@ import { getUsdLbpRate } from "@/lib/data/settings";
 import { getMoreFromStore, getSimilarProducts } from "@/lib/data/related";
 import { getProductReviews } from "@/lib/data/product-reviews";
 import { ProductReviews } from "@/components/product-reviews";
+import { RecentlyViewed } from "@/components/recently-viewed";
 import { formatLbp } from "@/lib/currency";
 import { ProductMiniCard } from "@/components/product-mini-card";
 import { Container } from "@/components/ui/container";
@@ -416,6 +417,8 @@ export default async function ProductPage({
             </div>
           </section>
         )}
+
+        <RecentlyViewed currentId={product.id} lang={l} dict={dict} />
       </Container>
     </div>
   );

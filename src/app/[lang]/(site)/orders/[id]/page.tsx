@@ -9,6 +9,7 @@ import { Container } from "@/components/ui/container";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { OrderCancelButton } from "@/components/order-cancel-button";
 import { ReorderButton } from "@/components/reorder-button";
+import { PrintInvoiceButton } from "@/components/print-invoice-button";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -102,7 +103,7 @@ export default async function OrderDetailPage({
               {order.stores?.name ?? "—"} · {t.placedOn} {fmtDate(order.created_at)}
             </p>
           </div>
-          <div className="flex shrink-0 flex-wrap gap-2">
+          <div className="flex shrink-0 flex-wrap gap-2 print:hidden">
             {order.status === "pending" && (
               <OrderCancelButton id={order.id} kind="order" dict={dict} />
             )}
@@ -112,6 +113,7 @@ export default async function OrderDetailPage({
               lang={lang}
               dict={dict}
             />
+            <PrintInvoiceButton label={t.print} />
           </div>
         </div>
 
@@ -204,7 +206,7 @@ export default async function OrderDetailPage({
 
         <Link
           href={`/${lang}/orders`}
-          className="mt-6 inline-block text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+          className="mt-6 inline-block text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground print:hidden"
         >
           ← {t.backToOrders}
         </Link>

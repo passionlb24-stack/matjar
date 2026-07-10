@@ -630,6 +630,7 @@
     "cancel": "Cancel order",
     "cancelConfirm": "Are you sure you want to cancel this order?",
     "reorder": "Reorder",
+    "print": "Print invoice",
     "status": {
       "pending": "Pending",
       "accepted": "Accepted",
@@ -945,7 +946,8 @@
     "wishlist": "Save for later",
     "wishlisted": "Saved",
     "moreFromStore": "More from this store",
-    "similar": "Similar products"
+    "similar": "Similar products",
+    "recentlyViewed": "Recently viewed"
   },
   "wishlist": {
     "title": "Wishlist",

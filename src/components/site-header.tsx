@@ -24,7 +24,7 @@ export function SiteHeader({
   lbpRate?: number;
 }) {
   return (
-    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-md print:hidden">
       <Container className="flex h-16 items-center justify-between gap-4">
         <div className="flex items-center gap-6">
           <Link href={`/${lang}`} className="flex items-center" aria-label={dict.common.brand}>

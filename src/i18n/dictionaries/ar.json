@@ -630,6 +630,7 @@
     "cancel": "إلغاء الطلب",
     "cancelConfirm": "متأكد إنك بدّك تلغي الطلب؟",
     "reorder": "أعد الطلب",
+    "print": "طباعة الفاتورة",
     "status": {
       "pending": "بانتظار التأكيد",
       "accepted": "مقبول",
@@ -945,7 +946,8 @@
     "wishlist": "احفظ لوقت لاحق",
     "wishlisted": "محفوظ",
     "moreFromStore": "منتجات أخرى من نفس المتجر",
-    "similar": "منتجات مشابهة"
+    "similar": "منتجات مشابهة",
+    "recentlyViewed": "شاهدتها مؤخراً"
   },
   "wishlist": {
     "title": "قائمة الأمنيات",
