@@ -209,11 +209,16 @@ export default async function ProductPage({
 
   const basePrice = product.discountPrice ?? product.price;
   const lbpRate = await getUsdLbpRate();
-  const [moreFromStore, similar, productReviews] = await Promise.all([
+  const [moreFromStore, similar, productReviews, soldRes] = await Promise.all([
     getMoreFromStore(product.storeId, product.id),
     getSimilarProducts(product.category, product.storeId, product.id),
     getProductReviews(product.id, user?.id ?? null),
+    supabase
+      .from("order_items")
+      .select("id", { count: "exact", head: true })
+      .eq("product_id", product.id),
   ]);
+  const soldCount = soldRes.count ?? 0;
   const attrText = attributeSummary(product.category, product.attributes, l);
   const isBooking = bookingCategories.has(product.category);
   const soldOut = product.stock != null && product.stock <= 0;
@@ -288,6 +293,12 @@ export default async function ProductPage({
                   </span>
                 ))}
             </div>
+
+            {soldCount > 0 && (
+              <p className="mt-1.5 text-sm font-semibold text-primary">
+                🔥 {dict.product.soldCount.replace("{n}", String(soldCount))}
+              </p>
+            )}
 
             {lbpRate > 0 && (
               <p className="mt-1 text-sm text-muted-foreground">

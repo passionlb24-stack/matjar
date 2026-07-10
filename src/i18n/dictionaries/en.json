@@ -939,6 +939,7 @@
     "outOfStock": "Out of stock",
     "inStock": "In stock",
     "lowStock": "Only {n} left",
+    "soldCount": "Ordered {n} times",
     "buyNow": "Order now",
     "total": "Total",
     "visitStore": "Visit store",

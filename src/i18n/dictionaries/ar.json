@@ -939,6 +939,7 @@
     "outOfStock": "نفد المخزون",
     "inStock": "متوفّر",
     "lowStock": "باقي {n} قطع فقط",
+    "soldCount": "طُلب {n} مرة",
     "buyNow": "اطلب الآن",
     "total": "المجموع",
     "visitStore": "زيارة المتجر",
