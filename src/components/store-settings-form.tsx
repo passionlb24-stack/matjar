@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Navigation, Loader2 } from "lucide-react";
+import { Navigation, Loader2, Landmark, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
@@ -20,6 +20,8 @@ export type StoreSettings = {
   insurance: string;
   lat: string;
   lng: string;
+  commercial_reg_no: string;
+  commercial_reg_verified: boolean;
 };
 
 export function StoreSettingsForm({
@@ -81,6 +83,7 @@ export function StoreSettingsForm({
         min_order: minRaw === "" ? null : Number(minRaw),
         prep_time: String(form.get("prep_time")) || null,
         payment_note: String(form.get("payment_note")) || null,
+        commercial_reg_no: String(form.get("commercial_reg_no") ?? "").trim() || null,
         specialties: String(form.get("specialties") ?? "") || null,
         insurance: String(form.get("insurance") ?? "") || null,
         lat: lat.trim() === "" ? null : Number(lat),
@@ -138,6 +141,34 @@ export function StoreSettingsForm({
       <div>
         <label className={labelClass} htmlFor="payment_note">{t.paymentNote}</label>
         <input id="payment_note" name="payment_note" type="text" defaultValue={initial.payment_note} placeholder={t.paymentNotePlaceholder} className={fieldClass} />
+      </div>
+
+      <div className="rounded-xl border border-border bg-surface-muted/30 p-4">
+        <div className="flex items-center gap-2">
+          <Landmark className="h-4 w-4 text-primary" />
+          <span className={labelClass}>{t.commercialReg}</span>
+          {initial.commercial_reg_verified && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 text-xs font-bold text-primary">
+              <ShieldCheck className="h-3 w-3" />
+              {t.regVerified}
+            </span>
+          )}
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">{t.commercialRegHint}</p>
+        <input
+          id="commercial_reg_no"
+          name="commercial_reg_no"
+          type="text"
+          defaultValue={initial.commercial_reg_no}
+          placeholder={t.commercialRegPlaceholder}
+          className={fieldClass}
+          dir="ltr"
+        />
+        {initial.commercial_reg_no && !initial.commercial_reg_verified && (
+          <p className="mt-1.5 text-xs font-semibold text-amber-600">
+            {t.regPending}
+          </p>
+        )}
       </div>
 
       {isHealthcare && (

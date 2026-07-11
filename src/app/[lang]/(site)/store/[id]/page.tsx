@@ -58,6 +58,7 @@ type StoreView = {
   paymentNote?: string | null;
   specialties?: string | null;
   insurance?: string | null;
+  registered?: boolean;
   isReal: boolean;
   products: {
     id?: string;
@@ -77,7 +78,7 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
     const supabase = await createClient();
     const { data } = await supabase
       .from("stores")
-      .select("name, description, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, business_types(slug)")
+      .select("name, description, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, business_types(slug)")
       .eq("id", id)
       .is("deleted_at", null)
       .maybeSingle();
@@ -113,6 +114,7 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
         paymentNote: (data.payment_note as string | null) ?? null,
         specialties: (data.specialties as string | null) ?? null,
         insurance: (data.insurance as string | null) ?? null,
+        registered: (data.commercial_reg_verified as boolean | null) ?? false,
         isReal: true,
         products: (prods ?? []).map((p) => ({
           id: p.id as string,
@@ -369,6 +371,12 @@ export default async function StorePage({
                     {store.isOpen ? dict.store.openNow : dict.store.closed}
                   </span>
                   {store.plan === "pro" && <ProBadge />}
+                  {store.registered && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                      <BadgeCheck className="h-3.5 w-3.5" />
+                      {dict.featured.registered}
+                    </span>
+                  )}
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">{cat.name}</p>
                 <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">

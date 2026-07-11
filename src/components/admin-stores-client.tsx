@@ -11,6 +11,7 @@ import {
   BadgeCheck,
   Crown,
   Sparkles,
+  Landmark,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -26,6 +27,8 @@ export type AdminStore = {
   plan: "free" | "pro";
   isVerified: boolean;
   featuredUntil: string | null;
+  commercialRegNo: string | null;
+  commercialRegVerified: boolean;
   typeName: string | null;
   ownerName: string | null;
 };
@@ -158,6 +161,18 @@ export function AdminStoresClient({
                     {s.typeName}
                     {s.ownerName ? ` · ${t.owner}: ${s.ownerName}` : null}
                   </p>
+                  {s.commercialRegNo && (
+                    <p className="mt-1 inline-flex items-center gap-1.5 text-sm">
+                      <Landmark className="h-3.5 w-3.5 text-primary" />
+                      <span className="font-semibold">{dict.admin.reg}:</span>
+                      <span dir="ltr" className="font-mono">
+                        {s.commercialRegNo}
+                      </span>
+                      {s.commercialRegVerified && (
+                        <BadgeCheck className="h-4 w-4 text-primary" />
+                      )}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -253,6 +268,26 @@ export function AdminStoresClient({
                       </button>
                     );
                   })()}
+                  {s.commercialRegNo && (
+                    <button
+                      disabled={busy === s.id}
+                      onClick={() =>
+                        patch(s.id, {
+                          commercial_reg_verified: !s.commercialRegVerified,
+                        })
+                      }
+                      className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold transition-colors disabled:opacity-60 ${
+                        s.commercialRegVerified
+                          ? "border border-border text-muted-foreground hover:bg-surface-muted"
+                          : "bg-primary text-primary-foreground hover:bg-primary-hover"
+                      }`}
+                    >
+                      <Landmark className="h-4 w-4" />
+                      {s.commercialRegVerified
+                        ? dict.admin.unverifyReg
+                        : dict.admin.verifyReg}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

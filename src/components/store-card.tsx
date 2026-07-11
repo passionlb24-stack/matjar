@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Star, BadgeCheck, Navigation, Sparkles } from "lucide-react";
+import { Star, BadgeCheck, Navigation, Sparkles, Landmark } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { categoryStyles, type FeaturedStore } from "@/lib/catalog";
@@ -94,6 +94,12 @@ export function StoreCard({
             <span className="inline-flex items-center gap-0.5 rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-bold text-primary">
               <BadgeCheck className="h-3 w-3" />
               {dict.featured.verified}
+            </span>
+          )}
+          {store.registered && (
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+              <Landmark className="h-3 w-3" />
+              {dict.featured.registered}
             </span>
           )}
         </div>

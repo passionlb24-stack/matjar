@@ -32,7 +32,7 @@ export default async function StoreSettingsPage({
   // Owner-only.
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, lat, lng, business_types(slug)")
+    .select("id, name, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, lat, lng, commercial_reg_no, commercial_reg_verified, business_types(slug)")
     .eq("id", storeId)
     .eq("owner_id", user.id)
     .maybeSingle();
@@ -60,6 +60,11 @@ export default async function StoreSettingsPage({
       (store as { lng: number | null }).lng != null
         ? String((store as { lng: number }).lng)
         : "",
+    commercial_reg_no:
+      (store as { commercial_reg_no: string | null }).commercial_reg_no ?? "",
+    commercial_reg_verified:
+      (store as { commercial_reg_verified: boolean | null })
+        .commercial_reg_verified ?? false,
   };
 
   return (
