@@ -1123,6 +1123,7 @@
     "adminField": "Notification text",
     "adminHeading": "Title (optional)",
     "adminSend": "Send",
+    "adminConfirm": "Send this notification to all subscribers?",
     "adminSent": "Sent to",
     "adminNotConfigured": "Push isn't configured — add VAPID_PRIVATE_KEY in Vercel settings."
   },

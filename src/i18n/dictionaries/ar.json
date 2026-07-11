@@ -1123,6 +1123,7 @@
     "adminField": "نص الإشعار",
     "adminHeading": "العنوان (اختياري)",
     "adminSend": "إرسال",
+    "adminConfirm": "إرسال هذا الإشعار لكل المشتركين؟",
     "adminSent": "تمّ الإرسال إلى",
     "adminNotConfigured": "الإشعارات غير مفعّلة — أضف مفتاح VAPID_PRIVATE_KEY في إعدادات Vercel."
   },
