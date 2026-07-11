@@ -64,15 +64,18 @@ export function MarketCategoryManager({
   async function save() {
     setBusy(true);
     const supabase = createClient();
-    if (editingId === "new") {
-      await supabase.from("market_categories").insert(draft);
-    } else if (editingId) {
-      await supabase
-        .from("market_categories")
-        .update(draft)
-        .eq("id", editingId);
-    }
+    const { error } =
+      editingId === "new"
+        ? await supabase.from("market_categories").insert(draft)
+        : await supabase
+            .from("market_categories")
+            .update(draft)
+            .eq("id", editingId!);
     setBusy(false);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     cancel();
     router.refresh();
   }
@@ -80,8 +83,15 @@ export function MarketCategoryManager({
   async function remove(id: string) {
     if (!window.confirm(t.confirmDelete)) return;
     setBusy(true);
-    await createClient().from("market_categories").delete().eq("id", id);
+    const { error } = await createClient()
+      .from("market_categories")
+      .delete()
+      .eq("id", id);
     setBusy(false);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     router.refresh();
   }
 

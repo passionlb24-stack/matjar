@@ -9,18 +9,30 @@ export function AdminStoreActions({
   storeId,
   approveLabel,
   rejectLabel,
+  confirmRejectLabel,
+  errorLabel,
 }: {
   storeId: string;
   approveLabel: string;
   rejectLabel: string;
+  confirmRejectLabel: string;
+  errorLabel: string;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
   async function setStatus(status: "active" | "rejected") {
+    if (status === "rejected" && !window.confirm(confirmRejectLabel)) return;
     setBusy(true);
-    await createClient().from("stores").update({ status }).eq("id", storeId);
+    const { error } = await createClient()
+      .from("stores")
+      .update({ status })
+      .eq("id", storeId);
     setBusy(false);
+    if (error) {
+      window.alert(errorLabel);
+      return;
+    }
     router.refresh();
   }
 

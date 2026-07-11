@@ -65,15 +65,18 @@ export function BusinessTypeManager({
   async function save() {
     setBusy(true);
     const supabase = createClient();
-    if (editingId === "new") {
-      await supabase.from("business_types").insert(draft);
-    } else if (editingId) {
-      await supabase
-        .from("business_types")
-        .update({ ...draft, updated_at: new Date().toISOString() })
-        .eq("id", editingId);
-    }
+    const { error } =
+      editingId === "new"
+        ? await supabase.from("business_types").insert(draft)
+        : await supabase
+            .from("business_types")
+            .update({ ...draft, updated_at: new Date().toISOString() })
+            .eq("id", editingId!);
     setBusy(false);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     cancel();
     router.refresh();
   }
@@ -81,8 +84,15 @@ export function BusinessTypeManager({
   async function remove(id: string) {
     if (!window.confirm(t.confirmDelete)) return;
     setBusy(true);
-    await createClient().from("business_types").delete().eq("id", id);
+    const { error } = await createClient()
+      .from("business_types")
+      .delete()
+      .eq("id", id);
     setBusy(false);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     router.refresh();
   }
 

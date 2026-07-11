@@ -45,7 +45,10 @@ export function StoreCouriersManager({
     setBusy(true);
     setSaved(false);
     const supabase = createClient();
-    await supabase.from("store_couriers").delete().eq("store_id", storeId);
+    const del = await supabase
+      .from("store_couriers")
+      .delete()
+      .eq("store_id", storeId);
     const rows = companies
       .filter((c) => state[c.id]?.enabled)
       .map((c) => ({
@@ -54,8 +57,14 @@ export function StoreCouriersManager({
         price:
           state[c.id].price.trim() === "" ? null : Number(state[c.id].price),
       }));
-    if (rows.length) await supabase.from("store_couriers").insert(rows);
+    const ins = rows.length
+      ? await supabase.from("store_couriers").insert(rows)
+      : { error: null };
     setBusy(false);
+    if (del.error || ins.error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     setSaved(true);
     router.refresh();
   }

@@ -195,7 +195,10 @@ export function AdminStoresClient({
                       </button>
                       <button
                         disabled={busy === s.id}
-                        onClick={() => patch(s.id, { status: "rejected" })}
+                        onClick={() => {
+                          if (window.confirm(dict.admin.confirmReject))
+                            patch(s.id, { status: "rejected" });
+                        }}
                         className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
                       >
                         <X className="h-4 w-4" />
@@ -206,7 +209,10 @@ export function AdminStoresClient({
                   {s.status === "active" && (
                     <button
                       disabled={busy === s.id}
-                      onClick={() => patch(s.id, { status: "suspended" })}
+                      onClick={() => {
+                        if (window.confirm(dict.admin.confirmSuspend))
+                          patch(s.id, { status: "suspended" });
+                      }}
                       className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
                     >
                       <Ban className="h-4 w-4" />
@@ -233,12 +239,17 @@ export function AdminStoresClient({
                   </button>
                   <button
                     disabled={busy === s.id}
-                    onClick={() =>
+                    onClick={() => {
+                      if (
+                        s.plan === "pro" &&
+                        !window.confirm(dict.admin.confirmDowngrade)
+                      )
+                        return;
                       patch(s.id, {
                         plan: s.plan === "pro" ? "free" : "pro",
                         is_verified: s.plan === "pro" ? s.isVerified : true,
-                      })
-                    }
+                      });
+                    }}
                     className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold transition-colors disabled:opacity-60 ${
                       s.plan === "pro"
                         ? "border border-border text-muted-foreground hover:bg-surface-muted"

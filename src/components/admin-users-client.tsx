@@ -41,9 +41,17 @@ export function AdminUsersClient({
   const [query, setQuery] = useState("");
 
   async function toggle(id: string, next: boolean) {
+    if (!next && !window.confirm(dict.admin.confirmSuspendUser)) return;
     setBusy(id);
-    await createClient().from("profiles").update({ is_active: next }).eq("id", id);
+    const { error } = await createClient()
+      .from("profiles")
+      .update({ is_active: next })
+      .eq("id", id);
     setBusy(null);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     router.refresh();
   }
 

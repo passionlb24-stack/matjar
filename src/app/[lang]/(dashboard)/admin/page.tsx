@@ -113,6 +113,8 @@ export default async function AdminOverviewPage({
                   storeId={store.id}
                   approveLabel={dict.admin.approve}
                   rejectLabel={dict.admin.reject}
+                  confirmRejectLabel={dict.admin.confirmReject}
+                  errorLabel={dict.auth.errorGeneric}
                 />
               </div>
             ))}
