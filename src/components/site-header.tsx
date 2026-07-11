@@ -7,6 +7,7 @@ import { Container } from "@/components/ui/container";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LogoutButton } from "@/components/logout-button";
 import { MobileMenu } from "@/components/mobile-menu";
+import { NavDropdown } from "@/components/nav-dropdown";
 
 export function SiteHeader({
   lang,
@@ -50,53 +51,28 @@ export function SiteHeader({
             >
               {dict.market.nav}
             </Link>
-            <Link
-              href={`/${lang}/offers`}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
-            >
-              {dict.offers.title}
-            </Link>
-            <Link
-              href={`/${lang}/flash`}
-              className="rounded-lg px-3 py-2 text-sm font-semibold text-amber-600 transition-colors hover:bg-amber-500/10"
-            >
-              {dict.flash.title}
-            </Link>
-            <Link
-              href={`/${lang}/best-sellers`}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
-            >
-              {dict.bestSellers.title}
-            </Link>
-            <Link
-              href={`/${lang}/jobs`}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
-            >
-              {dict.jobs.title}
-            </Link>
-            <Link
-              href={`/${lang}/freelance`}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
-            >
-              {dict.freelance.title}
-            </Link>
-            <Link
-              href={`/${lang}/wholesale`}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
-            >
-              {dict.wholesale.title}
-            </Link>
+            <NavDropdown
+              label={dict.common.deals}
+              items={[
+                { href: `/${lang}/offers`, label: dict.offers.title },
+                { href: `/${lang}/flash`, label: dict.flash.title, accent: true },
+                { href: `/${lang}/best-sellers`, label: dict.bestSellers.title },
+              ]}
+            />
+            <NavDropdown
+              label={dict.common.workServices}
+              items={[
+                { href: `/${lang}/jobs`, label: dict.jobs.title },
+                { href: `/${lang}/freelance`, label: dict.freelance.title },
+                { href: `/${lang}/wholesale`, label: dict.wholesale.title },
+                { href: `/${lang}/delivery`, label: dict.delivery.title },
+              ]}
+            />
             <Link
               href={`/${lang}/map`}
               className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
             >
               {dict.map.title}
-            </Link>
-            <Link
-              href={`/${lang}/pricing`}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
-            >
-              {dict.common.forMerchants}
             </Link>
           </nav>
         </div>

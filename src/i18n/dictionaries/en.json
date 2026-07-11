@@ -6,7 +6,9 @@
     "signup": "Sign up",
     "forMerchants": "For merchants",
     "explore": "Explore stores",
-    "openStore": "Open your store"
+    "openStore": "Open your store",
+    "deals": "Deals",
+    "workServices": "Work & services"
   },
   "hero": {
     "badge": "Lebanon's local commerce platform",
@@ -294,6 +296,7 @@
       "saving": "Saving…",
       "empty": "No products yet. Add your store's first product.",
       "delete": "Delete",
+      "confirmDelete": "Delete this product?",
       "hide": "Hide",
       "show": "Show",
       "back": "Back to my stores",
@@ -453,6 +456,7 @@
       "categoryPlaceholder": "Category (optional)",
       "add": "Add",
       "delete": "Delete",
+      "confirmDelete": "Delete this expense?",
       "noExpenses": "No expenses logged yet."
     },
     "couriers": {
@@ -483,6 +487,7 @@
     "ordersTotal": "Orders",
     "reviewsTitle": "Recent reviews",
     "deleteReview": "Delete",
+    "confirmDeleteReview": "Permanently delete this review?",
     "noReviews": "No reviews.",
     "nav": {
       "overview": "Overview",
@@ -720,6 +725,9 @@
     "save": "Save",
     "saving": "Saving…",
     "saved": "Saved ✓",
+    "groupOrders": "Orders & bookings",
+    "groupSaved": "Saved & messages",
+    "groupSelling": "Selling on Matjar",
     "address": {
       "title": "Delivery addresses",
       "subtitle": "Save your detailed addresses so they auto-fill at checkout.",
@@ -850,6 +858,19 @@
     "placeholder": "Type your message…",
     "send": "Send",
     "messageStore": "Message store"
+  },
+  "mobileNav": {
+    "shop": "Shop",
+    "more": "More"
+  },
+  "verticals": {
+    "title": "More than shopping — everything in one place",
+    "subtitle": "Find a job, hire freelancers, buy wholesale, or arrange delivery.",
+    "jobs": "Jobs across Lebanon",
+    "freelance": "Freelance services",
+    "wholesale": "Buy in bulk",
+    "delivery": "Delivery companies",
+    "map": "Stores on the map"
   },
   "delivery": {
     "title": "Delivery companies",

@@ -354,6 +354,7 @@ export default async function ManageStorePage({
                       showLabel={dict.merchant.products.show}
                       hideLabel={dict.merchant.products.hide}
                       deleteLabel={dict.merchant.products.delete}
+                      confirmLabel={dict.merchant.products.confirmDelete}
                     />
                   </div>
                 ))}

@@ -154,6 +154,8 @@ export default async function AdminOverviewPage({
                   <AdminReviewDelete
                     reviewId={r.id}
                     label={dict.admin.deleteReview}
+                    confirmLabel={dict.admin.confirmDeleteReview}
+                    errorLabel={dict.auth.errorGeneric}
                   />
                 </div>
               ))}

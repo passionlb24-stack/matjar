@@ -13,6 +13,7 @@ import {
   Briefcase,
   Sparkles,
   Boxes,
+  Truck,
   Map as MapIcon,
   Store,
   LayoutDashboard,
@@ -39,17 +40,33 @@ export function MobileMenu({
 }) {
   const [open, setOpen] = useState(false);
 
-  const nav: Item[] = [
-    { href: `/${lang}/explore`, label: dict.common.explore, icon: Compass },
-    { href: `/${lang}/market`, label: dict.market.nav, icon: ShoppingBag, bold: true },
-    { href: `/${lang}/offers`, label: dict.offers.title, icon: Percent },
-    { href: `/${lang}/flash`, label: dict.flash.title, icon: Zap },
-    { href: `/${lang}/best-sellers`, label: dict.bestSellers.title, icon: TrendingUp },
-    { href: `/${lang}/jobs`, label: dict.jobs.title, icon: Briefcase },
-    { href: `/${lang}/freelance`, label: dict.freelance.title, icon: Sparkles },
-    { href: `/${lang}/wholesale`, label: dict.wholesale.title, icon: Boxes },
-    { href: `/${lang}/map`, label: dict.map.title, icon: MapIcon },
-    { href: `/${lang}/pricing`, label: dict.common.forMerchants, icon: Store },
+  const sections: { title: string; items: Item[] }[] = [
+    {
+      title: dict.mobileNav.shop,
+      items: [
+        { href: `/${lang}/explore`, label: dict.common.explore, icon: Compass },
+        { href: `/${lang}/market`, label: dict.market.nav, icon: ShoppingBag, bold: true },
+        { href: `/${lang}/offers`, label: dict.offers.title, icon: Percent },
+        { href: `/${lang}/flash`, label: dict.flash.title, icon: Zap },
+        { href: `/${lang}/best-sellers`, label: dict.bestSellers.title, icon: TrendingUp },
+      ],
+    },
+    {
+      title: dict.common.workServices,
+      items: [
+        { href: `/${lang}/jobs`, label: dict.jobs.title, icon: Briefcase },
+        { href: `/${lang}/freelance`, label: dict.freelance.title, icon: Sparkles },
+        { href: `/${lang}/wholesale`, label: dict.wholesale.title, icon: Boxes },
+        { href: `/${lang}/delivery`, label: dict.delivery.title, icon: Truck },
+      ],
+    },
+    {
+      title: dict.mobileNav.more,
+      items: [
+        { href: `/${lang}/map`, label: dict.map.title, icon: MapIcon },
+        { href: `/${lang}/pricing`, label: dict.common.forMerchants, icon: Store },
+      ],
+    },
   ];
 
   const account: Item[] = user
@@ -86,24 +103,31 @@ export function MobileMenu({
                 {lang === "ar" ? "ل.ل." : "LBP"}
               </div>
             )}
-            <div className="space-y-1">
-              {nav.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setOpen(false)}
-                    className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition-colors hover:bg-surface-muted ${
-                      item.bold ? "font-bold text-primary" : "font-medium text-foreground"
-                    }`}
-                  >
-                    <Icon className="h-5 w-5 shrink-0" />
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </div>
+            {sections.map((section, si) => (
+              <div key={section.title} className={si > 0 ? "mt-3" : ""}>
+                <p className="px-3 pb-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  {section.title}
+                </p>
+                <div className="space-y-1">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setOpen(false)}
+                        className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition-colors hover:bg-surface-muted ${
+                          item.bold ? "font-bold text-primary" : "font-medium text-foreground"
+                        }`}
+                      >
+                        <Icon className="h-5 w-5 shrink-0" />
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
 
             <div className="my-2 border-t border-border" />
 
