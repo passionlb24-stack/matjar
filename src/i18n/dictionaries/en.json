@@ -373,7 +373,8 @@
       "locationError": "Couldn't get the location. Enable location permission and try again.",
       "lat": "Latitude",
       "lng": "Longitude",
-      "locationSet": "Location set ✓"
+      "locationSet": "Location set ✓",
+      "coordsAdvanced": "Edit coordinates manually (advanced)"
     },
     "doctorsLink": "Doctors",
     "doctors": {

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Navigation, Loader2, Landmark, ShieldCheck } from "lucide-react";
+import { Navigation, Loader2, Landmark, ShieldCheck, ChevronDown } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
@@ -208,20 +208,26 @@ export function StoreSettingsForm({
             {t.locationSet}
           </p>
         )}
-        <div className="mt-2 grid grid-cols-2 gap-3">
-          <div>
-            <label className={labelClass} htmlFor="lat">
-              {t.lat}
-            </label>
-            <input id="lat" type="number" step="any" value={lat} onChange={(e) => setLat(e.target.value)} className={fieldClass} />
+        <details className="mt-2 group">
+          <summary className="inline-flex cursor-pointer list-none items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground">
+            <ChevronDown className="h-4 w-4 -rotate-90 transition-transform group-open:rotate-0 rtl:rotate-90 rtl:group-open:rotate-0" />
+            {t.coordsAdvanced}
+          </summary>
+          <div className="mt-2 grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass} htmlFor="lat">
+                {t.lat}
+              </label>
+              <input id="lat" type="number" step="any" value={lat} onChange={(e) => setLat(e.target.value)} className={fieldClass} />
+            </div>
+            <div>
+              <label className={labelClass} htmlFor="lng">
+                {t.lng}
+              </label>
+              <input id="lng" type="number" step="any" value={lng} onChange={(e) => setLng(e.target.value)} className={fieldClass} />
+            </div>
           </div>
-          <div>
-            <label className={labelClass} htmlFor="lng">
-              {t.lng}
-            </label>
-            <input id="lng" type="number" step="any" value={lng} onChange={(e) => setLng(e.target.value)} className={fieldClass} />
-          </div>
-        </div>
+        </details>
       </div>
 
       <div className="flex items-center gap-3">
