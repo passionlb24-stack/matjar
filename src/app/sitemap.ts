@@ -11,6 +11,7 @@ const STATIC_PATHS = [
   "/market",
   "/offers",
   "/flash",
+  "/delivery",
   "/clearance",
   "/pricing",
   "/about",
