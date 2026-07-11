@@ -64,8 +64,15 @@ export function AdminStoresClient({
 
   async function patch(id: string, patch: Record<string, unknown>) {
     setBusy(id);
-    await createClient().from("stores").update(patch).eq("id", id);
+    const { error } = await createClient()
+      .from("stores")
+      .update(patch)
+      .eq("id", id);
     setBusy(null);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     router.refresh();
   }
 

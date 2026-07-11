@@ -1,6 +1,16 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { Plus } from "lucide-react";
+import {
+  Plus,
+  Package,
+  CalendarCheck,
+  Heart,
+  Bookmark,
+  MessageCircle,
+  Briefcase,
+  Sparkles,
+  Boxes,
+} from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -142,56 +152,51 @@ export default async function AccountPage({
           dict={dict}
         />
 
-        <div className="mt-10 flex flex-wrap gap-3">
-          <Link
-            href={`/${lang}/messages`}
-            className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
-          >
-            {dict.messages.title}
-          </Link>
-          <Link
-            href={`/${lang}/jobs/mine`}
-            className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
-          >
-            {dict.jobs.myPostings}
-          </Link>
-          <Link
-            href={`/${lang}/freelance/mine`}
-            className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
-          >
-            {dict.freelance.myGigs}
-          </Link>
-          <Link
-            href={`/${lang}/wholesale/mine`}
-            className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
-          >
-            {dict.wholesale.myListings}
-          </Link>
-          <Link
-            href={`/${lang}/orders`}
-            className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
-          >
-            {dict.orders.title}
-          </Link>
-          <Link
-            href={`/${lang}/bookings`}
-            className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
-          >
-            {dict.booking.myBookings}
-          </Link>
-          <Link
-            href={`/${lang}/favorites`}
-            className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
-          >
-            {dict.favorites.title}
-          </Link>
-          <Link
-            href={`/${lang}/wishlist`}
-            className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
-          >
-            {dict.wishlist.title}
-          </Link>
-        </div>
+        {[
+          {
+            title: dict.account.groupOrders,
+            items: [
+              { href: `/${lang}/orders`, label: dict.orders.title, Icon: Package },
+              { href: `/${lang}/bookings`, label: dict.booking.myBookings, Icon: CalendarCheck },
+            ],
+          },
+          {
+            title: dict.account.groupSaved,
+            items: [
+              { href: `/${lang}/favorites`, label: dict.favorites.title, Icon: Heart },
+              { href: `/${lang}/wishlist`, label: dict.wishlist.title, Icon: Bookmark },
+              { href: `/${lang}/messages`, label: dict.messages.title, Icon: MessageCircle },
+            ],
+          },
+          {
+            title: dict.account.groupSelling,
+            items: [
+              { href: `/${lang}/jobs/mine`, label: dict.jobs.myPostings, Icon: Briefcase },
+              { href: `/${lang}/freelance/mine`, label: dict.freelance.myGigs, Icon: Sparkles },
+              { href: `/${lang}/wholesale/mine`, label: dict.wholesale.myListings, Icon: Boxes },
+            ],
+          },
+        ].map((group) => (
+          <div key={group.title} className="mt-8">
+            <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted-foreground">
+              {group.title}
+            </h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {group.items.map(({ href, label, Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-surface p-4 text-center transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+                >
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-soft text-primary">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <span className="text-sm font-semibold">{label}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ))}
       </Container>
     </div>
   );

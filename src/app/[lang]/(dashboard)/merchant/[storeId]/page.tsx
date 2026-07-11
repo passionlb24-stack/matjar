@@ -1,7 +1,20 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight, Package } from "lucide-react";
+import {
+  ChevronRight,
+  Package,
+  ClipboardList,
+  Stethoscope,
+  Users,
+  BarChart3,
+  Wallet,
+  UserCog,
+  CreditCard,
+  Ticket,
+  Settings,
+  Pencil,
+} from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -206,98 +219,81 @@ export default async function ManageStorePage({
           />
         </div>
 
-        <div className="mt-5 flex items-center justify-between gap-2">
-          <div className="flex flex-wrap gap-2">
-            <span className="rounded-lg bg-foreground px-3.5 py-1.5 text-sm font-semibold text-background">
-              {itemsLabel}
-            </span>
-            {mod.kind === "commerce"
-              ? canOrders && (
-                  <Link
-                    href={`/${lang}/merchant/${storeId}/orders`}
-                    className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
-                  >
-                    {dict.merchant.ordersLink}
-                  </Link>
-                )
-              : canBookings && (
-                  <Link
-                    href={`/${lang}/merchant/${storeId}/bookings`}
-                    className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
-                  >
-                    {dict.merchant.bookingsLink}
-                  </Link>
-                )}
-            {category === "healthcare" && (
-              <Link
-                href={`/${lang}/merchant/${storeId}/doctors`}
-                className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
-              >
-                {dict.merchant.doctorsLink}
-              </Link>
-            )}
-            {canOrders && (
-              <Link
-                href={`/${lang}/merchant/${storeId}/customers`}
-                className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
-              >
-                {dict.merchant.customersLink}
-              </Link>
-            )}
-            {canOrders && (
-              <Link
-                href={`/${lang}/merchant/${storeId}/reports`}
-                className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
-              >
-                {dict.merchant.analytics.link}
-              </Link>
-            )}
-            {canOrders && (
-              <Link
-                href={`/${lang}/merchant/${storeId}/accounting`}
-                className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
-              >
-                {dict.merchant.accounting.link}
-              </Link>
-            )}
-            {isOwner && (
-              <Link
-                href={`/${lang}/merchant/${storeId}/staff`}
-                className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
-              >
-                {dict.merchant.staffLink}
-              </Link>
-            )}
-            {isOwner && (
-              <Link
-                href={`/${lang}/merchant/${storeId}/subscription`}
-                className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
-              >
-                {dict.merchant.subscriptionLink}
-              </Link>
-            )}
-            {isOwner && (
-              <Link
-                href={`/${lang}/merchant/${storeId}/coupons`}
-                className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
-              >
-                {dict.merchant.coupons.link}
-              </Link>
-            )}
-            {isOwner && (
-              <Link
-                href={`/${lang}/merchant/${storeId}/settings`}
-                className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
-              >
-                {dict.merchant.settingsLink}
-              </Link>
-            )}
-          </div>
+        {/* Management — one tap to each tool */}
+        <div className="mt-5 grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-5">
+          {(
+            [
+              (mod.kind === "commerce" ? canOrders : canBookings) && {
+                href: `/${lang}/merchant/${storeId}/${mod.kind === "commerce" ? "orders" : "bookings"}`,
+                label: mod.kind === "commerce" ? dict.merchant.ordersLink : dict.merchant.bookingsLink,
+                Icon: ClipboardList,
+              },
+              category === "healthcare" && {
+                href: `/${lang}/merchant/${storeId}/doctors`,
+                label: dict.merchant.doctorsLink,
+                Icon: Stethoscope,
+              },
+              canOrders && {
+                href: `/${lang}/merchant/${storeId}/customers`,
+                label: dict.merchant.customersLink,
+                Icon: Users,
+              },
+              canOrders && {
+                href: `/${lang}/merchant/${storeId}/reports`,
+                label: dict.merchant.analytics.link,
+                Icon: BarChart3,
+              },
+              canOrders && {
+                href: `/${lang}/merchant/${storeId}/accounting`,
+                label: dict.merchant.accounting.link,
+                Icon: Wallet,
+              },
+              isOwner && {
+                href: `/${lang}/merchant/${storeId}/staff`,
+                label: dict.merchant.staffLink,
+                Icon: UserCog,
+              },
+              isOwner && {
+                href: `/${lang}/merchant/${storeId}/subscription`,
+                label: dict.merchant.subscriptionLink,
+                Icon: CreditCard,
+              },
+              isOwner && {
+                href: `/${lang}/merchant/${storeId}/coupons`,
+                label: dict.merchant.coupons.link,
+                Icon: Ticket,
+              },
+              isOwner && {
+                href: `/${lang}/merchant/${storeId}/settings`,
+                label: dict.merchant.settingsLink,
+                Icon: Settings,
+              },
+            ].filter(Boolean) as {
+              href: string;
+              label: string;
+              Icon: typeof Package;
+            }[]
+          ).map(({ href, label, Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex flex-col items-center gap-1.5 rounded-xl border border-border bg-surface p-3 text-center transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-sm"
+            >
+              <Icon className="h-5 w-5 text-primary" />
+              <span className="text-xs font-semibold leading-tight">{label}</span>
+            </Link>
+          ))}
+        </div>
+
+        {/* Items section */}
+        <div className="mt-8 flex items-center justify-between gap-2">
+          <h2 className="text-lg font-bold">{itemsLabel}</h2>
           {isOwner && (
             <Link
               href={`/${lang}/merchant/${storeId}/edit`}
-              className="rounded-lg border border-border px-3.5 py-1.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+              className="flex items-center gap-1 rounded-lg border border-border px-3.5 py-1.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
             >
+              <Pencil className="h-3.5 w-3.5" />
               {dict.merchant.edit}
             </Link>
           )}
@@ -354,6 +350,7 @@ export default async function ManageStorePage({
                       showLabel={dict.merchant.products.show}
                       hideLabel={dict.merchant.products.hide}
                       deleteLabel={dict.merchant.products.delete}
+                      confirmLabel={dict.merchant.products.confirmDelete}
                     />
                   </div>
                 ))}

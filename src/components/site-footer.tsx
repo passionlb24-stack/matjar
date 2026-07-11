@@ -10,11 +10,24 @@ export function SiteFooter({ lang, dict }: { lang: Locale; dict: Dictionary }) {
 
   const columns = [
     {
-      title: dict.footer.exploreTitle,
+      title: dict.mobileNav.shop,
       links: [
         { label: L.stores, href: `/${lang}/explore` },
         { label: L.categories, href: `/${lang}/categories` },
+        { label: dict.market.nav, href: `/${lang}/market` },
         { label: L.offers, href: `/${lang}/offers` },
+        { label: dict.flash.title, href: `/${lang}/flash` },
+        { label: dict.bestSellers.title, href: `/${lang}/best-sellers` },
+      ],
+    },
+    {
+      title: dict.common.workServices,
+      links: [
+        { label: dict.jobs.title, href: `/${lang}/jobs` },
+        { label: dict.freelance.title, href: `/${lang}/freelance` },
+        { label: dict.wholesale.title, href: `/${lang}/wholesale` },
+        { label: dict.delivery.title, href: `/${lang}/delivery` },
+        { label: dict.map.title, href: `/${lang}/map` },
       ],
     },
     {
@@ -39,7 +52,7 @@ export function SiteFooter({ lang, dict }: { lang: Locale; dict: Dictionary }) {
   return (
     <footer className="border-t border-border bg-surface print:hidden">
       <Container className="py-12">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
           <div>
             <Link href={`/${lang}`} className="flex items-center gap-2">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">

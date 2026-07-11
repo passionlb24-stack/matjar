@@ -58,6 +58,7 @@ export function ExpenseManager({
   }
 
   async function remove(id: string) {
+    if (!window.confirm(t.confirmDelete)) return;
     setBusy(true);
     await createClient().from("store_expenses").delete().eq("id", id);
     setBusy(false);

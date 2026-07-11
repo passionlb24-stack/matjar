@@ -11,12 +11,14 @@ export function ProductRowActions({
   showLabel,
   hideLabel,
   deleteLabel,
+  confirmLabel,
 }: {
   productId: string;
   isAvailable: boolean;
   showLabel: string;
   hideLabel: string;
   deleteLabel: string;
+  confirmLabel: string;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -32,6 +34,7 @@ export function ProductRowActions({
   }
 
   async function remove() {
+    if (!window.confirm(confirmLabel)) return;
     setBusy(true);
     await createClient()
       .from("products")

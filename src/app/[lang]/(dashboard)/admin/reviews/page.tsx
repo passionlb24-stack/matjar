@@ -66,7 +66,12 @@ export default async function AdminReviewsPage({
                   <p className="mt-1 text-sm text-muted-foreground">{r.comment}</p>
                 )}
               </div>
-              <AdminReviewDelete reviewId={r.id} label={t.delete} />
+              <AdminReviewDelete
+                reviewId={r.id}
+                label={t.delete}
+                confirmLabel={dict.admin.confirmDeleteReview}
+                errorLabel={dict.auth.errorGeneric}
+              />
             </div>
           ))}
         </div>

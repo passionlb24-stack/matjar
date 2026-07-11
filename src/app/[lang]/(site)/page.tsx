@@ -9,6 +9,7 @@ import { DealOfTheDay } from "@/components/deal-of-the-day";
 import { Hero } from "@/components/hero";
 import { TrustStrip } from "@/components/trust-strip";
 import { CategoryGrid } from "@/components/category-grid";
+import { ServicesGrid } from "@/components/services-grid";
 import { OffersTeaser } from "@/components/offers-teaser";
 import { BestSellersTeaser } from "@/components/best-sellers-teaser";
 import { FeaturedStores } from "@/components/featured-stores";
@@ -44,6 +45,7 @@ export default async function Home({
         <DealOfTheDay deal={deal} lang={lang} dict={dict} lbpRate={lbpRate} />
       )}
       <CategoryGrid lang={lang} dict={dict} />
+      <ServicesGrid lang={lang} dict={dict} />
       <OffersTeaser lang={lang} dict={dict} />
       <FeaturedStores lang={lang} dict={dict} />
       <BestSellersTeaser lang={lang} dict={dict} />

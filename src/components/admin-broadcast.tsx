@@ -15,6 +15,7 @@ export function AdminBroadcast({ dict }: { dict: Dictionary }) {
 
   async function send() {
     if (!message.trim()) return;
+    if (!window.confirm(t.adminConfirm)) return;
     setBusy(true);
     setResult(null);
     try {
