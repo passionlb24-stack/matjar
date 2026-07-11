@@ -150,6 +150,12 @@ export default async function AccountPage({
             {dict.messages.title}
           </Link>
           <Link
+            href={`/${lang}/jobs/mine`}
+            className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+          >
+            {dict.jobs.myPostings}
+          </Link>
+          <Link
             href={`/${lang}/orders`}
             className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
           >

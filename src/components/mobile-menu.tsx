@@ -10,6 +10,7 @@ import {
   Percent,
   Zap,
   TrendingUp,
+  Briefcase,
   Map as MapIcon,
   Store,
   LayoutDashboard,
@@ -42,6 +43,7 @@ export function MobileMenu({
     { href: `/${lang}/offers`, label: dict.offers.title, icon: Percent },
     { href: `/${lang}/flash`, label: dict.flash.title, icon: Zap },
     { href: `/${lang}/best-sellers`, label: dict.bestSellers.title, icon: TrendingUp },
+    { href: `/${lang}/jobs`, label: dict.jobs.title, icon: Briefcase },
     { href: `/${lang}/map`, label: dict.map.title, icon: MapIcon },
     { href: `/${lang}/pricing`, label: dict.common.forMerchants, icon: Store },
   ];
