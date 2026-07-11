@@ -10,6 +10,12 @@
     "deals": "Deals",
     "workServices": "Work & services"
   },
+  "tabbar": {
+    "home": "Home",
+    "explore": "Explore",
+    "market": "Market",
+    "account": "Account"
+  },
   "hero": {
     "badge": "Lebanon's local commerce platform",
     "title": "Every store, product, and service in Lebanon,",

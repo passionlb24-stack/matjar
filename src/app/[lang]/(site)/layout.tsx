@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUsdLbpRate } from "@/lib/data/settings";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { BottomNav } from "@/components/bottom-nav";
 import { LogoutButton } from "@/components/logout-button";
 
 // Shared chrome (header + footer) for all public marketing/browse pages.
@@ -75,6 +76,12 @@ export default async function SiteLayout({
       />
       <main className="flex-1">{children}</main>
       <SiteFooter lang={lang} dict={dict} />
+      {/* Spacer so page content can scroll clear of the fixed mobile tab bar. */}
+      <div
+        aria-hidden
+        className="h-[calc(3.5rem+env(safe-area-inset-bottom))] lg:hidden"
+      />
+      <BottomNav lang={lang} dict={dict} signedIn={!!user} />
     </>
   );
 }
