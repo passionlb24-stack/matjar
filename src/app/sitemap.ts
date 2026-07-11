@@ -13,6 +13,7 @@ const STATIC_PATHS = [
   "/flash",
   "/delivery",
   "/jobs",
+  "/freelance",
   "/clearance",
   "/pricing",
   "/about",
