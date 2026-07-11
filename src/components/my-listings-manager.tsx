@@ -43,15 +43,29 @@ export function MyListingsManager({
 
   async function patch(id: string, patch: Record<string, unknown>) {
     setBusy(id);
-    await createClient().from("listings").update(patch).eq("id", id);
+    const { error } = await createClient()
+      .from("listings")
+      .update(patch)
+      .eq("id", id);
     setBusy(null);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     router.refresh();
   }
   async function remove(id: string) {
     if (!window.confirm(t.form.confirmDelete)) return;
     setBusy(id);
-    await createClient().from("listings").delete().eq("id", id);
+    const { error } = await createClient()
+      .from("listings")
+      .delete()
+      .eq("id", id);
     setBusy(null);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     router.refresh();
   }
 

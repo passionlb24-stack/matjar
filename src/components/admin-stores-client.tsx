@@ -18,6 +18,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
 import { regions } from "@/lib/catalog";
 import { Container } from "@/components/ui/container";
+import { OverflowMenu, type OverflowAction } from "@/components/overflow-menu";
 
 export type AdminStore = {
   id: string;
@@ -182,120 +183,127 @@ export function AdminStoresClient({
                   )}
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                  {s.status === "pending" && (
-                    <>
-                      <button
-                        disabled={busy === s.id}
-                        onClick={() => patch(s.id, { status: "active" })}
-                        className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
-                      >
-                        <Check className="h-4 w-4" />
-                        {dict.admin.approve}
-                      </button>
-                      <button
-                        disabled={busy === s.id}
-                        onClick={() => patch(s.id, { status: "rejected" })}
-                        className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
-                      >
-                        <X className="h-4 w-4" />
-                        {dict.admin.reject}
-                      </button>
-                    </>
-                  )}
-                  {s.status === "active" && (
-                    <button
-                      disabled={busy === s.id}
-                      onClick={() => patch(s.id, { status: "suspended" })}
-                      className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
-                    >
-                      <Ban className="h-4 w-4" />
-                      {t.suspend}
-                    </button>
-                  )}
-                  {(s.status === "suspended" || s.status === "rejected") && (
-                    <button
-                      disabled={busy === s.id}
-                      onClick={() => patch(s.id, { status: "active" })}
-                      className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
-                    >
-                      <Play className="h-4 w-4" />
-                      {t.activate}
-                    </button>
-                  )}
-                  <button
-                    disabled={busy === s.id}
-                    onClick={() => patch(s.id, { is_verified: !s.isVerified })}
-                    className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-surface-muted disabled:opacity-60"
-                  >
-                    <BadgeCheck className="h-4 w-4" />
-                    {s.isVerified ? t.unverify : t.verify}
-                  </button>
-                  <button
-                    disabled={busy === s.id}
-                    onClick={() =>
-                      patch(s.id, {
-                        plan: s.plan === "pro" ? "free" : "pro",
-                        is_verified: s.plan === "pro" ? s.isVerified : true,
-                      })
-                    }
-                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold transition-colors disabled:opacity-60 ${
-                      s.plan === "pro"
-                        ? "border border-border text-muted-foreground hover:bg-surface-muted"
-                        : "bg-amber-500 text-white hover:bg-amber-600"
-                    }`}
-                  >
-                    <Crown className="h-4 w-4" />
-                    {s.plan === "pro" ? dict.admin.makeFree : dict.admin.makePro}
-                  </button>
-                  {(() => {
-                    const featured =
-                      s.featuredUntil != null &&
-                      new Date(s.featuredUntil) > new Date();
-                    return (
-                      <button
-                        disabled={busy === s.id}
-                        onClick={() =>
-                          patch(s.id, {
-                            featured_until: featured
-                              ? null
-                              : new Date(
-                                  Date.now() + 30 * 24 * 60 * 60 * 1000,
-                                ).toISOString(),
-                          })
-                        }
-                        className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold transition-colors disabled:opacity-60 ${
-                          featured
-                            ? "border border-border text-muted-foreground hover:bg-surface-muted"
-                            : "bg-amber-500 text-white hover:bg-amber-600"
-                        }`}
-                      >
-                        <Sparkles className="h-4 w-4" />
-                        {featured ? dict.admin.unfeature : dict.admin.feature}
-                      </button>
-                    );
-                  })()}
-                  {s.commercialRegNo && (
-                    <button
-                      disabled={busy === s.id}
-                      onClick={() =>
+                {(() => {
+                  const featured =
+                    s.featuredUntil != null &&
+                    new Date(s.featuredUntil) > new Date();
+                  const menuActions: OverflowAction[] = [
+                    {
+                      label: s.isVerified ? t.unverify : t.verify,
+                      Icon: BadgeCheck,
+                      active: s.isVerified,
+                      disabled: busy === s.id,
+                      onClick: () =>
+                        patch(s.id, { is_verified: !s.isVerified }),
+                    },
+                    {
+                      label:
+                        s.plan === "pro"
+                          ? dict.admin.makeFree
+                          : dict.admin.makePro,
+                      Icon: Crown,
+                      active: s.plan === "pro",
+                      disabled: busy === s.id,
+                      onClick: () => {
+                        if (
+                          s.plan === "pro" &&
+                          !window.confirm(dict.admin.confirmDowngrade)
+                        )
+                          return;
+                        patch(s.id, {
+                          plan: s.plan === "pro" ? "free" : "pro",
+                          is_verified: s.plan === "pro" ? s.isVerified : true,
+                        });
+                      },
+                    },
+                    {
+                      label: featured
+                        ? dict.admin.unfeature
+                        : dict.admin.feature,
+                      Icon: Sparkles,
+                      active: featured,
+                      disabled: busy === s.id,
+                      onClick: () =>
+                        patch(s.id, {
+                          featured_until: featured
+                            ? null
+                            : new Date(
+                                Date.now() + 30 * 24 * 60 * 60 * 1000,
+                              ).toISOString(),
+                        }),
+                    },
+                  ];
+                  if (s.commercialRegNo) {
+                    menuActions.push({
+                      label: s.commercialRegVerified
+                        ? dict.admin.unverifyReg
+                        : dict.admin.verifyReg,
+                      Icon: Landmark,
+                      active: s.commercialRegVerified,
+                      disabled: busy === s.id,
+                      onClick: () =>
                         patch(s.id, {
                           commercial_reg_verified: !s.commercialRegVerified,
-                        })
-                      }
-                      className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold transition-colors disabled:opacity-60 ${
-                        s.commercialRegVerified
-                          ? "border border-border text-muted-foreground hover:bg-surface-muted"
-                          : "bg-primary text-primary-foreground hover:bg-primary-hover"
-                      }`}
-                    >
-                      <Landmark className="h-4 w-4" />
-                      {s.commercialRegVerified
-                        ? dict.admin.unverifyReg
-                        : dict.admin.verifyReg}
-                    </button>
-                  )}
-                </div>
+                        }),
+                    });
+                  }
+                  return (
+                    <div className="flex flex-wrap items-center gap-2">
+                      {s.status === "pending" && (
+                        <>
+                          <button
+                            disabled={busy === s.id}
+                            onClick={() => patch(s.id, { status: "active" })}
+                            className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
+                          >
+                            <Check className="h-4 w-4" />
+                            {dict.admin.approve}
+                          </button>
+                          <button
+                            disabled={busy === s.id}
+                            onClick={() => {
+                              if (window.confirm(dict.admin.confirmReject))
+                                patch(s.id, { status: "rejected" });
+                            }}
+                            className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+                          >
+                            <X className="h-4 w-4" />
+                            {dict.admin.reject}
+                          </button>
+                        </>
+                      )}
+                      {s.status === "active" && (
+                        <button
+                          disabled={busy === s.id}
+                          onClick={() => {
+                            if (window.confirm(dict.admin.confirmSuspend))
+                              patch(s.id, { status: "suspended" });
+                          }}
+                          className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+                        >
+                          <Ban className="h-4 w-4" />
+                          {t.suspend}
+                        </button>
+                      )}
+                      {(s.status === "suspended" ||
+                        s.status === "rejected") && (
+                        <button
+                          disabled={busy === s.id}
+                          onClick={() => patch(s.id, { status: "active" })}
+                          className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
+                        >
+                          <Play className="h-4 w-4" />
+                          {t.activate}
+                        </button>
+                      )}
+                      <OverflowMenu
+                        actions={menuActions}
+                        label={dict.admin.moreActions}
+                        disabled={busy === s.id}
+                      />
+                    </div>
+                  );
+                })()}
               </div>
             ))}
           </div>

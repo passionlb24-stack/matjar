@@ -94,15 +94,20 @@ function Row({
       method: "manual",
       recorded_by: user?.id ?? null,
     });
-    await supabase
+    const { error } = await supabase
       .from("stores")
       .update({ plan: "pro", is_verified: true })
       .eq("id", row.id);
     setBusy(false);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     router.refresh();
   }
 
   async function downgrade() {
+    if (!window.confirm(dict.admin.confirmDowngrade)) return;
     setBusy(true);
     const supabase = createClient();
     await supabase
@@ -110,8 +115,15 @@ function Row({
       .update({ status: "cancelled", updated_at: new Date().toISOString() })
       .eq("store_id", row.id)
       .eq("status", "active");
-    await supabase.from("stores").update({ plan: "free" }).eq("id", row.id);
+    const { error } = await supabase
+      .from("stores")
+      .update({ plan: "free" })
+      .eq("id", row.id);
     setBusy(false);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     router.refresh();
   }
 

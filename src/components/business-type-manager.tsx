@@ -65,15 +65,18 @@ export function BusinessTypeManager({
   async function save() {
     setBusy(true);
     const supabase = createClient();
-    if (editingId === "new") {
-      await supabase.from("business_types").insert(draft);
-    } else if (editingId) {
-      await supabase
-        .from("business_types")
-        .update({ ...draft, updated_at: new Date().toISOString() })
-        .eq("id", editingId);
-    }
+    const { error } =
+      editingId === "new"
+        ? await supabase.from("business_types").insert(draft)
+        : await supabase
+            .from("business_types")
+            .update({ ...draft, updated_at: new Date().toISOString() })
+            .eq("id", editingId!);
     setBusy(false);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     cancel();
     router.refresh();
   }
@@ -81,8 +84,15 @@ export function BusinessTypeManager({
   async function remove(id: string) {
     if (!window.confirm(t.confirmDelete)) return;
     setBusy(true);
-    await createClient().from("business_types").delete().eq("id", id);
+    const { error } = await createClient()
+      .from("business_types")
+      .delete()
+      .eq("id", id);
     setBusy(false);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     router.refresh();
   }
 
@@ -214,6 +224,8 @@ export function BusinessTypeManager({
                 <div className="flex shrink-0 gap-2">
                   <button
                     onClick={() => startEdit(item)}
+                    aria-label={t.edit}
+                    title={t.edit}
                     className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-surface-muted"
                   >
                     <Pencil className="h-4 w-4" />
@@ -221,6 +233,8 @@ export function BusinessTypeManager({
                   <button
                     disabled={busy}
                     onClick={() => remove(item.id)}
+                    aria-label={t.delete}
+                    title={t.delete}
                     className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
                   >
                     <Trash2 className="h-4 w-4" />
