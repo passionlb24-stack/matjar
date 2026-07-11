@@ -81,6 +81,12 @@ export function SiteHeader({
               {dict.freelance.title}
             </Link>
             <Link
+              href={`/${lang}/wholesale`}
+              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
+            >
+              {dict.wholesale.title}
+            </Link>
+            <Link
               href={`/${lang}/map`}
               className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
             >
