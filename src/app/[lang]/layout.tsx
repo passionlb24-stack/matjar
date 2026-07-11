@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import "../globals.css";
 import { isLocale, locales, localeDirection } from "@/i18n/config";
 import { SITE_URL } from "@/lib/site";
+import { NativeBridge } from "@/components/native-bridge";
 
 // Tajawal — a modern, premium typeface that covers Arabic and Latin.
 const tajawal = Tajawal({
@@ -66,6 +67,7 @@ export default async function RootLayout({
     >
       <body className="flex min-h-dvh flex-col bg-background font-sans text-foreground antialiased">
         {children}
+        <NativeBridge />
         <Analytics />
       </body>
     </html>

@@ -12,6 +12,7 @@ import {
   type Store,
 } from "@/lib/catalog";
 import { distanceKm } from "@/lib/geo";
+import { getCurrentPosition } from "@/lib/native";
 import { Container } from "@/components/ui/container";
 import { StoreCard } from "@/components/store-card";
 
@@ -45,24 +46,17 @@ export function ExploreClient({
   const [locating, setLocating] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
 
-  function findNearMe() {
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setGeoError(dict.explore.locationError);
-      return;
-    }
+  async function findNearMe() {
     setLocating(true);
     setGeoError(null);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setLocating(false);
-      },
-      () => {
-        setGeoError(dict.explore.locationError);
-        setLocating(false);
-      },
-      { enableHighAccuracy: true, timeout: 10_000 },
-    );
+    try {
+      const loc = await getCurrentPosition();
+      setUserLoc(loc);
+    } catch {
+      setGeoError(dict.explore.locationError);
+    } finally {
+      setLocating(false);
+    }
   }
 
   const filtered = stores.filter((s) => {
