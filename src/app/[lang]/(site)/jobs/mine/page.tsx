@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight, Plus, Users } from "lucide-react";
+import { ChevronRight, Plus, Users, Briefcase } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export default async function MyJobsPage({
   params,
@@ -79,9 +80,7 @@ export default async function MyJobsPage({
             ))}
           </div>
         ) : (
-          <div className="mt-8 rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
-            {t.noPostings}
-          </div>
+          <EmptyState className="mt-8" icon={Briefcase} title={t.noPostings} />
         )}
       </Container>
     </div>

@@ -1,11 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight, Plus, ImageIcon } from "lucide-react";
+import { ChevronRight, Plus, ImageIcon, Package } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export default async function MyWholesalePage({
   params,
@@ -87,9 +88,7 @@ export default async function MyWholesalePage({
             ))}
           </div>
         ) : (
-          <div className="mt-8 rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
-            {t.noListings}
-          </div>
+          <EmptyState className="mt-8" icon={Package} title={t.noListings} />
         )}
       </Container>
     </div>

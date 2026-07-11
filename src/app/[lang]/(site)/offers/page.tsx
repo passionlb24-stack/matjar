@@ -9,6 +9,7 @@ import { getOffers } from "@/lib/data/offers";
 import { getUsdLbpRate } from "@/lib/data/settings";
 import { formatLbp } from "@/lib/currency";
 import { Container } from "@/components/ui/container";
+import { EmptyState } from "@/components/ui/empty-state";
 
 function formatPrice(price: number) {
   return price >= 1000 ? `$${Number(price).toLocaleString("en-US")}` : `$${price}`;
@@ -108,9 +109,12 @@ export default async function OffersPage({
             ))}
           </div>
         ) : (
-          <div className="mt-10 rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
-            {dict.offers.empty}
-          </div>
+          <EmptyState
+            className="mt-10"
+            icon={Tag}
+            title={dict.offers.empty}
+            action={{ href: `/${lang}/explore`, label: dict.common.explore }}
+          />
         )}
       </Container>
     </div>
