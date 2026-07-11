@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Briefcase,
   Sparkles,
+  Boxes,
   Map as MapIcon,
   Store,
   LayoutDashboard,
@@ -46,6 +47,7 @@ export function MobileMenu({
     { href: `/${lang}/best-sellers`, label: dict.bestSellers.title, icon: TrendingUp },
     { href: `/${lang}/jobs`, label: dict.jobs.title, icon: Briefcase },
     { href: `/${lang}/freelance`, label: dict.freelance.title, icon: Sparkles },
+    { href: `/${lang}/wholesale`, label: dict.wholesale.title, icon: Boxes },
     { href: `/${lang}/map`, label: dict.map.title, icon: MapIcon },
     { href: `/${lang}/pricing`, label: dict.common.forMerchants, icon: Store },
   ];
