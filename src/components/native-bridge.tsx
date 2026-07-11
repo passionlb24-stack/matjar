@@ -26,9 +26,11 @@ export function NativeBridge() {
         import("@capacitor/status-bar"),
       ]);
       await SplashScreen.hide().catch(() => {});
+      // Light header → dark status-bar icons; blend the Android status bar with
+      // the header background so the top of the app looks seamless.
       await StatusBar.setStyle({ style: Style.Light }).catch(() => {});
       if (platform === "android") {
-        await StatusBar.setBackgroundColor({ color: "#1556c2" }).catch(
+        await StatusBar.setBackgroundColor({ color: "#fbfbf9" }).catch(
           () => {},
         );
       }
