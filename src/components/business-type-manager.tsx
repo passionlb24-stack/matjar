@@ -224,6 +224,8 @@ export function BusinessTypeManager({
                 <div className="flex shrink-0 gap-2">
                   <button
                     onClick={() => startEdit(item)}
+                    aria-label={t.edit}
+                    title={t.edit}
                     className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-surface-muted"
                   >
                     <Pencil className="h-4 w-4" />
@@ -231,6 +233,8 @@ export function BusinessTypeManager({
                   <button
                     disabled={busy}
                     onClick={() => remove(item.id)}
+                    aria-label={t.delete}
+                    title={t.delete}
                     className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
                   >
                     <Trash2 className="h-4 w-4" />
