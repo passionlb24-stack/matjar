@@ -438,6 +438,21 @@
       "statusBreakdown": "الطلبات حسب الحالة",
       "noData": "لا توجد بيانات بعد.",
       "orders": "طلب"
+    },
+    "accounting": {
+      "link": "الحسابات",
+      "title": "حسابات المتجر",
+      "subtitle": "سجّل مصاريفك وشوف ربحك الحقيقي — مدخول ناقص مصاريف.",
+      "revenue": "المدخول",
+      "expenses": "المصاريف",
+      "profit": "الربح",
+      "addExpense": "أضف مصروف",
+      "labelPlaceholder": "شو المصروف؟ (مثلاً: إيجار، بضاعة)",
+      "amountPlaceholder": "المبلغ ($)",
+      "categoryPlaceholder": "التصنيف (اختياري)",
+      "add": "أضف",
+      "delete": "حذف",
+      "noExpenses": "ما سجّلت مصاريف بعد."
     }
   },
   "admin": {

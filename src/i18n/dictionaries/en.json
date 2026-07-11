@@ -438,6 +438,21 @@
       "statusBreakdown": "Orders by status",
       "noData": "No data yet.",
       "orders": "orders"
+    },
+    "accounting": {
+      "link": "Accounting",
+      "title": "Store accounting",
+      "subtitle": "Log your expenses and see real profit — revenue minus expenses.",
+      "revenue": "Revenue",
+      "expenses": "Expenses",
+      "profit": "Profit",
+      "addExpense": "Add expense",
+      "labelPlaceholder": "What was it? (e.g. rent, stock)",
+      "amountPlaceholder": "Amount ($)",
+      "categoryPlaceholder": "Category (optional)",
+      "add": "Add",
+      "delete": "Delete",
+      "noExpenses": "No expenses logged yet."
     }
   },
   "admin": {

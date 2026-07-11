@@ -252,6 +252,14 @@ export default async function ManageStorePage({
                 {dict.merchant.analytics.link}
               </Link>
             )}
+            {canOrders && (
+              <Link
+                href={`/${lang}/merchant/${storeId}/accounting`}
+                className="rounded-lg px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
+              >
+                {dict.merchant.accounting.link}
+              </Link>
+            )}
             {isOwner && (
               <Link
                 href={`/${lang}/merchant/${storeId}/staff`}
