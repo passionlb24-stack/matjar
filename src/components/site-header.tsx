@@ -75,6 +75,12 @@ export function SiteHeader({
               {dict.jobs.title}
             </Link>
             <Link
+              href={`/${lang}/freelance`}
+              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
+            >
+              {dict.freelance.title}
+            </Link>
+            <Link
               href={`/${lang}/map`}
               className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
             >
