@@ -801,6 +801,17 @@
     "reasonRedeem": "Redeemed",
     "empty": "No points yet. Your first order gets you started!"
   },
+  "messages": {
+    "title": "Messages",
+    "empty": "No messages yet. Message any store right from its page.",
+    "unknown": "Conversation",
+    "noMessagesYet": "Start the conversation…",
+    "viewStore": "View store →",
+    "startPrompt": "Send the first message 👋",
+    "placeholder": "Type your message…",
+    "send": "Send",
+    "messageStore": "Message store"
+  },
   "flash": {
     "title": "Flash sales",
     "subtitle": "Limited-time deals — gone when the timer runs out!",

@@ -144,6 +144,12 @@ export default async function AccountPage({
 
         <div className="mt-10 flex flex-wrap gap-3">
           <Link
+            href={`/${lang}/messages`}
+            className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+          >
+            {dict.messages.title}
+          </Link>
+          <Link
             href={`/${lang}/orders`}
             className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
           >
