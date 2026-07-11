@@ -21,6 +21,7 @@ import { BookingPanel } from "@/components/booking-panel";
 import { StoreReviews, type Review } from "@/components/store-reviews";
 import { FollowButton } from "@/components/follow-button";
 import { ShareButton } from "@/components/share-button";
+import { MessageStoreButton } from "@/components/message-store-button";
 import { ProBadge } from "@/components/pro-badge";
 
 const UUID_RE =
@@ -430,6 +431,9 @@ export default async function StorePage({
                 />
               )}
               <ShareButton title={store.name} dict={dict} />
+              {store.isReal && (
+                <MessageStoreButton storeId={id} lang={lang} dict={dict} />
+              )}
               {store.phone && (
                 <a
                   href={`tel:${store.phone}`}
