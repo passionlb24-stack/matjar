@@ -9,6 +9,10 @@ import {
   StoreSettingsForm,
   type StoreSettings,
 } from "@/components/store-settings-form";
+import {
+  StoreCouriersManager,
+  type CourierCompany,
+} from "@/components/store-couriers-manager";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -40,6 +44,22 @@ export default async function StoreSettingsPage({
   const isHealthcare =
     (store as unknown as { business_types: { slug: string } | null })
       .business_types?.slug === "healthcare";
+
+  const [{ data: companies }, { data: couriers }] = await Promise.all([
+    supabase
+      .from("delivery_companies")
+      .select("id, name, coverage, pricing_note")
+      .eq("is_active", true)
+      .order("name", { ascending: true }),
+    supabase
+      .from("store_couriers")
+      .select("company_id, price")
+      .eq("store_id", storeId),
+  ]);
+  const selectedCouriers: Record<string, { price: string }> = {};
+  for (const c of (couriers ?? []) as { company_id: string; price: number | null }[]) {
+    selectedCouriers[c.company_id] = { price: c.price != null ? String(c.price) : "" };
+  }
 
   const initial: StoreSettings = {
     accepts_delivery: (store as { accepts_delivery: boolean }).accepts_delivery,
@@ -89,6 +109,14 @@ export default async function StoreSettingsPage({
             dict={dict}
             initial={initial}
             isHealthcare={isHealthcare}
+          />
+        </div>
+        <div className="mt-6">
+          <StoreCouriersManager
+            storeId={storeId}
+            dict={dict}
+            companies={(companies ?? []) as CourierCompany[]}
+            selected={selectedCouriers}
           />
         </div>
       </Container>

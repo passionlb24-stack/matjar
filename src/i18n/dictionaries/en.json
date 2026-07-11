@@ -107,6 +107,7 @@
     "closed": "Closed",
     "call": "Call",
     "whatsapp": "WhatsApp",
+    "deliveryOptions": "Delivery options",
     "products": "Products & services",
     "reviews": "Reviews",
     "order": "Add to cart",
@@ -453,6 +454,12 @@
       "add": "Add",
       "delete": "Delete",
       "noExpenses": "No expenses logged yet."
+    },
+    "couriers": {
+      "title": "Delivery companies",
+      "subtitle": "Pick who you work with and set the price — shown to customers on your store page.",
+      "pricePlaceholder": "Price ($)",
+      "noneAvailable": "No delivery companies available yet. Check back soon!"
     }
   },
   "admin": {
@@ -486,8 +493,25 @@
       "reports": "Reports",
       "settings": "Settings",
       "market": "Sunday Market",
+      "delivery": "Delivery",
       "reviews": "Reviews",
       "audit": "Audit log"
+    },
+    "delivery": {
+      "title": "Delivery companies",
+      "subtitle": "Add the delivery companies we've partnered with so merchants can use them.",
+      "addCompany": "Add a delivery company",
+      "name": "Company name",
+      "coverage": "Coverage (e.g. All Lebanon)",
+      "phone": "Phone",
+      "whatsapp": "WhatsApp",
+      "pricingNote": "Pricing note (e.g. from $3)",
+      "add": "Add",
+      "confirmDelete": "Delete this company?",
+      "hide": "Hide",
+      "show": "Show",
+      "delete": "Delete",
+      "empty": "No delivery companies yet."
     },
     "reviews": {
       "title": "Review moderation",
@@ -826,6 +850,13 @@
     "placeholder": "Type your message…",
     "send": "Send",
     "messageStore": "Message store"
+  },
+  "delivery": {
+    "title": "Delivery companies",
+    "subtitle": "Partner couriers that deliver store orders across Lebanon.",
+    "empty": "No delivery companies listed yet. Coming soon!",
+    "joinTitle": "Run a delivery company?",
+    "joinBody": "Get in touch to join and deliver orders for hundreds of Matjar stores."
   },
   "flash": {
     "title": "Flash sales",
