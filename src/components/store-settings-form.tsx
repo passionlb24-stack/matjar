@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Navigation, Loader2, Landmark, ShieldCheck, ChevronDown } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { getCurrentPosition } from "@/lib/native";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
 const fieldClass =
@@ -47,25 +48,18 @@ export function StoreSettingsForm({
   const [locating, setLocating] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
 
-  function useMyLocation() {
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setGeoError(t.locationError);
-      return;
-    }
+  async function useMyLocation() {
     setLocating(true);
     setGeoError(null);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLat(pos.coords.latitude.toFixed(6));
-        setLng(pos.coords.longitude.toFixed(6));
-        setLocating(false);
-      },
-      () => {
-        setGeoError(t.locationError);
-        setLocating(false);
-      },
-      { enableHighAccuracy: true, timeout: 10_000 },
-    );
+    try {
+      const { lat: la, lng: ln } = await getCurrentPosition();
+      setLat(la.toFixed(6));
+      setLng(ln.toFixed(6));
+    } catch {
+      setGeoError(t.locationError);
+    } finally {
+      setLocating(false);
+    }
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {

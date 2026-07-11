@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { hasNativeCamera, pickNativeImage } from "@/lib/native";
 
 export function ImageUpload({
   folder,
@@ -19,9 +20,7 @@ export function ImageUpload({
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
-  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function uploadFile(file: File) {
     setUploading(true);
     const supabase = createClient();
     const ext = file.name.split(".").pop() ?? "jpg";
@@ -36,7 +35,27 @@ export function ImageUpload({
       onChange(data.publicUrl);
     }
     setUploading(false);
+  }
+
+  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) await uploadFile(file);
     if (inputRef.current) inputRef.current.value = "";
+  }
+
+  // On the native app, offer the native camera/gallery chooser; on the web,
+  // fall back to the hidden file input.
+  async function onPick() {
+    if (await hasNativeCamera()) {
+      try {
+        const file = await pickNativeImage("prompt");
+        await uploadFile(file);
+      } catch {
+        /* user cancelled the native picker */
+      }
+      return;
+    }
+    inputRef.current?.click();
   }
 
   return (
@@ -58,7 +77,7 @@ export function ImageUpload({
         ) : (
           <button
             type="button"
-            onClick={() => inputRef.current?.click()}
+            onClick={onPick}
             disabled={uploading}
             className="flex h-32 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
           >

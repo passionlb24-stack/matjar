@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Share2, MessageCircle, Check } from "lucide-react";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { share } from "@/lib/native";
 
 // Shares the current page. WhatsApp is the dominant sharing channel in Lebanon,
 // so it gets a dedicated button; the second button uses the native share sheet
@@ -26,21 +27,12 @@ export function ShareButton({
   }
 
   async function nativeShareOrCopy() {
-    const url = window.location.href;
-    if (typeof navigator !== "undefined" && navigator.share) {
-      try {
-        await navigator.share({ title, url });
-      } catch {
-        // user cancelled — ignore
-      }
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(url);
+    // Native share sheet in the app, Web Share API in the browser, clipboard
+    // as a last resort — the helper picks the best available channel.
+    const result = await share({ title, url: window.location.href });
+    if (result === "copied") {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // clipboard unavailable — ignore
     }
   }
 
