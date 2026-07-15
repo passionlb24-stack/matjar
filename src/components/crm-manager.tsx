@@ -19,6 +19,7 @@ export type BookCustomer = {
   phone: string | null;
   notes: string | null;
   status: "new" | "regular" | "vip" | "inactive";
+  follow_up_on: string | null;
 };
 
 export type DerivedCustomer = {
@@ -123,6 +124,21 @@ export function CrmManager({
     if (error) window.alert(dict.auth.errorGeneric);
   }
 
+  async function setFollowUp(id: string, date: string) {
+    const { error } = await createClient()
+      .from("store_customers")
+      .update({
+        follow_up_on: date || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
+    router.refresh();
+  }
+
   async function remove(id: string) {
     if (!window.confirm(t.confirmDelete)) return;
     const { error } = await createClient()
@@ -157,8 +173,53 @@ export function CrmManager({
         : "border-border text-muted-foreground hover:border-primary/40"
     }`;
 
+  const today = new Date().toISOString().slice(0, 10);
+  const dueFollowUps = book
+    .filter((c) => c.follow_up_on != null && c.follow_up_on <= today)
+    .sort((a, b) => (a.follow_up_on! < b.follow_up_on! ? -1 : 1));
+
   return (
     <div>
+      {/* Follow-ups due (clinic deep pack — works for every sector). */}
+      {dueFollowUps.length > 0 && (
+        <section className="mb-4 rounded-2xl border border-primary/30 bg-primary-soft/40 p-4">
+          <h2 className="font-bold text-primary">{t.followUpsTitle}</h2>
+          <div className="mt-3 space-y-2">
+            {dueFollowUps.map((c) => (
+              <div
+                key={c.id}
+                className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3"
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-bold">{c.name}</span>
+                  <span className="text-xs text-muted-foreground" dir="ltr">
+                    {c.follow_up_on}
+                  </span>
+                </span>
+                {c.phone && (
+                  <a
+                    href={waHref(c.phone)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="WhatsApp"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white transition-colors hover:bg-emerald-700"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setFollowUp(c.id, "")}
+                  className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-bold transition-colors hover:border-primary hover:text-primary"
+                >
+                  {t.followUpDone}
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" onClick={() => setTab("book")} className={tabBtn(tab === "book")}>
           <BookUser className="h-4 w-4" />
@@ -263,6 +324,17 @@ export function CrmManager({
                         </button>
                       ))}
                     </div>
+                    <label className="mt-3 block text-sm">
+                      <span className="font-semibold text-muted-foreground">
+                        {t.followUp}
+                      </span>
+                      <input
+                        type="date"
+                        defaultValue={c.follow_up_on ?? ""}
+                        onChange={(e) => setFollowUp(c.id, e.target.value)}
+                        className="mt-1 block rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+                      />
+                    </label>
                     <textarea
                       defaultValue={c.notes ?? ""}
                       onBlur={(e) => saveNotes(c.id, e.target.value)}

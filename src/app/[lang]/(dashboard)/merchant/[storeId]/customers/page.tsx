@@ -61,7 +61,7 @@ export default async function StoreCustomersPage({
   const [{ data: bookData }, { data: ordersData }] = await Promise.all([
     supabase
       .from("store_customers")
-      .select("id, name, phone, notes, status")
+      .select("id, name, phone, notes, status, follow_up_on")
       .eq("store_id", storeId)
       .order("created_at", { ascending: false }),
     supabase
