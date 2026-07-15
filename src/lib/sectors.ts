@@ -18,6 +18,8 @@ import {
   Settings,
   Pencil,
   ListTodo,
+  Boxes,
+  Calculator,
 } from "lucide-react";
 import type { CategoryKey } from "./catalog";
 import { categoryModule } from "./modules";
@@ -36,6 +38,8 @@ export type OsModuleKey =
   | "customers"
   | "staff"
   | "tasks"
+  | "inventory"
+  | "pos"
   | "reports"
   | "accounting"
   | "coupons"
@@ -61,6 +65,8 @@ export const OS_MODULE_META: Record<
   customers: { Icon: Users, path: "customers", perm: "orders" },
   staff: { Icon: UserCog, path: "staff", ownerOnly: true },
   tasks: { Icon: ListTodo, path: "tasks" },
+  inventory: { Icon: Boxes, path: "inventory", perm: "products" },
+  pos: { Icon: Calculator, path: "pos", perm: "orders" },
   reports: { Icon: BarChart3, path: "reports", perm: "orders" },
   accounting: { Icon: Wallet, path: "accounting", perm: "orders" },
   coupons: { Icon: Ticket, path: "coupons", ownerOnly: true },
@@ -92,7 +98,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-orange-100 text-orange-600",
     customersNoun: "customers",
     modules: {
-      daily: ["orders", "items", "tasks"],
+      daily: ["orders", "pos", "items", "inventory", "tasks"],
       people: ["customers", "staff"],
       money: MONEY,
       store: STORE,
@@ -104,7 +110,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-primary-soft text-primary",
     customersNoun: "customers",
     modules: {
-      daily: ["orders", "items", "tasks"],
+      daily: ["orders", "pos", "items", "inventory", "tasks"],
       people: ["customers", "staff"],
       money: MONEY,
       store: STORE,
