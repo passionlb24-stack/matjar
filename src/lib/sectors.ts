@@ -20,6 +20,7 @@ import {
   ListTodo,
   Boxes,
   Calculator,
+  Handshake,
 } from "lucide-react";
 import type { CategoryKey } from "./catalog";
 import { categoryModule } from "./modules";
@@ -40,6 +41,7 @@ export type OsModuleKey =
   | "tasks"
   | "inventory"
   | "pos"
+  | "suppliers"
   | "reports"
   | "accounting"
   | "coupons"
@@ -67,6 +69,7 @@ export const OS_MODULE_META: Record<
   tasks: { Icon: ListTodo, path: "tasks" },
   inventory: { Icon: Boxes, path: "inventory", perm: "products" },
   pos: { Icon: Calculator, path: "pos", perm: "orders" },
+  suppliers: { Icon: Handshake, path: "suppliers", perm: "orders" },
   reports: { Icon: BarChart3, path: "reports", perm: "orders" },
   accounting: { Icon: Wallet, path: "accounting", perm: "orders" },
   coupons: { Icon: Ticket, path: "coupons", ownerOnly: true },
@@ -90,6 +93,14 @@ export type SectorConfig = {
 
 const MONEY: OsModuleKey[] = ["accounting", "reports", "coupons", "subscription"];
 const STORE: OsModuleKey[] = ["edit", "settings"];
+// Real estate has no goods suppliers; every other sector tracks supplier debts.
+const MONEY_WITH_SUPPLIERS: OsModuleKey[] = [
+  "accounting",
+  "suppliers",
+  "reports",
+  "coupons",
+  "subscription",
+];
 
 export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   food: {
@@ -100,7 +111,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     modules: {
       daily: ["orders", "pos", "items", "inventory", "tasks"],
       people: ["customers", "staff"],
-      money: MONEY,
+      money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
   },
@@ -112,7 +123,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     modules: {
       daily: ["orders", "pos", "items", "inventory", "tasks"],
       people: ["customers", "staff"],
-      money: MONEY,
+      money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
   },
@@ -124,7 +135,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     modules: {
       daily: ["bookings", "items", "tasks"],
       people: ["customers", "staff"],
-      money: MONEY,
+      money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
   },
@@ -136,7 +147,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     modules: {
       daily: ["bookings", "doctors", "items", "tasks"],
       people: ["customers", "staff"],
-      money: MONEY,
+      money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
   },
@@ -160,7 +171,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     modules: {
       daily: ["orders", "items", "tasks"],
       people: ["customers", "staff"],
-      money: MONEY,
+      money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
   },

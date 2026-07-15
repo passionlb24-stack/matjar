@@ -42,23 +42,45 @@ export default async function AccountingPage({
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
 
-  const [{ data: ordersData }, { data: expData }] = await Promise.all([
+  const [
+    { data: ordersData },
+    { data: expData },
+    { data: posData },
+    { data: supTxData },
+  ] = await Promise.all([
     supabase.from("orders").select("total, status").eq("store_id", storeId),
     supabase
       .from("store_expenses")
       .select("id, label, amount, category, spent_on")
       .eq("store_id", storeId)
       .order("spent_on", { ascending: false }),
+    supabase.from("pos_sales").select("total").eq("store_id", storeId),
+    supabase
+      .from("supplier_transactions")
+      .select("kind, amount")
+      .eq("store_id", storeId),
   ]);
 
   const orders = (ordersData ?? []) as { total: number; status: string }[];
   const expenses = (expData ?? []) as Expense[];
 
-  const revenue = orders
+  const onlineRevenue = orders
     .filter((o) => !DEAD.has(o.status))
     .reduce((s, o) => s + Number(o.total), 0);
+  const posRevenue = ((posData ?? []) as { total: number }[]).reduce(
+    (s, r) => s + Number(r.total),
+    0,
+  );
+  const revenue = onlineRevenue + posRevenue;
   const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
   const profit = revenue - totalExpenses;
+  // What the store still owes suppliers (purchases − payments).
+  const supplierDues = (
+    (supTxData ?? []) as { kind: string; amount: number }[]
+  ).reduce(
+    (s, x) => s + (x.kind === "purchase" ? Number(x.amount) : -Number(x.amount)),
+    0,
+  );
 
   return (
     <div className="py-10">
@@ -85,6 +107,12 @@ export default async function AccountingPage({
             <p className="mt-1 text-2xl font-extrabold text-emerald-700">
               {money(revenue)}
             </p>
+            {posRevenue > 0 && (
+              <p className="mt-1 text-[11px] font-semibold text-muted-foreground">
+                {dict.os.finance.online} {money(onlineRevenue)} ·{" "}
+                {dict.os.finance.pos} {money(posRevenue)}
+              </p>
+            )}
           </div>
           <div className="rounded-2xl border border-border bg-surface p-4">
             <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
@@ -102,6 +130,20 @@ export default async function AccountingPage({
             <p className="mt-1 text-2xl font-extrabold">{money(profit)}</p>
           </div>
         </div>
+
+        {supplierDues > 0 && (
+          <Link
+            href={`/${lang}/merchant/${storeId}/suppliers`}
+            className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 transition-colors hover:border-amber-400"
+          >
+            <span className="text-sm font-bold text-amber-800">
+              {dict.os.finance.supplierDues}
+            </span>
+            <span className="text-lg font-extrabold tabular-nums text-amber-800">
+              {money(supplierDues)}
+            </span>
+          </Link>
+        )}
 
         <div className="mt-6">
           <ExpenseManager storeId={storeId} dict={dict} expenses={expenses} />
