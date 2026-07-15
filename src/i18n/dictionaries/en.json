@@ -31,6 +31,38 @@
       "patients": "Patients",
       "clients": "Clients",
       "leads": "Leads"
+    },
+    "crm": {
+      "book": "Customer book",
+      "fromOrders": "From orders",
+      "add": "Add",
+      "name": "Name",
+      "phone": "Phone (WhatsApp)",
+      "notes": "Notes",
+      "search": "Search customers…",
+      "empty": "Your book is empty — add your first customer and keep everything at hand.",
+      "emptyDerived": "No orders yet.",
+      "addToBook": "Add to book",
+      "confirmDelete": "Remove this customer from your book?",
+      "status": {
+        "new": "New",
+        "regular": "Regular",
+        "vip": "VIP",
+        "inactive": "Inactive"
+      }
+    },
+    "tasks": {
+      "title": "Tasks & reminders",
+      "link": "Tasks",
+      "add": "Add a task… (e.g. call customer, restock)",
+      "empty": "No open tasks — all clear ✓",
+      "done": "Done",
+      "confirmDelete": "Delete this task?",
+      "priority": {
+        "low": "Low",
+        "normal": "Normal",
+        "high": "High"
+      }
     }
   },
   "hero": {

@@ -172,6 +172,7 @@ export default async function StoreOsHomePage({
     doctors: dict.merchant.doctorsLink,
     customers: dict.os.nouns[sector.customersNoun],
     staff: dict.merchant.staffLink,
+    tasks: dict.os.tasks.link,
     reports: dict.merchant.analytics.link,
     accounting: dict.merchant.accounting.link,
     coupons: dict.merchant.coupons.link,

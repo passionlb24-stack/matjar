@@ -17,6 +17,7 @@ import {
   CreditCard,
   Settings,
   Pencil,
+  ListTodo,
 } from "lucide-react";
 import type { CategoryKey } from "./catalog";
 import { categoryModule } from "./modules";
@@ -34,6 +35,7 @@ export type OsModuleKey =
   | "doctors"
   | "customers"
   | "staff"
+  | "tasks"
   | "reports"
   | "accounting"
   | "coupons"
@@ -58,6 +60,7 @@ export const OS_MODULE_META: Record<
   doctors: { Icon: Stethoscope, path: "doctors", perm: "bookings" },
   customers: { Icon: Users, path: "customers", perm: "orders" },
   staff: { Icon: UserCog, path: "staff", ownerOnly: true },
+  tasks: { Icon: ListTodo, path: "tasks" },
   reports: { Icon: BarChart3, path: "reports", perm: "orders" },
   accounting: { Icon: Wallet, path: "accounting", perm: "orders" },
   coupons: { Icon: Ticket, path: "coupons", ownerOnly: true },
@@ -89,7 +92,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-orange-100 text-orange-600",
     customersNoun: "customers",
     modules: {
-      daily: ["orders", "items"],
+      daily: ["orders", "items", "tasks"],
       people: ["customers", "staff"],
       money: MONEY,
       store: STORE,
@@ -101,7 +104,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-primary-soft text-primary",
     customersNoun: "customers",
     modules: {
-      daily: ["orders", "items"],
+      daily: ["orders", "items", "tasks"],
       people: ["customers", "staff"],
       money: MONEY,
       store: STORE,
@@ -113,7 +116,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-violet-100 text-violet-600",
     customersNoun: "clients",
     modules: {
-      daily: ["bookings", "items"],
+      daily: ["bookings", "items", "tasks"],
       people: ["customers", "staff"],
       money: MONEY,
       store: STORE,
@@ -125,7 +128,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-emerald-100 text-emerald-600",
     customersNoun: "patients",
     modules: {
-      daily: ["bookings", "doctors", "items"],
+      daily: ["bookings", "doctors", "items", "tasks"],
       people: ["customers", "staff"],
       money: MONEY,
       store: STORE,
@@ -137,7 +140,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-amber-100 text-amber-700",
     customersNoun: "leads",
     modules: {
-      daily: ["bookings", "items"],
+      daily: ["bookings", "items", "tasks"],
       people: ["customers", "staff"],
       money: MONEY,
       store: STORE,
@@ -149,7 +152,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-slate-200 text-slate-700",
     customersNoun: "leads",
     modules: {
-      daily: ["orders", "items"],
+      daily: ["orders", "items", "tasks"],
       people: ["customers", "staff"],
       money: MONEY,
       store: STORE,
