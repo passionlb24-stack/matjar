@@ -572,6 +572,7 @@
       "thisWeek": "This week",
       "thisMonth": "This month",
       "ordersOverTime": "Orders (last 14 days)",
+      "revenueDaily": "Daily revenue (last 14 days)",
       "topProducts": "Best sellers",
       "statusBreakdown": "Orders by status",
       "noData": "No data yet.",
