@@ -103,7 +103,7 @@ export default async function EditProductPage({
     <div className="py-10">
       <Container className="max-w-2xl">
         <Link
-          href={`/${lang}/merchant/${storeId}`}
+          href={`/${lang}/merchant/${storeId}/items`}
           className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
         >
           <ChevronRight className="h-4 w-4 rtl:rotate-180" />

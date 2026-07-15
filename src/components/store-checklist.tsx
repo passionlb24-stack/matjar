@@ -12,9 +12,8 @@ export type ChecklistState = {
   products: boolean;
 };
 
-// Onboarding nudge shown on the store management page until the store is fully
-// set up. Profile items deep-link to the edit page; "products" is satisfied on
-// this page itself, so it has no link.
+// Onboarding nudge shown on the OS home until the store is fully set up.
+// Profile items deep-link to the edit page; "products" links to the items page.
 export function StoreChecklist({
   lang,
   dict,
@@ -34,7 +33,7 @@ export function StoreChecklist({
     { key: "description", label: t.description, href: editHref },
     { key: "hours", label: t.hours, href: editHref },
     { key: "whatsapp", label: t.whatsapp, href: editHref },
-    { key: "products", label: t.products, href: null },
+    { key: "products", label: t.products, href: `/${lang}/merchant/${storeId}/items` },
   ];
   const done = items.filter((i) => state[i.key]).length;
   const pct = Math.round((done / items.length) * 100);
