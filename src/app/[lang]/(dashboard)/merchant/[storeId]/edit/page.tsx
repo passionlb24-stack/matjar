@@ -23,6 +23,8 @@ type StoreRow = {
   logo_url: string | null;
   cover_url: string | null;
   opening_hours: string | null;
+  hours: unknown;
+  booking_slot_minutes: number | null;
   instagram: string | null;
   facebook: string | null;
   website: string | null;
@@ -47,7 +49,7 @@ export default async function EditStorePage({
   const { data: store } = await supabase
     .from("stores")
     .select(
-      "id, name, description, business_type_id, region, area, phone, whatsapp, logo_url, cover_url, opening_hours, instagram, facebook, website",
+      "id, name, description, business_type_id, region, area, phone, whatsapp, logo_url, cover_url, opening_hours, hours, booking_slot_minutes, instagram, facebook, website",
     )
     .eq("id", storeId)
     .eq("owner_id", user.id)

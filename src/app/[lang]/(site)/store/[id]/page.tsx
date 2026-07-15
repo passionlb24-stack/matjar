@@ -13,6 +13,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { localeAlternates, SITE_URL } from "@/lib/site";
 import { storeJsonLd, jsonLdScript } from "@/lib/jsonld";
+import { parseHours, isOpenNow, daySpan } from "@/lib/hours";
 import { getUsdLbpRate } from "@/lib/data/settings";
 import { categoryIcons } from "@/components/category-icon";
 import { Container } from "@/components/ui/container";
@@ -47,6 +48,8 @@ type StoreView = {
   logoUrl?: string | null;
   coverUrl?: string | null;
   openingHours?: string | null;
+  hours?: unknown;
+  bookingSlotMinutes?: number;
   instagram?: string | null;
   facebook?: string | null;
   website?: string | null;
@@ -79,7 +82,7 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
     const supabase = await createClient();
     const { data } = await supabase
       .from("stores")
-      .select("name, description, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, business_types(slug)")
+      .select("name, description, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, hours, booking_slot_minutes, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, business_types(slug)")
       .eq("id", id)
       .is("deleted_at", null)
       .maybeSingle();
@@ -103,6 +106,8 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
         logoUrl: (data.logo_url as string | null) ?? null,
         coverUrl: (data.cover_url as string | null) ?? null,
         openingHours: (data.opening_hours as string | null) ?? null,
+        hours: data.hours as unknown,
+        bookingSlotMinutes: (data.booking_slot_minutes as number | null) ?? 30,
         instagram: (data.instagram as string | null) ?? null,
         facebook: (data.facebook as string | null) ?? null,
         website: (data.website as string | null) ?? null,
@@ -427,12 +432,45 @@ export default async function StorePage({
                       {store.area}
                     </span>
                   )}
-                  {store.openingHours && (
-                    <span className="flex items-center gap-1 text-muted-foreground">
-                      <Clock className="h-4 w-4" />
-                      {store.openingHours}
-                    </span>
-                  )}
+                  {(() => {
+                    // Structured hours win: live open/closed + today's span.
+                    const wh = parseHours(store.hours);
+                    // Server render reads the clock once per request.
+                    const now = new Date();
+                    const open = isOpenNow(wh, now);
+                    const span = daySpan(wh, now);
+                    if (open != null) {
+                      return (
+                        <span className="flex items-center gap-1.5">
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                              open
+                                ? "bg-emerald-100 text-emerald-700"
+                                : "bg-red-100 text-red-700"
+                            }`}
+                          >
+                            {open
+                              ? dict.os.hours.openNow
+                              : dict.os.hours.closedNow}
+                          </span>
+                          {span && (
+                            <span
+                              className="text-muted-foreground"
+                              dir="ltr"
+                            >
+                              {span.open}–{span.close}
+                            </span>
+                          )}
+                        </span>
+                      );
+                    }
+                    return store.openingHours ? (
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        <Clock className="h-4 w-4" />
+                        {store.openingHours}
+                      </span>
+                    ) : null;
+                  })()}
                 </div>
               </div>
             </div>
@@ -531,6 +569,8 @@ export default async function StorePage({
                 customerName={currentUser?.name ?? null}
                 whatsapp={store.whatsapp ?? null}
                 storeName={store.name}
+                hours={parseHours(store.hours)}
+                slotMinutes={store.bookingSlotMinutes ?? 30}
                 services={store.products
                   .filter((p) => p.id)
                   .map((p) => ({

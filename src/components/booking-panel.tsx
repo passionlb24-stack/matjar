@@ -11,6 +11,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { categoryStyles, type CategoryKey } from "@/lib/catalog";
 import { attributeSummary } from "@/lib/attributes";
 import { waLink } from "@/lib/whatsapp";
+import { daySpan, generateSlots, type WeekHours } from "@/lib/hours";
 import { categoryIcons } from "@/components/category-icon";
 
 type Service = {
@@ -40,6 +41,8 @@ export function BookingPanel({
   customerName,
   whatsapp = null,
   storeName = "",
+  hours = null,
+  slotMinutes = 30,
 }: {
   storeId: string;
   lang: Locale;
@@ -49,6 +52,8 @@ export function BookingPanel({
   customerName: string | null;
   whatsapp?: string | null;
   storeName?: string;
+  hours?: WeekHours | null;
+  slotMinutes?: number;
 }) {
   const router = useRouter();
   const Icon = categoryIcons[category];
@@ -60,10 +65,22 @@ export function BookingPanel({
   // Conflict awareness: taken time strings for the picked date.
   const [taken, setTaken] = useState<string[]>([]);
   const [time, setTime] = useState("");
+  const [pickedDate, setPickedDate] = useState("");
   const today = new Date().toISOString().slice(0, 10);
+
+  // Fresha-style slot grid when the merchant configured structured hours;
+  // otherwise fall back to a free time input + taken-times chips.
+  const span = pickedDate
+    ? daySpan(hours, new Date(`${pickedDate}T00:00:00`))
+    : null;
+  const slots =
+    hours && span ? generateSlots(span, slotMinutes) : null;
+  const dayClosed = !!hours && !!pickedDate && !span;
 
   async function onDateChange(date: string) {
     setError(null);
+    setPickedDate(date);
+    setTime("");
     if (!date) {
       setTaken([]);
       return;
@@ -243,22 +260,59 @@ export function BookingPanel({
                   className={fieldClass}
                 />
               </div>
-              <div>
-                <label className={labelClass} htmlFor="time">
-                  {dict.booking.time}
-                </label>
-                <input
-                  id="time"
-                  name="time"
-                  type="time"
-                  required
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  className={fieldClass}
-                />
-              </div>
+              {!hours && (
+                <div>
+                  <label className={labelClass} htmlFor="time">
+                    {dict.booking.time}
+                  </label>
+                  <input
+                    id="time"
+                    name="time"
+                    type="time"
+                    required
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
+                    className={fieldClass}
+                  />
+                </div>
+              )}
             </div>
-            {taken.length > 0 && (
+            {hours && <input type="hidden" name="time" value={time} />}
+            {hours && pickedDate && (
+              <div>
+                <span className={labelClass}>{dict.booking.pickSlot}</span>
+                {dayClosed ? (
+                  <p className="mt-2 rounded-xl bg-surface-muted p-3 text-sm font-semibold text-muted-foreground">
+                    {dict.booking.noSlots}
+                  </p>
+                ) : (
+                  <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                    {(slots ?? []).map((s) => {
+                      const isTaken = taken.includes(s);
+                      return (
+                        <button
+                          key={s}
+                          type="button"
+                          disabled={isTaken}
+                          onClick={() => setTime(s)}
+                          dir="ltr"
+                          className={`rounded-xl border px-2 py-2 text-sm font-bold tabular-nums transition-colors ${
+                            isTaken
+                              ? "cursor-not-allowed border-border bg-surface-muted text-muted-foreground line-through opacity-60"
+                              : time === s
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border hover:border-primary/50"
+                          }`}
+                        >
+                          {s}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+            {!hours && taken.length > 0 && (
               <div className="rounded-xl bg-amber-50 p-3">
                 <p className="text-xs font-bold text-amber-800">
                   {dict.booking.takenTimes}
@@ -296,7 +350,11 @@ export function BookingPanel({
             )}
             <button
               type="submit"
-              disabled={loading || (!!time && taken.includes(time))}
+              disabled={
+                loading ||
+                (!!time && taken.includes(time)) ||
+                (!!hours && !time)
+              }
               className="rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
             >
               {loading ? dict.booking.submitting : dict.booking.submit}
