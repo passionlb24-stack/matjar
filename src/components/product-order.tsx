@@ -29,7 +29,6 @@ export function ProductOrder({
   dict,
   storeId,
   productId,
-  productName,
   basePrice,
   stock,
   variants,
@@ -43,7 +42,6 @@ export function ProductOrder({
   dict: Dictionary;
   storeId: string;
   productId: string;
-  productName: string;
   basePrice: number;
   stock: number | null;
   variants: Variant[];
@@ -103,45 +101,29 @@ export function ProductOrder({
       router.push(`/${lang}/login`);
       return;
     }
-    const chosenAddons = addons.filter((a) => selectedAddons.includes(a.id));
-    const itemName =
-      productName +
-      (variant ? ` - ${variant.label}` : "") +
-      (chosenAddons.length
-        ? ` (+ ${chosenAddons.map((a) => a.name).join(", ")})`
-        : "");
-
-    const { data: order, error } = await supabase
-      .from("orders")
-      .insert({
-        store_id: storeId,
-        customer_id: user.id,
-        customer_name:
-          (user.user_metadata?.full_name as string | undefined) ?? null,
-        subtotal: total,
-        total,
-        fulfillment,
-        address: String(form.get("address")) || null,
-        phone: String(form.get("phone")) || null,
-        customer_note: String(form.get("note")) || null,
-      })
-      .select("id")
-      .single();
-    if (error || !order) {
-      setOrderError(dict.auth.errorGeneric);
-      setPlacing(false);
-      return;
-    }
-    const { error: itemsError } = await supabase.from("order_items").insert({
-      order_id: order.id,
-      product_id: productId,
-      name: itemName,
-      unit_price: unitPrice,
-      quantity: qty,
+    // Server-side pricing: the RPC re-reads product/variant/add-on prices from
+    // the catalog and enforces stock (incl. per-variant) in one transaction.
+    const { error } = await supabase.rpc("place_customer_order", {
+      p_store_id: storeId,
+      p_phone: String(form.get("phone") ?? ""),
+      p_address: String(form.get("address") ?? ""),
+      p_fulfillment: fulfillment,
+      p_note: String(form.get("note") ?? ""),
+      p_coupon: null,
+      p_items: [
+        {
+          product_id: productId,
+          quantity: qty,
+          variant_id: variantId,
+          addon_ids: selectedAddons,
+        },
+      ],
     });
-    if (itemsError) {
-      await supabase.from("orders").delete().eq("id", order.id);
-      setOrderError(dict.auth.errorGeneric);
+    if (error) {
+      const outOfStock = error.message?.includes("insufficient_stock");
+      setOrderError(
+        outOfStock ? dict.store.outOfStock : dict.auth.errorGeneric,
+      );
       setPlacing(false);
       return;
     }
@@ -163,7 +145,12 @@ export function ProductOrder({
                   key={v.id}
                   type="button"
                   disabled={vOut}
-                  onClick={() => setVariantId(v.id)}
+                  onClick={() => {
+                    setVariantId(v.id);
+                    // Clamp qty to the newly-selected variant's stock so a
+                    // 10-qty cart can't ride onto a 2-stock variant.
+                    if (v.stock != null) setQty((q) => Math.min(q, Math.max(1, v.stock!)));
+                  }}
                   className={`rounded-xl border px-4 py-2 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
                     variantId === v.id
                       ? "border-primary bg-primary-soft text-primary"
