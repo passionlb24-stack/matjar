@@ -86,6 +86,23 @@
         "return": "Return"
       }
     },
+    "invoice": {
+      "title": "Invoice",
+      "number": "Order no.",
+      "date": "Date",
+      "customer": "Customer",
+      "item": "Item",
+      "qty": "Qty",
+      "unitPrice": "Price",
+      "lineTotal": "Total",
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "total": "Grand total",
+      "cod": "Cash on delivery",
+      "thanks": "Thank you for your business 🙏",
+      "poweredBy": "Powered by Matjar — matjarlb.com",
+      "link": "Invoice"
+    },
     "hours": {
       "title": "Business hours",
       "subtitle": "Set your daily hours — we show open/closed automatically and build booking slots from them.",

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Printer } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -109,12 +109,21 @@ export default async function StoreOrdersPage({
                       )}
                     </span>
                   </span>
-                  <OrderStatusControl
-                    orderId={order.id}
-                    status={order.status}
-                    labels={dict.orders.status}
-                    errorLabel={dict.auth.errorGeneric}
-                  />
+                  <span className="flex shrink-0 items-center gap-2">
+                    <Link
+                      href={`/${lang}/merchant/${storeId}/orders/${order.id}/invoice`}
+                      className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-bold transition-colors hover:border-primary hover:text-primary"
+                    >
+                      <Printer className="h-3.5 w-3.5" />
+                      {dict.os.invoice.link}
+                    </Link>
+                    <OrderStatusControl
+                      orderId={order.id}
+                      status={order.status}
+                      labels={dict.orders.status}
+                      errorLabel={dict.auth.errorGeneric}
+                    />
+                  </span>
                 </div>
                 <ul className="mt-3 space-y-1 border-t border-border pt-3 text-sm">
                   {order.order_items.map((item, i) => (

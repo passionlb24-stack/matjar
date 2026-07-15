@@ -67,7 +67,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-muted/30">
-      <header className="sticky top-0 z-50 border-b border-border bg-background">
+      <header className="sticky top-0 z-50 border-b border-border bg-background print:hidden">
         <Container className="flex h-16 items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <Link href={`/${lang}/merchant`} className="flex items-center gap-2">
