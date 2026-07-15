@@ -52,6 +52,76 @@ function Bars({
   );
 }
 
+// Stacked daily-revenue columns: online (brand blue) under POS (amber).
+// Pure CSS — percentage heights inside a fixed-height flex column.
+function RevenueColumns({
+  days,
+  legendOnline,
+  legendPos,
+  hasPos,
+}: {
+  days: { label: string; online: number; pos: number }[];
+  legendOnline: string;
+  legendPos: string;
+  hasPos: boolean;
+}) {
+  const max = Math.max(1, ...days.map((d) => d.online + d.pos));
+  return (
+    <div>
+      <div className="flex items-end gap-1" style={{ height: 150 }}>
+        {days.map((d) => {
+          const total = d.online + d.pos;
+          return (
+            <div
+              key={d.label}
+              className="flex h-full flex-1 flex-col justify-end"
+              title={`${d.label} — $${Number(total.toFixed(2)).toLocaleString("en-US")}`}
+            >
+              {d.pos > 0 && (
+                <div
+                  className={`w-full rounded-t-md bg-amber-400`}
+                  style={{ height: `${(d.pos / max) * 100}%` }}
+                />
+              )}
+              {d.online > 0 && (
+                <div
+                  className={`w-full bg-primary ${d.pos > 0 ? "" : "rounded-t-md"}`}
+                  style={{ height: `${(d.online / max) * 100}%` }}
+                />
+              )}
+              {total === 0 && (
+                <div className="h-1 w-full rounded-t-md bg-surface-muted" />
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-1.5 flex gap-1">
+        {days.map((d, i) => (
+          <span
+            key={d.label}
+            className="flex-1 text-center text-[9px] font-medium text-muted-foreground"
+          >
+            {i % 2 === 0 ? d.label : ""}
+          </span>
+        ))}
+      </div>
+      {hasPos && (
+        <div className="mt-3 flex flex-wrap items-center gap-4 text-xs font-semibold text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-sm bg-primary" />
+            {legendOnline}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-sm bg-amber-400" />
+            {legendPos}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Delta({ pct }: { pct: number }) {
   if (pct === 0) return null;
   const up = pct > 0;
@@ -92,7 +162,12 @@ export default async function StoreReportsPage({
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
 
-  const [{ data: ordersData }, { data: itemsData }] = await Promise.all([
+  const [
+    { data: ordersData },
+    { data: itemsData },
+    { data: posData },
+    { data: posItemsData },
+  ] = await Promise.all([
     supabase
       .from("orders")
       .select("id, total, status, created_at")
@@ -101,6 +176,14 @@ export default async function StoreReportsPage({
       .from("order_items")
       .select("name, quantity, orders!inner(store_id)")
       .eq("orders.store_id", storeId),
+    supabase
+      .from("pos_sales")
+      .select("total, created_at")
+      .eq("store_id", storeId),
+    supabase
+      .from("pos_sale_items")
+      .select("name, qty, pos_sales!inner(store_id)")
+      .eq("pos_sales.store_id", storeId),
   ]);
   const orders = (ordersData ?? []) as {
     id: string;
@@ -112,12 +195,19 @@ export default async function StoreReportsPage({
     name: string;
     quantity: number;
   }[];
+  const posSales = (posData ?? []) as { total: number; created_at: string }[];
+  const posItems = (posItemsData ?? []) as unknown as {
+    name: string;
+    qty: number;
+  }[];
 
   // Server component: reads the clock once per request for time-window stats.
   // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
   const live = orders.filter((o) => !DEAD.has(o.status));
-  const totalSales = live.reduce((s, o) => s + Number(o.total), 0);
+  const onlineSales = live.reduce((s, o) => s + Number(o.total), 0);
+  const posTotal = posSales.reduce((s, r) => s + Number(r.total), 0);
+  const totalSales = onlineSales + posTotal;
 
   const inRange = (o: { created_at: string }, from: number, to: number) => {
     const ts = new Date(o.created_at).getTime();
@@ -136,20 +226,29 @@ export default async function StoreReportsPage({
   const week = windowStats(7);
   const month = windowStats(30);
 
-  // Orders per day, last 14 days.
+  // Orders count + unified revenue (online + POS) per day, last 14 days.
   const perDay: { label: string; value: number }[] = [];
+  const revenueDays: { label: string; online: number; pos: number }[] = [];
   for (let i = 13; i >= 0; i--) {
     const dayStart = now - i * DAY;
-    const count = orders.filter((o) =>
-      inRange(o, dayStart - (dayStart % DAY), dayStart - (dayStart % DAY) + DAY),
-    ).length;
-    const d = new Date(dayStart);
+    const from = dayStart - (dayStart % DAY);
+    const to = from + DAY;
+    const label = new Date(dayStart).toLocaleDateString(
+      lang === "ar" ? "ar" : "en",
+      { month: "numeric", day: "numeric" },
+    );
     perDay.push({
-      label: d.toLocaleDateString(lang === "ar" ? "ar" : "en", {
-        month: "numeric",
-        day: "numeric",
-      }),
-      value: count,
+      label,
+      value: orders.filter((o) => inRange(o, from, to)).length,
+    });
+    revenueDays.push({
+      label,
+      online: live
+        .filter((o) => inRange(o, from, to))
+        .reduce((s, o) => s + Number(o.total), 0),
+      pos: posSales
+        .filter((r) => inRange(r, from, to))
+        .reduce((s, r) => s + Number(r.total), 0),
     });
   }
 
@@ -161,10 +260,15 @@ export default async function StoreReportsPage({
     value: v,
   }));
 
-  const topProducts = [...items.reduce((m, it) => {
+  // Best sellers across both channels (online order items + POS lines).
+  const topMap = items.reduce((m, it) => {
     m.set(it.name, (m.get(it.name) ?? 0) + Number(it.quantity));
     return m;
-  }, new Map<string, number>())]
+  }, new Map<string, number>());
+  posItems.forEach((it) => {
+    topMap.set(it.name, (topMap.get(it.name) ?? 0) + Number(it.qty));
+  });
+  const topProducts = [...topMap]
     .map(([label, value]) => ({ label, value }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 8);
@@ -204,7 +308,21 @@ export default async function StoreReportsPage({
           ))}
         </div>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <div className="mt-6 rounded-2xl border border-border bg-surface p-5">
+          <h2 className="text-sm font-bold text-muted-foreground">
+            {t.revenueDaily}
+          </h2>
+          <div className="mt-4">
+            <RevenueColumns
+              days={revenueDays}
+              legendOnline={dict.os.finance.online}
+              legendPos={dict.os.finance.pos}
+              hasPos={posTotal > 0}
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
           <Bars title={t.ordersOverTime} rows={perDay} empty={t.noData} />
           <Bars title={t.statusBreakdown} rows={statusRows} empty={t.noData} />
           <Bars title={t.topProducts} rows={topProducts} empty={t.noData} />
