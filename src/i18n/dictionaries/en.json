@@ -63,6 +63,44 @@
         "normal": "Normal",
         "high": "High"
       }
+    },
+    "inventory": {
+      "title": "Inventory",
+      "link": "Inventory",
+      "lowTitle": "Running low ⚠️",
+      "inStock": "In stock",
+      "low": "Low",
+      "out": "Out",
+      "untracked": "Untracked",
+      "qty": "Quantity",
+      "save": "Save",
+      "movements": "Recent movements",
+      "empty": "No products yet — add your catalog first.",
+      "reasons": {
+        "sale": "Sale",
+        "adjustment": "Manual adjustment",
+        "purchase": "Purchase",
+        "return": "Return"
+      }
+    },
+    "pos": {
+      "title": "Point of sale",
+      "link": "POS",
+      "search": "Search products…",
+      "cart": "Ticket",
+      "emptyCart": "Tap a product to add it",
+      "discount": "Discount ($)",
+      "customer": "Customer (optional)",
+      "walkIn": "Walk-in",
+      "subtotal": "Subtotal",
+      "total": "Total",
+      "charge": "Record sale",
+      "charging": "Recording…",
+      "success": "Sale recorded ✓",
+      "todaySales": "Today's sales",
+      "noProducts": "No sellable products yet — add your catalog first.",
+      "out": "Out",
+      "noResults": "No product matches."
     }
   },
   "hero": {

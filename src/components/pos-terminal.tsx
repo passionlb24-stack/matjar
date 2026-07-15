@@ -1,0 +1,319 @@
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import {
+  Search,
+  Package,
+  Plus,
+  Minus,
+  Trash2,
+  ReceiptText,
+  CheckCircle2,
+} from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import type { Dictionary } from "@/i18n/get-dictionary";
+
+export type PosProduct = {
+  id: string;
+  name: string;
+  price: number;
+  discount_price: number | null;
+  image_url: string | null;
+  stock: number | null;
+};
+
+export type PosCustomer = { id: string; name: string };
+
+type CartLine = { product: PosProduct; qty: number };
+
+function eff(p: PosProduct) {
+  return p.discount_price ?? p.price;
+}
+
+function fmt(n: number) {
+  return `$${Number(n.toFixed(2)).toLocaleString("en-US")}`;
+}
+
+// Point-of-sale terminal: tap products into a ticket, apply a discount, pick a
+// book customer, record the cash sale. Prices are re-read server-side by the
+// pos_record_sale RPC — the cart here is a preview, not the source of truth.
+export function PosTerminal({
+  storeId,
+  dict,
+  products,
+  customers,
+}: {
+  storeId: string;
+  dict: Dictionary;
+  products: PosProduct[];
+  customers: PosCustomer[];
+}) {
+  const router = useRouter();
+  const t = dict.os.pos;
+  const [query, setQuery] = useState("");
+  const [cart, setCart] = useState<CartLine[]>([]);
+  const [discount, setDiscount] = useState("");
+  const [customerId, setCustomerId] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const q = query.trim().toLowerCase();
+  const filtered = products.filter(
+    (p) => !q || p.name.toLowerCase().includes(q),
+  );
+
+  function addToCart(p: PosProduct) {
+    setSuccess(false);
+    setCart((c) => {
+      const line = c.find((l) => l.product.id === p.id);
+      if (line)
+        return c.map((l) =>
+          l.product.id === p.id ? { ...l, qty: l.qty + 1 } : l,
+        );
+      return [...c, { product: p, qty: 1 }];
+    });
+  }
+
+  function setQty(id: string, qty: number) {
+    setCart((c) =>
+      qty <= 0
+        ? c.filter((l) => l.product.id !== id)
+        : c.map((l) => (l.product.id === id ? { ...l, qty } : l)),
+    );
+  }
+
+  const subtotal = cart.reduce((s, l) => s + eff(l.product) * l.qty, 0);
+  const disc = Math.min(Math.max(Number(discount) || 0, 0), subtotal);
+  const total = subtotal - disc;
+
+  async function charge() {
+    if (!cart.length) return;
+    setBusy(true);
+    const { error } = await createClient().rpc("pos_record_sale", {
+      p_store_id: storeId,
+      p_items: cart.map((l) => ({ product_id: l.product.id, qty: l.qty })),
+      p_discount: disc,
+      p_customer: customerId || null,
+      p_note: null,
+    });
+    setBusy(false);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
+    setCart([]);
+    setDiscount("");
+    setCustomerId("");
+    setSuccess(true);
+    router.refresh();
+  }
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+      {/* Product picker */}
+      <div>
+        <div className="flex items-center gap-2 rounded-xl border border-border bg-surface px-4">
+          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t.search}
+            className="w-full bg-transparent py-2.5 text-sm outline-none placeholder:text-muted-foreground"
+          />
+        </div>
+
+        {products.length === 0 ? (
+          <div className="mt-4 rounded-2xl border border-dashed border-border py-12 text-center text-muted-foreground">
+            {t.noProducts}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="mt-4 rounded-2xl border border-dashed border-border py-12 text-center text-muted-foreground">
+            {t.noResults}
+          </div>
+        ) : (
+          <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+            {filtered.map((p) => {
+              const out = p.stock != null && p.stock <= 0;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => !out && addToCart(p)}
+                  disabled={out}
+                  className={`group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-surface text-start transition-all ${
+                    out
+                      ? "opacity-50"
+                      : "hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md active:translate-y-0"
+                  }`}
+                >
+                  {p.image_url ? (
+                    <Image
+                      src={p.image_url}
+                      alt=""
+                      width={200}
+                      height={112}
+                      className="h-24 w-full object-cover"
+                      sizes="(max-width: 640px) 50vw, 200px"
+                    />
+                  ) : (
+                    <span className="flex h-24 w-full items-center justify-center bg-surface-muted text-muted-foreground">
+                      <Package className="h-7 w-7" />
+                    </span>
+                  )}
+                  <span className="flex flex-1 flex-col p-2.5">
+                    <span className="line-clamp-2 text-sm font-bold leading-tight">
+                      {p.name}
+                    </span>
+                    <span className="mt-1 text-sm font-extrabold text-primary">
+                      {fmt(eff(p))}
+                    </span>
+                  </span>
+                  {out && (
+                    <span className="absolute end-2 top-2 rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                      {t.out}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Ticket */}
+      <div className="lg:sticky lg:top-24 lg:self-start">
+        <div className="rounded-3xl border border-border bg-surface p-5 shadow-sm">
+          <h2 className="flex items-center gap-2 font-bold">
+            <ReceiptText className="h-5 w-5 text-primary" />
+            {t.cart}
+          </h2>
+
+          {success && (
+            <div className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-sm font-bold text-emerald-700">
+              <CheckCircle2 className="h-5 w-5" />
+              {t.success}
+            </div>
+          )}
+
+          {cart.length === 0 ? (
+            <p className="mt-4 rounded-xl border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
+              {t.emptyCart}
+            </p>
+          ) : (
+            <div className="mt-4 space-y-2.5">
+              {cart.map((l) => (
+                <div key={l.product.id} className="flex items-center gap-2">
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-bold">
+                      {l.product.name}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {fmt(eff(l.product))} × {l.qty}
+                    </span>
+                  </span>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setQty(l.product.id, l.qty - 1)}
+                      aria-label="-"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-border transition-colors hover:bg-surface-muted"
+                    >
+                      {l.qty === 1 ? (
+                        <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                      ) : (
+                        <Minus className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                    <span className="w-7 text-center text-sm font-extrabold tabular-nums">
+                      {l.qty}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setQty(l.product.id, l.qty + 1)}
+                      aria-label="+"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-border transition-colors hover:bg-surface-muted"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  <span className="w-16 shrink-0 text-end text-sm font-extrabold tabular-nums">
+                    {fmt(eff(l.product) * l.qty)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {cart.length > 0 && (
+            <>
+              <div className="mt-4 space-y-2 border-t border-border pt-4">
+                <label className="block text-sm">
+                  <span className="font-semibold text-muted-foreground">
+                    {t.discount}
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={discount}
+                    onChange={(e) => setDiscount(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+                  />
+                </label>
+                {customers.length > 0 && (
+                  <label className="block text-sm">
+                    <span className="font-semibold text-muted-foreground">
+                      {t.customer}
+                    </span>
+                    <select
+                      value={customerId}
+                      onChange={(e) => setCustomerId(e.target.value)}
+                      className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+                    >
+                      <option value="">{t.walkIn}</option>
+                      {customers.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+              </div>
+
+              <div className="mt-4 space-y-1 border-t border-border pt-4 text-sm">
+                <div className="flex justify-between text-muted-foreground">
+                  <span>{t.subtotal}</span>
+                  <span className="tabular-nums">{fmt(subtotal)}</span>
+                </div>
+                {disc > 0 && (
+                  <div className="flex justify-between text-red-600">
+                    <span>{t.discount}</span>
+                    <span className="tabular-nums">-{fmt(disc)}</span>
+                  </div>
+                )}
+                <div className="flex items-baseline justify-between pt-1">
+                  <span className="font-bold">{t.total}</span>
+                  <span className="text-2xl font-extrabold tabular-nums text-primary">
+                    {fmt(total)}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={charge}
+                disabled={busy}
+                className="mt-4 w-full rounded-xl bg-primary py-3 text-base font-extrabold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+              >
+                {busy ? t.charging : `${t.charge} · ${fmt(total)}`}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
