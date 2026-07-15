@@ -1,30 +1,20 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import {
-  ChevronRight,
-  Package,
-  ClipboardList,
-  Stethoscope,
-  Users,
-  BarChart3,
-  Wallet,
-  UserCog,
-  CreditCard,
-  Ticket,
-  Settings,
-  Pencil,
-} from "lucide-react";
+import { ChevronRight, ExternalLink } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import type { CategoryKey } from "@/lib/catalog";
-import { categoryModule } from "@/lib/modules";
+import {
+  getSector,
+  OS_GROUPS,
+  OS_MODULE_META,
+  type OsModuleKey,
+} from "@/lib/sectors";
 import { SITE_URL } from "@/lib/site";
 import { Container } from "@/components/ui/container";
 import { StoreShareCard } from "@/components/store-share-card";
-import { ProductForm } from "@/components/product-form";
-import { ProductRowActions } from "@/components/product-row-actions";
 import {
   StoreChecklist,
   type ChecklistState,
@@ -33,21 +23,11 @@ import {
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-type ProductRow = {
-  id: string;
-  name: string;
-  price: number;
-  is_available: boolean;
-  image_url: string | null;
-};
-
-function formatPrice(price: number) {
-  return price >= 1000
-    ? `$${Number(price).toLocaleString("en-US")}`
-    : `$${price}`;
-}
-
-export default async function ManageStorePage({
+// ===== Matjar Business OS — store home =====
+// The hub every merchant lands on. Renders entirely from the sector registry:
+// the same core platform shows a restaurant its orders and menu, a clinic its
+// appointments and doctors — one codebase, sector-shaped.
+export default async function StoreOsHomePage({
   params,
 }: {
   params: Promise<{ lang: string; storeId: string }>;
@@ -67,24 +47,36 @@ export default async function ManageStorePage({
     p_store_id: storeId,
   });
   if (!canManage) redirect(`/${lang}/merchant`);
+
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, owner_id, short_code, logo_url, cover_url, description, opening_hours, whatsapp, business_types(slug)")
+    .select(
+      "id, name, owner_id, short_code, logo_url, cover_url, description, opening_hours, whatsapp, business_types(slug, name_ar, name_en)",
+    )
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
-  const category =
-    ((store as unknown as { business_types: { slug: string } | null })
-      .business_types?.slug as CategoryKey) ?? "retail";
-  const mod = categoryModule[category];
-  const itemsLabel = dict.store[mod.itemsKey];
 
-  // Owner gets everything; a staff member only their granted permissions.
-  const isOwner =
-    (store as unknown as { owner_id: string }).owner_id === user.id;
-  let canProducts = true;
-  let canOrders = true;
-  let canBookings = true;
+  const s = store as unknown as {
+    name: string;
+    owner_id: string;
+    short_code: string;
+    logo_url: string | null;
+    cover_url: string | null;
+    description: string | null;
+    opening_hours: string | null;
+    whatsapp: string | null;
+    business_types: { slug: string; name_ar: string; name_en: string } | null;
+  };
+  const category = (s.business_types?.slug as CategoryKey) ?? "retail";
+  const sector = getSector(category);
+  const typeName =
+    (lang === "ar" ? s.business_types?.name_ar : s.business_types?.name_en) ??
+    "";
+
+  // Owner sees every module; staff only what they were granted.
+  const isOwner = s.owner_id === user.id;
+  let perms: Record<string, boolean> = {};
   if (!isOwner) {
     const { data: staffRow } = await supabase
       .from("store_staff")
@@ -92,31 +84,19 @@ export default async function ManageStorePage({
       .eq("store_id", storeId)
       .eq("user_id", user.id)
       .maybeSingle();
-    const perms =
-      (staffRow?.permissions as Record<string, boolean> | null) ?? {};
-    canProducts = perms.products ?? false;
-    canOrders = perms.orders ?? false;
-    canBookings = perms.bookings ?? false;
-    // This page is the items view; send permitted-but-not-here staff onward.
-    if (!canProducts) {
-      if (canOrders) redirect(`/${lang}/merchant/${storeId}/orders`);
-      if (canBookings) redirect(`/${lang}/merchant/${storeId}/bookings`);
-      redirect(`/${lang}/merchant`);
-    }
+    perms = (staffRow?.permissions as Record<string, boolean> | null) ?? {};
   }
+  const canSee = (key: OsModuleKey) => {
+    const meta = OS_MODULE_META[key];
+    if (isOwner) return true;
+    if (meta.ownerOnly) return false;
+    return meta.perm ? (perms[meta.perm] ?? false) : true;
+  };
 
-  const { data } = await supabase
-    .from("products")
-    .select("id, name, price, is_available, image_url")
-    .eq("store_id", storeId)
-    .is("deleted_at", null)
-    .order("created_at", { ascending: false });
-  const products = (data ?? []) as ProductRow[];
-
-  // Live pulse for the top of the dashboard (cheap head-count queries).
+  // Live pulse (cheap head-count queries).
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
-  const [pendingOrdersRes, todayOrdersRes, pendingBookingsRes] =
+  const [pendingOrdersRes, todayOrdersRes, pendingBookingsRes, itemsRes] =
     await Promise.all([
       supabase
         .from("orders")
@@ -133,49 +113,89 @@ export default async function ManageStorePage({
         .select("id", { count: "exact", head: true })
         .eq("store_id", storeId)
         .eq("status", "pending"),
+      supabase
+        .from("products")
+        .select("id", { count: "exact", head: true })
+        .eq("store_id", storeId)
+        .is("deleted_at", null),
     ]);
+  const pendingOrders = pendingOrdersRes.count ?? 0;
+  const pendingBookings = pendingBookingsRes.count ?? 0;
+  const itemsCount = itemsRes.count ?? 0;
+
+  const isCommerce = sector.flow.kind === "commerce";
   const kpis = [
-    {
-      label: dict.merchant.kpi.pendingOrders,
-      value: pendingOrdersRes.count ?? 0,
-      href: `/${lang}/merchant/${storeId}/orders`,
-      highlight: (pendingOrdersRes.count ?? 0) > 0,
-    },
+    isCommerce
+      ? {
+          label: dict.merchant.kpi.pendingOrders,
+          value: pendingOrders,
+          href: `/${lang}/merchant/${storeId}/orders`,
+          highlight: pendingOrders > 0,
+        }
+      : {
+          label: dict.merchant.kpi.pendingBookings,
+          value: pendingBookings,
+          href: `/${lang}/merchant/${storeId}/bookings`,
+          highlight: pendingBookings > 0,
+        },
     {
       label: dict.merchant.kpi.todayOrders,
       value: todayOrdersRes.count ?? 0,
       href: `/${lang}/merchant/${storeId}/orders`,
       highlight: false,
     },
-    {
-      label: dict.merchant.kpi.pendingBookings,
-      value: pendingBookingsRes.count ?? 0,
-      href: `/${lang}/merchant/${storeId}/bookings`,
-      highlight: (pendingBookingsRes.count ?? 0) > 0,
-    },
+    isCommerce
+      ? {
+          label: dict.merchant.kpi.pendingBookings,
+          value: pendingBookings,
+          href: `/${lang}/merchant/${storeId}/bookings`,
+          highlight: pendingBookings > 0,
+        }
+      : {
+          label: dict.merchant.kpi.pendingOrders,
+          value: pendingOrders,
+          href: `/${lang}/merchant/${storeId}/orders`,
+          highlight: pendingOrders > 0,
+        },
   ];
 
-  // Store-completion checklist (owner onboarding nudge).
-  const s = store as unknown as {
-    logo_url: string | null;
-    cover_url: string | null;
-    description: string | null;
-    opening_hours: string | null;
-    whatsapp: string | null;
+  // Attention badges on module tiles.
+  const badges: Partial<Record<OsModuleKey, number>> = {
+    orders: pendingOrders,
+    bookings: pendingBookings,
   };
+
+  const moduleLabel: Record<OsModuleKey, string> = {
+    orders: dict.merchant.ordersLink,
+    bookings: dict.merchant.bookingsLink,
+    items: dict.store[sector.flow.itemsKey],
+    doctors: dict.merchant.doctorsLink,
+    customers: dict.os.nouns[sector.customersNoun],
+    staff: dict.merchant.staffLink,
+    reports: dict.merchant.analytics.link,
+    accounting: dict.merchant.accounting.link,
+    coupons: dict.merchant.coupons.link,
+    subscription: dict.merchant.subscriptionLink,
+    settings: dict.merchant.settingsLink,
+    edit: dict.merchant.edit,
+  };
+
+  // Onboarding checklist (owner nudge until the store is complete).
   const checklist: ChecklistState = {
     logo: !!s.logo_url,
     cover: !!s.cover_url,
     description: !!s.description?.trim(),
     hours: !!s.opening_hours?.trim(),
     whatsapp: !!s.whatsapp?.trim(),
-    products: products.length >= 3,
+    products: itemsCount >= 3,
   };
   const checklistComplete = Object.values(checklist).every(Boolean);
 
+  const SectorIcon = sector.Icon;
+
   return (
-    <div className="py-10">
-      <Container className="max-w-3xl">
+    <div className="py-8 sm:py-10">
+      <Container className="max-w-4xl">
         <Link
           href={`/${lang}/merchant`}
           className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
@@ -183,120 +203,81 @@ export default async function ManageStorePage({
           <ChevronRight className="h-4 w-4 rtl:rotate-180" />
           {dict.merchant.products.back}
         </Link>
-        <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
-          {(store as { name: string }).name}
-        </h1>
 
-        {/* Live pulse — actionable stats so the merchant sees what needs attention. */}
-        <div className="mt-5 grid grid-cols-3 gap-3">
-          {kpis.map((k) => (
-            <Link
-              key={k.label}
-              href={k.href}
-              className={`rounded-2xl border p-4 transition-colors ${
-                k.highlight
-                  ? "border-primary/40 bg-primary-soft"
-                  : "border-border bg-surface hover:bg-surface-muted"
-              }`}
-            >
-              <div
-                className={`text-2xl font-extrabold ${k.highlight ? "text-primary" : ""}`}
+        {/* Sector-tinted hero: the store's identity + one-line mission. */}
+        <div
+          className={`mt-4 overflow-hidden rounded-3xl border border-border bg-gradient-to-br ${sector.heroTint} bg-surface p-6 sm:p-7`}
+        >
+          <div className="flex flex-wrap items-center gap-4">
+            {s.logo_url ? (
+              <Image
+                src={s.logo_url}
+                alt=""
+                width={64}
+                height={64}
+                className="h-16 w-16 shrink-0 rounded-2xl border border-border bg-surface object-cover shadow-sm"
+              />
+            ) : (
+              <span
+                className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl ${sector.iconTint} shadow-sm`}
               >
-                {k.value}
+                <SectorIcon className="h-8 w-8" />
+              </span>
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+                  {s.name}
+                </h1>
+                {typeName && (
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${sector.iconTint}`}
+                  >
+                    {typeName}
+                  </span>
+                )}
               </div>
-              <div className="mt-1 text-xs font-semibold text-muted-foreground">
-                {k.label}
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        <div className="mt-5">
-          <StoreShareCard
-            code={(store as unknown as { short_code: string }).short_code}
-            baseUrl={SITE_URL}
-            dict={dict}
-          />
-        </div>
-
-        {/* Management — one tap to each tool */}
-        <div className="mt-5 grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-5">
-          {(
-            [
-              (mod.kind === "commerce" ? canOrders : canBookings) && {
-                href: `/${lang}/merchant/${storeId}/${mod.kind === "commerce" ? "orders" : "bookings"}`,
-                label: mod.kind === "commerce" ? dict.merchant.ordersLink : dict.merchant.bookingsLink,
-                Icon: ClipboardList,
-              },
-              category === "healthcare" && {
-                href: `/${lang}/merchant/${storeId}/doctors`,
-                label: dict.merchant.doctorsLink,
-                Icon: Stethoscope,
-              },
-              canOrders && {
-                href: `/${lang}/merchant/${storeId}/customers`,
-                label: dict.merchant.customersLink,
-                Icon: Users,
-              },
-              canOrders && {
-                href: `/${lang}/merchant/${storeId}/reports`,
-                label: dict.merchant.analytics.link,
-                Icon: BarChart3,
-              },
-              canOrders && {
-                href: `/${lang}/merchant/${storeId}/accounting`,
-                label: dict.merchant.accounting.link,
-                Icon: Wallet,
-              },
-              isOwner && {
-                href: `/${lang}/merchant/${storeId}/staff`,
-                label: dict.merchant.staffLink,
-                Icon: UserCog,
-              },
-              isOwner && {
-                href: `/${lang}/merchant/${storeId}/subscription`,
-                label: dict.merchant.subscriptionLink,
-                Icon: CreditCard,
-              },
-              isOwner && {
-                href: `/${lang}/merchant/${storeId}/coupons`,
-                label: dict.merchant.coupons.link,
-                Icon: Ticket,
-              },
-              isOwner && {
-                href: `/${lang}/merchant/${storeId}/settings`,
-                label: dict.merchant.settingsLink,
-                Icon: Settings,
-              },
-            ].filter(Boolean) as {
-              href: string;
-              label: string;
-              Icon: typeof Package;
-            }[]
-          ).map(({ href, label, Icon }) => (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {dict.os.tagline}
+                {itemsCount > 0 && (
+                  <span className="ms-2 font-semibold">
+                    · {itemsCount} {dict.os.itemsHint}
+                  </span>
+                )}
+              </p>
+            </div>
             <Link
-              key={href}
-              href={href}
-              className="flex flex-col items-center gap-1.5 rounded-xl border border-border bg-surface p-3 text-center transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-sm"
+              href={`/${lang}/store/${storeId}`}
+              className="flex shrink-0 items-center gap-1.5 rounded-xl border border-border bg-surface/80 px-4 py-2 text-sm font-bold backdrop-blur transition-colors hover:border-primary hover:text-primary"
             >
-              <Icon className="h-5 w-5 text-primary" />
-              <span className="text-xs font-semibold leading-tight">{label}</span>
+              <ExternalLink className="h-4 w-4" />
+              {dict.os.viewPublic}
             </Link>
-          ))}
-        </div>
+          </div>
 
-        {/* Items section */}
-        <div className="mt-8 flex items-center justify-between gap-2">
-          <h2 className="text-lg font-bold">{itemsLabel}</h2>
-          {isOwner && (
-            <Link
-              href={`/${lang}/merchant/${storeId}/edit`}
-              className="flex items-center gap-1 rounded-lg border border-border px-3.5 py-1.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
-            >
-              <Pencil className="h-3.5 w-3.5" />
-              {dict.merchant.edit}
-            </Link>
-          )}
+          {/* Live pulse */}
+          <div className="mt-6 grid grid-cols-3 gap-3">
+            {kpis.map((k) => (
+              <Link
+                key={k.label}
+                href={k.href}
+                className={`rounded-2xl border p-4 backdrop-blur transition-colors ${
+                  k.highlight
+                    ? "border-primary/40 bg-primary-soft"
+                    : "border-border/70 bg-surface/80 hover:bg-surface"
+                }`}
+              >
+                <div
+                  className={`text-2xl font-extrabold tabular-nums sm:text-3xl ${k.highlight ? "text-primary" : ""}`}
+                >
+                  {k.value}
+                </div>
+                <div className="mt-1 text-xs font-semibold text-muted-foreground">
+                  {k.label}
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
 
         {isOwner && !checklistComplete && (
@@ -310,66 +291,46 @@ export default async function ManageStorePage({
           </div>
         )}
 
-        <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
-          <div>
-            <h2 className="mb-4 text-lg font-bold">{itemsLabel}</h2>
-            {products.length ? (
-              <div className="space-y-3">
-                {products.map((p) => (
-                  <div
-                    key={p.id}
-                    className={`flex items-center gap-3 rounded-xl border border-border bg-surface p-3 ${p.is_available ? "" : "opacity-60"}`}
-                  >
-                    {p.image_url ? (
-                      <Image
-                        src={p.image_url}
-                        alt=""
-                        width={48}
-                        height={48}
-                        className="h-12 w-12 shrink-0 rounded-lg object-cover"
-                        sizes="48px"
-                      />
-                    ) : (
-                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-surface-muted text-muted-foreground">
-                        <Package className="h-5 w-5" />
-                      </span>
-                    )}
-                    <span className="flex-1 font-semibold">{p.name}</span>
-                    <span className="font-bold text-primary">
-                      {formatPrice(p.price)}
-                    </span>
+        {/* OS modules, grouped — rendered straight from the sector registry. */}
+        {OS_GROUPS.map((group) => {
+          const visible = sector.modules[group].filter(canSee);
+          if (!visible.length) return null;
+          return (
+            <section key={group} className="mt-8">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
+                {dict.os.groups[group]}
+              </h2>
+              <div className="mt-3 grid grid-cols-3 gap-2.5 sm:grid-cols-4">
+                {visible.map((key) => {
+                  const meta = OS_MODULE_META[key];
+                  const badge = badges[key] ?? 0;
+                  return (
                     <Link
-                      href={`/${lang}/merchant/${storeId}/products/${p.id}`}
-                      className="rounded-lg border border-border px-3 py-1.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+                      key={key}
+                      href={`/${lang}/merchant/${storeId}/${meta.path}`}
+                      className="group relative flex flex-col items-center gap-2 rounded-2xl border border-border bg-surface p-4 text-center transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
                     >
-                      {dict.merchant.products.editAction}
+                      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-soft text-primary transition-transform group-hover:scale-105">
+                        <meta.Icon className="h-5 w-5" />
+                      </span>
+                      <span className="text-xs font-semibold leading-tight">
+                        {moduleLabel[key]}
+                      </span>
+                      {badge > 0 && (
+                        <span className="absolute end-2 top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white">
+                          {badge > 9 ? "9+" : badge}
+                        </span>
+                      )}
                     </Link>
-                    <ProductRowActions
-                      productId={p.id}
-                      isAvailable={p.is_available}
-                      showLabel={dict.merchant.products.show}
-                      hideLabel={dict.merchant.products.hide}
-                      deleteLabel={dict.merchant.products.delete}
-                      confirmLabel={dict.merchant.products.confirmDelete}
-                    />
-                  </div>
-                ))}
+                  );
+                })}
               </div>
-            ) : (
-              <div className="rounded-2xl border border-dashed border-border py-12 text-center text-muted-foreground">
-                {dict.merchant.products.empty}
-              </div>
-            )}
-          </div>
+            </section>
+          );
+        })}
 
-          <ProductForm
-            storeId={storeId}
-            lang={lang}
-            category={category}
-            dict={dict}
-            addKey={mod.addKey}
-            simplified={mod.simplifiedItem}
-          />
+        <div className="mt-8">
+          <StoreShareCard code={s.short_code} baseUrl={SITE_URL} dict={dict} />
         </div>
       </Container>
     </div>

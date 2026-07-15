@@ -16,6 +16,23 @@
     "market": "Market",
     "account": "Account"
   },
+  "os": {
+    "tagline": "Your business, run from one place",
+    "viewPublic": "View your page",
+    "itemsHint": "published items",
+    "groups": {
+      "daily": "Daily operations",
+      "people": "Customers & team",
+      "money": "Money & reports",
+      "store": "Store & settings"
+    },
+    "nouns": {
+      "customers": "Customers",
+      "patients": "Patients",
+      "clients": "Clients",
+      "leads": "Leads"
+    }
+  },
   "hero": {
     "badge": "Lebanon's local commerce platform",
     "title": "Every store, product, and service in Lebanon,",
