@@ -44,6 +44,9 @@
       "emptyDerived": "No orders yet.",
       "addToBook": "Add to book",
       "confirmDelete": "Remove this customer from your book?",
+      "followUp": "Follow-up date",
+      "followUpsTitle": "Follow-ups due 🔔",
+      "followUpDone": "Done",
       "status": {
         "new": "New",
         "regular": "Regular",
@@ -82,6 +85,19 @@
         "purchase": "Purchase",
         "return": "Return"
       }
+    },
+    "kitchen": {
+      "title": "Kitchen display",
+      "link": "Kitchen",
+      "new": "New",
+      "inProgress": "Preparing 🔥",
+      "ready": "Ready ✓",
+      "acceptStart": "Accept & start",
+      "markReady": "Ready ✓",
+      "handOffDelivery": "Hand to delivery",
+      "handOffPickup": "Handed over ✓",
+      "empty": "No active orders — all under control 👨‍🍳",
+      "minutesShort": "m"
     },
     "suppliers": {
       "title": "Suppliers",

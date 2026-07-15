@@ -44,6 +44,9 @@
       "emptyDerived": "بعد ما في طلبات.",
       "addToBook": "أضف للدفتر",
       "confirmDelete": "متأكد من حذف هالزبون من الدفتر؟",
+      "followUp": "موعد المتابعة",
+      "followUpsTitle": "متابعات مستحقّة 🔔",
+      "followUpDone": "تمّت",
       "status": {
         "new": "جديد",
         "regular": "دائم",
@@ -82,6 +85,19 @@
         "purchase": "شراء",
         "return": "مرتجع"
       }
+    },
+    "kitchen": {
+      "title": "شاشة المطبخ",
+      "link": "المطبخ",
+      "new": "جديد",
+      "inProgress": "عالتحضير 🔥",
+      "ready": "جاهز ✓",
+      "acceptStart": "اقبل وبلّش التحضير",
+      "markReady": "جاهز ✓",
+      "handOffDelivery": "سلّم للتوصيل",
+      "handOffPickup": "تسليم ✓",
+      "empty": "ما في طلبات شغّالة هلأ — كل شي تحت السيطرة 👨‍🍳",
+      "minutesShort": "د"
     },
     "suppliers": {
       "title": "المورّدون",
