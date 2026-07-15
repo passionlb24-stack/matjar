@@ -5,6 +5,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { AutoRefresh } from "@/components/auto-refresh";
 import { OrderStatusControl } from "@/components/order-status-control";
 
 const UUID_RE =
@@ -18,7 +19,9 @@ type OrderRow = {
   fulfillment: "delivery" | "pickup";
   address: string | null;
   phone: string | null;
+  customer_name: string | null;
   customer_note: string | null;
+  created_at: string;
   order_items: OrderItem[];
 };
 
@@ -58,7 +61,7 @@ export default async function StoreOrdersPage({
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, status, total, fulfillment, address, phone, customer_note, order_items(name, quantity, unit_price)",
+      "id, status, total, fulfillment, address, phone, customer_name, customer_note, created_at, order_items(name, quantity, unit_price)",
     )
     .eq("store_id", storeId)
     .order("created_at", { ascending: false });
@@ -74,6 +77,7 @@ export default async function StoreOrdersPage({
           <ChevronRight className="h-4 w-4 rtl:rotate-180" />
           {(store as { name: string }).name}
         </Link>
+        <AutoRefresh />
         <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
           {dict.merchant.ordersTitle}
         </h1>
@@ -86,8 +90,24 @@ export default async function StoreOrdersPage({
                 className="rounded-2xl border border-border bg-surface p-5"
               >
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-sm font-semibold text-muted-foreground">
+                  <span className="min-w-0 text-sm font-semibold text-muted-foreground">
                     {dict.orders.order} #{order.id.slice(0, 8)}
+                    {order.customer_name && (
+                      <span className="ms-2 font-bold text-foreground">
+                        {order.customer_name}
+                      </span>
+                    )}
+                    <span className="ms-2 text-xs">
+                      {new Date(order.created_at).toLocaleString(
+                        lang === "ar" ? "ar" : "en",
+                        {
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        },
+                      )}
+                    </span>
                   </span>
                   <OrderStatusControl
                     orderId={order.id}

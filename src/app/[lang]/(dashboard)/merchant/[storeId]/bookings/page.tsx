@@ -5,6 +5,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { AutoRefresh } from "@/components/auto-refresh";
 import { BookingStatusControl } from "@/components/booking-status-control";
 
 const UUID_RE =
@@ -47,12 +48,15 @@ export default async function StoreBookingsPage({
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
 
+  // Chronological schedule: soonest appointment first (not newest request).
   const { data } = await supabase
     .from("bookings")
     .select(
       "id, status, service_name, requested_date, requested_time, customer_name, notes",
     )
     .eq("store_id", storeId)
+    .order("requested_date", { ascending: true, nullsFirst: false })
+    .order("requested_time", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false });
   const bookings = (data ?? []) as BookingRow[];
 
@@ -66,6 +70,7 @@ export default async function StoreBookingsPage({
           <ChevronRight className="h-4 w-4 rtl:rotate-180" />
           {(store as { name: string }).name}
         </Link>
+        <AutoRefresh />
         <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
           {dict.booking.myBookings}
         </h1>

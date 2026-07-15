@@ -91,23 +91,34 @@ export function CouponManager({
       max_uses: draft.max_uses.trim() === "" ? null : Number(draft.max_uses),
       is_active: draft.is_active,
     };
-    if (editingId === "new") {
-      await supabase.from("coupons").insert(payload);
-    } else if (editingId) {
-      await supabase
-        .from("coupons")
-        .update({ ...payload, updated_at: new Date().toISOString() })
-        .eq("id", editingId);
-    }
+    const { error } =
+      editingId === "new"
+        ? await supabase.from("coupons").insert(payload)
+        : await supabase
+            .from("coupons")
+            .update({ ...payload, updated_at: new Date().toISOString() })
+            .eq("id", editingId!);
     setBusy(false);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     cancel();
     router.refresh();
   }
 
   async function remove(id: string) {
+    if (!window.confirm(dict.merchant.products.confirmDelete)) return;
     setBusy(true);
-    await createClient().from("coupons").delete().eq("id", id);
+    const { error } = await createClient()
+      .from("coupons")
+      .delete()
+      .eq("id", id);
     setBusy(false);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     router.refresh();
   }
 
