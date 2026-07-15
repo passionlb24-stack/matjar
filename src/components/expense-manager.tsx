@@ -43,7 +43,7 @@ export function ExpenseManager({
     if (!label || amount <= 0 || busy) return;
     setBusy(true);
     const spent = String(form.get("spent_on") ?? "").trim();
-    await createClient()
+    const { error } = await createClient()
       .from("store_expenses")
       .insert({
         store_id: storeId,
@@ -53,6 +53,10 @@ export function ExpenseManager({
         ...(spent ? { spent_on: spent } : {}),
       });
     setBusy(false);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     formEl.reset();
     router.refresh();
   }
@@ -60,8 +64,15 @@ export function ExpenseManager({
   async function remove(id: string) {
     if (!window.confirm(t.confirmDelete)) return;
     setBusy(true);
-    await createClient().from("store_expenses").delete().eq("id", id);
+    const { error } = await createClient()
+      .from("store_expenses")
+      .delete()
+      .eq("id", id);
     setBusy(false);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     router.refresh();
   }
 

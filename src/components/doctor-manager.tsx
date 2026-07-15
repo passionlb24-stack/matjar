@@ -66,23 +66,34 @@ export function DoctorManager({
       photo_url: draft.photo_url,
       bio: draft.bio.trim() || null,
     };
-    if (editingId === "new") {
-      await supabase.from("doctors").insert(payload);
-    } else if (editingId) {
-      await supabase
-        .from("doctors")
-        .update({ ...payload, updated_at: new Date().toISOString() })
-        .eq("id", editingId);
-    }
+    const { error } =
+      editingId === "new"
+        ? await supabase.from("doctors").insert(payload)
+        : await supabase
+            .from("doctors")
+            .update({ ...payload, updated_at: new Date().toISOString() })
+            .eq("id", editingId!);
     setBusy(false);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     cancel();
     router.refresh();
   }
 
   async function remove(id: string) {
+    if (!window.confirm(dict.merchant.products.confirmDelete)) return;
     setBusy(true);
-    await createClient().from("doctors").delete().eq("id", id);
+    const { error } = await createClient()
+      .from("doctors")
+      .delete()
+      .eq("id", id);
     setBusy(false);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     router.refresh();
   }
 
