@@ -260,44 +260,23 @@ export function StoreProducts({
       return;
     }
 
-    const { data: order, error } = await supabase
-      .from("orders")
-      .insert({
-        store_id: storeId,
-        customer_id: user.id,
-        customer_name:
-          (user.user_metadata?.full_name as string | undefined) ?? null,
-        subtotal: total,
-        discount: couponDiscount,
-        coupon_code: appliedCode,
-        total: finalTotal,
-        fulfillment,
-        address: String(form.get("address")) || null,
-        phone: String(form.get("phone")) || null,
-        customer_note: String(form.get("note")) || null,
-      })
-      .select("id")
-      .single();
-    if (error || !order) {
-      setOrderError(dict.auth.errorGeneric);
-      setPlacing(false);
-      return;
-    }
-    const { error: itemsError } = await supabase.from("order_items").insert(
-      items.map((p) => ({
-        order_id: order.id,
+    // Server-side pricing: the RPC recomputes every price from the live
+    // catalog (never trusting the client), applies the coupon, and the stock
+    // guard fires inside the same transaction.
+    const { error } = await supabase.rpc("place_customer_order", {
+      p_store_id: storeId,
+      p_phone: String(form.get("phone") ?? ""),
+      p_address: String(form.get("address") ?? ""),
+      p_fulfillment: fulfillment,
+      p_note: String(form.get("note") ?? ""),
+      p_coupon: appliedCode,
+      p_items: items.map((p) => ({
         product_id: p.id,
-        name: p.name,
-        unit_price: effectivePrice(p),
         quantity: cart[p.id],
       })),
-    );
-    if (itemsError) {
-      // Roll back the empty order so the customer doesn't see a phantom order.
-      await supabase.from("orders").delete().eq("id", order.id);
-      // The stock-guard trigger raises 'insufficient_stock' when an item ran
-      // out between page load and checkout — show a clear message, not a generic one.
-      const outOfStock = itemsError.message?.includes("insufficient_stock");
+    });
+    if (error) {
+      const outOfStock = error.message?.includes("insufficient_stock");
       setOrderError(outOfStock ? dict.store.outOfStock : dict.auth.errorGeneric);
       setPlacing(false);
       router.refresh();

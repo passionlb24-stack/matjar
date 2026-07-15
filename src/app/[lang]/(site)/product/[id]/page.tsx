@@ -360,7 +360,6 @@ export default async function ProductPage({
                   dict={dict}
                   storeId={product.storeId}
                   productId={product.id}
-                  productName={product.name}
                   basePrice={basePrice}
                   stock={product.stock}
                   variants={product.variants}
