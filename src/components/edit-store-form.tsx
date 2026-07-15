@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { ImageUpload } from "@/components/image-upload";
+import { HoursEditor } from "@/components/hours-editor";
+import { parseHours } from "@/lib/hours";
 
 type Option = { value: string; label: string };
 
@@ -20,6 +22,8 @@ type Initial = {
   logo_url: string | null;
   cover_url: string | null;
   opening_hours: string | null;
+  hours: unknown;
+  booking_slot_minutes: number | null;
   instagram: string | null;
   facebook: string | null;
   website: string | null;
@@ -69,6 +73,9 @@ export function EditStoreForm({
         logo_url: logo,
         cover_url: cover,
         opening_hours: String(form.get("opening_hours")) || null,
+        hours: JSON.parse(String(form.get("hours_json") || "{}")),
+        booking_slot_minutes:
+          Number(form.get("booking_slot_minutes")) || 30,
         instagram: String(form.get("instagram")) || null,
         facebook: String(form.get("facebook")) || null,
         website: String(form.get("website")) || null,
@@ -161,6 +168,12 @@ export function EditStoreForm({
         </label>
         <textarea id="description" name="description" rows={3} defaultValue={initial.description ?? ""} placeholder={dict.merchant.descriptionPlaceholder} className={fieldClass} />
       </div>
+
+      <HoursEditor
+        dict={dict}
+        initial={parseHours(initial.hours)}
+        initialSlot={initial.booking_slot_minutes ?? 30}
+      />
 
       <div>
         <label className={labelClass} htmlFor="opening_hours">

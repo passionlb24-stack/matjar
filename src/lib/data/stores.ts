@@ -8,6 +8,7 @@ import {
   type RegionKey,
   type Store,
 } from "@/lib/catalog";
+import { isOpenNow, parseHours } from "@/lib/hours";
 
 // Maps a database store row into the shape the StoreCard expects.
 function rowToStore(row: {
@@ -23,15 +24,19 @@ function rowToStore(row: {
   cover_url: string | null;
   lat: number | null;
   lng: number | null;
+  hours?: unknown;
   business_types: { slug: string } | null;
 }): Store {
+  // Real open/closed from structured hours; stores without configured hours
+  // default to open (never scare customers away over missing data).
+  const open = isOpenNow(parseHours(row.hours), new Date());
   return {
     id: row.id,
     name: { ar: row.name, en: row.name },
     area: { ar: row.area ?? "", en: row.area ?? "" },
     region: (row.region as RegionKey) ?? undefined,
     category: (row.business_types?.slug as CategoryKey) ?? "retail",
-    isOpen: true,
+    isOpen: open ?? true,
     plan: row.plan ?? "free",
     verified: row.is_verified ?? false,
     registered: row.commercial_reg_verified ?? false,
@@ -54,7 +59,7 @@ async function fetchActiveStores(): Promise<Store[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("stores")
-    .select("id, name, area, region, plan, is_verified, commercial_reg_verified, featured_until, logo_url, cover_url, lat, lng, business_types(slug)")
+    .select("id, name, area, region, plan, is_verified, commercial_reg_verified, featured_until, logo_url, cover_url, lat, lng, hours, business_types(slug)")
     .eq("status", "active")
     .is("deleted_at", null)
     .order("created_at", { ascending: false })
@@ -135,7 +140,7 @@ export async function searchStores(
   let query = supabase
     .from("stores")
     .select(
-      "id, name, area, region, plan, is_verified, logo_url, cover_url, lat, lng, business_types(slug)",
+      "id, name, area, region, plan, is_verified, logo_url, cover_url, lat, lng, hours, business_types(slug)",
     )
     .eq("status", "active")
     .is("deleted_at", null)
