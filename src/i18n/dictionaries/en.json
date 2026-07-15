@@ -83,6 +83,30 @@
         "return": "Return"
       }
     },
+    "suppliers": {
+      "title": "Suppliers",
+      "link": "Suppliers",
+      "add": "Add supplier",
+      "name": "Supplier name",
+      "phone": "Phone (WhatsApp)",
+      "owed": "You owe",
+      "settled": "Settled ✓",
+      "purchase": "Purchase",
+      "payment": "Payment",
+      "purchaseHint": "Goods you took",
+      "paymentHint": "Amount you paid",
+      "label": "Description (optional)",
+      "amount": "Amount ($)",
+      "history": "Transactions",
+      "empty": "No suppliers yet — add your first one and track your balance instead of the notebook.",
+      "emptyTx": "No transactions yet.",
+      "confirmDelete": "Delete this supplier and all their transactions?"
+    },
+    "finance": {
+      "online": "Online",
+      "pos": "POS",
+      "supplierDues": "Owed to suppliers"
+    },
     "pos": {
       "title": "Point of sale",
       "link": "POS",

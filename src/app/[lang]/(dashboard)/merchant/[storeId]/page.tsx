@@ -175,6 +175,7 @@ export default async function StoreOsHomePage({
     tasks: dict.os.tasks.link,
     inventory: dict.os.inventory.link,
     pos: dict.os.pos.link,
+    suppliers: dict.os.suppliers.link,
     reports: dict.merchant.analytics.link,
     accounting: dict.merchant.accounting.link,
     coupons: dict.merchant.coupons.link,
