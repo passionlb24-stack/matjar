@@ -8,6 +8,7 @@ import { Container } from "@/components/ui/container";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LogoutButton } from "@/components/logout-button";
 import { DashboardMobileMenu } from "@/components/dashboard-mobile-menu";
+import { HeaderBells } from "@/components/header-bells";
 
 // Dedicated control-panel chrome for merchants and admins — distinct from the
 // customer marketplace. Logged-in only.
@@ -53,6 +54,17 @@ export default async function DashboardLayout({
     user.email ??
     "";
 
+  // Unread badges — a merchant working the dashboard must still see new
+  // notifications (orders, bookings) and customer messages instantly.
+  const [{ count: unread }, { data: msgCount }] = await Promise.all([
+    supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("is_read", false),
+    supabase.rpc("unread_conversation_count"),
+  ]);
+
   return (
     <div className="flex min-h-dvh flex-col bg-surface-muted/30">
       <header className="sticky top-0 z-50 border-b border-border bg-background">
@@ -91,6 +103,11 @@ export default async function DashboardLayout({
               <ExternalLink className="h-4 w-4" />
               {dict.dashboard.visitSite}
             </Link>
+            <HeaderBells
+              lang={lang}
+              unreadNotifications={unread ?? 0}
+              unreadMessages={(msgCount as number | null) ?? 0}
+            />
             <LanguageSwitcher currentLocale={lang} pathname={`/${lang}/merchant`} />
             <span className="hidden text-sm font-semibold sm:block">{name}</span>
             <LogoutButton label={dict.auth.logout} />

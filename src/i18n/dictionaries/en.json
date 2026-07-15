@@ -86,6 +86,20 @@
         "return": "Return"
       }
     },
+    "serviceForm": {
+      "title": "Add a new service",
+      "subtitle": "It appears on your page and customers book it with an appointment.",
+      "name": "Service name",
+      "namePlaceholder": "e.g. Consultation, haircut, sofa cleaning…",
+      "price": "Price ($)",
+      "duration": "Duration (min)",
+      "durationPlaceholder": "e.g. 30",
+      "desc": "Description (optional)",
+      "image": "Image (optional)",
+      "add": "Add service",
+      "adding": "Adding…",
+      "added": "Service added ✓"
+    },
     "kitchen": {
       "title": "Kitchen display",
       "link": "Kitchen",
@@ -934,6 +948,8 @@
     "time": "Time",
     "notes": "Notes",
     "notesPlaceholder": "Any extra details?",
+    "takenTimes": "Taken times on this date:",
+    "slotTaken": "This time is already booked — pick another.",
     "submit": "Request booking",
     "submitting": "Sending…",
     "loginToBook": "Log in to book",
@@ -1387,7 +1403,8 @@
     "storeProduct": "New product from a store you follow",
     "listingApproved": "Your Sunday Market listing was approved",
     "listingRejected": "Your Sunday Market listing was rejected",
-    "listingMatch": "A new listing matches your saved search 🔔"
+    "listingMatch": "A new listing matches your saved search 🔔",
+    "message": "New message 💬"
   },
   "dashboard": {
     "panel": "Dashboard",

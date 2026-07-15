@@ -90,6 +90,7 @@ export default async function StoreBookingsPage({
                     bookingId={b.id}
                     status={b.status}
                     labels={dict.booking.status}
+                    errorLabel={dict.auth.errorGeneric}
                   />
                 </div>
                 {b.notes && (

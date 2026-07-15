@@ -31,6 +31,7 @@ export default async function SiteLayout({
     (user?.user_metadata?.full_name as string | undefined) ?? user?.email ?? "";
 
   let unread = 0;
+  let unreadMessages = 0;
   let dashboardHref: string | null = null;
   let suspended = false;
   if (user) {
@@ -44,12 +45,16 @@ export default async function SiteLayout({
       (profile as { is_active?: boolean } | null)?.is_active === false;
     if (role === "super_admin") dashboardHref = `/${lang}/admin`;
     else if (role === "merchant") dashboardHref = `/${lang}/merchant`;
-    const { count } = await supabase
-      .from("notifications")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .eq("is_read", false);
+    const [{ count }, { data: msgCount }] = await Promise.all([
+      supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("is_read", false),
+      supabase.rpc("unread_conversation_count"),
+    ]);
     unread = count ?? 0;
+    unreadMessages = (msgCount as number | null) ?? 0;
   }
 
   if (suspended) {
@@ -71,6 +76,7 @@ export default async function SiteLayout({
         dict={dict}
         user={user ? { name: displayName } : null}
         unread={unread}
+        unreadMessages={unreadMessages}
         dashboardHref={dashboardHref}
         lbpRate={lbpRate}
       />

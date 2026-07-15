@@ -49,10 +49,25 @@ export default async function StoreCustomersPage({
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, business_types(slug)")
+    .select("id, name, owner_id, business_types(slug)")
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
+
+  // CRM contains customer data + spend: staff need the orders permission.
+  const isOwner =
+    (store as unknown as { owner_id: string }).owner_id === user.id;
+  if (!isOwner) {
+    const { data: staffRow } = await supabase
+      .from("store_staff")
+      .select("permissions")
+      .eq("store_id", storeId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const perms =
+      (staffRow?.permissions as Record<string, boolean> | null) ?? {};
+    if (!(perms.orders ?? false)) redirect(`/${lang}/merchant/${storeId}`);
+  }
   const category =
     ((store as unknown as { business_types: { slug: string } | null })
       .business_types?.slug as CategoryKey) ?? "retail";
