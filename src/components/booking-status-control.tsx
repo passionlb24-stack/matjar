@@ -17,10 +17,12 @@ export function BookingStatusControl({
   bookingId,
   status,
   labels,
+  errorLabel,
 }: {
   bookingId: string;
   status: string;
   labels: Record<string, string>;
+  errorLabel?: string;
 }) {
   const router = useRouter();
   const [value, setValue] = useState(status);
@@ -28,13 +30,19 @@ export function BookingStatusControl({
 
   async function onChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const next = e.target.value;
+    const prev = value;
     setValue(next);
     setBusy(true);
-    await createClient()
+    const { error } = await createClient()
       .from("bookings")
       .update({ status: next })
       .eq("id", bookingId);
     setBusy(false);
+    if (error) {
+      setValue(prev);
+      if (errorLabel) window.alert(errorLabel);
+      return;
+    }
     router.refresh();
   }
 

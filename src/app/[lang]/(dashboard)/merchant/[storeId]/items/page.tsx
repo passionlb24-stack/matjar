@@ -9,6 +9,7 @@ import type { CategoryKey } from "@/lib/catalog";
 import { categoryModule } from "@/lib/modules";
 import { Container } from "@/components/ui/container";
 import { ProductForm } from "@/components/product-form";
+import { ServiceForm } from "@/components/service-form";
 import { ProductRowActions } from "@/components/product-row-actions";
 
 const UUID_RE =
@@ -152,14 +153,18 @@ export default async function StoreItemsPage({
             )}
           </div>
 
-          <ProductForm
-            storeId={storeId}
-            lang={lang}
-            category={category}
-            dict={dict}
-            addKey={mod.addKey}
-            simplified={mod.simplifiedItem}
-          />
+          {category === "services" || category === "healthcare" ? (
+            <ServiceForm storeId={storeId} dict={dict} />
+          ) : (
+            <ProductForm
+              storeId={storeId}
+              lang={lang}
+              category={category}
+              dict={dict}
+              addKey={mod.addKey}
+              simplified={mod.simplifiedItem}
+            />
+          )}
         </div>
       </Container>
     </div>

@@ -8,7 +8,10 @@ export type AttrField = {
 };
 
 // Extra structured fields shown per business sector.
+// Labels double as display units in attributeSummary ("30 دقيقة").
 export const categoryAttributes: Partial<Record<CategoryKey, AttrField[]>> = {
+  services: [{ key: "duration", ar: "دقيقة", en: "min", type: "number" }],
+  healthcare: [{ key: "duration", ar: "دقيقة", en: "min", type: "number" }],
   realEstate: [
     { key: "rooms", ar: "غرف", en: "Rooms", type: "number" },
     { key: "area", ar: "المساحة (م²)", en: "Area (m²)", type: "number" },

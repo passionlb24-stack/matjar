@@ -74,16 +74,30 @@ export function StaffManager({
     const current = perms[staffId] ?? normalize(null);
     const next = { ...current, [key]: !current[key] };
     setPerms((p) => ({ ...p, [staffId]: next }));
-    await createClient()
+    const { error } = await createClient()
       .from("store_staff")
       .update({ permissions: next })
       .eq("id", staffId);
+    if (error) {
+      // Revert the optimistic flip — a "revoked" permission must never look
+      // revoked while still active in the database.
+      setPerms((p) => ({ ...p, [staffId]: current }));
+      window.alert(dict.auth.errorGeneric);
+    }
   }
 
   async function remove(id: string) {
+    if (!window.confirm(dict.merchant.products.confirmDelete)) return;
     setBusy(true);
-    await createClient().from("store_staff").delete().eq("id", id);
+    const { error } = await createClient()
+      .from("store_staff")
+      .delete()
+      .eq("id", id);
     setBusy(false);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     router.refresh();
   }
 

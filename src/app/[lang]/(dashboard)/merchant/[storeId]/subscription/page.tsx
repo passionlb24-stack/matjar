@@ -36,10 +36,13 @@ export default async function StoreSubscriptionPage({
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, plan")
+    .select("id, name, plan, owner_id")
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
+  // Billing is owner-only (matches the registry's ownerOnly flag).
+  if ((store as unknown as { owner_id: string }).owner_id !== user.id)
+    redirect(`/${lang}/merchant/${storeId}`);
   const plan = (store as { plan: "free" | "pro" }).plan;
   const isPro = plan === "pro";
 

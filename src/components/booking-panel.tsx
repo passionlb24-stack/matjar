@@ -57,6 +57,23 @@ export function BookingPanel({
   const [error, setError] = useState<string | null>(null);
   const [bookedWaUrl, setBookedWaUrl] = useState<string | null>(null);
   const [booked, setBooked] = useState(false);
+  // Conflict awareness: taken time strings for the picked date.
+  const [taken, setTaken] = useState<string[]>([]);
+  const [time, setTime] = useState("");
+  const today = new Date().toISOString().slice(0, 10);
+
+  async function onDateChange(date: string) {
+    setError(null);
+    if (!date) {
+      setTaken([]);
+      return;
+    }
+    const { data } = await createClient().rpc("booked_times", {
+      p_store_id: storeId,
+      p_date: date,
+    });
+    setTaken(((data as string[] | null) ?? []).sort());
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -74,6 +91,22 @@ export function BookingPanel({
     }
     const serviceId = String(form.get("service_id"));
     const service = services.find((s) => s.id === serviceId);
+    // Re-check the slot right before inserting (someone may have taken it
+    // while the form was open).
+    const chosenDate = String(form.get("date")) || "";
+    const chosenTime = String(form.get("time")) || "";
+    if (chosenDate && chosenTime) {
+      const { data: freshTaken } = await supabase.rpc("booked_times", {
+        p_store_id: storeId,
+        p_date: chosenDate,
+      });
+      if (((freshTaken as string[] | null) ?? []).includes(chosenTime)) {
+        setTaken(((freshTaken as string[] | null) ?? []).sort());
+        setError(dict.booking.slotTaken);
+        setLoading(false);
+        return;
+      }
+    }
     const { error: bookingError } = await supabase.from("bookings").insert({
       store_id: storeId,
       customer_id: user.id,
@@ -200,15 +233,58 @@ export function BookingPanel({
                 <label className={labelClass} htmlFor="date">
                   {dict.booking.date}
                 </label>
-                <input id="date" name="date" type="date" required className={fieldClass} />
+                <input
+                  id="date"
+                  name="date"
+                  type="date"
+                  required
+                  min={today}
+                  onChange={(e) => onDateChange(e.target.value)}
+                  className={fieldClass}
+                />
               </div>
               <div>
                 <label className={labelClass} htmlFor="time">
                   {dict.booking.time}
                 </label>
-                <input id="time" name="time" type="time" className={fieldClass} />
+                <input
+                  id="time"
+                  name="time"
+                  type="time"
+                  required
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  className={fieldClass}
+                />
               </div>
             </div>
+            {taken.length > 0 && (
+              <div className="rounded-xl bg-amber-50 p-3">
+                <p className="text-xs font-bold text-amber-800">
+                  {dict.booking.takenTimes}
+                </p>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {taken.map((tt) => (
+                    <span
+                      key={tt}
+                      dir="ltr"
+                      className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                        tt === time
+                          ? "bg-red-500 text-white"
+                          : "bg-amber-100 text-amber-800"
+                      }`}
+                    >
+                      {tt}
+                    </span>
+                  ))}
+                </div>
+                {time && taken.includes(time) && (
+                  <p className="mt-1.5 text-xs font-bold text-red-600">
+                    {dict.booking.slotTaken}
+                  </p>
+                )}
+              </div>
+            )}
             <div>
               <label className={labelClass} htmlFor="notes">
                 {dict.booking.notes}
@@ -220,7 +296,7 @@ export function BookingPanel({
             )}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (!!time && taken.includes(time))}
               className="rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
             >
               {loading ? dict.booking.submitting : dict.booking.submit}

@@ -93,6 +93,7 @@ export default async function StoreOrdersPage({
                     orderId={order.id}
                     status={order.status}
                     labels={dict.orders.status}
+                    errorLabel={dict.auth.errorGeneric}
                   />
                 </div>
                 <ul className="mt-3 space-y-1 border-t border-border pt-3 text-sm">

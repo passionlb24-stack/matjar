@@ -19,10 +19,12 @@ export function OrderStatusControl({
   orderId,
   status,
   labels,
+  errorLabel,
 }: {
   orderId: string;
   status: string;
   labels: Record<string, string>;
+  errorLabel?: string;
 }) {
   const router = useRouter();
   const [value, setValue] = useState(status);
@@ -30,10 +32,19 @@ export function OrderStatusControl({
 
   async function onChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const next = e.target.value;
+    const prev = value;
     setValue(next);
     setBusy(true);
-    await createClient().from("orders").update({ status: next }).eq("id", orderId);
+    const { error } = await createClient()
+      .from("orders")
+      .update({ status: next })
+      .eq("id", orderId);
     setBusy(false);
+    if (error) {
+      setValue(prev);
+      if (errorLabel) window.alert(errorLabel);
+      return;
+    }
     router.refresh();
   }
 
