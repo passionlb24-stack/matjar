@@ -263,9 +263,13 @@ export function StoreProducts({
       );
       setPlacing(false);
       if (guestError || !guestOrderId) {
-        const outOfStock = guestError?.message?.includes("insufficient_stock");
+        const msg = guestError?.message ?? "";
         setOrderError(
-          outOfStock ? dict.store.outOfStock : dict.auth.errorGeneric,
+          msg.includes("insufficient_stock")
+            ? dict.store.outOfStock
+            : msg.includes("rate_limited")
+              ? dict.store.tooManyOrders
+              : dict.auth.errorGeneric,
         );
         router.refresh();
         return;
