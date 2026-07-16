@@ -74,6 +74,7 @@ type StoreView = {
     flashPrice?: number | null;
     flashStart?: string | null;
     flashEnd?: string | null;
+    stock?: number | null;
   }[];
 };
 
@@ -90,7 +91,7 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
       const bt = data.business_types as unknown as { slug: string } | null;
       const { data: prods } = await supabase
         .from("products")
-        .select("id, name, price, discount_price, image_url, attributes, flash_price, flash_start, flash_end")
+        .select("id, name, price, discount_price, image_url, attributes, flash_price, flash_start, flash_end, stock")
         .eq("store_id", id)
         .eq("status", "active")
         .eq("is_available", true)
@@ -134,6 +135,7 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
           flashPrice: p.flash_price != null ? Number(p.flash_price) : null,
           flashStart: (p.flash_start as string | null) ?? null,
           flashEnd: (p.flash_end as string | null) ?? null,
+          stock: p.stock != null ? Number(p.stock) : null,
         })),
       };
     }
