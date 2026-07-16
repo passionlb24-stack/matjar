@@ -103,6 +103,7 @@ export function SiteHeader({
               )}
               <HeaderBells
                 lang={lang}
+                dict={dict}
                 unreadNotifications={unread}
                 unreadMessages={unreadMessages}
               />

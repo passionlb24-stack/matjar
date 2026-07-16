@@ -8,7 +8,12 @@
     "explore": "تصفّح المتاجر",
     "openStore": "افتح متجرك",
     "deals": "عروض",
-    "workServices": "أعمال وخدمات"
+    "workServices": "أعمال وخدمات",
+    "notifications": "الإشعارات",
+    "messages": "الرسائل",
+    "menu": "القائمة",
+    "favorite": "أضف للمفضّلة",
+    "unread": "غير مقروء"
   },
   "tabbar": {
     "home": "الرئيسية",

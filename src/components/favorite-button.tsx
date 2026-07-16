@@ -59,7 +59,16 @@ export function FavoriteButton({
     <button
       onClick={toggle}
       disabled={busy}
-      aria-label="favorite"
+      aria-label={
+        fav
+          ? lang === "ar"
+            ? "إزالة من المفضّلة"
+            : "Remove from favorites"
+          : lang === "ar"
+            ? "أضف للمفضّلة"
+            : "Add to favorites"
+      }
+      aria-pressed={fav}
       className={`flex h-8 w-8 items-center justify-center rounded-full bg-surface/90 backdrop-blur transition-colors hover:bg-surface ${className}`}
     >
       <Heart

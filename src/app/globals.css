@@ -72,3 +72,28 @@ body {
   background: var(--primary-soft);
   color: var(--primary-hover);
 }
+
+/* Visible keyboard focus everywhere. Element-qualified so it wins over the many
+   `outline-none` utility classes; only shows for keyboard (:focus-visible), so
+   mouse clicks stay clean. */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible,
+[role="menuitem"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
