@@ -14,6 +14,7 @@ import {
   Star,
   ScrollText,
   Truck,
+  Receipt,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -22,6 +23,7 @@ import { Container } from "@/components/ui/container";
 const icons = {
   overview: LayoutGrid,
   stores: StoreIcon,
+  orders: Receipt,
   users: Users,
   types: Tags,
   market: ShoppingBag,
@@ -39,6 +41,7 @@ export function AdminNav({ lang, dict }: { lang: Locale; dict: Dictionary }) {
   const items = [
     { key: "overview", href: base },
     { key: "stores", href: `${base}/stores` },
+    { key: "orders", href: `${base}/orders` },
     { key: "users", href: `${base}/users` },
     { key: "types", href: `${base}/business-types` },
     { key: "market", href: `${base}/market` },
