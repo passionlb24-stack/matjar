@@ -369,6 +369,7 @@
     "orderWhatsapp": "Order via WhatsApp",
     "waGreeting": "Hi, I'd like to order from",
     "outOfStock": "Sorry, the requested quantity is no longer available. Adjust your cart and try again.",
+    "tooManyOrders": "Too many orders in a short time. Please wait a bit or sign in and try again.",
     "soldOut": "Sold out",
     "onlyLeft": "Only {n} left",
     "orderPlacedTitle": "Your order was received ✅",
