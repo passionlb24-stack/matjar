@@ -20,6 +20,7 @@ import { categoryIcons } from "@/components/category-icon";
 import { Container } from "@/components/ui/container";
 import { StoreProducts } from "@/components/store-products";
 import { BookingPanel } from "@/components/booking-panel";
+import { ServiceRequestForm } from "@/components/service-request-form";
 import { StoreReviews, type Review } from "@/components/store-reviews";
 import { FollowButton } from "@/components/follow-button";
 import { ShareButton } from "@/components/share-button";
@@ -564,6 +565,14 @@ export default async function StorePage({
             </ul>
           </div>
         )}
+
+        {store.isReal &&
+          (store.category === "services" ||
+            store.category === "healthcare") && (
+            <div className="mt-10">
+              <ServiceRequestForm storeId={id} lang={lang} dict={dict} />
+            </div>
+          )}
 
         <h2 className="mb-4 mt-10 text-xl font-bold">{sectionTitle}</h2>
         {store.isReal ? (

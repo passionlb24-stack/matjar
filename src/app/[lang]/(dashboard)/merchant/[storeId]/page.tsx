@@ -170,6 +170,7 @@ export default async function StoreOsHomePage({
   const moduleLabel: Record<OsModuleKey, string> = {
     orders: dict.merchant.ordersLink,
     bookings: dict.merchant.bookingsLink,
+    requests: dict.os.requests.link,
     items: dict.store[sector.flow.itemsKey],
     doctors: dict.merchant.doctorsLink,
     customers: dict.os.nouns[sector.customersNoun],

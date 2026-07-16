@@ -23,6 +23,48 @@
     "account": "Account"
   },
   "os": {
+    "requests": {
+      "link": "Service requests",
+      "title": "Service requests & quotes",
+      "subtitle": "Customer requests — send a quote and track the job to completion.",
+      "empty": "No service requests yet.",
+      "sendQuote": "Send quote",
+      "quoteAmount": "Quote amount",
+      "quoteNote": "Quote details (optional)",
+      "send": "Send",
+      "cancel": "Cancel",
+      "quotedAt": "Quote",
+      "decline": "Decline",
+      "start": "Start job",
+      "complete": "Complete",
+      "confirmDecline": "Decline this request?",
+      "status": {
+        "pending": "Awaiting quote",
+        "quoted": "Quote sent",
+        "accepted": "Accepted",
+        "in_progress": "In progress",
+        "completed": "Completed",
+        "declined": "Declined",
+        "cancelled": "Cancelled"
+      }
+    },
+    "requestForm": {
+      "title": "Request a service or quote",
+      "subtitle": "Tell us what you need and the provider will reply with a quote.",
+      "describe": "Describe the service you need",
+      "describeHint": "e.g. Fix electrical wiring in two rooms…",
+      "address": "Your address",
+      "phone": "Phone number",
+      "name": "Your name (optional)",
+      "send": "Send request",
+      "sent": "Your request was sent! The provider will contact you.",
+      "loginToRequest": "Sign in to request a service",
+      "myRequests": "My requests to this store",
+      "accept": "Accept quote",
+      "cancel": "Cancel request",
+      "confirmCancel": "Cancel this request?",
+      "coverage": "Coverage area"
+    },
     "tagline": "Your business, run from one place",
     "viewPublic": "View your page",
     "itemsHint": "published items",

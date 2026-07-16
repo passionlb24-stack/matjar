@@ -1,0 +1,89 @@
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { ChevronRight } from "lucide-react";
+import { isLocale } from "@/i18n/config";
+import { getDictionary } from "@/i18n/get-dictionary";
+import { createClient } from "@/lib/supabase/server";
+import { Container } from "@/components/ui/container";
+import { AutoRefresh } from "@/components/auto-refresh";
+import {
+  ServiceRequestManager,
+  type ServiceRequestRow,
+} from "@/components/service-request-manager";
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export default async function StoreRequestsPage({
+  params,
+}: {
+  params: Promise<{ lang: string; storeId: string }>;
+}) {
+  const { lang, storeId } = await params;
+  if (!isLocale(lang)) notFound();
+  if (!UUID_RE.test(storeId)) redirect(`/${lang}/merchant`);
+  const dict = await getDictionary(lang);
+  const t = dict.os.requests;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect(`/${lang}/login`);
+
+  const { data: canManage } = await supabase.rpc("can_manage_store", {
+    p_store_id: storeId,
+  });
+  if (!canManage) redirect(`/${lang}/merchant`);
+  const { data: store } = await supabase
+    .from("stores")
+    .select("id, name")
+    .eq("id", storeId)
+    .maybeSingle();
+  if (!store) redirect(`/${lang}/merchant`);
+
+  const { data } = await supabase
+    .from("service_requests")
+    .select(
+      "id, status, description, address, phone, customer_name, quote_amount, quote_note, created_at",
+    )
+    .eq("store_id", storeId)
+    .order("created_at", { ascending: false });
+  const requests = (data ?? []) as ServiceRequestRow[];
+
+  return (
+    <div className="py-10">
+      <Container className="max-w-3xl">
+        <Link
+          href={`/${lang}/merchant/${storeId}`}
+          className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+          {(store as { name: string }).name}
+        </Link>
+        <AutoRefresh />
+        <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
+          {t.title}
+        </h1>
+        <p className="mt-2 text-muted-foreground">{t.subtitle}</p>
+
+        {requests.length ? (
+          <div className="mt-8 space-y-4">
+            {requests.map((r) => (
+              <ServiceRequestManager
+                key={r.id}
+                request={r}
+                lang={lang}
+                dict={dict}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="mt-8 rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
+            {t.empty}
+          </div>
+        )}
+      </Container>
+    </div>
+  );
+}
