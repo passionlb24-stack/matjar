@@ -6,6 +6,7 @@ import { Plus, Pencil, Trash2, X } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
+import { notifyError } from "@/lib/notify";
 import { Container } from "@/components/ui/container";
 import { regions as catalogRegions } from "@/lib/catalog";
 import type { MarketRegion } from "@/lib/data/market";
@@ -79,12 +80,20 @@ export function MarketCityManager({
   async function save() {
     setBusy(true);
     const supabase = createClient();
-    if (editingId === "new") {
-      await supabase.from("market_cities").insert(draft);
-    } else if (editingId) {
-      await supabase.from("market_cities").update(draft).eq("id", editingId);
-    }
+    const { error } =
+      editingId === "new"
+        ? await supabase.from("market_cities").insert(draft)
+        : editingId
+          ? await supabase
+              .from("market_cities")
+              .update(draft)
+              .eq("id", editingId)
+          : { error: null };
     setBusy(false);
+    if (error) {
+      notifyError(dict.common.actionFailed);
+      return;
+    }
     cancel();
     router.refresh();
   }
@@ -92,8 +101,15 @@ export function MarketCityManager({
   async function remove(id: string) {
     if (!window.confirm(t.confirmDelete)) return;
     setBusy(true);
-    await createClient().from("market_cities").delete().eq("id", id);
+    const { error } = await createClient()
+      .from("market_cities")
+      .delete()
+      .eq("id", id);
     setBusy(false);
+    if (error) {
+      notifyError(dict.common.actionFailed);
+      return;
+    }
     router.refresh();
   }
 

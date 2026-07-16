@@ -6,6 +6,7 @@ import { Search, SlidersHorizontal, BellPlus, Check } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
+import { notifyError } from "@/lib/notify";
 import { regions as catalogRegions } from "@/lib/catalog";
 import type {
   MarketCategory,
@@ -70,13 +71,17 @@ export function MarketFilters({
       router.push(`/${lang}/login`);
       return;
     }
-    await supabase.from("saved_searches").insert({
+    const { error } = await supabase.from("saved_searches").insert({
       user_id: user.id,
       q: q.trim() || null,
       category: category !== "all" ? category : null,
       region: region !== "all" ? region : null,
       city: city.trim() || null,
     });
+    if (error) {
+      notifyError(dict.common.actionFailed);
+      return;
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   }

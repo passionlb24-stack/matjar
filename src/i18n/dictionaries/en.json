@@ -13,7 +13,8 @@
     "messages": "Messages",
     "menu": "Menu",
     "favorite": "Add to favorites",
-    "unread": "unread"
+    "unread": "unread",
+    "actionFailed": "Something went wrong. Please try again."
   },
   "tabbar": {
     "home": "Home",

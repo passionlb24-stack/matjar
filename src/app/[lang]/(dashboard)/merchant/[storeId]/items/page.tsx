@@ -146,6 +146,7 @@ export default async function StoreItemsPage({
                       hideLabel={dict.merchant.products.hide}
                       deleteLabel={dict.merchant.products.delete}
                       confirmLabel={dict.merchant.products.confirmDelete}
+                      errorLabel={dict.common.actionFailed}
                     />
                   </div>
                 ))}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { notifyError } from "@/lib/notify";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
 export function AdminSettingsForm({
@@ -22,7 +23,7 @@ export function AdminSettingsForm({
     e.preventDefault();
     setLoading(true);
     setSaved(false);
-    await createClient().from("app_settings").upsert(
+    const { error } = await createClient().from("app_settings").upsert(
       {
         key: "usd_lbp_rate",
         value: String(Number(rate) || 0),
@@ -31,6 +32,10 @@ export function AdminSettingsForm({
       { onConflict: "key" },
     );
     setLoading(false);
+    if (error) {
+      notifyError(dict.common.actionFailed);
+      return;
+    }
     setSaved(true);
     router.refresh();
   }

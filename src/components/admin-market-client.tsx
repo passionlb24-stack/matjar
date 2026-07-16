@@ -19,6 +19,7 @@ import {
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
+import { notifyError } from "@/lib/notify";
 import { Container } from "@/components/ui/container";
 
 export type AdminListing = {
@@ -116,19 +117,30 @@ export function AdminMarketClient({
 
   async function patch(id: string, values: Partial<Record<string, unknown>>) {
     setBusyId(id);
-    await createClient()
+    const { error } = await createClient()
       .from("listings")
       .update({ ...values, updated_at: new Date().toISOString() })
       .eq("id", id);
     setBusyId(null);
+    if (error) {
+      notifyError(dict.common.actionFailed);
+      return;
+    }
     router.refresh();
   }
 
   async function remove(id: string) {
     if (!window.confirm(t.delete + "?")) return;
     setBusyId(id);
-    await createClient().from("listings").delete().eq("id", id);
+    const { error } = await createClient()
+      .from("listings")
+      .delete()
+      .eq("id", id);
     setBusyId(null);
+    if (error) {
+      notifyError(dict.common.actionFailed);
+      return;
+    }
     router.refresh();
   }
 

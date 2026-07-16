@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MessageCircleQuestion, Send, CornerDownLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { notifyError } from "@/lib/notify";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { ProductQuestion } from "@/lib/data/product-qa";
 
@@ -40,27 +41,35 @@ export function ProductQA({
     }
     const name =
       (user.user_metadata?.full_name as string | undefined) ?? user.email ?? "";
-    await supabase.from("product_questions").insert({
+    const { error } = await supabase.from("product_questions").insert({
       product_id: productId,
       asker_id: user.id,
       asker_name: name,
       question: q.trim(),
     });
-    setQ("");
     setBusy(false);
+    if (error) {
+      notifyError(dict.common.actionFailed);
+      return;
+    }
+    setQ("");
     router.refresh();
   }
 
   async function answer(id: string) {
     if (!answerText.trim()) return;
     setBusy(true);
-    await createClient().rpc("answer_product_question", {
+    const { error } = await createClient().rpc("answer_product_question", {
       p_qid: id,
       p_answer: answerText.trim(),
     });
+    setBusy(false);
+    if (error) {
+      notifyError(dict.common.actionFailed);
+      return;
+    }
     setAnswerFor(null);
     setAnswerText("");
-    setBusy(false);
     router.refresh();
   }
 

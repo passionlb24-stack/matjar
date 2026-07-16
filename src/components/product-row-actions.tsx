@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { notifyError } from "@/lib/notify";
 
 export function ProductRowActions({
   productId,
@@ -12,6 +13,7 @@ export function ProductRowActions({
   hideLabel,
   deleteLabel,
   confirmLabel,
+  errorLabel,
 }: {
   productId: string;
   isAvailable: boolean;
@@ -19,28 +21,37 @@ export function ProductRowActions({
   hideLabel: string;
   deleteLabel: string;
   confirmLabel: string;
+  errorLabel: string;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
   async function toggle() {
     setBusy(true);
-    await createClient()
+    const { error } = await createClient()
       .from("products")
       .update({ is_available: !isAvailable })
       .eq("id", productId);
     setBusy(false);
+    if (error) {
+      notifyError(errorLabel);
+      return;
+    }
     router.refresh();
   }
 
   async function remove() {
     if (!window.confirm(confirmLabel)) return;
     setBusy(true);
-    await createClient()
+    const { error } = await createClient()
       .from("products")
       .update({ deleted_at: new Date().toISOString() })
       .eq("id", productId);
     setBusy(false);
+    if (error) {
+      notifyError(errorLabel);
+      return;
+    }
     router.refresh();
   }
 
