@@ -1,9 +1,26 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Check, Crown } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
+import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  if (!isLocale(lang)) return {};
+  const title = lang === "ar" ? "الأسعار والخطط" : "Pricing & plans";
+  const description =
+    lang === "ar"
+      ? "خطة مجانية للبداية وخطة Pro بمزايا أقوى — افتح متجرك على متجر وابدأ البيع في لبنان."
+      : "A free plan to start and a Pro plan with more power — open your store on Matjar and start selling in Lebanon.";
+  return { title, description, alternates: localeAlternates(lang, "/pricing") };
+}
 
 export default async function PricingPage({
   params,

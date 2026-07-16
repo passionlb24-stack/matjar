@@ -85,6 +85,41 @@ export function productJsonLd(opts: {
 }
 
 /** Renders a JSON-LD object as the inner text for a <script type="application/ld+json">. */
+// Homepage brand graph: Organization (logo + social profiles) and WebSite with
+// a SearchAction (makes Google eligible to show the sitelinks search box).
+export function siteJsonLd(opts: {
+  siteUrl: string;
+  lang: string;
+  name: string;
+  description: string;
+}) {
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: opts.name,
+      url: opts.siteUrl,
+      logo: `${opts.siteUrl}/logo.png`,
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: opts.name,
+      url: opts.siteUrl,
+      description: opts.description,
+      inLanguage: opts.lang,
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${opts.siteUrl}/${opts.lang}/search?q={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
+    },
+  ];
+}
+
 export function jsonLdScript(data: unknown): string {
   return JSON.stringify(data);
 }
