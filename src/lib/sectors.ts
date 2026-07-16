@@ -22,6 +22,7 @@ import {
   Calculator,
   Handshake,
   ChefHat,
+  FileText,
 } from "lucide-react";
 import type { CategoryKey } from "./catalog";
 import { categoryModule } from "./modules";
@@ -35,6 +36,7 @@ import { categoryModule } from "./modules";
 export type OsModuleKey =
   | "orders"
   | "bookings"
+  | "requests"
   | "items"
   | "doctors"
   | "customers"
@@ -71,6 +73,7 @@ export const OS_MODULE_META: Record<
 > = {
   orders: { Icon: ClipboardList, path: "orders", perm: "orders" },
   bookings: { Icon: CalendarCheck, path: "bookings", perm: "bookings" },
+  requests: { Icon: FileText, path: "requests", perm: "bookings" },
   items: { Icon: Package, path: "items", perm: "products" },
   doctors: { Icon: Stethoscope, path: "doctors", perm: "bookings", pro: true },
   customers: { Icon: Users, path: "customers", perm: "orders", pro: true },
@@ -143,7 +146,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-violet-100 text-violet-600",
     customersNoun: "clients",
     modules: {
-      daily: ["bookings", "items", "tasks"],
+      daily: ["requests", "bookings", "items", "tasks"],
       people: ["customers", "staff"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
@@ -155,7 +158,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-emerald-100 text-emerald-600",
     customersNoun: "patients",
     modules: {
-      daily: ["bookings", "doctors", "items", "tasks"],
+      daily: ["requests", "bookings", "doctors", "items", "tasks"],
       people: ["customers", "staff"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
