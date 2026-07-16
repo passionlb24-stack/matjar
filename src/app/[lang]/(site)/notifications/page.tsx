@@ -60,7 +60,9 @@ export default async function NotificationsPage({
                     ? dict.notifications.listingMatch
                     : t === "message"
                       ? dict.notifications.message
-                      : t;
+                      : t === "store_new"
+                        ? dict.notifications.storeNew
+                        : t;
 
   const linkFor = (n: Notif) =>
     (n.type === "listing_approved" ||
@@ -72,7 +74,9 @@ export default async function NotificationsPage({
         : `/${lang}/market/${n.data.listing_id}`
       : n.type === "store_product" && n.data?.store_id
         ? `/${lang}/store/${n.data.store_id}`
-        : n.type === "message"
+        : n.type === "store_new"
+          ? `/${lang}/admin/stores`
+          : n.type === "message"
           ? n.data?.conversation_id
             ? `/${lang}/messages/${n.data.conversation_id}`
             : `/${lang}/messages`
