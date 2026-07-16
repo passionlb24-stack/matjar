@@ -175,6 +175,15 @@ export function StoreProducts({
 
   async function applyCoupon() {
     if (!couponInput.trim()) return;
+    // Guests can't call validate_coupon (locked to authenticated to stop code
+    // enumeration). Their code is applied server-side inside place_guest_order;
+    // here we just accept it and note it'll apply at checkout.
+    if (!loggedIn) {
+      setAppliedCode(couponInput.trim().toUpperCase());
+      setCouponDiscount(0);
+      setCouponMsg(dict.store.couponGuestNote);
+      return;
+    }
     setCouponBusy(true);
     setCouponMsg(null);
     const { data, error } = await createClient().rpc("validate_coupon", {

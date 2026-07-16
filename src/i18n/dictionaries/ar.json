@@ -356,6 +356,7 @@
     "subtotal": "المجموع الفرعي",
     "discount": "الخصم",
     "couponInvalid": "كود غير صالح",
+    "couponGuestNote": "الكوبون بينطبّق عند تأكيد الطلب.",
     "couponExpired": "الكود منتهي الصلاحية",
     "couponUsedUp": "الكود استنفد عدد الاستخدامات",
     "couponMinOrder": "طلبك تحت الحد الأدنى لهذا الكود",
