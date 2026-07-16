@@ -37,7 +37,6 @@ export function SiteHeader({
               alt={dict.common.brand}
               width={48}
               height={48}
-              priority
               className="h-11 w-11 object-contain"
             />
           </Link>
