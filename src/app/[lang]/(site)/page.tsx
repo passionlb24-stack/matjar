@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { isLocale } from "@/i18n/config";
-import { getDictionary } from "@/i18n/get-dictionary";
+import { isLocale, type Locale } from "@/i18n/config";
+import { getDictionary, type Dictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
 import { getDailyDeal } from "@/lib/data/offers";
 import { getUsdLbpRate } from "@/lib/data/settings";
@@ -15,6 +16,15 @@ import { BestSellersTeaser } from "@/components/best-sellers-teaser";
 import { FeaturedStores } from "@/components/featured-stores";
 import { HowItWorks } from "@/components/how-it-works";
 import { MerchantCta } from "@/components/merchant-cta";
+import { SectionSkeleton } from "@/components/section-skeleton";
+
+// Self-fetching deal section so its DB query streams instead of blocking the
+// whole page (fetches deal + LBP rate only here).
+async function DealSection({ lang, dict }: { lang: Locale; dict: Dictionary }) {
+  const [deal, lbpRate] = await Promise.all([getDailyDeal(), getUsdLbpRate()]);
+  if (!deal) return null;
+  return <DealOfTheDay deal={deal} lang={lang} dict={dict} lbpRate={lbpRate} />;
+}
 
 export async function generateMetadata({
   params,
@@ -35,20 +45,28 @@ export default async function Home({
   if (!isLocale(lang)) notFound();
 
   const dict = await getDictionary(lang);
-  const [deal, lbpRate] = await Promise.all([getDailyDeal(), getUsdLbpRate()]);
 
+  // The Hero + static sections (Trust, Category, Services, HowItWorks, CTA)
+  // render in the shell immediately. Every data-backed section streams inside
+  // its own <Suspense> so a slow query never blocks first paint.
   return (
     <>
       <Hero lang={lang} dict={dict} />
       <TrustStrip dict={dict} />
-      {deal && (
-        <DealOfTheDay deal={deal} lang={lang} dict={dict} lbpRate={lbpRate} />
-      )}
+      <Suspense fallback={null}>
+        <DealSection lang={lang} dict={dict} />
+      </Suspense>
       <CategoryGrid lang={lang} dict={dict} />
       <ServicesGrid lang={lang} dict={dict} />
-      <OffersTeaser lang={lang} dict={dict} />
-      <FeaturedStores lang={lang} dict={dict} />
-      <BestSellersTeaser lang={lang} dict={dict} />
+      <Suspense fallback={<SectionSkeleton cards={4} />}>
+        <OffersTeaser lang={lang} dict={dict} />
+      </Suspense>
+      <Suspense fallback={<SectionSkeleton cards={4} />}>
+        <FeaturedStores lang={lang} dict={dict} />
+      </Suspense>
+      <Suspense fallback={<SectionSkeleton cards={4} />}>
+        <BestSellersTeaser lang={lang} dict={dict} />
+      </Suspense>
       <HowItWorks dict={dict} />
       <MerchantCta lang={lang} dict={dict} />
     </>

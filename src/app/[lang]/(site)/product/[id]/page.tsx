@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cache } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Store as StoreIcon } from "lucide-react";
@@ -65,7 +66,11 @@ type ProductView = {
   addons: AddOn[];
 };
 
-async function loadProduct(id: string): Promise<ProductView | null> {
+// React cache(): generateMetadata and the page both call loadProduct(id) for
+// the same request — this dedupes ~3 queries × 2 into one set per request.
+const loadProduct = cache(async function loadProduct(
+  id: string,
+): Promise<ProductView | null> {
   if (!UUID_RE.test(id)) return null;
   const supabase = await createClient();
   const { data } = await supabase
@@ -133,7 +138,7 @@ async function loadProduct(id: string): Promise<ProductView | null> {
       price: Number(a.price),
     })),
   };
-}
+});
 
 export async function generateMetadata({
   params,
