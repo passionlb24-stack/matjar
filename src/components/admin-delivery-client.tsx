@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Truck, Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { notifyError } from "@/lib/notify";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
 
@@ -38,7 +39,7 @@ export function AdminDeliveryClient({
     const name = String(form.get("name") ?? "").trim();
     if (!name || busy) return;
     setBusy(true);
-    await createClient().from("delivery_companies").insert({
+    const { error } = await createClient().from("delivery_companies").insert({
       name,
       coverage: String(form.get("coverage") ?? "").trim() || null,
       phone: String(form.get("phone") ?? "").trim() || null,
@@ -46,22 +47,40 @@ export function AdminDeliveryClient({
       pricing_note: String(form.get("pricing_note") ?? "").trim() || null,
     });
     setBusy(false);
+    if (error) {
+      notifyError(dict.common.actionFailed);
+      return;
+    }
     el.reset();
     router.refresh();
   }
 
   async function patch(id: string, p: Record<string, unknown>) {
     setBusy(true);
-    await createClient().from("delivery_companies").update(p).eq("id", id);
+    const { error } = await createClient()
+      .from("delivery_companies")
+      .update(p)
+      .eq("id", id);
     setBusy(false);
+    if (error) {
+      notifyError(dict.common.actionFailed);
+      return;
+    }
     router.refresh();
   }
 
   async function remove(id: string) {
     if (!window.confirm(t.confirmDelete)) return;
     setBusy(true);
-    await createClient().from("delivery_companies").delete().eq("id", id);
+    const { error } = await createClient()
+      .from("delivery_companies")
+      .delete()
+      .eq("id", id);
     setBusy(false);
+    if (error) {
+      notifyError(dict.common.actionFailed);
+      return;
+    }
     router.refresh();
   }
 

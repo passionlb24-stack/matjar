@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { notifyError } from "@/lib/notify";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { regions } from "@/lib/catalog";
@@ -31,8 +32,15 @@ export function SavedSearchesManager({
 
   async function remove(id: string) {
     setBusy(id);
-    await createClient().from("saved_searches").delete().eq("id", id);
+    const { error } = await createClient()
+      .from("saved_searches")
+      .delete()
+      .eq("id", id);
     setBusy(null);
+    if (error) {
+      notifyError(dict.common.actionFailed);
+      return;
+    }
     router.refresh();
   }
 

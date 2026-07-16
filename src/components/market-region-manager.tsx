@@ -6,6 +6,7 @@ import { Plus, Pencil, Trash2, X } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
+import { notifyError } from "@/lib/notify";
 import { Container } from "@/components/ui/container";
 
 export type MarketRegionRow = {
@@ -64,12 +65,20 @@ export function MarketRegionManager({
   async function save() {
     setBusy(true);
     const supabase = createClient();
-    if (editingId === "new") {
-      await supabase.from("market_regions").insert(draft);
-    } else if (editingId) {
-      await supabase.from("market_regions").update(draft).eq("id", editingId);
-    }
+    const { error } =
+      editingId === "new"
+        ? await supabase.from("market_regions").insert(draft)
+        : editingId
+          ? await supabase
+              .from("market_regions")
+              .update(draft)
+              .eq("id", editingId)
+          : { error: null };
     setBusy(false);
+    if (error) {
+      notifyError(dict.common.actionFailed);
+      return;
+    }
     cancel();
     router.refresh();
   }
@@ -77,8 +86,15 @@ export function MarketRegionManager({
   async function remove(id: string) {
     if (!window.confirm(t.confirmDelete)) return;
     setBusy(true);
-    await createClient().from("market_regions").delete().eq("id", id);
+    const { error } = await createClient()
+      .from("market_regions")
+      .delete()
+      .eq("id", id);
     setBusy(false);
+    if (error) {
+      notifyError(dict.common.actionFailed);
+      return;
+    }
     router.refresh();
   }
 
