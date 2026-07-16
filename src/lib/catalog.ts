@@ -60,6 +60,15 @@ export type Store = {
   coverUrl?: string | null;
   lat?: number | null;
   lng?: number | null;
+  // Active branch locations (multi-branch stores). "Near me" ranks by the
+  // closest one and the map draws a pin per branch; absent on demo stores.
+  locations?: {
+    id: string;
+    name: string | null;
+    area: string | null;
+    lat: number | null;
+    lng: number | null;
+  }[];
   distanceKm?: number;
   tag?: Bilingual;
   description?: Bilingual;

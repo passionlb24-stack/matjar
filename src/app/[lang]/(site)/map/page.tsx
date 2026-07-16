@@ -30,14 +30,27 @@ export default async function MapPage({
   const l = lang as Locale;
 
   const stores = await getStoresForListing();
-  const mapStores: MapStore[] = stores
-    .filter((s) => s.lat != null && s.lng != null)
-    .map((s) => ({
+  // One pin per active branch: multi-branch stores appear once per located
+  // branch (popup carries the branch name/area so pins are distinguishable);
+  // stores without any located branch fall back to their own lat/lng pin.
+  const mapStores: MapStore[] = stores.flatMap((s) => {
+    const located = (s.locations ?? []).filter(
+      (b) => b.lat != null && b.lng != null,
+    );
+    if (!located.length) {
+      return s.lat != null && s.lng != null
+        ? [{ id: s.id, name: s.name[l], lat: s.lat, lng: s.lng }]
+        : [];
+    }
+    const multi = (s.locations?.length ?? 0) >= 2;
+    return located.map((b) => ({
       id: s.id,
       name: s.name[l],
-      lat: s.lat as number,
-      lng: s.lng as number,
+      branch: multi ? (b.name ?? b.area) : null,
+      lat: b.lat as number,
+      lng: b.lng as number,
     }));
+  });
 
   return (
     <div className="py-10">

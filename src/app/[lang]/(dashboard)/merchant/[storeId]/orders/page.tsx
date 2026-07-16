@@ -23,8 +23,10 @@ type OrderRow = {
   customer_name: string | null;
   customer_note: string | null;
   created_at: string;
+  location_id: string | null;
   order_items: OrderItem[];
 };
+type StoreLocation = { id: string; name: string | null; area: string | null };
 
 function formatPrice(price: number) {
   return price >= 1000
@@ -62,11 +64,20 @@ export default async function StoreOrdersPage({
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, status, total, fulfillment, address, phone, customer_name, customer_note, created_at, order_items(name, quantity, unit_price)",
+      "id, status, total, fulfillment, address, phone, customer_name, customer_note, created_at, location_id, order_items(name, quantity, unit_price)",
     )
     .eq("store_id", storeId)
     .order("created_at", { ascending: false });
   const orders = (data ?? []) as unknown as OrderRow[];
+
+  // Branch labels: only shown when the store actually has multiple branches.
+  const { data: locData } = await supabase
+    .from("store_locations")
+    .select("id, name, area")
+    .eq("store_id", storeId);
+  const locations = (locData ?? []) as StoreLocation[];
+  const locationById = new Map(locations.map((l) => [l.id, l]));
+  const multiBranch = locations.length > 1;
 
   // Money ledger for these orders, grouped by order id.
   const { data: payData } = await supabase
@@ -98,82 +109,95 @@ export default async function StoreOrdersPage({
 
         {orders.length ? (
           <div className="mt-8 space-y-4">
-            {orders.map((order) => (
-              <div
-                key={order.id}
-                className="rounded-2xl border border-border bg-surface p-5"
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <span className="min-w-0 text-sm font-semibold text-muted-foreground">
-                    {dict.orders.order} #{order.id.slice(0, 8)}
-                    {order.customer_name && (
-                      <span className="ms-2 font-bold text-foreground">
-                        {order.customer_name}
+            {orders.map((order) => {
+              const branch =
+                multiBranch && order.location_id
+                  ? locationById.get(order.location_id)
+                  : undefined;
+              return (
+                <div
+                  key={order.id}
+                  className="rounded-2xl border border-border bg-surface p-5"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="min-w-0 text-sm font-semibold text-muted-foreground">
+                      {dict.orders.order} #{order.id.slice(0, 8)}
+                      {order.customer_name && (
+                        <span className="ms-2 font-bold text-foreground">
+                          {order.customer_name}
+                        </span>
+                      )}
+                      <span className="ms-2 text-xs">
+                        {new Date(order.created_at).toLocaleString(
+                          lang === "ar" ? "ar" : "en",
+                          {
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}
                       </span>
-                    )}
-                    <span className="ms-2 text-xs">
-                      {new Date(order.created_at).toLocaleString(
-                        lang === "ar" ? "ar" : "en",
-                        {
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        },
+                      {branch && (
+                        <span className="ms-2 whitespace-nowrap rounded-full bg-surface-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+                          {branch.name || branch.area
+                            ? `${dict.os.branches.branchLabel}: ${branch.name || branch.area}`
+                            : dict.os.branches.branchLabel}
+                        </span>
                       )}
                     </span>
-                  </span>
-                  <span className="flex shrink-0 items-center gap-2">
-                    <Link
-                      href={`/${lang}/merchant/${storeId}/orders/${order.id}/invoice`}
-                      className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-bold transition-colors hover:border-primary hover:text-primary"
-                    >
-                      <Printer className="h-3.5 w-3.5" />
-                      {dict.os.invoice.link}
-                    </Link>
-                    <OrderStatusControl
-                      orderId={order.id}
-                      status={order.status}
-                      labels={dict.orders.status}
-                      errorLabel={dict.auth.errorGeneric}
-                    />
-                  </span>
+                    <span className="flex shrink-0 items-center gap-2">
+                      <Link
+                        href={`/${lang}/merchant/${storeId}/orders/${order.id}/invoice`}
+                        className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-bold transition-colors hover:border-primary hover:text-primary"
+                      >
+                        <Printer className="h-3.5 w-3.5" />
+                        {dict.os.invoice.link}
+                      </Link>
+                      <OrderStatusControl
+                        orderId={order.id}
+                        status={order.status}
+                        labels={dict.orders.status}
+                        errorLabel={dict.auth.errorGeneric}
+                      />
+                    </span>
+                  </div>
+                  <ul className="mt-3 space-y-1 border-t border-border pt-3 text-sm">
+                    {order.order_items.map((item, i) => (
+                      <li key={i} className="flex justify-between gap-4">
+                        <span>
+                          {item.quantity}× {item.name}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {formatPrice(item.unit_price * item.quantity)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-3 flex justify-between border-t border-border pt-3 font-bold">
+                    <span>{dict.orders.total}</span>
+                    <span>{formatPrice(order.total)}</span>
+                  </div>
+                  <div className="mt-3 space-y-1 border-t border-border pt-3 text-sm text-muted-foreground">
+                    <p>
+                      {order.fulfillment === "delivery"
+                        ? dict.store.delivery
+                        : dict.store.pickup}
+                      {order.phone ? ` · ${order.phone}` : ""}
+                    </p>
+                    {order.address && <p>{order.address}</p>}
+                    {order.customer_note && (
+                      <p className="italic">“{order.customer_note}”</p>
+                    )}
+                  </div>
+                  <OrderPayments
+                    orderId={order.id}
+                    payments={paymentsByOrder.get(order.id) ?? []}
+                    dict={dict}
+                  />
                 </div>
-                <ul className="mt-3 space-y-1 border-t border-border pt-3 text-sm">
-                  {order.order_items.map((item, i) => (
-                    <li key={i} className="flex justify-between gap-4">
-                      <span>
-                        {item.quantity}× {item.name}
-                      </span>
-                      <span className="text-muted-foreground">
-                        {formatPrice(item.unit_price * item.quantity)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-3 flex justify-between border-t border-border pt-3 font-bold">
-                  <span>{dict.orders.total}</span>
-                  <span>{formatPrice(order.total)}</span>
-                </div>
-                <div className="mt-3 space-y-1 border-t border-border pt-3 text-sm text-muted-foreground">
-                  <p>
-                    {order.fulfillment === "delivery"
-                      ? dict.store.delivery
-                      : dict.store.pickup}
-                    {order.phone ? ` · ${order.phone}` : ""}
-                  </p>
-                  {order.address && <p>{order.address}</p>}
-                  {order.customer_note && (
-                    <p className="italic">“{order.customer_note}”</p>
-                  )}
-                </div>
-                <OrderPayments
-                  orderId={order.id}
-                  payments={paymentsByOrder.get(order.id) ?? []}
-                  dict={dict}
-                />
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="mt-8 rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">

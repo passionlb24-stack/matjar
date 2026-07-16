@@ -13,7 +13,15 @@ type OrderRow = {
   customer_name: string | null;
   phone: string | null;
   created_at: string;
+  store_id: string;
+  location_id: string | null;
   stores: { name: string } | null;
+};
+type StoreLocation = {
+  id: string;
+  store_id: string;
+  name: string | null;
+  area: string | null;
 };
 
 function money(n: number) {
@@ -55,11 +63,30 @@ export default async function AdminOrdersPage({
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, status, total, customer_name, phone, created_at, stores(name)",
+      "id, status, total, customer_name, phone, created_at, store_id, location_id, stores(name)",
     )
     .order("created_at", { ascending: false })
     .limit(100);
   const orders = (data ?? []) as unknown as OrderRow[];
+
+  // Branch labels for the listed orders — only shown when that store actually
+  // has multiple branches (single-branch stores would just repeat themselves).
+  const storeIds = [...new Set(orders.map((o) => o.store_id))];
+  const { data: locData } = storeIds.length
+    ? await supabase
+        .from("store_locations")
+        .select("id, store_id, name, area")
+        .in("store_id", storeIds)
+    : { data: [] };
+  const locations = (locData ?? []) as StoreLocation[];
+  const locationById = new Map(locations.map((l) => [l.id, l]));
+  const branchCountByStore = new Map<string, number>();
+  locations.forEach((l) => {
+    branchCountByStore.set(
+      l.store_id,
+      (branchCountByStore.get(l.store_id) ?? 0) + 1,
+    );
+  });
 
   // Ledger rows for the listed orders, grouped by order id.
   const orderIds = orders.map((o) => o.id);
@@ -129,30 +156,44 @@ export default async function AdminOrdersPage({
 
         {orders.length ? (
           <div className="mt-8 space-y-3">
-            {orders.map((order) => (
-              <div
-                key={order.id}
-                className="rounded-2xl border border-border bg-surface p-4"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                  <span className="min-w-0 font-semibold text-muted-foreground">
-                    #{order.id.slice(0, 8)}
-                    <span className="ms-2 font-bold text-foreground">
-                      {order.stores?.name ?? "—"}
+            {orders.map((order) => {
+              const branch =
+                order.location_id &&
+                (branchCountByStore.get(order.store_id) ?? 0) > 1
+                  ? locationById.get(order.location_id)
+                  : undefined;
+              return (
+                <div
+                  key={order.id}
+                  className="rounded-2xl border border-border bg-surface p-4"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                    <span className="min-w-0 font-semibold text-muted-foreground">
+                      #{order.id.slice(0, 8)}
+                      <span className="ms-2 font-bold text-foreground">
+                        {order.stores?.name ?? "—"}
+                      </span>
+                      {order.customer_name && (
+                        <span className="ms-2">· {order.customer_name}</span>
+                      )}
+                      {branch && (
+                        <span className="ms-2 whitespace-nowrap rounded-full bg-surface-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+                          {branch.name || branch.area
+                            ? `${dict.os.branches.branchLabel}: ${branch.name || branch.area}`
+                            : dict.os.branches.branchLabel}
+                        </span>
+                      )}
                     </span>
-                    {order.customer_name && (
-                      <span className="ms-2">· {order.customer_name}</span>
-                    )}
-                  </span>
-                  <span className="font-bold">{money(order.total)}</span>
+                    <span className="font-bold">{money(order.total)}</span>
+                  </div>
+                  <OrderPayments
+                    orderId={order.id}
+                    payments={paymentsByOrder.get(order.id) ?? []}
+                    dict={dict}
+                  />
                 </div>
-                <OrderPayments
-                  orderId={order.id}
-                  payments={paymentsByOrder.get(order.id) ?? []}
-                  dict={dict}
-                />
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="mt-8 rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">

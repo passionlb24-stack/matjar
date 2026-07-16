@@ -46,7 +46,11 @@
       "edit": "تعديل",
       "delete": "حذف",
       "confirmDelete": "متأكد إنك بدّك تحذف هالفرع؟",
-      "cantDeletePrimary": "ما فيك تحذف الفرع الرئيسي وهو الوحيد."
+      "cantDeletePrimary": "ما فيك تحذف الفرع الرئيسي وهو الوحيد.",
+      "branchLabel": "الفرع"
+    },
+    "branchesPublic": {
+      "title": "الفروع"
     },
     "requests": {
       "link": "طلبات الخدمة",
@@ -437,6 +441,7 @@
     "waGreeting": "مرحبا، بدّي اطلب من",
     "outOfStock": "عذراً، الكمية المطلوبة لم تعد متوفرة. عدّل السلة وحاول مجدداً.",
     "tooManyOrders": "طلبات كتير بوقت قصير. استنى شوي أو سجّل دخول وحاول مجدداً.",
+    "chooseBranch": "اختار الفرع",
     "soldOut": "نفد",
     "onlyLeft": "باقي {n} بس",
     "orderPlacedTitle": "تمّ استلام طلبك ✅",

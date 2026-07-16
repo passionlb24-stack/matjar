@@ -46,7 +46,11 @@
       "edit": "Edit",
       "delete": "Delete",
       "confirmDelete": "Delete this branch?",
-      "cantDeletePrimary": "You can't delete the primary branch while it's the only one."
+      "cantDeletePrimary": "You can't delete the primary branch while it's the only one.",
+      "branchLabel": "Branch"
+    },
+    "branchesPublic": {
+      "title": "Branches"
     },
     "requests": {
       "link": "Service requests",
@@ -437,6 +441,7 @@
     "waGreeting": "Hi, I'd like to order from",
     "outOfStock": "Sorry, the requested quantity is no longer available. Adjust your cart and try again.",
     "tooManyOrders": "Too many orders in a short time. Please wait a bit or sign in and try again.",
+    "chooseBranch": "Choose branch",
     "soldOut": "Sold out",
     "onlyLeft": "Only {n} left",
     "orderPlacedTitle": "Your order was received ✅",

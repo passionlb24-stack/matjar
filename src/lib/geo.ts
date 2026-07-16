@@ -16,3 +16,30 @@ export function distanceKm(
     Math.sin(dLng / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
   return 2 * R * Math.asin(Math.sqrt(h));
 }
+
+// Distance in km from the buyer to the CLOSEST branch of a store. Multi-branch
+// stores carry a `locations` list; "near me" must rank by the nearest branch,
+// not the primary pin. Falls back to the store's own lat/lng when no located
+// branch exists, and undefined when the store has no coordinates at all.
+// Typed structurally so this file stays free of catalog imports.
+export function nearestDistance(
+  store: {
+    lat?: number | null;
+    lng?: number | null;
+    locations?: { lat: number | null; lng: number | null }[];
+  },
+  userLat: number,
+  userLng: number,
+): number | undefined {
+  let best: number | undefined;
+  for (const loc of store.locations ?? []) {
+    if (loc.lat == null || loc.lng == null) continue;
+    const d = distanceKm(userLat, userLng, loc.lat, loc.lng);
+    if (best == null || d < best) best = d;
+  }
+  if (best != null) return best;
+  if (store.lat != null && store.lng != null) {
+    return distanceKm(userLat, userLng, store.lat, store.lng);
+  }
+  return undefined;
+}

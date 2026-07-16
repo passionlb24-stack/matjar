@@ -8,6 +8,9 @@ import type { Locale } from "@/i18n/config";
 export type MapStore = {
   id: string;
   name: string;
+  // Branch name/area label — set only when the store has 2+ branches, so
+  // multi-branch pins are distinguishable while single stores stay unchanged.
+  branch?: string | null;
   lat: number;
   lng: number;
 };
@@ -47,7 +50,10 @@ export function StoreMap({
       const m = L.marker([s.lat, s.lng], { icon: pin })
         .addTo(map)
         .bindPopup(
-          `<a href="/${lang}/store/${s.id}" style="font-weight:700;color:#1556c2;text-decoration:none">${s.name}</a>`,
+          `<a href="/${lang}/store/${s.id}" style="font-weight:700;color:#1556c2;text-decoration:none">${s.name}</a>` +
+            (s.branch
+              ? `<div style="color:#64748b;font-size:12px;margin-top:2px">${s.branch}</div>`
+              : ""),
         );
       markers.push(m);
     }

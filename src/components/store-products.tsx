@@ -80,6 +80,7 @@ export function StoreProducts({
   whatsapp = null,
   storeName = "",
   lbpRate = 0,
+  branches = [],
 }: {
   storeId: string;
   lang: Locale;
@@ -98,6 +99,12 @@ export function StoreProducts({
   whatsapp?: string | null;
   storeName?: string;
   lbpRate?: number;
+  branches?: {
+    id: string;
+    name: string | null;
+    area: string | null;
+    address: string | null;
+  }[];
 }) {
   const router = useRouter();
   const [cart, setCart] = useState<Record<string, number>>({});
@@ -145,6 +152,9 @@ export function StoreProducts({
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
   const [couponBusy, setCouponBusy] = useState(false);
   const [addressValue, setAddressValue] = useState(defaultAddress);
+  // Multi-branch stores: the customer picks a branch before ordering.
+  // Defaults to the first entry — the primary (server orders by is_primary desc).
+  const [branchId, setBranchId] = useState<string>(branches[0]?.id ?? "");
 
   const Icon = categoryIcons[category];
   const style = categoryStyles[category];
@@ -240,6 +250,8 @@ export function StoreProducts({
     const {
       data: { user },
     } = await supabase.auth.getUser();
+    // Single-branch stores never ask — null lets the server pick the primary.
+    const locationId = branches.length > 1 ? branchId : null;
 
     // Guest checkout: no account needed. A SECURITY DEFINER RPC validates the
     // store, recomputes prices server-side and records the order + items.
@@ -259,6 +271,7 @@ export function StoreProducts({
             product_id: p.id,
             quantity: cart[p.id],
           })),
+          p_location_id: locationId,
         },
       );
       setPlacing(false);
@@ -295,6 +308,7 @@ export function StoreProducts({
         product_id: p.id,
         quantity: cart[p.id],
       })),
+      p_location_id: locationId,
     });
     if (error) {
       const outOfStock = error.message?.includes("insufficient_stock");
@@ -583,6 +597,26 @@ export function StoreProducts({
                     </button>
                   ))}
                 </div>
+              </div>
+            )}
+            {branches.length > 1 && (
+              <div>
+                <label className="text-sm font-semibold" htmlFor="branch">
+                  {dict.store.chooseBranch}
+                </label>
+                <select
+                  id="branch"
+                  required
+                  value={branchId}
+                  onChange={(e) => setBranchId(e.target.value)}
+                  className={fieldClass}
+                >
+                  {branches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name || b.area || b.address || "—"}
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
             {(prepTime || paymentNote) && (

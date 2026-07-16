@@ -11,7 +11,7 @@ import {
   type RegionKey,
   type Store,
 } from "@/lib/catalog";
-import { distanceKm } from "@/lib/geo";
+import { nearestDistance } from "@/lib/geo";
 import { getCurrentPosition } from "@/lib/native";
 import { Container } from "@/components/ui/container";
 import { StoreCard } from "@/components/store-card";
@@ -74,16 +74,14 @@ export function ExploreClient({
     return true;
   });
 
-  // When the buyer shares their location, annotate distance and sort nearest
-  // first (stores without coordinates fall to the end).
+  // When the buyer shares their location, annotate distance to the store's
+  // CLOSEST branch and sort nearest first (stores without coordinates fall to
+  // the end).
   const displayed = userLoc
     ? filtered
         .map((s) => ({
           ...s,
-          distanceKm:
-            s.lat != null && s.lng != null
-              ? distanceKm(userLoc.lat, userLoc.lng, s.lat, s.lng)
-              : undefined,
+          distanceKm: nearestDistance(s, userLoc.lat, userLoc.lng),
         }))
         .sort(
           (a, b) =>

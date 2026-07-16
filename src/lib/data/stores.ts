@@ -72,6 +72,7 @@ async function fetchActiveStores(): Promise<Store[]> {
   list.sort((a, b) => Number(b.featured ?? false) - Number(a.featured ?? false));
 
   await attachRatings(list);
+  await attachLocations(list);
   return list;
 }
 
@@ -99,6 +100,46 @@ async function attachRatings(list: Store[]): Promise<void> {
       s.rating = a.sum / a.count;
       s.reviews = a.count;
     }
+  });
+}
+
+// Attaches the active branch locations of each store (one query, scoped to
+// just these ids). "Near me" ranks a store by its closest branch and the map
+// draws a pin per branch, so the listing needs every branch's coordinates —
+// not only the primary lat/lng copied onto the store row.
+async function attachLocations(list: Store[]): Promise<void> {
+  if (!list.length) return;
+  const supabase = await createClient();
+  const ids = list.map((s) => s.id);
+  const { data: locs } = await supabase
+    .from("store_locations")
+    .select("id, store_id, name, area, lat, lng")
+    .in("store_id", ids)
+    .eq("is_active", true);
+  const byStore = new Map<string, NonNullable<Store["locations"]>>();
+  (
+    (locs ?? []) as {
+      id: string;
+      store_id: string;
+      name: string | null;
+      area: string | null;
+      lat: number | null;
+      lng: number | null;
+    }[]
+  ).forEach((l) => {
+    const arr = byStore.get(l.store_id) ?? [];
+    arr.push({
+      id: l.id,
+      name: l.name,
+      area: l.area,
+      lat: l.lat != null ? Number(l.lat) : null,
+      lng: l.lng != null ? Number(l.lng) : null,
+    });
+    byStore.set(l.store_id, arr);
+  });
+  list.forEach((s) => {
+    const arr = byStore.get(s.id);
+    if (arr) s.locations = arr;
   });
 }
 

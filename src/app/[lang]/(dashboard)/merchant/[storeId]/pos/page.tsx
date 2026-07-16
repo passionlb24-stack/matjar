@@ -12,6 +12,7 @@ import {
   PosTerminal,
   type PosProduct,
   type PosCustomer,
+  type PosLocation,
 } from "@/components/pos-terminal";
 
 const UUID_RE =
@@ -72,26 +73,37 @@ export default async function StorePosPage({
 
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
-  const [{ data: productsData }, { data: customersData }, { data: todayData }] =
-    await Promise.all([
-      supabase
-        .from("products")
-        .select("id, name, price, discount_price, image_url, stock")
-        .eq("store_id", storeId)
-        .eq("is_available", true)
-        .is("deleted_at", null)
-        .order("name"),
-      supabase
-        .from("store_customers")
-        .select("id, name")
-        .eq("store_id", storeId)
-        .order("name"),
-      supabase
-        .from("pos_sales")
-        .select("total")
-        .eq("store_id", storeId)
-        .gte("created_at", startOfToday.toISOString()),
-    ]);
+  const [
+    { data: productsData },
+    { data: customersData },
+    { data: todayData },
+    { data: locationsData },
+  ] = await Promise.all([
+    supabase
+      .from("products")
+      .select("id, name, price, discount_price, image_url, stock")
+      .eq("store_id", storeId)
+      .eq("is_available", true)
+      .is("deleted_at", null)
+      .order("name"),
+    supabase
+      .from("store_customers")
+      .select("id, name")
+      .eq("store_id", storeId)
+      .order("name"),
+    supabase
+      .from("pos_sales")
+      .select("total")
+      .eq("store_id", storeId)
+      .gte("created_at", startOfToday.toISOString()),
+    // Branches for the sale stamp — primary first so it's the default pick.
+    supabase
+      .from("store_locations")
+      .select("id, name, area")
+      .eq("store_id", storeId)
+      .eq("is_active", true)
+      .order("is_primary", { ascending: false }),
+  ]);
 
   const todaySales = (todayData ?? []) as { total: number }[];
   const todayTotal = todaySales.reduce((s, r) => s + Number(r.total), 0);
@@ -122,6 +134,7 @@ export default async function StorePosPage({
             dict={dict}
             products={(productsData ?? []) as PosProduct[]}
             customers={(customersData ?? []) as PosCustomer[]}
+            locations={(locationsData ?? []) as PosLocation[]}
           />
         </div>
       </Container>

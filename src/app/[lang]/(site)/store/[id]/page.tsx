@@ -332,6 +332,29 @@ export default async function StorePage({
       .map((r) => ({ price: r.price, name: r.delivery_companies!.name }));
   }
 
+  // Physical branches. Multi-location stores show them publicly and let the
+  // customer pick one at checkout; the primary branch always sorts first.
+  type BranchView = {
+    id: string;
+    name: string | null;
+    address: string | null;
+    area: string | null;
+    phone: string | null;
+    lat: number | null;
+    lng: number | null;
+    is_primary: boolean;
+  };
+  let branches: BranchView[] = [];
+  if (store.isReal && UUID_RE.test(id)) {
+    const { data: locs } = await supabase
+      .from("store_locations")
+      .select("id, name, address, area, phone, lat, lng, is_primary")
+      .eq("store_id", id)
+      .eq("is_active", true)
+      .order("is_primary", { ascending: false });
+    branches = (locs ?? []) as BranchView[];
+  }
+
   const Icon = categoryIcons[store.category];
   const style = categoryStyles[store.category];
   const cat = dict.catalog[store.category];
@@ -542,6 +565,37 @@ export default async function StorePage({
           )}
         </div>
 
+        {branches.length > 1 && (
+          <div className="mt-6 rounded-2xl border border-border bg-surface p-5">
+            <h2 className="font-bold">{dict.os.branchesPublic.title}</h2>
+            <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+              {branches.map((b) => (
+                <li
+                  key={b.id}
+                  className="flex items-start gap-2.5 rounded-xl border border-border px-3.5 py-2.5 text-sm"
+                >
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <div className="min-w-0">
+                    <p className="font-semibold">{b.name || b.area}</p>
+                    {b.address && (
+                      <p className="mt-0.5 text-muted-foreground">{b.address}</p>
+                    )}
+                    {b.phone && (
+                      <a
+                        href={`tel:${b.phone}`}
+                        className="mt-0.5 inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-primary"
+                      >
+                        <Phone className="h-3.5 w-3.5" />
+                        <span dir="ltr">{b.phone}</span>
+                      </a>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {couriers.length > 0 && (
           <div className="mt-6 rounded-2xl border border-border bg-surface p-5">
             <h2 className="flex items-center gap-2 font-bold">
@@ -616,6 +670,12 @@ export default async function StorePage({
                 whatsapp={store.whatsapp ?? null}
                 storeName={store.name}
                 lbpRate={lbpRate}
+                branches={branches.map((b) => ({
+                  id: b.id,
+                  name: b.name,
+                  area: b.area,
+                  address: b.address,
+                }))}
                 products={store.products
                   .filter((p) => p.id)
                   .map((p) => ({
