@@ -4,6 +4,9 @@ import { ChevronRight } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { isPro } from "@/lib/plan";
+import { getStorePlan } from "@/lib/plan-server";
+import { ProGate } from "@/components/pro-gate";
 import type { CategoryKey } from "@/lib/catalog";
 import { sectorConfig } from "@/lib/sectors";
 import { Container } from "@/components/ui/container";
@@ -53,6 +56,11 @@ export default async function StoreCustomersPage({
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
+
+  // Pro-only module: free stores see the upsell instead.
+  if (!isPro(await getStorePlan(storeId))) {
+    return <ProGate lang={lang} dict={dict} storeId={storeId} />;
+  }
 
   // CRM contains customer data + spend: staff need the orders permission.
   const isOwner =

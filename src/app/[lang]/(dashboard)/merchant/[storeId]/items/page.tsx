@@ -11,6 +11,8 @@ import { Container } from "@/components/ui/container";
 import { ProductForm } from "@/components/product-form";
 import { ServiceForm } from "@/components/service-form";
 import { ProductRowActions } from "@/components/product-row-actions";
+import { ProGate } from "@/components/pro-gate";
+import { FREE_PRODUCT_LIMIT } from "@/lib/plan";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -54,10 +56,12 @@ export default async function StoreItemsPage({
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, owner_id, business_types(slug)")
+    .select("id, name, owner_id, plan, business_types(slug)")
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
+  const storeIsPro =
+    (store as unknown as { plan: string | null }).plan === "pro";
   const category =
     ((store as unknown as { business_types: { slug: string } | null })
       .business_types?.slug as CategoryKey) ?? "retail";
@@ -153,7 +157,16 @@ export default async function StoreItemsPage({
             )}
           </div>
 
-          {category === "services" || category === "healthcare" ? (
+          {!storeIsPro && products.length >= FREE_PRODUCT_LIMIT ? (
+            <ProGate
+              lang={lang}
+              dict={dict}
+              storeId={storeId}
+              compact
+              title={dict.os.pro.productLimitTitle}
+              body={dict.os.pro.productLimitBody}
+            />
+          ) : category === "services" || category === "healthcare" ? (
             <ServiceForm storeId={storeId} dict={dict} />
           ) : (
             <ProductForm

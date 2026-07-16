@@ -5,6 +5,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { PRO_PRICE_MONTHLY, PRO_PRICE_YEARLY } from "@/lib/plan";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -119,6 +120,29 @@ export default async function StoreSubscriptionPage({
               {t.upgradeTitle}
             </h2>
             <p className="mt-2 text-sm text-amber-900/80">{t.upgradeBody}</p>
+            <p className="mt-3 flex items-baseline gap-2">
+              <span className="text-3xl font-extrabold text-amber-900">
+                ${PRO_PRICE_MONTHLY}
+              </span>
+              <span className="text-sm font-semibold text-amber-900/70">
+                {dict.pricing.perMonth}
+              </span>
+              <span className="text-sm font-bold text-amber-700">
+                · ${PRO_PRICE_YEARLY}
+                {dict.pricing.perYear}
+              </span>
+            </p>
+            <ul className="mt-3 grid gap-1.5">
+              {dict.os.pro.benefits.map((b) => (
+                <li
+                  key={b}
+                  className="flex items-start gap-2 text-sm font-medium text-amber-900"
+                >
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                  {b}
+                </li>
+              ))}
+            </ul>
             <Link
               href={`/${lang}/pricing`}
               className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-amber-600"

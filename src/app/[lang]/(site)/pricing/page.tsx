@@ -6,6 +6,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
+import { PRO_PRICE_MONTHLY } from "@/lib/plan";
 
 export async function generateMetadata({
   params,
@@ -78,10 +79,15 @@ export default async function PricingPage({
               {dict.pricing.pro}
             </h2>
             <p className="mt-3">
-              <span className="text-4xl font-extrabold">$12</span>
+              <span className="text-4xl font-extrabold">
+                ${PRO_PRICE_MONTHLY}
+              </span>
               <span className="text-muted-foreground">
                 {dict.pricing.perMonth}
               </span>
+            </p>
+            <p className="mt-1 text-sm font-semibold text-amber-600">
+              {dict.pricing.yearlyNote}
             </p>
             <ul className="mt-6 space-y-3">
               {proFeatures.map((f) => (

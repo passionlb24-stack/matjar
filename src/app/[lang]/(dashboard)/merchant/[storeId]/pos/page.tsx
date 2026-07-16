@@ -4,6 +4,9 @@ import { ChevronRight, ReceiptText } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { isPro } from "@/lib/plan";
+import { getStorePlan } from "@/lib/plan-server";
+import { ProGate } from "@/components/pro-gate";
 import { Container } from "@/components/ui/container";
 import {
   PosTerminal,
@@ -46,6 +49,11 @@ export default async function StorePosPage({
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
+
+  // Pro-only module: free stores see the upsell instead.
+  if (!isPro(await getStorePlan(storeId))) {
+    return <ProGate lang={lang} dict={dict} storeId={storeId} />;
+  }
 
   // Staff need the orders permission to sell.
   const isOwner =

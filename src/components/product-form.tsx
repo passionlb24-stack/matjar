@@ -81,7 +81,12 @@ export function ProductForm({
       .single();
 
     if (insertError || !product) {
-      setError(dict.auth.errorGeneric);
+      // Server trigger blocks free stores past the product limit.
+      setError(
+        insertError?.message?.includes("free_product_limit")
+          ? dict.os.pro.productLimitBody
+          : dict.auth.errorGeneric,
+      );
       setLoading(false);
       return;
     }

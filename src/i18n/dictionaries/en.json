@@ -141,6 +141,25 @@
         "6": "Saturday"
       }
     },
+    "pro": {
+      "badge": "Pro",
+      "lockedTitle": "This feature is for Pro members",
+      "lockedBody": "Upgrade to Matjar Pro to unlock the full management system: POS, inventory, customers, suppliers, accounting, reports, staff and more.",
+      "upgrade": "Upgrade to Pro",
+      "seePlans": "See plans",
+      "perMonth": "$15/mo",
+      "perYear": "or $150/yr",
+      "productLimitTitle": "You've reached the limit (3 products)",
+      "productLimitBody": "The free plan allows 3 products. Upgrade to Pro for unlimited products and every management tool.",
+      "benefits": [
+        "Unlimited products",
+        "Point of sale (POS) + inventory",
+        "Customer book (CRM) + suppliers & debts",
+        "Accounting & profit + reports",
+        "Coupons + staff & permissions",
+        "Higher visibility + verified Pro badge"
+      ]
+    },
     "serviceForm": {
       "title": "Add a new service",
       "subtitle": "It appears on your page and customers book it with an appointment.",
@@ -977,13 +996,15 @@
     "popular": "Most popular",
     "startFree": "Start free",
     "goPro": "Go Pro",
+    "perYear": "/year",
+    "yearlyNote": "or $150/year — save 2 months",
     "contactNote": "Payment is manual for now — contact us to activate Pro after payment.",
     "freeFeatures": [
       "Basic business page",
       "Contact info + WhatsApp",
       "Limited images",
       "Standard search visibility",
-      "Limited products"
+      "Up to 3 products"
     ],
     "proFeatures": [
       "Full online store",
