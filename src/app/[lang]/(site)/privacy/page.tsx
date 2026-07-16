@@ -1,7 +1,24 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
+import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  if (!isLocale(lang)) return {};
+  const title = lang === "ar" ? "سياسة الخصوصية" : "Privacy policy";
+  const description =
+    lang === "ar"
+      ? "كيف نجمع بياناتك ونستخدمها ونحميها على منصّة متجر."
+      : "How Matjar collects, uses, and protects your data.";
+  return { title, description, alternates: localeAlternates(lang, "/privacy") };
+}
 
 export default async function PrivacyPage({
   params,

@@ -3,7 +3,8 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary, type Dictionary } from "@/i18n/get-dictionary";
-import { localeAlternates } from "@/lib/site";
+import { localeAlternates, SITE_URL } from "@/lib/site";
+import { siteJsonLd, jsonLdScript } from "@/lib/jsonld";
 import { getDailyDeal } from "@/lib/data/offers";
 import { getUsdLbpRate } from "@/lib/data/settings";
 import { DealOfTheDay } from "@/components/deal-of-the-day";
@@ -51,6 +52,19 @@ export default async function Home({
   // its own <Suspense> so a slow query never blocks first paint.
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLdScript(
+            siteJsonLd({
+              siteUrl: SITE_URL,
+              lang,
+              name: dict.common.brand,
+              description: dict.hero.subtitle,
+            }),
+          ),
+        }}
+      />
       <Hero lang={lang} dict={dict} />
       <TrustStrip dict={dict} />
       <Suspense fallback={null}>

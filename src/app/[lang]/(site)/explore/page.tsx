@@ -1,9 +1,26 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
+import { localeAlternates } from "@/lib/site";
 import { getStoresForListing } from "@/lib/data/stores";
 import { regions, type RegionKey } from "@/lib/catalog";
 import { ExploreClient } from "@/components/explore-client";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  if (!isLocale(lang)) return {};
+  const title = lang === "ar" ? "تصفّح المتاجر" : "Explore stores";
+  const description =
+    lang === "ar"
+      ? "اكتشف كل المتاجر والخدمات في لبنان حسب المنطقة والتصنيف — بمكان واحد."
+      : "Browse every store and service in Lebanon by region and category — all in one place.";
+  return { title, description, alternates: localeAlternates(lang, "/explore") };
+}
 
 export default async function ExplorePage({
   params,

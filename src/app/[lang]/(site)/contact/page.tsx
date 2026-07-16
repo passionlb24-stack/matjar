@@ -1,8 +1,25 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Mail, MessageCircle } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
+import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  if (!isLocale(lang)) return {};
+  const title = lang === "ar" ? "تواصل معنا" : "Contact us";
+  const description =
+    lang === "ar"
+      ? "عندك سؤال أو اقتراح؟ تواصل مع فريق متجر."
+      : "Have a question or feedback? Get in touch with the Matjar team.";
+  return { title, description, alternates: localeAlternates(lang, "/contact") };
+}
 
 export default async function ContactPage({
   params,
