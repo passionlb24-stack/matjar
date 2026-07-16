@@ -23,6 +23,35 @@
     "account": "Account"
   },
   "os": {
+    "branches": {
+      "link": "Branches",
+      "title": "Store branches",
+      "subtitle": "Add your branch locations — each with its own address and map point. Customers pick a branch before ordering.",
+      "add": "Add branch",
+      "empty": "No branches yet. Add your first one.",
+      "name": "Branch name",
+      "nameHint": "e.g. Hamra branch",
+      "address": "Address",
+      "region": "Region",
+      "area": "Area / city",
+      "phone": "Phone",
+      "whatsapp": "WhatsApp",
+      "useLocation": "Pin my location on the map",
+      "located": "Location set ✓",
+      "primary": "Primary branch",
+      "active": "Active",
+      "inactive": "Inactive",
+      "save": "Save",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirmDelete": "Delete this branch?",
+      "cantDeletePrimary": "You can't delete the primary branch while it's the only one.",
+      "branchLabel": "Branch"
+    },
+    "branchesPublic": {
+      "title": "Branches"
+    },
     "requests": {
       "link": "Service requests",
       "title": "Service requests & quotes",
@@ -412,6 +441,7 @@
     "waGreeting": "Hi, I'd like to order from",
     "outOfStock": "Sorry, the requested quantity is no longer available. Adjust your cart and try again.",
     "tooManyOrders": "Too many orders in a short time. Please wait a bit or sign in and try again.",
+    "chooseBranch": "Choose branch",
     "soldOut": "Sold out",
     "onlyLeft": "Only {n} left",
     "orderPlacedTitle": "Your order was received ✅",

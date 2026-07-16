@@ -23,6 +23,7 @@ import {
   Handshake,
   ChefHat,
   FileText,
+  MapPin,
 } from "lucide-react";
 import type { CategoryKey } from "./catalog";
 import { categoryModule } from "./modules";
@@ -50,6 +51,7 @@ export type OsModuleKey =
   | "accounting"
   | "coupons"
   | "subscription"
+  | "branches"
   | "settings"
   | "edit";
 
@@ -87,6 +89,7 @@ export const OS_MODULE_META: Record<
   accounting: { Icon: Wallet, path: "accounting", perm: "orders", pro: true },
   coupons: { Icon: Ticket, path: "coupons", ownerOnly: true, pro: true },
   subscription: { Icon: CreditCard, path: "subscription", ownerOnly: true },
+  branches: { Icon: MapPin, path: "branches", ownerOnly: true },
   settings: { Icon: Settings, path: "settings", ownerOnly: true },
   edit: { Icon: Pencil, path: "edit", ownerOnly: true },
 };
@@ -105,7 +108,7 @@ export type SectorConfig = {
 };
 
 const MONEY: OsModuleKey[] = ["accounting", "reports", "coupons", "subscription"];
-const STORE: OsModuleKey[] = ["edit", "settings"];
+const STORE: OsModuleKey[] = ["branches", "edit", "settings"];
 // Real estate has no goods suppliers; every other sector tracks supplier debts.
 const MONEY_WITH_SUPPLIERS: OsModuleKey[] = [
   "accounting",

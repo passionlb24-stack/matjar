@@ -184,6 +184,7 @@ export default async function StoreOsHomePage({
     accounting: dict.merchant.accounting.link,
     coupons: dict.merchant.coupons.link,
     subscription: dict.merchant.subscriptionLink,
+    branches: dict.os.branches.link,
     settings: dict.merchant.settingsLink,
     edit: dict.merchant.edit,
   };
