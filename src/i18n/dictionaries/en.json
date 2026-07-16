@@ -727,6 +727,7 @@
     "nav": {
       "overview": "Overview",
       "stores": "Stores",
+      "orders": "Orders",
       "users": "Users",
       "types": "Business types",
       "subscriptions": "Subscriptions",
@@ -736,6 +737,15 @@
       "delivery": "Delivery",
       "reviews": "Reviews",
       "audit": "Audit log"
+    },
+    "ordersAdmin": {
+      "title": "Orders & reconciliation",
+      "subtitle": "Recent platform orders with each order's payment & refund ledger.",
+      "empty": "No orders yet.",
+      "totalCollected": "Total collected",
+      "totalRefunded": "Total refunded",
+      "netRevenue": "Net revenue",
+      "orderCount": "Orders"
     },
     "delivery": {
       "title": "Delivery companies",
