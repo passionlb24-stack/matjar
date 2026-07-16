@@ -8,7 +8,12 @@
     "explore": "Explore stores",
     "openStore": "Open your store",
     "deals": "Deals",
-    "workServices": "Work & services"
+    "workServices": "Work & services",
+    "notifications": "Notifications",
+    "messages": "Messages",
+    "menu": "Menu",
+    "favorite": "Add to favorites",
+    "unread": "unread"
   },
   "tabbar": {
     "home": "Home",

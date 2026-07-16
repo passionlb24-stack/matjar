@@ -82,7 +82,7 @@ export function MobileMenu({
     <div className="md:hidden">
       <button
         type="button"
-        aria-label="menu"
+        aria-label={dict.common.menu}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-surface-muted"

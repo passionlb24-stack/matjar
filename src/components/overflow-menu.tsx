@@ -32,8 +32,15 @@ export function OverflowMenu({
     function onDoc(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
     document.addEventListener("click", onDoc);
-    return () => document.removeEventListener("click", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("click", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
   }, []);
 
   if (actions.length === 0) return null;

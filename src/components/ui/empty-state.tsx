@@ -28,7 +28,7 @@ export function EmptyState({
       )}
       <p className={`text-muted-foreground ${Icon ? "mt-4" : ""}`}>{title}</p>
       {description && (
-        <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground/80">
+        <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
           {description}
         </p>
       )}

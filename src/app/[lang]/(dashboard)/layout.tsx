@@ -122,6 +122,7 @@ export default async function DashboardLayout({
             </Link>
             <HeaderBells
               lang={lang}
+              dict={dict}
               unreadNotifications={unread ?? 0}
               unreadMessages={(msgCount as number | null) ?? 0}
             />
