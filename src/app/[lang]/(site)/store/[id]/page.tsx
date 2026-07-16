@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import { Clock, MapPin, MessageCircle, Phone, Star, Stethoscope, BadgeCheck, Truck } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
@@ -78,7 +79,12 @@ type StoreView = {
   }[];
 };
 
-async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
+// React cache(): generateMetadata + the page both call loadStore(id) — dedupe
+// the multi-query load into one set per request.
+const loadStore = cache(async function loadStore(
+  id: string,
+  lang: Locale,
+): Promise<StoreView | null> {
   if (UUID_RE.test(id)) {
     const supabase = await createClient();
     const { data } = await supabase
@@ -159,7 +165,7 @@ async function loadStore(id: string, lang: Locale): Promise<StoreView | null> {
     };
   }
   return null;
-}
+});
 
 export async function generateMetadata({
   params,
