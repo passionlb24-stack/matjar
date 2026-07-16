@@ -71,30 +71,35 @@ async function fetchActiveStores(): Promise<Store[]> {
   // otherwise — the pages re-sort for "near me"/rating when the user asks).
   list.sort((a, b) => Number(b.featured ?? false) - Number(a.featured ?? false));
 
-  // Attach real average ratings from reviews.
-  if (list.length) {
-    const ids = list.map((s) => s.id);
-    const { data: revs } = await supabase
-      .from("reviews")
-      .select("store_id, rating")
-      .in("store_id", ids);
-    const agg = new Map<string, { sum: number; count: number }>();
-    ((revs ?? []) as { store_id: string; rating: number }[]).forEach((r) => {
-      const a = agg.get(r.store_id) ?? { sum: 0, count: 0 };
-      a.sum += r.rating;
-      a.count += 1;
-      agg.set(r.store_id, a);
-    });
-    list.forEach((s) => {
-      const a = agg.get(s.id);
-      if (a) {
-        s.rating = a.sum / a.count;
-        s.reviews = a.count;
-      }
-    });
-  }
-
+  await attachRatings(list);
   return list;
+}
+
+// Attaches real average rating + review count to a store list (one query,
+// scoped to just these ids). Extracted so the small featured strip doesn't have
+// to reuse the 200-store listing path.
+async function attachRatings(list: Store[]): Promise<void> {
+  if (!list.length) return;
+  const supabase = await createClient();
+  const ids = list.map((s) => s.id);
+  const { data: revs } = await supabase
+    .from("reviews")
+    .select("store_id, rating")
+    .in("store_id", ids);
+  const agg = new Map<string, { sum: number; count: number }>();
+  ((revs ?? []) as { store_id: string; rating: number }[]).forEach((r) => {
+    const a = agg.get(r.store_id) ?? { sum: 0, count: 0 };
+    a.sum += r.rating;
+    a.count += 1;
+    agg.set(r.store_id, a);
+  });
+  list.forEach((s) => {
+    const a = agg.get(s.id);
+    if (a) {
+      s.rating = a.sum / a.count;
+      s.reviews = a.count;
+    }
+  });
 }
 
 // Marks which stores the current user has saved (followed).
@@ -155,13 +160,26 @@ export async function searchStores(
 
 // Homepage "featured" strip = PAYING stores only: Pro plan, or a store an admin
 // flagged featured (featured_until in the future). Free stores never appear here
-// — the strip is a paid placement.
+// — the strip is a paid placement. Dedicated limit-bound query (was reusing the
+// 200-store listing + all-reviews path just to slice 4).
 export async function getFeaturedStores(limit = 4): Promise<Store[]> {
-  const real = (await fetchActiveStores()).filter(
-    (s) => s.plan === "pro" || s.featured,
-  );
-  // Featured (paid) first, then Pro.
+  const supabase = await createClient();
+  const nowIso = new Date().toISOString();
+  const { data } = await supabase
+    .from("stores")
+    .select(
+      "id, name, area, region, plan, is_verified, commercial_reg_verified, featured_until, logo_url, cover_url, lat, lng, hours, business_types(slug)",
+    )
+    .eq("status", "active")
+    .is("deleted_at", null)
+    .or(`plan.eq.pro,featured_until.gt.${nowIso}`)
+    .limit(limit);
+  const real = (
+    (data ?? []) as unknown as Parameters<typeof rowToStore>[0][]
+  ).map(rowToStore);
+  // Featured (paid placement) floats above plain Pro.
   real.sort((a, b) => Number(b.featured ?? false) - Number(a.featured ?? false));
+  await attachRatings(real);
   if (!SHOW_DEMO_STORES) return markFavorites(real.slice(0, limit));
   const realIds = new Set(real.map((s) => s.id));
   return markFavorites(
