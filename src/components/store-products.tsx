@@ -25,6 +25,7 @@ type Product = {
   flashPrice?: number | null;
   flashStart?: string | null;
   flashEnd?: string | null;
+  stock?: number | null;
 };
 
 function PriceTag({ p }: { p: Product }) {
@@ -131,6 +132,7 @@ export function StoreProducts({
   const [orderError, setOrderError] = useState<string | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
   const fulfillmentOptions = (["delivery", "pickup"] as const).filter((o) =>
     o === "delivery" ? acceptsDelivery : acceptsPickup,
   );
@@ -150,10 +152,15 @@ export function StoreProducts({
   const addLabel = isBooking ? dict.store.book : dict.store.order;
 
   function setQty(id: string, qty: number) {
+    // Never let the cart exceed tracked stock — overselling is also caught
+    // server-side, but capping here keeps the UI honest.
+    const p = products.find((x) => x.id === id);
+    const max = p?.stock != null ? p.stock : Infinity;
+    const clamped = Math.min(qty, max);
     setCart((c) => {
       const next = { ...c };
-      if (qty <= 0) delete next[id];
-      else next[id] = qty;
+      if (clamped <= 0) delete next[id];
+      else next[id] = clamped;
       return next;
     });
   }
@@ -255,6 +262,7 @@ export function StoreProducts({
         return;
       }
       setCheckingOut(false);
+      setPlacedOrderId(guestOrderId as string);
       setOrderPlaced(true);
       setCart({});
       return;
@@ -293,6 +301,8 @@ export function StoreProducts({
   }
 
   function Stepper({ id, qty }: { id: string; qty: number }) {
+    const p = products.find((x) => x.id === id);
+    const atMax = p?.stock != null && qty >= p.stock;
     return (
       <div className="flex items-center gap-2">
         <button
@@ -305,7 +315,8 @@ export function StoreProducts({
         <span className="w-5 text-center font-bold">{qty}</span>
         <button
           onClick={() => setQty(id, qty + 1)}
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-border transition-colors hover:bg-surface-muted"
+          disabled={atMax}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-border transition-colors hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-40"
           aria-label="+"
         >
           <Plus className="h-4 w-4" />
@@ -357,8 +368,17 @@ export function StoreProducts({
                   <p className="mt-1">
                     <PriceTag p={p} />
                   </p>
+                  {p.stock != null && p.stock > 0 && p.stock <= 5 && (
+                    <p className="mt-1 text-xs font-bold text-amber-600">
+                      {dict.store.onlyLeft.replace("{n}", String(p.stock))}
+                    </p>
+                  )}
                   <div className="mt-3 flex justify-end">
-                    {qty > 0 ? (
+                    {p.stock != null && p.stock <= 0 ? (
+                      <span className="w-full rounded-lg bg-surface-muted px-3.5 py-2 text-center text-sm font-bold text-muted-foreground">
+                        {dict.store.soldOut}
+                      </span>
+                    ) : qty > 0 ? (
                       <Stepper id={p.id} qty={qty} />
                     ) : (
                       <button
@@ -395,9 +415,18 @@ export function StoreProducts({
                   )}
                   <p className="mt-0.5 text-sm">
                     <PriceTag p={p} />
+                    {p.stock != null && p.stock > 0 && p.stock <= 5 && (
+                      <span className="ms-2 text-xs font-bold text-amber-600">
+                        {dict.store.onlyLeft.replace("{n}", String(p.stock))}
+                      </span>
+                    )}
                   </p>
                 </div>
-                {qty > 0 ? (
+                {p.stock != null && p.stock <= 0 ? (
+                  <span className="shrink-0 rounded-lg bg-surface-muted px-3.5 py-2 text-sm font-bold text-muted-foreground">
+                    {dict.store.soldOut}
+                  </span>
+                ) : qty > 0 ? (
                   <Stepper id={p.id} qty={qty} />
                 ) : (
                   <button
@@ -436,15 +465,29 @@ export function StoreProducts({
                 {dict.store.notifyMerchantWa}
               </a>
             )}
-            {loggedIn && (
+            {loggedIn ? (
               <Link
                 href={`/${lang}/orders`}
                 className="rounded-xl border border-border bg-surface px-5 py-3 text-sm font-bold transition-colors hover:border-primary hover:text-primary"
               >
                 {dict.store.viewMyOrders}
               </Link>
+            ) : (
+              placedOrderId && (
+                <Link
+                  href={`/${lang}/track/${placedOrderId}`}
+                  className="rounded-xl border border-border bg-surface px-5 py-3 text-sm font-bold transition-colors hover:border-primary hover:text-primary"
+                >
+                  {dict.os.track.trackLink}
+                </Link>
+              )
             )}
           </div>
+          {!loggedIn && placedOrderId && (
+            <p className="mt-3 text-xs font-semibold text-muted-foreground">
+              {dict.os.track.saveLink}
+            </p>
+          )}
         </div>
       ) : items.length > 0 &&
         (checkingOut ? (
