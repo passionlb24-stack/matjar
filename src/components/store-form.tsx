@@ -40,18 +40,35 @@ export function StoreForm({
       router.push(`/${lang}/login`);
       return;
     }
-    const { error } = await supabase.from("stores").insert({
-      owner_id: user.id,
-      name: String(form.get("name")),
-      business_type_id: String(form.get("business_type_id")) || null,
-      region: String(form.get("region")) || null,
-      area: String(form.get("area")) || null,
-      phone: String(form.get("phone")) || null,
-      whatsapp: String(form.get("whatsapp")) || null,
-      description: String(form.get("description")) || null,
-    });
-    if (error) {
-      setError(dict.auth.errorGeneric);
+    const name = String(form.get("name") ?? "").trim();
+    if (!name) {
+      setError(dict.merchant.storeNameRequired);
+      setLoading(false);
+      return;
+    }
+    const { data: created, error } = await supabase
+      .from("stores")
+      .insert({
+        owner_id: user.id,
+        name,
+        business_type_id: String(form.get("business_type_id")) || null,
+        region: String(form.get("region")) || null,
+        area: String(form.get("area")) || null,
+        phone: String(form.get("phone")) || null,
+        whatsapp: String(form.get("whatsapp")) || null,
+        description: String(form.get("description")) || null,
+      })
+      .select("id")
+      .single();
+    // Surface the real reason (RLS, constraint, network) instead of a generic
+    // "something went wrong" — a merchant who hits this can now tell support
+    // exactly what failed, and we can confirm the row actually persisted.
+    if (error || !created?.id) {
+      setError(
+        error?.message
+          ? `${dict.merchant.createFailed} (${error.message})`
+          : dict.auth.errorGeneric,
+      );
       setLoading(false);
       return;
     }

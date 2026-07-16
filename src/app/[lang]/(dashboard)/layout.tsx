@@ -65,6 +65,18 @@ export default async function DashboardLayout({
     supabase.rpc("unread_conversation_count"),
   ]);
 
+  // Admins: how many stores are waiting for review, surfaced as a badge so a
+  // pending store is never missed.
+  let pendingStores = 0;
+  if (isAdmin) {
+    const { count } = await supabase
+      .from("stores")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending")
+      .is("deleted_at", null);
+    pendingStores = count ?? 0;
+  }
+
   return (
     <div className="flex min-h-dvh flex-col bg-surface-muted/30">
       <header className="sticky top-0 z-50 border-b border-border bg-background print:hidden">
@@ -88,9 +100,14 @@ export default async function DashboardLayout({
               {isAdmin && (
                 <Link
                   href={`/${lang}/admin`}
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
                 >
                   {dict.dashboard.admin}
+                  {pendingStores > 0 && (
+                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white">
+                      {pendingStores > 9 ? "9+" : pendingStores}
+                    </span>
+                  )}
                 </Link>
               )}
             </nav>

@@ -420,6 +420,8 @@
     "noStoresBody": "Open your first store and start receiving orders and bookings.",
     "createTitle": "Open your store",
     "createSubtitle": "Fill in the basics and get going — you can complete the details later.",
+    "storeNameRequired": "Store name is required.",
+    "createFailed": "Couldn't create the store. Try again, and if it keeps failing send us this message",
     "storeName": "Store name",
     "storeNamePlaceholder": "e.g. Beit El Zeitoun",
     "businessType": "Business type",
@@ -1459,7 +1461,8 @@
     "listingApproved": "Your Sunday Market listing was approved",
     "listingRejected": "Your Sunday Market listing was rejected",
     "listingMatch": "A new listing matches your saved search 🔔",
-    "message": "New message 💬"
+    "message": "New message 💬",
+    "storeNew": "A new store is awaiting review 🏪"
   },
   "dashboard": {
     "panel": "Dashboard",
