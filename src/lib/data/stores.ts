@@ -153,8 +153,15 @@ export async function searchStores(
   return markFavorites(list);
 }
 
+// Homepage "featured" strip = PAYING stores only: Pro plan, or a store an admin
+// flagged featured (featured_until in the future). Free stores never appear here
+// — the strip is a paid placement.
 export async function getFeaturedStores(limit = 4): Promise<Store[]> {
-  const real = await fetchActiveStores();
+  const real = (await fetchActiveStores()).filter(
+    (s) => s.plan === "pro" || s.featured,
+  );
+  // Featured (paid) first, then Pro.
+  real.sort((a, b) => Number(b.featured ?? false) - Number(a.featured ?? false));
   if (!SHOW_DEMO_STORES) return markFavorites(real.slice(0, limit));
   const realIds = new Set(real.map((s) => s.id));
   return markFavorites(

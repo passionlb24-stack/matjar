@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight, ExternalLink } from "lucide-react";
+import { ChevronRight, ExternalLink, Lock } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -51,7 +51,7 @@ export default async function StoreOsHomePage({
   const { data: store } = await supabase
     .from("stores")
     .select(
-      "id, name, owner_id, short_code, logo_url, cover_url, description, opening_hours, whatsapp, business_types(slug, name_ar, name_en)",
+      "id, name, owner_id, short_code, plan, logo_url, cover_url, description, opening_hours, whatsapp, business_types(slug, name_ar, name_en)",
     )
     .eq("id", storeId)
     .maybeSingle();
@@ -61,6 +61,7 @@ export default async function StoreOsHomePage({
     name: string;
     owner_id: string;
     short_code: string;
+    plan: "free" | "pro" | null;
     logo_url: string | null;
     cover_url: string | null;
     description: string | null;
@@ -68,6 +69,7 @@ export default async function StoreOsHomePage({
     whatsapp: string | null;
     business_types: { slug: string; name_ar: string; name_en: string } | null;
   };
+  const storeIsPro = s.plan === "pro";
   const category = (s.business_types?.slug as CategoryKey) ?? "retail";
   const sector = getSector(category);
   const typeName =
@@ -309,22 +311,40 @@ export default async function StoreOsHomePage({
                 {visible.map((key) => {
                   const meta = OS_MODULE_META[key];
                   const badge = badges[key] ?? 0;
+                  const locked = !!meta.pro && !storeIsPro;
                   return (
                     <Link
                       key={key}
                       href={`/${lang}/merchant/${storeId}/${meta.path}`}
-                      className="group relative flex flex-col items-center gap-2 rounded-2xl border border-border bg-surface p-4 text-center transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+                      className={`group relative flex flex-col items-center gap-2 rounded-2xl border p-4 text-center transition-all hover:-translate-y-0.5 hover:shadow-md ${
+                        locked
+                          ? "border-amber-200 bg-amber-50/40 hover:border-amber-300"
+                          : "border-border bg-surface hover:border-primary/30"
+                      }`}
                     >
-                      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-soft text-primary transition-transform group-hover:scale-105">
+                      <span
+                        className={`flex h-11 w-11 items-center justify-center rounded-xl transition-transform group-hover:scale-105 ${
+                          locked
+                            ? "bg-amber-100 text-amber-500"
+                            : "bg-primary-soft text-primary"
+                        }`}
+                      >
                         <meta.Icon className="h-5 w-5" />
                       </span>
                       <span className="text-xs font-semibold leading-tight">
                         {moduleLabel[key]}
                       </span>
-                      {badge > 0 && (
-                        <span className="absolute end-2 top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white">
-                          {badge > 9 ? "9+" : badge}
+                      {locked ? (
+                        <span className="absolute end-2 top-2 flex items-center gap-0.5 rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                          <Lock className="h-2.5 w-2.5" />
+                          {dict.os.pro.badge}
                         </span>
+                      ) : (
+                        badge > 0 && (
+                          <span className="absolute end-2 top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white">
+                            {badge > 9 ? "9+" : badge}
+                          </span>
+                        )
                       )}
                     </Link>
                   );

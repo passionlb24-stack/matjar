@@ -60,22 +60,29 @@ export const OS_GROUPS: OsGroupKey[] = ["daily", "people", "money", "store"];
 
 export const OS_MODULE_META: Record<
   OsModuleKey,
-  { Icon: LucideIcon; path: string; ownerOnly?: boolean; perm?: "orders" | "bookings" | "products" }
+  {
+    Icon: LucideIcon;
+    path: string;
+    ownerOnly?: boolean;
+    perm?: "orders" | "bookings" | "products";
+    /** Requires the Pro plan (free stores see a lock + upsell). */
+    pro?: boolean;
+  }
 > = {
   orders: { Icon: ClipboardList, path: "orders", perm: "orders" },
   bookings: { Icon: CalendarCheck, path: "bookings", perm: "bookings" },
   items: { Icon: Package, path: "items", perm: "products" },
-  doctors: { Icon: Stethoscope, path: "doctors", perm: "bookings" },
-  customers: { Icon: Users, path: "customers", perm: "orders" },
-  staff: { Icon: UserCog, path: "staff", ownerOnly: true },
-  tasks: { Icon: ListTodo, path: "tasks" },
-  inventory: { Icon: Boxes, path: "inventory", perm: "products" },
-  pos: { Icon: Calculator, path: "pos", perm: "orders" },
-  suppliers: { Icon: Handshake, path: "suppliers", perm: "orders" },
-  kitchen: { Icon: ChefHat, path: "kitchen", perm: "orders" },
-  reports: { Icon: BarChart3, path: "reports", perm: "orders" },
-  accounting: { Icon: Wallet, path: "accounting", perm: "orders" },
-  coupons: { Icon: Ticket, path: "coupons", ownerOnly: true },
+  doctors: { Icon: Stethoscope, path: "doctors", perm: "bookings", pro: true },
+  customers: { Icon: Users, path: "customers", perm: "orders", pro: true },
+  staff: { Icon: UserCog, path: "staff", ownerOnly: true, pro: true },
+  tasks: { Icon: ListTodo, path: "tasks", pro: true },
+  inventory: { Icon: Boxes, path: "inventory", perm: "products", pro: true },
+  pos: { Icon: Calculator, path: "pos", perm: "orders", pro: true },
+  suppliers: { Icon: Handshake, path: "suppliers", perm: "orders", pro: true },
+  kitchen: { Icon: ChefHat, path: "kitchen", perm: "orders", pro: true },
+  reports: { Icon: BarChart3, path: "reports", perm: "orders", pro: true },
+  accounting: { Icon: Wallet, path: "accounting", perm: "orders", pro: true },
+  coupons: { Icon: Ticket, path: "coupons", ownerOnly: true, pro: true },
   subscription: { Icon: CreditCard, path: "subscription", ownerOnly: true },
   settings: { Icon: Settings, path: "settings", ownerOnly: true },
   edit: { Icon: Pencil, path: "edit", ownerOnly: true },
