@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { OrderStatusControl } from "@/components/order-status-control";
+import { OrderPayments, type OrderPayment } from "@/components/order-payments";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -66,6 +67,19 @@ export default async function StoreOrdersPage({
     .eq("store_id", storeId)
     .order("created_at", { ascending: false });
   const orders = (data ?? []) as unknown as OrderRow[];
+
+  // Money ledger for these orders, grouped by order id.
+  const { data: payData } = await supabase
+    .from("order_payments")
+    .select("id, order_id, kind, amount, method, note, created_at")
+    .eq("store_id", storeId)
+    .order("created_at", { ascending: true });
+  const paymentsByOrder = new Map<string, OrderPayment[]>();
+  ((payData ?? []) as (OrderPayment & { order_id: string })[]).forEach((p) => {
+    const list = paymentsByOrder.get(p.order_id) ?? [];
+    list.push(p);
+    paymentsByOrder.set(p.order_id, list);
+  });
 
   return (
     <div className="py-10">
@@ -153,6 +167,11 @@ export default async function StoreOrdersPage({
                     <p className="italic">“{order.customer_note}”</p>
                   )}
                 </div>
+                <OrderPayments
+                  orderId={order.id}
+                  payments={paymentsByOrder.get(order.id) ?? []}
+                  dict={dict}
+                />
               </div>
             ))}
           </div>

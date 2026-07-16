@@ -916,6 +916,25 @@
     "suspendedTitle": "Your account is suspended",
     "suspendedBody": "Your account has been suspended by an admin. Contact us for more information."
   },
+  "payments": {
+    "title": "Payments & refunds",
+    "ledgerEmpty": "No money movements yet.",
+    "paid": "Paid",
+    "refunded": "Refunded",
+    "net": "Net",
+    "record": "Record entry",
+    "kind": "Type",
+    "payment": "Payment",
+    "refund": "Refund",
+    "amount": "Amount",
+    "method": "Method",
+    "methodHint": "Cash, transfer, card…",
+    "note": "Note",
+    "save": "Save",
+    "cancel": "Cancel",
+    "exceedsTotal": "Amount exceeds the order value.",
+    "confirmRefund": "Record a refund for this order?"
+  },
   "orders": {
     "title": "My orders",
     "empty": "You don't have any orders yet.",
