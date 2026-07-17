@@ -46,7 +46,8 @@
       "edit": "تعديل",
       "delete": "حذف",
       "confirmDelete": "متأكد إنك بدّك تحذف هالفرع؟",
-      "cantDeletePrimary": "ما فيك تحذف الفرع الرئيسي وهو الوحيد.",
+      "cantDeletePrimary": "ما فيك تحذف الفرع الرئيسي — اجعل فرعاً آخر رئيسيّاً أولاً.",
+      "makePrimary": "اجعله الفرع الرئيسي",
       "branchLabel": "الفرع"
     },
     "branchesPublic": {
@@ -1015,6 +1016,7 @@
     "save": "حفظ",
     "cancel": "إلغاء",
     "exceedsTotal": "المبلغ بيتجاوز قيمة الطلب.",
+    "exceedsPaid": "الاسترجاع بيتجاوز المبلغ المُحصّل.",
     "confirmRefund": "متأكد إنك بدّك تسجّل استرجاع؟"
   },
   "orders": {

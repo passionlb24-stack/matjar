@@ -63,10 +63,13 @@ export function OrderPayments({
     });
     setBusy(false);
     if (error) {
+      const m = error.message ?? "";
       notifyError(
-        error.message?.includes("exceeds_total")
-          ? t.exceedsTotal
-          : dict.common.actionFailed,
+        m.includes("exceeds_paid")
+          ? t.exceedsPaid
+          : m.includes("exceeds_total")
+            ? t.exceedsTotal
+            : dict.common.actionFailed,
       );
       return;
     }

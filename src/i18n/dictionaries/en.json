@@ -46,7 +46,8 @@
       "edit": "Edit",
       "delete": "Delete",
       "confirmDelete": "Delete this branch?",
-      "cantDeletePrimary": "You can't delete the primary branch while it's the only one.",
+      "cantDeletePrimary": "You can't delete the primary branch — make another branch primary first.",
+      "makePrimary": "Make primary branch",
       "branchLabel": "Branch"
     },
     "branchesPublic": {
@@ -1015,6 +1016,7 @@
     "save": "Save",
     "cancel": "Cancel",
     "exceedsTotal": "Amount exceeds the order value.",
+    "exceedsPaid": "Refund exceeds the amount collected.",
     "confirmRefund": "Record a refund for this order?"
   },
   "orders": {

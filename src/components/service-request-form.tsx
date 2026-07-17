@@ -73,16 +73,23 @@ export function ServiceRequestForm({
   async function submit() {
     if (!description.trim() || phone.trim().length < 4 || busy || !uid) return;
     setBusy(true);
-    const { error } = await createClient().from("service_requests").insert({
-      store_id: storeId,
-      customer_id: uid,
-      customer_name: name.trim() || null,
-      phone: phone.trim(),
-      address: address.trim() || null,
-      description: description.trim(),
-    });
+    const desc = description.trim();
+    // Return the real row so the optimistic entry carries its DB id (needed for
+    // an immediate cancel — a fabricated id would miss on the RPC).
+    const { data: created, error } = await createClient()
+      .from("service_requests")
+      .insert({
+        store_id: storeId,
+        customer_id: uid,
+        customer_name: name.trim() || null,
+        phone: phone.trim(),
+        address: address.trim() || null,
+        description: desc,
+      })
+      .select("id")
+      .single();
     setBusy(false);
-    if (error) {
+    if (error || !created) {
       notifyError(dict.common.actionFailed);
       return;
     }
@@ -90,12 +97,12 @@ export function ServiceRequestForm({
     setDescription("");
     setAddress("");
     router.refresh();
-    // Reflect the new request locally.
+    // Reflect the new request locally with its real id.
     setMine((m) => [
       {
-        id: crypto.randomUUID(),
+        id: (created as { id: string }).id,
         status: "pending",
-        description: description.trim(),
+        description: desc,
         quote_amount: null,
         quote_note: null,
       },
