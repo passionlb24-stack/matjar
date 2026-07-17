@@ -13,6 +13,7 @@ const MAX = 12;
 type Row = {
   id: string;
   name: string;
+  nameEn: string | null;
   price: number;
   discountPrice: number | null;
   imageUrl: string | null;
@@ -55,7 +56,7 @@ export function RecentlyViewed({
       const supabase = createClient();
       const { data } = await supabase
         .from("products")
-        .select("id, name, price, discount_price, image_url, stores(name)")
+        .select("id, name, name_en, price, discount_price, image_url, stores(name)")
         .in("id", others)
         .eq("status", "active")
         .eq("is_available", true)
@@ -64,6 +65,7 @@ export function RecentlyViewed({
         ((data ?? []) as unknown as {
           id: string;
           name: string;
+          name_en: string | null;
           price: number;
           discount_price: number | null;
           image_url: string | null;
@@ -73,6 +75,7 @@ export function RecentlyViewed({
           {
             id: r.id,
             name: r.name,
+            nameEn: r.name_en,
             price: Number(r.price),
             discountPrice: r.discount_price != null ? Number(r.discount_price) : null,
             imageUrl: r.image_url,
@@ -100,6 +103,7 @@ export function RecentlyViewed({
             lang={lang}
             id={p.id}
             name={p.name}
+            nameEn={p.nameEn}
             price={p.price}
             discountPrice={p.discountPrice}
             imageUrl={p.imageUrl}

@@ -65,6 +65,8 @@ type StoreView = {
   specialties?: string | null;
   insurance?: string | null;
   registered?: boolean;
+  loyaltyRedemptionEnabled?: boolean;
+  loyaltyPointsPerUnit?: number | null;
   isReal: boolean;
   sections: {
     id: string;
@@ -99,7 +101,7 @@ const loadStore = cache(async function loadStore(
     const supabase = await createClient();
     const { data } = await supabase
       .from("stores")
-      .select("name, description, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, hours, booking_slot_minutes, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, business_types(slug)")
+      .select("name, description, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, hours, booking_slot_minutes, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, loyalty_redemption_enabled, loyalty_points_per_unit, business_types(slug)")
       .eq("id", id)
       .is("deleted_at", null)
       .maybeSingle();
@@ -145,6 +147,12 @@ const loadStore = cache(async function loadStore(
         specialties: (data.specialties as string | null) ?? null,
         insurance: (data.insurance as string | null) ?? null,
         registered: (data.commercial_reg_verified as boolean | null) ?? false,
+        loyaltyRedemptionEnabled:
+          (data.loyalty_redemption_enabled as boolean | null) ?? false,
+        loyaltyPointsPerUnit:
+          data.loyalty_points_per_unit != null
+            ? Number(data.loyalty_points_per_unit)
+            : null,
         isReal: true,
         sections: (sects ?? []).map((s) => ({
           id: s.id as string,
@@ -379,6 +387,18 @@ export default async function StorePage({
       .eq("is_active", true)
       .order("is_primary", { ascending: false });
     branches = (locs ?? []) as BranchView[];
+  }
+
+  // Loyalty redemption at checkout: only when the store opted in (0107) and the
+  // signed-in customer actually holds points at this store. my_loyalty_by_store
+  // returns only stores with a positive balance, so a 0 here renders nothing.
+  let loyaltyPoints = 0;
+  if (user && store.isReal && UUID_RE.test(id) && store.loyaltyRedemptionEnabled) {
+    const { data: byStore } = await supabase.rpc("my_loyalty_by_store");
+    const row = ((byStore ?? []) as { store_id: string; balance: number }[]).find(
+      (r) => r.store_id === id,
+    );
+    loyaltyPoints = row ? Number(row.balance) : 0;
   }
 
   const Icon = categoryIcons[store.category];
@@ -708,6 +728,8 @@ export default async function StorePage({
                 whatsapp={store.whatsapp ?? null}
                 storeName={store.name}
                 lbpRate={lbpRate}
+                loyaltyPoints={loyaltyPoints}
+                loyaltyPointsPerUnit={store.loyaltyPointsPerUnit ?? 0}
                 branches={branches.map((b) => ({
                   id: b.id,
                   name: b.name,

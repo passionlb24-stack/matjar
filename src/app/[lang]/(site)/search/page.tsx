@@ -109,6 +109,7 @@ export default async function SearchPage({
                   lang={l}
                   id={p.id}
                   name={p.name}
+                  nameEn={p.nameEn}
                   price={p.price}
                   discountPrice={p.discountPrice}
                   imageUrl={p.imageUrl}

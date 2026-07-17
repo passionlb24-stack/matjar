@@ -84,6 +84,8 @@ export function StoreProducts({
   whatsapp = null,
   storeName = "",
   lbpRate = 0,
+  loyaltyPoints = 0,
+  loyaltyPointsPerUnit = 0,
   branches = [],
   sections = [],
 }: {
@@ -105,6 +107,8 @@ export function StoreProducts({
   whatsapp?: string | null;
   storeName?: string;
   lbpRate?: number;
+  loyaltyPoints?: number;
+  loyaltyPointsPerUnit?: number;
   branches?: {
     id: string;
     name: string | null;
@@ -158,6 +162,10 @@ export function StoreProducts({
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
   const [couponBusy, setCouponBusy] = useState(false);
   const [addressValue, setAddressValue] = useState(defaultAddress);
+  // Loyalty redemption: opt-in per store (0107). Only offered when the customer
+  // actually holds points here and the store set a conversion rate.
+  const canRedeem = loyaltyPoints > 0 && loyaltyPointsPerUnit > 0;
+  const [redeemLoyalty, setRedeemLoyalty] = useState(false);
   // Multi-branch stores: the customer picks a branch before ordering.
   // Defaults to the first entry — the primary (server orders by is_primary desc).
   const [branchId, setBranchId] = useState<string>(branches[0]?.id ?? "");
@@ -187,7 +195,19 @@ export function StoreProducts({
     0,
   );
   const belowMin = minOrder != null && total < minOrder;
-  const finalTotal = Math.max(0, total - couponDiscount);
+  // Points discount mirrors the server: currency value of the whole balance,
+  // rounded to cents, then capped at the order total after the coupon. The RPC
+  // recomputes + re-caps this authoritatively — this is display only.
+  const afterCoupon = Math.max(0, total - couponDiscount);
+  const pointsDiscount =
+    canRedeem && redeemLoyalty
+      ? Math.min(
+          Math.round((loyaltyPoints / loyaltyPointsPerUnit) * 100) / 100,
+          afterCoupon,
+        )
+      : 0;
+  const pointsUsed = Math.round(pointsDiscount * loyaltyPointsPerUnit);
+  const finalTotal = Math.max(0, total - couponDiscount - pointsDiscount);
 
   async function applyCoupon() {
     if (!couponInput.trim()) return;
@@ -315,6 +335,9 @@ export function StoreProducts({
         quantity: cart[p.id],
       })),
       p_location_id: locationId,
+      // Send the full balance; the server caps it to the order total and consumes
+      // only the points that discount is worth. 0 (or opt-out) redeems nothing.
+      p_redeem_points: canRedeem && redeemLoyalty ? loyaltyPoints : 0,
     });
     if (error) {
       const outOfStock = error.message?.includes("insufficient_stock");
@@ -582,19 +605,53 @@ export function StoreProducts({
               )}
             </div>
 
+            {/* Loyalty points redemption (store opt-in + customer has points) */}
+            {canRedeem && (
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-surface-muted/50 p-3">
+                <input
+                  type="checkbox"
+                  checked={redeemLoyalty}
+                  onChange={(e) => setRedeemLoyalty(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-primary"
+                />
+                <span className="text-sm">
+                  <span className="font-semibold">
+                    {dict.store.loyaltyRedeemTitle}
+                  </span>
+                  <span className="mt-0.5 block text-muted-foreground">
+                    {dict.store.loyaltyRedeemDesc.replace(
+                      "{n}",
+                      loyaltyPoints.toLocaleString("en-US"),
+                    )}
+                  </span>
+                </span>
+              </label>
+            )}
+
             {/* Totals */}
             <div className="space-y-1 border-t border-border pt-3 text-sm">
+              {(couponDiscount > 0 || pointsDiscount > 0) && (
+                <div className="flex justify-between text-muted-foreground">
+                  <span>{dict.store.subtotal}</span>
+                  <span>{formatPrice(total)}</span>
+                </div>
+              )}
               {couponDiscount > 0 && (
-                <>
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>{dict.store.subtotal}</span>
-                    <span>{formatPrice(total)}</span>
-                  </div>
-                  <div className="flex justify-between text-primary">
-                    <span>{dict.store.discount}</span>
-                    <span>−{formatPrice(couponDiscount)}</span>
-                  </div>
-                </>
+                <div className="flex justify-between text-primary">
+                  <span>{dict.store.discount}</span>
+                  <span>−{formatPrice(couponDiscount)}</span>
+                </div>
+              )}
+              {pointsDiscount > 0 && (
+                <div className="flex justify-between text-primary">
+                  <span>
+                    {dict.store.loyaltyDiscount.replace(
+                      "{n}",
+                      pointsUsed.toLocaleString("en-US"),
+                    )}
+                  </span>
+                  <span>−{formatPrice(pointsDiscount)}</span>
+                </div>
               )}
               <div className="flex justify-between text-lg font-extrabold">
                 <span>{dict.store.total}</span>

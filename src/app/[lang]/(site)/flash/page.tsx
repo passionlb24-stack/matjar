@@ -27,6 +27,7 @@ export async function generateMetadata({
 type Row = {
   id: string;
   name: string;
+  name_en: string | null;
   price: number;
   flash_price: number;
   image_url: string | null;
@@ -47,7 +48,7 @@ export default async function FlashPage({
   const { data } = await supabase
     .from("products")
     .select(
-      "id, name, price, flash_price, flash_start, flash_end, image_url, stores(name, status, deleted_at)",
+      "id, name, name_en, price, flash_price, flash_start, flash_end, image_url, stores(name, status, deleted_at)",
     )
     .not("flash_price", "is", null)
     .lte("flash_start", nowIso)
@@ -81,6 +82,7 @@ export default async function FlashPage({
                 lang={lang as Locale}
                 id={p.id}
                 name={p.name}
+                nameEn={p.name_en}
                 price={Number(p.price)}
                 discountPrice={Number(p.flash_price)}
                 imageUrl={p.image_url}

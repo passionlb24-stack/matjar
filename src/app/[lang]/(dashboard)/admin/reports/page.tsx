@@ -6,25 +6,6 @@ import { createClient } from "@/lib/supabase/server";
 import { regions } from "@/lib/catalog";
 import { Container } from "@/components/ui/container";
 
-type StoreRow = {
-  id: string;
-  name: string;
-  status: string;
-  region: string | null;
-  plan: string;
-  business_types: { name_ar: string; name_en: string } | null;
-};
-
-function tally<T>(items: T[], key: (t: T) => string | null | undefined) {
-  const map = new Map<string, number>();
-  for (const it of items) {
-    const k = key(it);
-    if (!k) continue;
-    map.set(k, (map.get(k) ?? 0) + 1);
-  }
-  return map;
-}
-
 function Bars({
   title,
   rows,
@@ -74,18 +55,14 @@ export default async function AdminReportsPage({
   const l = lang as Locale;
 
   const supabase = await createClient();
-  // Headline KPIs are aggregated server-side (super_admin gated): counting rows
-  // fetched into the page silently truncated past PostgREST's 1000-row cap, so
-  // total orders / Pro conversion read low at scale. The distribution bars below
-  // still fetch rows (best-effort breakdowns, not exact platform totals).
-  const [reportRes, storesRes, profilesRes, ordersRes] = await Promise.all([
+  // Both the headline KPIs and the distribution bars are aggregated server-side
+  // (super_admin gated). Counting rows fetched into the page silently truncated
+  // past PostgREST's 1000-row cap, so totals and breakdowns — especially users by
+  // role, from the large profiles table — read low at scale with no error. The
+  // RPCs compute every figure with unbounded aggregates in one round-trip each.
+  const [reportRes, distRes] = await Promise.all([
     supabase.rpc("admin_platform_report"),
-    supabase
-      .from("stores")
-      .select("id, name, status, region, plan, business_types(name_ar, name_en)")
-      .is("deleted_at", null),
-    supabase.from("profiles").select("role"),
-    supabase.from("orders").select("store_id"),
+    supabase.rpc("admin_report_distributions"),
   ]);
 
   const report = (reportRes.data ?? {}) as {
@@ -94,37 +71,41 @@ export default async function AdminReportsPage({
     pro_stores?: number;
     conversion?: number;
   };
-  const stores = (storesRes.data ?? []) as unknown as StoreRow[];
-  const profiles = (profilesRes.data ?? []) as { role: string }[];
-  const orders = (ordersRes.data ?? []) as { store_id: string }[];
+  const dist = (distRes.data ?? {}) as {
+    by_status?: { status: string; count: number }[];
+    by_region?: { region: string; count: number }[];
+    by_type?: { name_ar: string; name_en: string; count: number }[];
+    by_role?: { role: string; count: number }[];
+    top_stores?: { name: string; count: number }[];
+  };
 
   const regionName = (key: string) =>
     regions.find((r) => r.key === key)?.name[l] ?? key;
 
-  const byStatus = [...tally(stores, (s) => s.status)].map(([k, v]) => ({
+  const byStatus = (dist.by_status ?? []).map((r) => ({
     label:
-      (dict.admin.storesAdmin.statusLabels as Record<string, string>)[k] ?? k,
-    value: v,
+      (dict.admin.storesAdmin.statusLabels as Record<string, string>)[
+        r.status
+      ] ?? r.status,
+    value: r.count,
   }));
-  const byRegion = [...tally(stores, (s) => s.region)]
-    .map(([k, v]) => ({ label: regionName(k), value: v }))
-    .sort((a, b) => b.value - a.value);
-  const byType = [...tally(stores, (s) =>
-    s.business_types ? (l === "ar" ? s.business_types.name_ar : s.business_types.name_en) : null,
-  )]
-    .map(([k, v]) => ({ label: k, value: v }))
-    .sort((a, b) => b.value - a.value);
-  const byRole = [...tally(profiles, (p) => p.role)].map(([k, v]) => ({
-    label: (dict.admin.usersAdmin.roles as Record<string, string>)[k] ?? k,
-    value: v,
+  const byRegion = (dist.by_region ?? []).map((r) => ({
+    label: regionName(r.region),
+    value: r.count,
   }));
-
-  const orderByStore = tally(orders, (o) => o.store_id);
-  const topStores = stores
-    .map((s) => ({ label: s.name, value: orderByStore.get(s.id) ?? 0 }))
-    .filter((s) => s.value > 0)
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 8);
+  const byType = (dist.by_type ?? []).map((r) => ({
+    label: l === "ar" ? r.name_ar : r.name_en,
+    value: r.count,
+  }));
+  const byRole = (dist.by_role ?? []).map((r) => ({
+    label: (dict.admin.usersAdmin.roles as Record<string, string>)[r.role] ??
+      r.role,
+    value: r.count,
+  }));
+  const topStores = (dist.top_stores ?? []).map((r) => ({
+    label: r.name,
+    value: r.count,
+  }));
 
   const kpis = [
     { label: t.totalOrders, value: report.total_orders ?? 0 },

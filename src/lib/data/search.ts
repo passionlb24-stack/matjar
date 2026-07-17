@@ -8,6 +8,7 @@ import { getActiveListings, type ListingCard } from "./market";
 export type ProductResult = {
   id: string;
   name: string;
+  nameEn: string | null;
   price: number;
   discountPrice: number | null;
   imageUrl: string | null;
@@ -27,7 +28,7 @@ async function searchProducts(q: string): Promise<ProductResult[]> {
   const { data } = await supabase
     .from("products")
     .select(
-      "id, name, price, discount_price, image_url, stores!inner(name, status)",
+      "id, name, name_en, price, discount_price, image_url, stores!inner(name, status)",
     )
     .eq("status", "active")
     .eq("is_available", true)
@@ -38,6 +39,7 @@ async function searchProducts(q: string): Promise<ProductResult[]> {
   const rows = (data ?? []) as unknown as {
     id: string;
     name: string;
+    name_en: string | null;
     price: number;
     discount_price: number | null;
     image_url: string | null;
@@ -49,6 +51,7 @@ async function searchProducts(q: string): Promise<ProductResult[]> {
     .map((r) => ({
       id: r.id,
       name: r.name,
+      nameEn: r.name_en,
       price: Number(r.price),
       discountPrice: r.discount_price != null ? Number(r.discount_price) : null,
       imageUrl: r.image_url,
