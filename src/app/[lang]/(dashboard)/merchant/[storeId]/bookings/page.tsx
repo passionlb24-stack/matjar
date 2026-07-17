@@ -19,6 +19,7 @@ type BookingRow = {
   requested_time: string | null;
   customer_name: string | null;
   notes: string | null;
+  doctors: { name: string } | null;
 };
 
 export default async function StoreBookingsPage({
@@ -52,13 +53,15 @@ export default async function StoreBookingsPage({
   const { data } = await supabase
     .from("bookings")
     .select(
-      "id, status, service_name, requested_date, requested_time, customer_name, notes",
+      "id, status, service_name, requested_date, requested_time, customer_name, notes, doctors(name)",
     )
     .eq("store_id", storeId)
     .order("requested_date", { ascending: true, nullsFirst: false })
     .order("requested_time", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false });
-  const bookings = (data ?? []) as BookingRow[];
+  // PostgREST types the doctors embed as an array; at runtime a to-one FK
+  // returns a single object (or null), which is what BookingRow expects.
+  const bookings = (data ?? []) as unknown as BookingRow[];
 
   return (
     <div className="py-10">
@@ -84,7 +87,14 @@ export default async function StoreBookingsPage({
               >
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="font-bold">{b.service_name ?? "—"}</p>
+                    <p className="font-bold">
+                      {b.service_name ?? "—"}
+                      {b.doctors?.name && (
+                        <span className="ms-2 text-sm font-semibold text-primary">
+                          · {b.doctors.name}
+                        </span>
+                      )}
+                    </p>
                     <p className="mt-0.5 text-sm text-muted-foreground">
                       {b.customer_name}
                       {b.requested_date ? ` · ${b.requested_date}` : ""}

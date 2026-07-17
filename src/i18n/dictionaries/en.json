@@ -1130,6 +1130,7 @@
   "booking": {
     "title": "Book an appointment",
     "selectService": "Select a service",
+    "selectDoctor": "Choose a doctor",
     "date": "Date",
     "time": "Time",
     "notes": "Notes",

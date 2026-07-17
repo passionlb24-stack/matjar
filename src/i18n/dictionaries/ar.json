@@ -1130,6 +1130,7 @@
   "booking": {
     "title": "احجز موعد",
     "selectService": "اختر الخدمة",
+    "selectDoctor": "اختر الطبيب",
     "date": "التاريخ",
     "time": "الوقت",
     "notes": "ملاحظات",
