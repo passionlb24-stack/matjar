@@ -16,6 +16,7 @@ import {
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
+import { revalidateStores } from "@/lib/cache-actions";
 import { regions } from "@/lib/catalog";
 import { Container } from "@/components/ui/container";
 import { OverflowMenu, type OverflowAction } from "@/components/overflow-menu";
@@ -74,6 +75,7 @@ export function AdminStoresClient({
       window.alert(dict.auth.errorGeneric);
       return;
     }
+    await revalidateStores();
     router.refresh();
   }
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { revalidateStores } from "@/lib/cache-actions";
 
 export function AdminStoreActions({
   storeId,
@@ -33,6 +34,7 @@ export function AdminStoreActions({
       window.alert(errorLabel);
       return;
     }
+    await revalidateStores();
     router.refresh();
   }
 

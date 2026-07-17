@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Navigation, Loader2, Landmark, ShieldCheck, ChevronDown } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { revalidateStores } from "@/lib/cache-actions";
 import { getCurrentPosition } from "@/lib/native";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
@@ -91,6 +92,7 @@ export function StoreSettingsForm({
       return;
     }
     setLoading(false);
+    await revalidateStores();
     setSaved(true);
     router.refresh();
   }

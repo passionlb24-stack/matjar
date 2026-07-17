@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { revalidateStores } from "@/lib/cache-actions";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { ImageUpload } from "@/components/image-upload";
@@ -86,6 +87,7 @@ export function EditStoreForm({
       setLoading(false);
       return;
     }
+    await revalidateStores();
     router.push(`/${lang}/merchant/${storeId}`);
     router.refresh();
   }

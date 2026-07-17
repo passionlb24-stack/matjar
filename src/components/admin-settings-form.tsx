@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { notifyError } from "@/lib/notify";
+import { revalidateRate } from "@/lib/cache-actions";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
 export function AdminSettingsForm({
@@ -36,6 +37,7 @@ export function AdminSettingsForm({
       notifyError(dict.common.actionFailed);
       return;
     }
+    await revalidateRate();
     setSaved(true);
     router.refresh();
   }
