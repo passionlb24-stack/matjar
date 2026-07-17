@@ -12,7 +12,6 @@ import { ExpenseManager, type Expense } from "@/components/expense-manager";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const DEAD = new Set(["cancelled", "rejected"]);
 
 function money(n: number) {
   return n >= 1000 ? `$${Number(n).toLocaleString("en-US")}` : `$${n}`;
@@ -65,45 +64,33 @@ export default async function AccountingPage({
     if (!(perms.orders ?? false)) redirect(`/${lang}/merchant/${storeId}`);
   }
 
-  const [
-    { data: ordersData },
-    { data: expData },
-    { data: posData },
-    { data: supTxData },
-  ] = await Promise.all([
-    supabase.from("orders").select("total, status").eq("store_id", storeId),
+  const [{ data: acctData }, { data: expData }] = await Promise.all([
+    // Money totals aggregated server-side (migration 0087) so they can't
+    // truncate past the 1000-row cap. The expense LIST below is display-only and
+    // bounded — its total comes from the RPC, not from summing the fetched rows.
+    supabase.rpc("store_accounting", { p_store_id: storeId }),
     supabase
       .from("store_expenses")
       .select("id, label, amount, category, spent_on")
       .eq("store_id", storeId)
-      .order("spent_on", { ascending: false }),
-    supabase.from("pos_sales").select("total").eq("store_id", storeId),
-    supabase
-      .from("supplier_transactions")
-      .select("kind, amount")
-      .eq("store_id", storeId),
+      .order("spent_on", { ascending: false })
+      .limit(200),
   ]);
 
-  const orders = (ordersData ?? []) as { total: number; status: string }[];
+  const acct = (acctData ?? {}) as {
+    online_revenue?: number;
+    pos_revenue?: number;
+    total_expenses?: number;
+    supplier_dues?: number;
+  };
   const expenses = (expData ?? []) as Expense[];
 
-  const onlineRevenue = orders
-    .filter((o) => !DEAD.has(o.status))
-    .reduce((s, o) => s + Number(o.total), 0);
-  const posRevenue = ((posData ?? []) as { total: number }[]).reduce(
-    (s, r) => s + Number(r.total),
-    0,
-  );
+  const onlineRevenue = Number(acct.online_revenue ?? 0);
+  const posRevenue = Number(acct.pos_revenue ?? 0);
   const revenue = onlineRevenue + posRevenue;
-  const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
+  const totalExpenses = Number(acct.total_expenses ?? 0);
   const profit = revenue - totalExpenses;
-  // What the store still owes suppliers (purchases − payments).
-  const supplierDues = (
-    (supTxData ?? []) as { kind: string; amount: number }[]
-  ).reduce(
-    (s, x) => s + (x.kind === "purchase" ? Number(x.amount) : -Number(x.amount)),
-    0,
-  );
+  const supplierDues = Number(acct.supplier_dues ?? 0);
 
   return (
     <div className="py-10">
