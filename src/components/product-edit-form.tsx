@@ -26,6 +26,7 @@ function toLocalInput(iso: string): string {
 
 type VariantRow = { label: string; price: string; stock: string };
 type OptionRow = { name: string; price: string };
+export type SectionOption = { id: string; name: string; name_en: string | null };
 
 export type ProductInitial = {
   name: string;
@@ -37,6 +38,7 @@ export type ProductInitial = {
   imageUrl: string | null;
   gallery: string[];
   stock: string;
+  sectionId: string;
   dealToday: boolean;
   flashPrice: string;
   flashStart: string; // datetime-local value ("YYYY-MM-DDTHH:MM") or ""
@@ -54,6 +56,7 @@ export function ProductEditForm({
   dict,
   simplified = false,
   initial,
+  sections = [],
 }: {
   storeId: string;
   productId: string;
@@ -62,6 +65,7 @@ export function ProductEditForm({
   dict: Dictionary;
   simplified?: boolean;
   initial: ProductInitial;
+  sections?: SectionOption[];
 }) {
   const router = useRouter();
   const p = dict.merchant.products;
@@ -73,6 +77,7 @@ export function ProductEditForm({
   const [variants, setVariants] = useState<VariantRow[]>(initial.variants);
   const [options, setOptions] = useState<OptionRow[]>(initial.options);
   const [dealToday, setDealToday] = useState(initial.dealToday);
+  const [sectionId, setSectionId] = useState<string>(initial.sectionId);
   const attrFields = categoryAttributes[category] ?? [];
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -112,6 +117,7 @@ export function ProductEditForm({
         image_url: imageUrl,
         gallery,
         stock: stockRaw === "" ? null : Number(stockRaw),
+        section_id: sectionId || null,
         deal_date: dealToday ? new Date().toISOString().slice(0, 10) : null,
         flash_price: hasFlash ? Number(flashPriceRaw) : null,
         flash_start: hasFlash ? new Date(flashStartRaw).toISOString() : null,
@@ -205,6 +211,24 @@ export function ProductEditForm({
         <label className={label} htmlFor="name">{p.name}</label>
         <input id="name" name="name" type="text" required defaultValue={initial.name} className={field} />
       </div>
+      {sections.length > 0 && (
+        <div>
+          <label className={label} htmlFor="section_id">{p.section}</label>
+          <select
+            id="section_id"
+            value={sectionId}
+            onChange={(e) => setSectionId(e.target.value)}
+            className={field}
+          >
+            <option value="">{p.noSection}</option>
+            {sections.map((s) => (
+              <option key={s.id} value={s.id}>
+                {lang === "en" && s.name_en?.trim() ? s.name_en : s.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <div className={`grid gap-4 ${simplified ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
         <div>
           <label className={label} htmlFor="price">{p.price}</label>

@@ -13,6 +13,7 @@ import { attributeSummary } from "@/lib/attributes";
 import { waLink } from "@/lib/whatsapp";
 import { daySpan, generateSlots, type WeekHours } from "@/lib/hours";
 import { localized } from "@/lib/i18n-field";
+import { groupBySection, type SectionInfo } from "@/lib/sections";
 import { categoryIcons } from "@/components/category-icon";
 
 type Service = {
@@ -22,6 +23,7 @@ type Service = {
   price: number;
   imageUrl?: string | null;
   attributes?: Record<string, string> | null;
+  sectionId?: string | null;
 };
 
 const fieldClass =
@@ -46,6 +48,7 @@ export function BookingPanel({
   hours = null,
   slotMinutes = 30,
   doctors = [],
+  sections = [],
 }: {
   storeId: string;
   lang: Locale;
@@ -58,6 +61,7 @@ export function BookingPanel({
   hours?: WeekHours | null;
   slotMinutes?: number;
   doctors?: { id: string; name: string }[];
+  sections?: SectionInfo[];
 }) {
   const router = useRouter();
   const Icon = categoryIcons[category];
@@ -215,10 +219,11 @@ export function BookingPanel({
     );
   }
 
-  return (
-    <div>
+  // A section's services (or the whole flat list) rendered with the same card.
+  function renderServices(list: Service[]) {
+    return (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {services.map((s) => (
+        {list.map((s) => (
           <div
             key={s.id}
             className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4"
@@ -242,6 +247,30 @@ export function BookingPanel({
           </div>
         ))}
       </div>
+    );
+  }
+
+  // Group into service groups when defined; else one flat list (no regression).
+  const groups = groupBySection(services, sections);
+
+  return (
+    <div>
+      {sections.length > 0 ? (
+        <div className="space-y-8">
+          {groups.map((g) => (
+            <section key={g.section?.id ?? "__other"}>
+              <h3 className="mb-4 text-lg font-bold">
+                {g.section
+                  ? localized(g.section.name, g.section.nameEn, lang)
+                  : dict.store.otherSection}
+              </h3>
+              {renderServices(g.items)}
+            </section>
+          ))}
+        </div>
+      ) : (
+        renderServices(services)
+      )}
 
       <div className="mt-8">
         <h3 className="mb-3 flex items-center gap-2 text-lg font-bold">

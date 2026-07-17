@@ -49,12 +49,24 @@ export default async function EditProductPage({
 
   const { data: product } = await supabase
     .from("products")
-    .select("id, store_id, name, name_en, price, discount_price, description, description_en, image_url, gallery, stock, attributes, deal_date, flash_price, flash_start, flash_end")
+    .select("id, store_id, name, name_en, price, discount_price, description, description_en, image_url, gallery, stock, section_id, attributes, deal_date, flash_price, flash_start, flash_end")
     .eq("id", productId)
     .eq("store_id", storeId)
     .is("deleted_at", null)
     .maybeSingle();
   if (!product) redirect(`/${lang}/merchant/${storeId}`);
+
+  // Storefront sections available for assignment (optional; empty → no picker).
+  const { data: sectionData } = await supabase
+    .from("store_sections")
+    .select("id, name, name_en")
+    .eq("store_id", storeId)
+    .order("sort_order", { ascending: true });
+  const sections = (sectionData ?? []) as unknown as {
+    id: string;
+    name: string;
+    name_en: string | null;
+  }[];
 
   const [{ data: variants }, { data: options }] = await Promise.all([
     supabase
@@ -83,6 +95,7 @@ export default async function EditProductPage({
     imageUrl: (product.image_url as string | null) ?? null,
     gallery,
     stock: product.stock != null ? String(product.stock) : "",
+    sectionId: (product.section_id as string | null) ?? "",
     dealToday:
       (product.deal_date as string | null) ===
       new Date().toISOString().slice(0, 10),
@@ -120,6 +133,7 @@ export default async function EditProductPage({
             dict={dict}
             simplified={mod.simplifiedItem}
             initial={initial}
+            sections={sections}
           />
         </div>
       </Container>

@@ -17,6 +17,7 @@ const label = "text-sm font-semibold";
 
 type VariantRow = { label: string; price: string; stock: string };
 type OptionRow = { name: string; price: string };
+export type SectionOption = { id: string; name: string; name_en: string | null };
 
 export function ProductForm({
   storeId,
@@ -25,6 +26,7 @@ export function ProductForm({
   dict,
   addKey = "add",
   simplified = false,
+  sections = [],
 }: {
   storeId: string;
   lang: Locale;
@@ -32,6 +34,7 @@ export function ProductForm({
   dict: Dictionary;
   addKey?: "add" | "addMenuItem" | "addService" | "addListing";
   simplified?: boolean;
+  sections?: SectionOption[];
 }) {
   const router = useRouter();
   const p = dict.merchant.products;
@@ -43,6 +46,7 @@ export function ProductForm({
   const [adderKey, setAdderKey] = useState(0);
   const [variants, setVariants] = useState<VariantRow[]>([]);
   const [options, setOptions] = useState<OptionRow[]>([]);
+  const [sectionId, setSectionId] = useState<string>("");
   const [inOffers, setInOffers] = useState(false);
   const [inClearance, setInClearance] = useState(false);
   const [inMarket, setInMarket] = useState(false);
@@ -76,6 +80,7 @@ export function ProductForm({
         gallery,
         stock: stockRaw === "" ? null : Number(stockRaw),
         attributes,
+        section_id: sectionId || null,
         in_offers: inOffers,
         in_clearance: inClearance,
       })
@@ -142,6 +147,7 @@ export function ProductForm({
     setGallery([]);
     setVariants([]);
     setOptions([]);
+    setSectionId("");
     setInOffers(false);
     setInClearance(false);
     setInMarket(false);
@@ -205,6 +211,26 @@ export function ProductForm({
         </label>
         <input id="name" name="name" type="text" required placeholder={p.namePlaceholder} className={field} />
       </div>
+      {sections.length > 0 && (
+        <div>
+          <label className={label} htmlFor="section_id">
+            {p.section}
+          </label>
+          <select
+            id="section_id"
+            value={sectionId}
+            onChange={(e) => setSectionId(e.target.value)}
+            className={field}
+          >
+            <option value="">{p.noSection}</option>
+            {sections.map((s) => (
+              <option key={s.id} value={s.id}>
+                {lang === "en" && s.name_en?.trim() ? s.name_en : s.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <div className={`grid gap-4 ${simplified ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
         <div>
           <label className={label} htmlFor="price">

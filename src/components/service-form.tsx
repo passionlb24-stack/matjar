@@ -4,8 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarCheck, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { ImageUpload } from "@/components/image-upload";
+
+type SectionOption = { id: string; name: string; name_en: string | null };
 
 // Dedicated add-service form for booking sectors (clinics, salons, services…).
 // Deliberately different from the product form: no stock/variants/channels —
@@ -13,16 +16,22 @@ import { ImageUpload } from "@/components/image-upload";
 export function ServiceForm({
   storeId,
   dict,
+  lang,
+  sections = [],
 }: {
   storeId: string;
   dict: Dictionary;
+  lang: Locale;
+  sections?: SectionOption[];
 }) {
   const router = useRouter();
   const t = dict.os.serviceForm;
+  const p = dict.merchant.products;
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [added, setAdded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sectionId, setSectionId] = useState<string>("");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -40,6 +49,7 @@ export function ServiceForm({
         price: Number(form.get("price")) || 0,
         description: String(form.get("description")) || null,
         image_url: imageUrl,
+        section_id: sectionId || null,
         attributes: duration ? { duration } : {},
       });
     setLoading(false);
@@ -49,6 +59,7 @@ export function ServiceForm({
     }
     formEl.reset();
     setImageUrl(null);
+    setSectionId("");
     setAdded(true);
     router.refresh();
   }
@@ -103,6 +114,23 @@ export function ServiceForm({
             />
           </label>
         </div>
+        {sections.length > 0 && (
+          <label className="block text-sm font-semibold">
+            {p.section}
+            <select
+              value={sectionId}
+              onChange={(e) => setSectionId(e.target.value)}
+              className={field}
+            >
+              <option value="">{p.noSection}</option>
+              {sections.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {lang === "en" && s.name_en?.trim() ? s.name_en : s.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label className="block text-sm font-semibold">
           {t.desc}
           <textarea name="description" rows={2} className={field} />

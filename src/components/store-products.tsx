@@ -14,6 +14,7 @@ import { effectivePrice, compareAtPrice, isFlashActive } from "@/lib/pricing";
 import { waLink, buildOrderMessage } from "@/lib/whatsapp";
 import { formatLbp } from "@/lib/currency";
 import { localized } from "@/lib/i18n-field";
+import { groupBySection, type SectionInfo } from "@/lib/sections";
 import { categoryIcons } from "@/components/category-icon";
 
 type Product = {
@@ -28,6 +29,7 @@ type Product = {
   flashStart?: string | null;
   flashEnd?: string | null;
   stock?: number | null;
+  sectionId?: string | null;
 };
 
 function PriceTag({ p }: { p: Product }) {
@@ -83,6 +85,7 @@ export function StoreProducts({
   storeName = "",
   lbpRate = 0,
   branches = [],
+  sections = [],
 }: {
   storeId: string;
   lang: Locale;
@@ -90,6 +93,7 @@ export function StoreProducts({
   category: CategoryKey;
   isBooking: boolean;
   products: Product[];
+  sections?: SectionInfo[];
   loggedIn?: boolean;
   defaultAddress?: string;
   savedAddresses?: { label: string; value: string }[];
@@ -373,14 +377,16 @@ export function StoreProducts({
     );
   }
 
-  return (
-    <div>
-      {isGrid ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {products.map((p) => {
-            const qty = cart[p.id] ?? 0;
-            return (
-              <div key={p.id} className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface">
+  // Render one arbitrary subset of products (a section's items, or the whole
+  // flat catalog). Keeps the per-category grid/list styling; grouping only
+  // decides which products land in which call.
+  function renderList(list: Product[]) {
+    return isGrid ? (
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        {list.map((p) => {
+          const qty = cart[p.id] ?? 0;
+          return (
+            <div key={p.id} className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface">
                 <Card p={p} />
                 <div className="flex flex-1 flex-col p-4">
                   <Link
@@ -425,7 +431,7 @@ export function StoreProducts({
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {products.map((p) => {
+          {list.map((p) => {
             const qty = cart[p.id] ?? 0;
             return (
               <div key={p.id} className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4">
@@ -469,6 +475,30 @@ export function StoreProducts({
             );
           })}
         </div>
+      );
+  }
+
+  // Group for display when the store defined sections; otherwise one flat list
+  // (no headers, no regression). Cart/total logic still uses the full `products`.
+  const groups = groupBySection(products, sections);
+
+  return (
+    <div>
+      {sections.length > 0 ? (
+        <div className="space-y-8">
+          {groups.map((g) => (
+            <section key={g.section?.id ?? "__other"}>
+              <h3 className="mb-4 text-lg font-bold">
+                {g.section
+                  ? localized(g.section.name, g.section.nameEn, lang)
+                  : dict.store.otherSection}
+              </h3>
+              {renderList(g.items)}
+            </section>
+          ))}
+        </div>
+      ) : (
+        renderList(products)
       )}
 
       {orderPlaced ? (

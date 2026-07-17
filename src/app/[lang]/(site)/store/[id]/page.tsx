@@ -66,6 +66,12 @@ type StoreView = {
   insurance?: string | null;
   registered?: boolean;
   isReal: boolean;
+  sections: {
+    id: string;
+    name: string;
+    nameEn: string | null;
+    sortOrder: number;
+  }[];
   products: {
     id?: string;
     name: string;
@@ -79,6 +85,7 @@ type StoreView = {
     flashStart?: string | null;
     flashEnd?: string | null;
     stock?: number | null;
+    sectionId?: string | null;
   }[];
 };
 
@@ -100,11 +107,18 @@ const loadStore = cache(async function loadStore(
       const bt = data.business_types as unknown as { slug: string } | null;
       const { data: prods } = await supabase
         .from("products")
-        .select("id, name, name_en, description_en, price, discount_price, image_url, attributes, flash_price, flash_start, flash_end, stock")
+        .select("id, name, name_en, description_en, price, discount_price, image_url, attributes, flash_price, flash_start, flash_end, stock, section_id")
         .eq("store_id", id)
         .eq("status", "active")
         .eq("is_available", true)
         .is("deleted_at", null)
+        .order("sort_order", { ascending: true });
+      // Storefront sections: the store groups its catalog into named sections
+      // (menu groups / collections / service groups). None → flat list.
+      const { data: sects } = await supabase
+        .from("store_sections")
+        .select("id, name, name_en, sort_order")
+        .eq("store_id", id)
         .order("sort_order", { ascending: true });
       return {
         name: data.name as string,
@@ -132,6 +146,12 @@ const loadStore = cache(async function loadStore(
         insurance: (data.insurance as string | null) ?? null,
         registered: (data.commercial_reg_verified as boolean | null) ?? false,
         isReal: true,
+        sections: (sects ?? []).map((s) => ({
+          id: s.id as string,
+          name: s.name as string,
+          nameEn: (s.name_en as string | null) ?? null,
+          sortOrder: (s.sort_order as number | null) ?? 0,
+        })),
         products: (prods ?? []).map((p) => ({
           id: p.id as string,
           name: p.name as string,
@@ -147,6 +167,7 @@ const loadStore = cache(async function loadStore(
           flashStart: (p.flash_start as string | null) ?? null,
           flashEnd: (p.flash_end as string | null) ?? null,
           stock: p.stock != null ? Number(p.stock) : null,
+          sectionId: (p.section_id as string | null) ?? null,
         })),
       };
     }
@@ -163,6 +184,7 @@ const loadStore = cache(async function loadStore(
       rating: mock.rating,
       reviews: mock.reviews,
       isReal: false,
+      sections: [],
       products: sampleProducts[mock.category].map((p) => ({
         name: p.name[lang],
         price: p.price,
@@ -655,6 +677,7 @@ export default async function StorePage({
                 hours={parseHours(store.hours)}
                 slotMinutes={store.bookingSlotMinutes ?? 30}
                 doctors={doctors.map((d) => ({ id: d.id, name: d.name }))}
+                sections={store.sections}
                 services={store.products
                   .filter((p) => p.id)
                   .map((p) => ({
@@ -664,6 +687,7 @@ export default async function StorePage({
                     price: p.price,
                     imageUrl: p.imageUrl,
                     attributes: p.attributes,
+                    sectionId: p.sectionId ?? null,
                   }))}
               />
             ) : (
@@ -690,6 +714,7 @@ export default async function StorePage({
                   area: b.area,
                   address: b.address,
                 }))}
+                sections={store.sections}
                 products={store.products
                   .filter((p) => p.id)
                   .map((p) => ({
@@ -703,6 +728,7 @@ export default async function StorePage({
                     flashPrice: p.flashPrice,
                     flashStart: p.flashStart,
                     flashEnd: p.flashEnd,
+                    sectionId: p.sectionId ?? null,
                   }))}
               />
             )

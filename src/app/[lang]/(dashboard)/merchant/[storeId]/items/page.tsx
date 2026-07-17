@@ -10,6 +10,7 @@ import { categoryModule } from "@/lib/modules";
 import { Container } from "@/components/ui/container";
 import { ProductForm } from "@/components/product-form";
 import { ServiceForm } from "@/components/service-form";
+import { SectionManager, type SectionRow } from "@/components/section-manager";
 import { ProductRowActions } from "@/components/product-row-actions";
 import { ProGate } from "@/components/pro-gate";
 import { FREE_PRODUCT_LIMIT } from "@/lib/plan";
@@ -92,6 +93,15 @@ export default async function StoreItemsPage({
     .order("created_at", { ascending: false });
   const products = (data ?? []) as ProductRow[];
 
+  // Storefront sections (menu groups / collections / service groups). Optional:
+  // a store with none renders a flat catalog. Managed here, assigned per product.
+  const { data: sectionData } = await supabase
+    .from("store_sections")
+    .select("id, name, name_en, sort_order")
+    .eq("store_id", storeId)
+    .order("sort_order", { ascending: true });
+  const sections = (sectionData ?? []) as unknown as SectionRow[];
+
   return (
     <div className="py-10">
       <Container className="max-w-5xl">
@@ -105,6 +115,15 @@ export default async function StoreItemsPage({
         <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
           {itemsLabel}
         </h1>
+
+        <div className="mt-8">
+          <SectionManager
+            storeId={storeId}
+            lang={lang}
+            dict={dict}
+            initial={sections}
+          />
+        </div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
           <div>
@@ -168,7 +187,12 @@ export default async function StoreItemsPage({
               body={dict.os.pro.productLimitBody}
             />
           ) : category === "services" || category === "healthcare" ? (
-            <ServiceForm storeId={storeId} dict={dict} />
+            <ServiceForm
+              storeId={storeId}
+              dict={dict}
+              lang={lang}
+              sections={sections}
+            />
           ) : (
             <ProductForm
               storeId={storeId}
@@ -177,6 +201,7 @@ export default async function StoreItemsPage({
               dict={dict}
               addKey={mod.addKey}
               simplified={mod.simplifiedItem}
+              sections={sections}
             />
           )}
         </div>
