@@ -4,6 +4,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
 import { getStoresForListing } from "@/lib/data/stores";
+import { getUsdLbpRate } from "@/lib/data/settings";
 import { regions, type RegionKey } from "@/lib/catalog";
 import { ExploreClient } from "@/components/explore-client";
 
@@ -33,7 +34,10 @@ export default async function ExplorePage({
   if (!isLocale(lang)) notFound();
 
   const dict = await getDictionary(lang);
-  const stores = await getStoresForListing();
+  const [stores, lbpRate] = await Promise.all([
+    getStoresForListing(),
+    getUsdLbpRate(),
+  ]);
   const { q, region } = await searchParams;
   const initialRegion: RegionKey | "all" = regions.some((r) => r.key === region)
     ? (region as RegionKey)
@@ -44,6 +48,7 @@ export default async function ExplorePage({
       lang={lang}
       dict={dict}
       stores={stores}
+      lbpRate={lbpRate}
       initialQuery={q ?? ""}
       initialRegion={initialRegion}
     />

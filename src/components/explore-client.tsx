@@ -9,6 +9,7 @@ import {
   Star,
   Clock,
   DoorOpen,
+  Package,
   type LucideIcon,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
@@ -25,6 +26,19 @@ import { getCurrentPosition } from "@/lib/native";
 import { createClient } from "@/lib/supabase/client";
 import { Container } from "@/components/ui/container";
 import { StoreCard } from "@/components/store-card";
+import { ProductMiniCard } from "@/components/product-mini-card";
+
+// A product hit from the search_products_fuzzy RPC (migration 0114).
+type ProductHit = {
+  id: string;
+  name: string;
+  name_en: string | null;
+  price: number;
+  discount_price: number | null;
+  image_url: string | null;
+  store_id: string;
+  store_name: string;
+};
 
 function chipClass(active: boolean) {
   return active
@@ -44,6 +58,7 @@ export function ExploreClient({
   lang,
   dict,
   stores,
+  lbpRate,
   initialQuery,
   initialCategory = "all",
   initialRegion = "all",
@@ -51,6 +66,7 @@ export function ExploreClient({
   lang: Locale;
   dict: Dictionary;
   stores: Store[];
+  lbpRate: number;
   initialQuery?: string;
   initialCategory?: CategoryKey | "all";
   initialRegion?: RegionKey | "all";
@@ -65,11 +81,12 @@ export function ExploreClient({
   const [locating, setLocating] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
 
-  // Product-name search: the RPC (migration 0113) returns ids of active stores
-  // that carry a product matching the query (substring or fuzzy). null = no
-  // active product search (query < 2 chars); a Set = the matching store ids.
+  // Product-name search: the RPC (migration 0114) returns matching products
+  // (name + price + store) — substring or fuzzy — which we show as a "matching
+  // products" section AND use to surface stores that carry a match. null = no
+  // active product search (query < 2 chars); an array = the product hits.
   const supabase = useMemo(() => createClient(), []);
-  const [productMatchIds, setProductMatchIds] = useState<Set<string> | null>(
+  const [productResults, setProductResults] = useState<ProductHit[] | null>(
     null,
   );
   const [searching, setSearching] = useState(false);
@@ -77,34 +94,35 @@ export function ExploreClient({
   // resolves after the query changed is discarded instead of clobbering state.
   const latestTermRef = useRef("");
 
+  // Stores that carry a matching product (derived from the product hits), so the
+  // store list below can include them even when the store NAME doesn't match.
+  const productMatchIds = useMemo(
+    () =>
+      productResults
+        ? new Set(productResults.map((p) => p.store_id))
+        : null,
+    [productResults],
+  );
+
   useEffect(() => {
     const term = query.trim();
     latestTermRef.current = term;
     // Store-name filtering below always runs; product search only kicks in at
     // 2+ chars (matches the RPC's own guard and avoids a full-catalog scan).
     if (term.length < 2) {
-      setProductMatchIds(null);
+      setProductResults(null);
       setSearching(false);
       return;
     }
     setSearching(true);
     const handle = setTimeout(() => {
       void (async () => {
-        const { data, error } = await supabase.rpc(
-          "search_store_ids_by_product",
-          { p_q: term },
-        );
+        const { data, error } = await supabase.rpc("search_products_fuzzy", {
+          p_q: term,
+        });
         // Ignore this response if the query moved on while it was in flight.
         if (latestTermRef.current !== term) return;
-        if (error) {
-          setProductMatchIds(null);
-        } else {
-          setProductMatchIds(
-            new Set(
-              ((data ?? []) as { store_id: string }[]).map((r) => r.store_id),
-            ),
-          );
-        }
+        setProductResults(error ? null : ((data ?? []) as ProductHit[]));
         setSearching(false);
       })();
     }, 250);
@@ -284,7 +302,37 @@ export function ExploreClient({
           )}
         </div>
 
-        <p className="mt-6 text-sm text-muted-foreground">
+        {productResults && productResults.length > 0 && (
+          <section className="mt-8">
+            <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold">
+              <Package className="h-5 w-5 text-primary" />
+              {dict.explore.matchingProducts}
+              <span className="text-sm font-medium text-muted-foreground">
+                ({productResults.length})
+              </span>
+            </h2>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+              {productResults.map((p) => (
+                <ProductMiniCard
+                  key={p.id}
+                  lang={lang}
+                  id={p.id}
+                  name={p.name}
+                  nameEn={p.name_en}
+                  price={Number(p.price)}
+                  discountPrice={
+                    p.discount_price != null ? Number(p.discount_price) : null
+                  }
+                  imageUrl={p.image_url}
+                  storeName={p.store_name}
+                  lbpRate={lbpRate}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
+        <p className="mt-8 text-sm text-muted-foreground">
           {displayed.length} {dict.explore.results}
         </p>
 

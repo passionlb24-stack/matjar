@@ -5,6 +5,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { categoryKeys, type CategoryKey } from "@/lib/catalog";
 import { localeAlternates } from "@/lib/site";
 import { getStoresForListing } from "@/lib/data/stores";
+import { getUsdLbpRate } from "@/lib/data/settings";
 import { ExploreClient } from "@/components/explore-client";
 
 function isCategoryKey(value: string): value is CategoryKey {
@@ -39,13 +40,17 @@ export default async function CategoryPage({
   if (!isLocale(lang) || !isCategoryKey(slug)) notFound();
 
   const dict = await getDictionary(lang);
-  const stores = await getStoresForListing();
+  const [stores, lbpRate] = await Promise.all([
+    getStoresForListing(),
+    getUsdLbpRate(),
+  ]);
 
   return (
     <ExploreClient
       lang={lang}
       dict={dict}
       stores={stores}
+      lbpRate={lbpRate}
       initialCategory={slug}
     />
   );

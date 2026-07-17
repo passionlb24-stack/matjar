@@ -419,6 +419,7 @@
     "title": "Explore stores",
     "subtitle": "Find the nearest store or service to you by category and region.",
     "searchPlaceholder": "Search for a store or product…",
+    "matchingProducts": "Matching products",
     "allCategories": "All categories",
     "allRegions": "All regions",
     "results": "stores",
