@@ -14,6 +14,15 @@ export function storeJsonLd(opts: {
   region?: Nullable<string>;
   rating?: Nullable<number>;
   reviewCount?: Nullable<number>;
+  lat?: Nullable<number>;
+  lng?: Nullable<number>;
+  priceRange?: Nullable<string>;
+  /** schema.org OpeningHoursSpecification entries, pre-built by the caller. */
+  openingHours?: {
+    days: string[];
+    opens: string;
+    closes: string;
+  }[];
 }) {
   const data: Record<string, unknown> = {
     "@context": "https://schema.org",
@@ -24,6 +33,7 @@ export function storeJsonLd(opts: {
   if (opts.description) data.description = opts.description;
   if (opts.image) data.image = opts.image;
   if (opts.telephone) data.telephone = opts.telephone;
+  if (opts.priceRange) data.priceRange = opts.priceRange;
   if (opts.area || opts.region) {
     data.address = {
       "@type": "PostalAddress",
@@ -31,6 +41,21 @@ export function storeJsonLd(opts: {
       addressRegion: opts.region || undefined,
       addressCountry: "LB",
     };
+  }
+  if (opts.lat != null && opts.lng != null) {
+    data.geo = {
+      "@type": "GeoCoordinates",
+      latitude: opts.lat,
+      longitude: opts.lng,
+    };
+  }
+  if (opts.openingHours?.length) {
+    data.openingHoursSpecification = opts.openingHours.map((h) => ({
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: h.days,
+      opens: h.opens,
+      closes: h.closes,
+    }));
   }
   if (opts.rating && opts.reviewCount) {
     data.aggregateRating = {
@@ -41,6 +66,31 @@ export function storeJsonLd(opts: {
     };
   }
   return data;
+}
+
+/** Maps the app's WeekHours (0=Sun..6=Sat → {open,close}) to schema.org
+ *  OpeningHoursSpecification day names. Kept here so jsonld stays import-free. */
+export function toOpeningHours(
+  hours: Nullable<Record<string, { open: string; close: string }>>,
+): { days: string[]; opens: string; closes: string }[] {
+  if (!hours) return [];
+  const NAMES = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const out: { days: string[]; opens: string; closes: string }[] = [];
+  for (let d = 0; d < 7; d++) {
+    const h = hours[String(d)];
+    if (h?.open && h?.close) {
+      out.push({ days: [NAMES[d]], opens: h.open, closes: h.close });
+    }
+  }
+  return out;
 }
 
 export function productJsonLd(opts: {

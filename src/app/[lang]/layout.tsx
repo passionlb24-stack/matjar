@@ -6,6 +6,7 @@ import "../globals.css";
 import { isLocale, locales, localeDirection } from "@/i18n/config";
 import { SITE_URL } from "@/lib/site";
 import { NativeBridge } from "@/components/native-bridge";
+import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 
 // Tajawal — a modern, premium typeface that covers Arabic and Latin.
 const tajawal = Tajawal({
@@ -67,7 +68,7 @@ export default async function RootLayout({
       className={`${tajawal.variable} h-full`}
     >
       <body className="flex min-h-dvh flex-col bg-background font-sans text-foreground antialiased">
-        {children}
+        <ConfirmProvider>{children}</ConfirmProvider>
         <NativeBridge />
         <Analytics />
       </body>

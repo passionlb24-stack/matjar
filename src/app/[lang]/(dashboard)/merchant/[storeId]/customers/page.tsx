@@ -81,28 +81,39 @@ export default async function StoreCustomersPage({
       .business_types?.slug as CategoryKey) ?? "retail";
   const noun = dict.os.nouns[sectorConfig[category].customersNoun];
 
-  const [{ data: bookData }, { data: ordersData }] = await Promise.all([
-    supabase
-      .from("store_customers")
-      .select("id, name, phone, notes, status, follow_up_on")
-      .eq("store_id", storeId)
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("orders")
-      .select("customer_id, customer_name, phone, total")
-      .eq("store_id", storeId),
-  ]);
+  const [{ data: bookData }, { data: ordersData }, { data: loyaltyData }] =
+    await Promise.all([
+      supabase
+        .from("store_customers")
+        .select("id, name, phone, notes, status, follow_up_on")
+        .eq("store_id", storeId)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("orders")
+        .select("customer_id, customer_name, phone, total")
+        .eq("store_id", storeId),
+      // Available loyalty points per registered customer (RLS-safe reader).
+      supabase.rpc("store_customer_loyalty", { p_store_id: storeId }),
+    ]);
   const book = (bookData ?? []) as BookCustomer[];
+
+  const balances: Record<string, number> = {};
+  ((loyaltyData ?? []) as { uid: string; balance: number }[]).forEach((r) => {
+    balances[r.uid] = Number(r.balance);
+  });
 
   // Aggregate order rows into unique customers (guest orders group by phone).
   const map = new Map<string, DerivedCustomer>();
   ((ordersData ?? []) as OrderRow[]).forEach((o) => {
     const key = o.customer_id ?? o.phone ?? "anon";
-    const c = map.get(key) ?? { name: null, phone: null, count: 0, total: 0 };
+    const c =
+      map.get(key) ??
+      { name: null, phone: null, count: 0, total: 0, customerId: null };
     c.count += 1;
     c.total += Number(o.total);
     if (!c.name && o.customer_name) c.name = o.customer_name;
     if (!c.phone && o.phone) c.phone = o.phone;
+    if (!c.customerId && o.customer_id) c.customerId = o.customer_id;
     map.set(key, c);
   });
   const derived = [...map.values()].sort((a, b) => b.total - a.total);
@@ -125,6 +136,7 @@ export default async function StoreCustomersPage({
             dict={dict}
             book={book}
             derived={derived}
+            balances={balances}
           />
         </div>
       </Container>

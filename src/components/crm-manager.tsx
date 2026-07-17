@@ -9,8 +9,11 @@ import {
   MessageCircle,
   BookUser,
   ClipboardList,
+  Gift,
+  Sparkles,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { notifyError, notifySuccess } from "@/lib/notify";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
 export type BookCustomer = {
@@ -27,6 +30,9 @@ export type DerivedCustomer = {
   phone: string | null;
   count: number;
   total: number;
+  // profiles.id when the order was placed by a registered account (loyalty
+  // points are keyed by user, so only these customers can have a balance).
+  customerId: string | null;
 };
 
 const statusStyle: Record<BookCustomer["status"], string> = {
@@ -53,11 +59,15 @@ export function CrmManager({
   dict,
   book,
   derived,
+  balances = {},
 }: {
   storeId: string;
   dict: Dictionary;
   book: BookCustomer[];
   derived: DerivedCustomer[];
+  // customerId (profiles.id) → available loyalty points. Only registered
+  // customers appear; everyone else defaults to 0.
+  balances?: Record<string, number>;
 }) {
   const router = useRouter();
   const t = dict.os.crm;
@@ -362,45 +372,169 @@ export function CrmManager({
         </>
       ) : filteredDerived.length ? (
         <div className="mt-4 space-y-2">
-          {filteredDerived.map((c, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4"
-            >
-              <span className="min-w-0 flex-1">
-                <span className="block truncate font-bold">
-                  {c.name ?? c.phone ?? "—"}
-                </span>
-                <span className="block text-sm text-muted-foreground">
-                  {c.phone ? (
-                    <span dir="ltr">{c.phone}</span>
-                  ) : null}
-                  {c.phone ? " · " : ""}
-                  {c.count} {dict.merchant.ordersCount}
-                </span>
-              </span>
-              <span className="shrink-0 font-bold text-primary">
-                {formatPrice(c.total)}
-              </span>
-              {c.phone && !bookPhones.has(c.phone) && (
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => quickAdd(c)}
-                  className="flex shrink-0 items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-bold transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  {t.addToBook}
-                </button>
-              )}
-            </div>
-          ))}
+          {filteredDerived.map((c, i) => {
+            const points = c.customerId ? (balances[c.customerId] ?? 0) : 0;
+            return (
+              <div
+                key={i}
+                className="rounded-2xl border border-border bg-surface p-4"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-bold">
+                      {c.name ?? c.phone ?? "—"}
+                    </span>
+                    <span className="block text-sm text-muted-foreground">
+                      {c.phone ? <span dir="ltr">{c.phone}</span> : null}
+                      {c.phone ? " · " : ""}
+                      {c.count} {dict.merchant.ordersCount}
+                    </span>
+                  </span>
+                  {points > 0 && (
+                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-bold text-primary">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      {points.toLocaleString("en-US")} {t.points}
+                    </span>
+                  )}
+                  <span className="shrink-0 font-bold text-primary">
+                    {formatPrice(c.total)}
+                  </span>
+                  {c.phone && !bookPhones.has(c.phone) && (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => quickAdd(c)}
+                      className="flex shrink-0 items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-bold transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      {t.addToBook}
+                    </button>
+                  )}
+                </div>
+                {c.customerId && points > 0 && (
+                  <RedeemControl
+                    storeId={storeId}
+                    customerId={c.customerId}
+                    balance={points}
+                    dict={dict}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className="mt-4 rounded-2xl border border-dashed border-border py-12 text-center text-muted-foreground">
           {t.emptyDerived}
         </div>
       )}
+    </div>
+  );
+}
+
+// Redeem a registered customer's loyalty points (e.g. as an in-store discount).
+// Points are a single global per-user balance; the server RPC re-checks that the
+// caller manages the store, recomputes the balance, and caps the redemption.
+function RedeemControl({
+  storeId,
+  customerId,
+  balance,
+  dict,
+}: {
+  storeId: string;
+  customerId: string;
+  balance: number;
+  dict: Dictionary;
+}) {
+  const router = useRouter();
+  const t = dict.os.crm;
+  const [open, setOpen] = useState(false);
+  const [points, setPoints] = useState("");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit() {
+    const p = Math.floor(Number(points));
+    if (!p || p <= 0 || busy) return;
+    if (p > balance) {
+      notifyError(t.insufficientPoints);
+      return;
+    }
+    setBusy(true);
+    const { error } = await createClient().rpc("redeem_loyalty_points", {
+      p_store_id: storeId,
+      p_customer_id: customerId,
+      p_points: p,
+      p_note: note.trim() || null,
+    });
+    setBusy(false);
+    if (error) {
+      const m = error.message ?? "";
+      notifyError(
+        m.includes("insufficient_points")
+          ? t.insufficientPoints
+          : dict.common.actionFailed,
+      );
+      return;
+    }
+    notifySuccess(t.redeemSuccess);
+    setPoints("");
+    setNote("");
+    setOpen(false);
+    router.refresh();
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-bold transition-colors hover:border-primary hover:text-primary"
+      >
+        <Gift className="h-3.5 w-3.5" />
+        {t.redeem}
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-3 flex flex-wrap items-end gap-2 rounded-xl border border-border bg-surface-muted/50 p-3">
+      <label className="text-xs font-semibold">
+        <span className="mb-1 block text-muted-foreground">{t.redeemAmount}</span>
+        <input
+          type="number"
+          min="1"
+          max={balance}
+          step="1"
+          value={points}
+          onChange={(e) => setPoints(e.target.value)}
+          className="w-28 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+        />
+      </label>
+      <label className="min-w-0 flex-1 text-xs font-semibold">
+        <span className="mb-1 block text-muted-foreground">{t.redeemNote}</span>
+        <input
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder={t.redeemNoteHint}
+          className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+        />
+      </label>
+      <button
+        type="button"
+        onClick={submit}
+        disabled={busy || !points}
+        className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+      >
+        {t.redeemConfirm}
+      </button>
+      <button
+        type="button"
+        onClick={() => setOpen(false)}
+        className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
+      >
+        {t.cancel}
+      </button>
     </div>
   );
 }

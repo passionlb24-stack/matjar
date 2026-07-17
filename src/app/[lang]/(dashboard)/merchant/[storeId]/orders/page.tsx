@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight, Printer } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { AutoRefresh } from "@/components/auto-refresh";
-import { OrderStatusControl } from "@/components/order-status-control";
-import { OrderPayments, type OrderPayment } from "@/components/order-payments";
+import { type OrderPayment } from "@/components/order-payments";
+import { OrdersFilter, type OrderCard } from "@/components/orders-filter";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -22,17 +22,12 @@ type OrderRow = {
   phone: string | null;
   customer_name: string | null;
   customer_note: string | null;
+  store_note: string | null;
   created_at: string;
   location_id: string | null;
   order_items: OrderItem[];
 };
 type StoreLocation = { id: string; name: string | null; area: string | null };
-
-function formatPrice(price: number) {
-  return price >= 1000
-    ? `$${Number(price).toLocaleString("en-US")}`
-    : `$${price}`;
-}
 
 export default async function StoreOrdersPage({
   params,
@@ -64,7 +59,7 @@ export default async function StoreOrdersPage({
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, status, total, fulfillment, address, phone, customer_name, customer_note, created_at, location_id, order_items(name, quantity, unit_price)",
+      "id, status, total, fulfillment, address, phone, customer_name, customer_note, store_note, created_at, location_id, order_items(name, quantity, unit_price)",
     )
     .eq("store_id", storeId)
     .order("created_at", { ascending: false });
@@ -92,6 +87,20 @@ export default async function StoreOrdersPage({
     paymentsByOrder.set(p.order_id, list);
   });
 
+  // Shape each order for the client filter: resolve its ledger and branch label
+  // here so the interactive list can filter/search in memory without refetching.
+  const cards: OrderCard[] = orders.map((o) => {
+    const loc =
+      multiBranch && o.location_id
+        ? locationById.get(o.location_id)
+        : undefined;
+    return {
+      ...o,
+      payments: paymentsByOrder.get(o.id) ?? [],
+      branch: loc ? { name: loc.name, area: loc.area } : null,
+    };
+  });
+
   return (
     <div className="py-10">
       <Container className="max-w-3xl">
@@ -108,97 +117,12 @@ export default async function StoreOrdersPage({
         </h1>
 
         {orders.length ? (
-          <div className="mt-8 space-y-4">
-            {orders.map((order) => {
-              const branch =
-                multiBranch && order.location_id
-                  ? locationById.get(order.location_id)
-                  : undefined;
-              return (
-                <div
-                  key={order.id}
-                  className="rounded-2xl border border-border bg-surface p-5"
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="min-w-0 text-sm font-semibold text-muted-foreground">
-                      {dict.orders.order} #{order.id.slice(0, 8)}
-                      {order.customer_name && (
-                        <span className="ms-2 font-bold text-foreground">
-                          {order.customer_name}
-                        </span>
-                      )}
-                      <span className="ms-2 text-xs">
-                        {new Date(order.created_at).toLocaleString(
-                          lang === "ar" ? "ar" : "en",
-                          {
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          },
-                        )}
-                      </span>
-                      {branch && (
-                        <span className="ms-2 whitespace-nowrap rounded-full bg-surface-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
-                          {branch.name || branch.area
-                            ? `${dict.os.branches.branchLabel}: ${branch.name || branch.area}`
-                            : dict.os.branches.branchLabel}
-                        </span>
-                      )}
-                    </span>
-                    <span className="flex shrink-0 items-center gap-2">
-                      <Link
-                        href={`/${lang}/merchant/${storeId}/orders/${order.id}/invoice`}
-                        className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-bold transition-colors hover:border-primary hover:text-primary"
-                      >
-                        <Printer className="h-3.5 w-3.5" />
-                        {dict.os.invoice.link}
-                      </Link>
-                      <OrderStatusControl
-                        orderId={order.id}
-                        status={order.status}
-                        labels={dict.orders.status}
-                        errorLabel={dict.auth.errorGeneric}
-                      />
-                    </span>
-                  </div>
-                  <ul className="mt-3 space-y-1 border-t border-border pt-3 text-sm">
-                    {order.order_items.map((item, i) => (
-                      <li key={i} className="flex justify-between gap-4">
-                        <span>
-                          {item.quantity}× {item.name}
-                        </span>
-                        <span className="text-muted-foreground">
-                          {formatPrice(item.unit_price * item.quantity)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="mt-3 flex justify-between border-t border-border pt-3 font-bold">
-                    <span>{dict.orders.total}</span>
-                    <span>{formatPrice(order.total)}</span>
-                  </div>
-                  <div className="mt-3 space-y-1 border-t border-border pt-3 text-sm text-muted-foreground">
-                    <p>
-                      {order.fulfillment === "delivery"
-                        ? dict.store.delivery
-                        : dict.store.pickup}
-                      {order.phone ? ` · ${order.phone}` : ""}
-                    </p>
-                    {order.address && <p>{order.address}</p>}
-                    {order.customer_note && (
-                      <p className="italic">“{order.customer_note}”</p>
-                    )}
-                  </div>
-                  <OrderPayments
-                    orderId={order.id}
-                    payments={paymentsByOrder.get(order.id) ?? []}
-                    dict={dict}
-                  />
-                </div>
-              );
-            })}
-          </div>
+          <OrdersFilter
+            orders={cards}
+            dict={dict}
+            lang={lang}
+            storeId={storeId}
+          />
         ) : (
           <div className="mt-8 rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
             {dict.merchant.noOrders}

@@ -7,6 +7,10 @@ import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { BookingStatusControl } from "@/components/booking-status-control";
+import {
+  BookingsCalendar,
+  type CalendarBooking,
+} from "@/components/bookings-calendar";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -63,6 +67,18 @@ export default async function StoreBookingsPage({
   // returns a single object (or null), which is what BookingRow expects.
   const bookings = (data ?? []) as unknown as BookingRow[];
 
+  // Flatten the doctor join for the calendar client component (dated bookings
+  // land on the grid; undated ones still show in the chronological list below).
+  const calendarBookings: CalendarBooking[] = bookings.map((b) => ({
+    id: b.id,
+    service_name: b.service_name,
+    requested_date: b.requested_date,
+    requested_time: b.requested_time,
+    customer_name: b.customer_name,
+    status: b.status,
+    doctor: b.doctors?.name ?? null,
+  }));
+
   return (
     <div className="py-10">
       <Container className="max-w-3xl">
@@ -79,7 +95,13 @@ export default async function StoreBookingsPage({
         </h1>
 
         {bookings.length ? (
-          <div className="mt-8 space-y-4">
+          <>
+            <BookingsCalendar
+              lang={lang}
+              dict={dict}
+              bookings={calendarBookings}
+            />
+            <div className="mt-8 space-y-4">
             {bookings.map((b) => (
               <div
                 key={b.id}
@@ -115,7 +137,8 @@ export default async function StoreBookingsPage({
                 )}
               </div>
             ))}
-          </div>
+            </div>
+          </>
         ) : (
           <div className="mt-8 rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
             {dict.booking.noBookings}
