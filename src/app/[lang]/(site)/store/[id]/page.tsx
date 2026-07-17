@@ -725,6 +725,7 @@ export default async function StorePage({
                     discountPrice: p.discountPrice,
                     imageUrl: p.imageUrl,
                     attributes: p.attributes,
+                    stock: p.stock ?? null,
                     flashPrice: p.flashPrice,
                     flashStart: p.flashStart,
                     flashEnd: p.flashEnd,
