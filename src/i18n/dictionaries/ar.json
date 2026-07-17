@@ -1,4 +1,8 @@
 {
+  "home": {
+    "forYou": "مختارة لك",
+    "forYouSubtitle": "متاجر نعتقد أنها تناسب ذوقك بناءً على متابعاتك وطلباتك."
+  },
   "common": {
     "brand": "متجر",
     "rateTitle": "سعر صرف الدولار المعتمد بالمنصّة",
@@ -1622,6 +1626,7 @@
     "bookingStatus": "تغيّرت حالة حجزك",
     "storeProduct": "منتج جديد من متجر بتتابعه",
     "storeProductNamed": "{store} أضاف منتجاً جديداً",
+    "priceDrop": "انخفض سعر {product} إلى {price}$",
     "listingApproved": "تمت الموافقة على إعلانك في سوق الأحد",
     "listingRejected": "تم رفض إعلانك في سوق الأحد",
     "listingMatch": "إعلان جديد يطابق بحثك المحفوظ 🔔",

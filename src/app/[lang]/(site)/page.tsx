@@ -15,6 +15,7 @@ import { ServicesGrid } from "@/components/services-grid";
 import { OffersTeaser } from "@/components/offers-teaser";
 import { BestSellersTeaser } from "@/components/best-sellers-teaser";
 import { FeaturedStores } from "@/components/featured-stores";
+import { ForYouStrip } from "@/components/for-you-strip";
 import { HowItWorks } from "@/components/how-it-works";
 import { MerchantCta } from "@/components/merchant-cta";
 import { SectionSkeleton } from "@/components/section-skeleton";
@@ -70,6 +71,10 @@ export default async function Home({
       <Suspense fallback={null}>
         <DealSection lang={lang} dict={dict} />
       </Suspense>
+      {/* Per-user "For you" strip. Client island: fetches its own data in the
+          browser after load, so it adds no per-user server read and keeps this
+          page cacheable. Renders nothing for anon / no-history users. */}
+      <ForYouStrip lang={lang} dict={dict} />
       <CategoryGrid lang={lang} dict={dict} />
       <ServicesGrid lang={lang} dict={dict} />
       <Suspense fallback={<SectionSkeleton cards={4} />}>

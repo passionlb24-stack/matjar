@@ -14,6 +14,9 @@ type Notif = {
     store_id?: string;
     store_name?: string;
     product_id?: string;
+    product_name?: string;
+    old_price?: number | string;
+    new_price?: number | string;
     listing_id?: string;
     conversation_id?: string;
   } | null;
@@ -51,6 +54,11 @@ export default async function NotificationsPage({
         ? dict.notifications.storeProductNamed.replace("{store}", store)
         : dict.notifications.storeProduct;
     }
+    if (t === "price_drop") {
+      return dict.notifications.priceDrop
+        .replace("{product}", n.data?.product_name ?? "")
+        .replace("{price}", String(n.data?.new_price ?? ""));
+    }
     return t === "order_new"
       ? dict.notifications.orderNew
       : t === "order_status"
@@ -80,7 +88,9 @@ export default async function NotificationsPage({
       ? n.type === "listing_rejected"
         ? `/${lang}/account`
         : `/${lang}/market/${n.data.listing_id}`
-      : n.type === "store_product" && n.data?.store_id
+      : n.type === "price_drop" && n.data?.product_id
+        ? `/${lang}/product/${n.data.product_id}`
+        : n.type === "store_product" && n.data?.store_id
         ? `/${lang}/store/${n.data.store_id}`
         : n.type === "store_new"
           ? `/${lang}/admin/stores`
