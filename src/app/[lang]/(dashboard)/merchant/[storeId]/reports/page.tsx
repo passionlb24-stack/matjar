@@ -11,8 +11,6 @@ import { Container } from "@/components/ui/container";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const DEAD = new Set(["cancelled", "rejected"]);
-const DAY = 86_400_000;
 
 function formatPrice(n: number) {
   return n >= 1000 ? `$${Number(n).toLocaleString("en-US")}` : `$${n}`;
@@ -185,122 +183,61 @@ export default async function StoreReportsPage({
     if (!(perms.orders ?? false)) redirect(`/${lang}/merchant/${storeId}`);
   }
 
-  const [
-    { data: ordersData },
-    { data: itemsData },
-    { data: posData },
-    { data: posItemsData },
-  ] = await Promise.all([
-    supabase
-      .from("orders")
-      .select("id, total, status, created_at")
-      .eq("store_id", storeId),
-    supabase
-      .from("order_items")
-      .select("name, quantity, orders!inner(store_id)")
-      .eq("orders.store_id", storeId),
-    supabase
-      .from("pos_sales")
-      .select("total, created_at")
-      .eq("store_id", storeId),
-    supabase
-      .from("pos_sale_items")
-      .select("name, qty, pos_sales!inner(store_id)")
-      .eq("pos_sales.store_id", storeId),
-  ]);
-  const orders = (ordersData ?? []) as {
-    id: string;
-    total: number;
-    status: string;
-    created_at: string;
-  }[];
-  const items = (itemsData ?? []) as unknown as {
-    name: string;
-    quantity: number;
-  }[];
-  const posSales = (posData ?? []) as { total: number; created_at: string }[];
-  const posItems = (posItemsData ?? []) as unknown as {
-    name: string;
-    qty: number;
-  }[];
-
-  // Server component: reads the clock once per request for time-window stats.
-  // eslint-disable-next-line react-hooks/purity
-  const now = Date.now();
-  const live = orders.filter((o) => !DEAD.has(o.status));
-  const onlineSales = live.reduce((s, o) => s + Number(o.total), 0);
-  const posTotal = posSales.reduce((s, r) => s + Number(r.total), 0);
-  const totalSales = onlineSales + posTotal;
-
-  const inRange = (o: { created_at: string }, from: number, to: number) => {
-    const ts = new Date(o.created_at).getTime();
-    return ts >= from && ts < to;
+  // Everything is aggregated server-side (see migration 0087) so revenue can't
+  // silently truncate past PostgREST's 1000-row cap as a store grows.
+  const { data: report } = await supabase.rpc("store_report", {
+    p_store_id: storeId,
+    p_days: 14,
+  });
+  const r = (report ?? {}) as {
+    total_orders?: number;
+    online_sales?: number;
+    pos_total?: number;
+    week?: { count: number; pct: number };
+    month?: { count: number; pct: number };
+    per_day?: { day: string; orders: number; online: number; pos: number }[];
+    status_rows?: { status: string; count: number }[];
+    top_products?: { name: string; qty: number }[];
   };
-  const windowStats = (days: number) => {
-    const cur = orders.filter((o) => inRange(o, now - days * DAY, now));
-    const prev = orders.filter((o) =>
-      inRange(o, now - 2 * days * DAY, now - days * DAY),
-    );
-    const curN = cur.length;
-    const prevN = prev.length;
-    const pct = prevN > 0 ? Math.round(((curN - prevN) / prevN) * 100) : curN > 0 ? 100 : 0;
-    return { count: curN, pct };
-  };
-  const week = windowStats(7);
-  const month = windowStats(30);
 
-  // Orders count + unified revenue (online + POS) per day, last 14 days.
-  const perDay: { label: string; value: number }[] = [];
-  const revenueDays: { label: string; online: number; pos: number }[] = [];
-  for (let i = 13; i >= 0; i--) {
-    const dayStart = now - i * DAY;
-    const from = dayStart - (dayStart % DAY);
-    const to = from + DAY;
-    const label = new Date(dayStart).toLocaleDateString(
+  const totalSales = Number(r.online_sales ?? 0) + Number(r.pos_total ?? 0);
+
+  const dayLabel = (iso: string) =>
+    new Date(`${iso}T00:00:00Z`).toLocaleDateString(
       lang === "ar" ? "ar" : "en",
       { month: "numeric", day: "numeric" },
     );
-    perDay.push({
-      label,
-      value: orders.filter((o) => inRange(o, from, to)).length,
-    });
-    revenueDays.push({
-      label,
-      online: live
-        .filter((o) => inRange(o, from, to))
-        .reduce((s, o) => s + Number(o.total), 0),
-      pos: posSales
-        .filter((r) => inRange(r, from, to))
-        .reduce((s, r) => s + Number(r.total), 0),
-    });
-  }
-
-  const statusRows = [...orders.reduce((m, o) => {
-    m.set(o.status, (m.get(o.status) ?? 0) + 1);
-    return m;
-  }, new Map<string, number>())].map(([k, v]) => ({
-    label: (dict.orders.status as Record<string, string>)[k] ?? k,
-    value: v,
+  const perDay = (r.per_day ?? []).map((d) => ({
+    label: dayLabel(d.day),
+    value: Number(d.orders),
+  }));
+  const revenueDays = (r.per_day ?? []).map((d) => ({
+    label: dayLabel(d.day),
+    online: Number(d.online),
+    pos: Number(d.pos),
+  }));
+  const statusRows = (r.status_rows ?? []).map((s) => ({
+    label: (dict.orders.status as Record<string, string>)[s.status] ?? s.status,
+    value: Number(s.count),
+  }));
+  const topProducts = (r.top_products ?? []).map((tp) => ({
+    label: tp.name,
+    value: Number(tp.qty),
   }));
 
-  // Best sellers across both channels (online order items + POS lines).
-  const topMap = items.reduce((m, it) => {
-    m.set(it.name, (m.get(it.name) ?? 0) + Number(it.quantity));
-    return m;
-  }, new Map<string, number>());
-  posItems.forEach((it) => {
-    topMap.set(it.name, (topMap.get(it.name) ?? 0) + Number(it.qty));
-  });
-  const topProducts = [...topMap]
-    .map(([label, value]) => ({ label, value }))
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 8);
-
   const kpis = [
-    { label: t.totalOrders, value: String(orders.length) },
+    { label: t.totalOrders, value: String(r.total_orders ?? 0) },
     { label: t.sales, value: formatPrice(totalSales) },
-    { label: t.thisWeek, value: String(week.count), pct: week.pct },
-    { label: t.thisMonth, value: String(month.count), pct: month.pct },
+    {
+      label: t.thisWeek,
+      value: String(r.week?.count ?? 0),
+      pct: r.week?.pct ?? 0,
+    },
+    {
+      label: t.thisMonth,
+      value: String(r.month?.count ?? 0),
+      pct: r.month?.pct ?? 0,
+    },
   ];
 
   return (
@@ -340,7 +277,7 @@ export default async function StoreReportsPage({
               days={revenueDays}
               legendOnline={dict.os.finance.online}
               legendPos={dict.os.finance.pos}
-              hasPos={posTotal > 0}
+              hasPos={Number(r.pos_total ?? 0) > 0}
             />
           </div>
         </div>
