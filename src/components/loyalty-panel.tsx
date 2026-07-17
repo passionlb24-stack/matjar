@@ -50,7 +50,27 @@ export function LoyaltyPanel({
 }) {
   const t = dict.loyalty;
   const [copied, setCopied] = useState(false);
+  const [byStore, setByStore] = useState<
+    { store_id: string; store_name: string; balance: number }[]
+  >([]);
   const link = `${siteUrl}/${lang}/signup?ref=${code}`;
+
+  // Points are earned + spent PER STORE — fetch the per-store breakdown so the
+  // customer sees what's actually redeemable where (the big number above is the
+  // lifetime total that drives their tier).
+  useEffect(() => {
+    createClient()
+      .rpc("my_loyalty_by_store")
+      .then(({ data }) => {
+        setByStore(
+          (data ?? []) as {
+            store_id: string;
+            store_name: string;
+            balance: number;
+          }[],
+        );
+      });
+  }, []);
 
   // Attribute a referral captured at signup time (works even after email
   // confirmation, since this runs whenever the referred user opens /account).
@@ -127,6 +147,32 @@ export function LoyaltyPanel({
             : t.maxTier}
         </p>
       </div>
+
+      {/* Points by store — what's actually redeemable, and where. */}
+      {byStore.length > 0 && (
+        <div className="rounded-2xl border border-border bg-background p-5">
+          <h3 className="text-sm font-bold">{t.byStoreTitle}</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">{t.byStoreNote}</p>
+          <ul className="mt-3 divide-y divide-border">
+            {byStore.map((b) => (
+              <li
+                key={b.store_id}
+                className="flex items-center justify-between py-2 text-sm"
+              >
+                <a
+                  href={`/${lang}/store/${b.store_id}`}
+                  className="font-semibold hover:text-primary"
+                >
+                  {b.store_name}
+                </a>
+                <span className="font-bold tabular-nums text-primary">
+                  {Number(b.balance).toLocaleString("en-US")} {t.points}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Referral */}
       <div className="rounded-2xl border border-border bg-background p-5">

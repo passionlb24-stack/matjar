@@ -12,6 +12,8 @@ type Notif = {
   type: string;
   data: {
     store_id?: string;
+    store_name?: string;
+    product_id?: string;
     listing_id?: string;
     conversation_id?: string;
   } | null;
@@ -41,8 +43,15 @@ export default async function NotificationsPage({
     .limit(50);
   const notifs = (data ?? []) as Notif[];
 
-  const titleFor = (t: string) =>
-    t === "order_new"
+  const titleFor = (n: Notif) => {
+    const t = n.type;
+    if (t === "store_product") {
+      const store = n.data?.store_name;
+      return store
+        ? dict.notifications.storeProductNamed.replace("{store}", store)
+        : dict.notifications.storeProduct;
+    }
+    return t === "order_new"
       ? dict.notifications.orderNew
       : t === "order_status"
         ? dict.notifications.orderStatus
@@ -50,9 +59,7 @@ export default async function NotificationsPage({
           ? dict.notifications.bookingNew
           : t === "booking_status"
             ? dict.notifications.bookingStatus
-            : t === "store_product"
-              ? dict.notifications.storeProduct
-              : t === "listing_approved"
+            : t === "listing_approved"
                 ? dict.notifications.listingApproved
                 : t === "listing_rejected"
                   ? dict.notifications.listingRejected
@@ -63,6 +70,7 @@ export default async function NotificationsPage({
                       : t === "store_new"
                         ? dict.notifications.storeNew
                         : t;
+  };
 
   const linkFor = (n: Notif) =>
     (n.type === "listing_approved" ||
@@ -106,7 +114,7 @@ export default async function NotificationsPage({
                     : "border-primary/30 bg-primary-soft"
                 }`}
               >
-                <p className="font-semibold">{titleFor(n.type)}</p>
+                <p className="font-semibold">{titleFor(n)}</p>
               </Link>
             ))}
           </div>
