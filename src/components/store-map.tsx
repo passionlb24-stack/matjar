@@ -47,14 +47,25 @@ export function StoreMap({
 
     const markers: L.Marker[] = [];
     for (const s of stores) {
+      // Build the popup as DOM nodes with textContent — store/branch names are
+      // merchant-controlled, so interpolating them into an HTML string would be
+      // a stored-XSS sink (Leaflet renders bindPopup strings as innerHTML).
+      const popup = document.createElement("div");
+      const link = document.createElement("a");
+      link.href = `/${lang}/store/${s.id}`;
+      link.style.cssText =
+        "font-weight:700;color:#1556c2;text-decoration:none";
+      link.textContent = s.name;
+      popup.appendChild(link);
+      if (s.branch) {
+        const sub = document.createElement("div");
+        sub.style.cssText = "color:#64748b;font-size:12px;margin-top:2px";
+        sub.textContent = s.branch;
+        popup.appendChild(sub);
+      }
       const m = L.marker([s.lat, s.lng], { icon: pin })
         .addTo(map)
-        .bindPopup(
-          `<a href="/${lang}/store/${s.id}" style="font-weight:700;color:#1556c2;text-decoration:none">${s.name}</a>` +
-            (s.branch
-              ? `<div style="color:#64748b;font-size:12px;margin-top:2px">${s.branch}</div>`
-              : ""),
-        );
+        .bindPopup(popup);
       markers.push(m);
     }
     if (markers.length) {

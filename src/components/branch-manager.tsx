@@ -90,6 +90,25 @@ export function BranchManager({
     );
   }
 
+  // The primary branch must stay active — order/POS branch attribution defaults
+  // to it, so it can never be turned off.
+  const editingPrimary =
+    initial.find((b) => b.id === editingId)?.is_primary ?? false;
+
+  async function makePrimary(b: BranchRow) {
+    setBusy(true);
+    const { error } = await createClient()
+      .from("store_locations")
+      .update({ is_primary: true })
+      .eq("id", b.id);
+    setBusy(false);
+    if (error) {
+      notifyError(dict.common.actionFailed);
+      return;
+    }
+    router.refresh();
+  }
+
   async function save() {
     setBusy(true);
     const supabase = createClient();
@@ -102,7 +121,7 @@ export function BranchManager({
       whatsapp: draft.whatsapp?.trim() || null,
       lat: draft.lat,
       lng: draft.lng,
-      is_active: draft.is_active,
+      is_active: editingPrimary ? true : draft.is_active,
     };
     const { error } =
       editingId === "new"
@@ -125,7 +144,9 @@ export function BranchManager({
   }
 
   async function remove(b: BranchRow) {
-    if (b.is_primary && initial.length === 1) {
+    // The primary can't be deleted — a store must always keep one primary
+    // branch. Make another branch primary first, then delete this one.
+    if (b.is_primary) {
       notifyError(t.cantDeletePrimary);
       return;
     }
@@ -224,7 +245,8 @@ export function BranchManager({
         <label className="ms-auto flex items-center gap-2 text-sm font-semibold">
           <input
             type="checkbox"
-            checked={draft.is_active}
+            checked={editingPrimary ? true : draft.is_active}
+            disabled={editingPrimary}
             onChange={(e) => setDraft({ ...draft, is_active: e.target.checked })}
             className="h-4 w-4"
           />
@@ -286,6 +308,16 @@ export function BranchManager({
               </p>
             </div>
             <div className="flex shrink-0 gap-1">
+              {!b.is_primary && (
+                <button
+                  onClick={() => makePrimary(b)}
+                  aria-label={t.makePrimary}
+                  title={t.makePrimary}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-amber-50 hover:text-amber-600"
+                >
+                  <Star className="h-4 w-4" />
+                </button>
+              )}
               <button
                 onClick={() => openEdit(b)}
                 aria-label={t.edit}
