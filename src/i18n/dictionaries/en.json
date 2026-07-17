@@ -14,7 +14,8 @@
     "menu": "Menu",
     "favorite": "Add to favorites",
     "unread": "unread",
-    "actionFailed": "Something went wrong. Please try again."
+    "actionFailed": "Something went wrong. Please try again.",
+    "rateLimited": "Too many attempts in a short time. Please wait a moment and try again."
   },
   "tabbar": {
     "home": "Home",
@@ -113,6 +114,15 @@
     "crm": {
       "book": "Customer book",
       "fromOrders": "From orders",
+      "points": "points",
+      "redeem": "Redeem points",
+      "redeemAmount": "Points",
+      "redeemNote": "Note",
+      "redeemNoteHint": "e.g. discount on an order",
+      "redeemConfirm": "Redeem",
+      "redeemSuccess": "Points redeemed ✓",
+      "insufficientPoints": "Not enough points.",
+      "cancel": "Cancel",
       "add": "Add",
       "name": "Name",
       "phone": "Phone (WhatsApp)",
@@ -1021,6 +1031,19 @@
   },
   "orders": {
     "title": "My orders",
+    "filter": {
+      "all": "All",
+      "searchPlaceholder": "Search by customer or order #…",
+      "noMatch": "No orders match your filter."
+    },
+    "storeNote": {
+      "title": "Internal note",
+      "add": "Add internal note",
+      "placeholder": "Visible to your team only…",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saved": "Note saved ✓"
+    },
     "empty": "You don't have any orders yet.",
     "order": "Order",
     "total": "Total",
@@ -1046,6 +1069,7 @@
   },
   "reviews": {
     "title": "Reviews",
+    "needsPurchase": "You can only review a store after you've ordered from it.",
     "leaveReview": "Rate this store",
     "yourRating": "Your rating",
     "comment": "Your comment",
@@ -1131,6 +1155,11 @@
     "title": "Book an appointment",
     "selectService": "Select a service",
     "selectDoctor": "Choose a doctor",
+    "calendar": "Calendar",
+    "prevWeek": "Previous week",
+    "nextWeek": "Next week",
+    "thisWeek": "This week",
+    "noAppointments": "No appointments this week",
     "date": "Date",
     "time": "Time",
     "notes": "Notes",

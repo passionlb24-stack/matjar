@@ -13,7 +13,7 @@ import {
 } from "@/lib/catalog";
 import { createClient } from "@/lib/supabase/server";
 import { localeAlternates, SITE_URL } from "@/lib/site";
-import { storeJsonLd, jsonLdScript } from "@/lib/jsonld";
+import { storeJsonLd, jsonLdScript, toOpeningHours } from "@/lib/jsonld";
 import { parseHours, isOpenNow, daySpan } from "@/lib/hours";
 import { getUsdLbpRate } from "@/lib/data/settings";
 import { categoryIcons } from "@/components/category-icon";
@@ -382,6 +382,14 @@ export default async function StorePage({
                 url: `${SITE_URL}/${lang}/store/${id}`,
                 telephone: store.whatsapp ?? store.phone,
                 area: store.area,
+                lat: branches[0]?.lat ?? null,
+                lng: branches[0]?.lng ?? null,
+                openingHours: toOpeningHours(
+                  parseHours(store.hours) as unknown as Record<
+                    string,
+                    { open: string; close: string }
+                  > | null,
+                ),
                 rating: headerRating,
                 reviewCount: headerCount,
               }),

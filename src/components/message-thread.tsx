@@ -27,6 +27,7 @@ export function MessageThread({
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,6 +54,7 @@ export function MessageThread({
     const body = text.trim();
     if (!body || sending) return;
     setSending(true);
+    setSendError(null);
     const supabase = createClient();
     const { data, error } = await supabase
       .from("messages")
@@ -63,6 +65,9 @@ export function MessageThread({
     if (!error && data) {
       setMessages((m) => [...m, data as ChatMessage]);
       setText("");
+    } else {
+      // The insert policy caps messages per hour; a rejection here is the cap.
+      setSendError(dict.common.rateLimited);
     }
   }
 
@@ -89,6 +94,11 @@ export function MessageThread({
         })}
         <div ref={endRef} />
       </div>
+      {sendError && (
+        <p className="border-t border-border px-4 py-2 text-sm font-medium text-red-600">
+          {sendError}
+        </p>
+      )}
       <form
         onSubmit={send}
         className="flex items-center gap-2 border-t border-border p-3"

@@ -26,10 +26,16 @@ function rowToStore(row: {
   lng: number | null;
   hours?: unknown;
   business_types: { slug: string } | null;
+  rating_avg: number | null;
+  rating_count: number | null;
 }): Store {
   // Real open/closed from structured hours; stores without configured hours
   // default to open (never scare customers away over missing data).
   const open = isOpenNow(parseHours(row.hours), new Date());
+  // Denormalized rating columns, kept current by the reviews trigger (migration
+  // 0091). rating stays undefined at 0 reviews so the card hides the rating
+  // block; reviews carries the raw count.
+  const ratingAvg = row.rating_avg != null ? Number(row.rating_avg) : 0;
   return {
     id: row.id,
     name: { ar: row.name, en: row.name },
@@ -40,6 +46,8 @@ function rowToStore(row: {
     plan: row.plan ?? "free",
     verified: row.is_verified ?? false,
     registered: row.commercial_reg_verified ?? false,
+    rating: ratingAvg > 0 ? ratingAvg : undefined,
+    reviews: row.rating_count != null ? Number(row.rating_count) : 0,
     featured:
       row.featured_until != null && new Date(row.featured_until) > new Date(),
     logoUrl: row.logo_url,
@@ -59,7 +67,7 @@ async function fetchActiveStores(): Promise<Store[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("stores")
-    .select("id, name, area, region, plan, is_verified, commercial_reg_verified, featured_until, logo_url, cover_url, lat, lng, hours, business_types(slug)")
+    .select("id, name, area, region, plan, is_verified, commercial_reg_verified, featured_until, logo_url, cover_url, lat, lng, hours, rating_avg, rating_count, business_types(slug)")
     .eq("status", "active")
     .is("deleted_at", null)
     .order("created_at", { ascending: false })
@@ -71,36 +79,8 @@ async function fetchActiveStores(): Promise<Store[]> {
   // otherwise — the pages re-sort for "near me"/rating when the user asks).
   list.sort((a, b) => Number(b.featured ?? false) - Number(a.featured ?? false));
 
-  await attachRatings(list);
   await attachLocations(list);
   return list;
-}
-
-// Attaches real average rating + review count to a store list (one query,
-// scoped to just these ids). Extracted so the small featured strip doesn't have
-// to reuse the 200-store listing path.
-async function attachRatings(list: Store[]): Promise<void> {
-  if (!list.length) return;
-  const supabase = await createClient();
-  const ids = list.map((s) => s.id);
-  const { data: revs } = await supabase
-    .from("reviews")
-    .select("store_id, rating")
-    .in("store_id", ids);
-  const agg = new Map<string, { sum: number; count: number }>();
-  ((revs ?? []) as { store_id: string; rating: number }[]).forEach((r) => {
-    const a = agg.get(r.store_id) ?? { sum: 0, count: 0 };
-    a.sum += r.rating;
-    a.count += 1;
-    agg.set(r.store_id, a);
-  });
-  list.forEach((s) => {
-    const a = agg.get(s.id);
-    if (a) {
-      s.rating = a.sum / a.count;
-      s.reviews = a.count;
-    }
-  });
 }
 
 // Attaches the active branch locations of each store (one query, scoped to
@@ -186,7 +166,7 @@ export async function searchStores(
   let query = supabase
     .from("stores")
     .select(
-      "id, name, area, region, plan, is_verified, logo_url, cover_url, lat, lng, hours, business_types(slug)",
+      "id, name, area, region, plan, is_verified, logo_url, cover_url, lat, lng, hours, rating_avg, rating_count, business_types(slug)",
     )
     .eq("status", "active")
     .is("deleted_at", null)
@@ -209,7 +189,7 @@ export async function getFeaturedStores(limit = 4): Promise<Store[]> {
   const { data } = await supabase
     .from("stores")
     .select(
-      "id, name, area, region, plan, is_verified, commercial_reg_verified, featured_until, logo_url, cover_url, lat, lng, hours, business_types(slug)",
+      "id, name, area, region, plan, is_verified, commercial_reg_verified, featured_until, logo_url, cover_url, lat, lng, hours, rating_avg, rating_count, business_types(slug)",
     )
     .eq("status", "active")
     .is("deleted_at", null)
@@ -220,7 +200,6 @@ export async function getFeaturedStores(limit = 4): Promise<Store[]> {
   ).map(rowToStore);
   // Featured (paid placement) floats above plain Pro.
   real.sort((a, b) => Number(b.featured ?? false) - Number(a.featured ?? false));
-  await attachRatings(real);
   if (!SHOW_DEMO_STORES) return markFavorites(real.slice(0, limit));
   const realIds = new Set(real.map((s) => s.id));
   return markFavorites(

@@ -50,7 +50,24 @@ export function ReviewForm({
       { onConflict: "store_id,customer_id" },
     );
     if (reviewError) {
-      setError(dict.auth.errorGeneric);
+      // The insert policy now also requires a verified purchase and enforces an
+      // hourly cap. Both surface as the same generic RLS denial, so only on the
+      // error path do we look up whether the customer has an order/booking with
+      // this store to pick the right message.
+      const [orders, bookings] = await Promise.all([
+        supabase
+          .from("orders")
+          .select("id", { count: "exact", head: true })
+          .eq("customer_id", user.id)
+          .eq("store_id", storeId),
+        supabase
+          .from("bookings")
+          .select("id", { count: "exact", head: true })
+          .eq("customer_id", user.id)
+          .eq("store_id", storeId),
+      ]);
+      const hasPurchase = (orders.count ?? 0) > 0 || (bookings.count ?? 0) > 0;
+      setError(hasPurchase ? dict.common.rateLimited : dict.reviews.needsPurchase);
       setLoading(false);
       return;
     }
