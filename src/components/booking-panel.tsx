@@ -43,6 +43,7 @@ export function BookingPanel({
   storeName = "",
   hours = null,
   slotMinutes = 30,
+  doctors = [],
 }: {
   storeId: string;
   lang: Locale;
@@ -54,6 +55,7 @@ export function BookingPanel({
   storeName?: string;
   hours?: WeekHours | null;
   slotMinutes?: number;
+  doctors?: { id: string; name: string }[];
 }) {
   const router = useRouter();
   const Icon = categoryIcons[category];
@@ -66,6 +68,9 @@ export function BookingPanel({
   const [taken, setTaken] = useState<string[]>([]);
   const [time, setTime] = useState("");
   const [pickedDate, setPickedDate] = useState("");
+  // Multi-doctor clinics: availability is per doctor, so bookings for different
+  // doctors don't block each other. Defaults to the first (server-ordered).
+  const [doctorId, setDoctorId] = useState<string>(doctors[0]?.id ?? "");
   const today = new Date().toISOString().slice(0, 10);
 
   // Fresha-style slot grid when the merchant configured structured hours;
@@ -77,10 +82,7 @@ export function BookingPanel({
     hours && span ? generateSlots(span, slotMinutes) : null;
   const dayClosed = !!hours && !!pickedDate && !span;
 
-  async function onDateChange(date: string) {
-    setError(null);
-    setPickedDate(date);
-    setTime("");
+  async function refreshTaken(date: string, doctor: string) {
     if (!date) {
       setTaken([]);
       return;
@@ -88,8 +90,22 @@ export function BookingPanel({
     const { data } = await createClient().rpc("booked_times", {
       p_store_id: storeId,
       p_date: date,
+      p_doctor_id: doctor || null,
     });
     setTaken(((data as string[] | null) ?? []).sort());
+  }
+
+  async function onDateChange(date: string) {
+    setError(null);
+    setPickedDate(date);
+    setTime("");
+    await refreshTaken(date, doctorId);
+  }
+
+  async function onDoctorChange(doctor: string) {
+    setDoctorId(doctor);
+    setTime("");
+    await refreshTaken(pickedDate, doctor);
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -116,6 +132,7 @@ export function BookingPanel({
       const { data: freshTaken } = await supabase.rpc("booked_times", {
         p_store_id: storeId,
         p_date: chosenDate,
+        p_doctor_id: doctorId || null,
       });
       if (((freshTaken as string[] | null) ?? []).includes(chosenTime)) {
         setTaken(((freshTaken as string[] | null) ?? []).sort());
@@ -129,6 +146,7 @@ export function BookingPanel({
       customer_id: user.id,
       product_id: serviceId || null,
       service_name: service?.name ?? null,
+      doctor_id: doctorId || null,
       requested_date: String(form.get("date")) || null,
       requested_time: String(form.get("time")) || null,
       customer_name: customerName,
@@ -245,6 +263,25 @@ export function BookingPanel({
                 ))}
               </select>
             </div>
+            {doctors.length > 0 && (
+              <div>
+                <label className={labelClass} htmlFor="doctor_id">
+                  {dict.booking.selectDoctor}
+                </label>
+                <select
+                  id="doctor_id"
+                  value={doctorId}
+                  onChange={(e) => onDoctorChange(e.target.value)}
+                  className={fieldClass}
+                >
+                  {doctors.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className={labelClass} htmlFor="date">

@@ -642,6 +642,7 @@ export default async function StorePage({
                 storeName={store.name}
                 hours={parseHours(store.hours)}
                 slotMinutes={store.bookingSlotMinutes ?? 30}
+                doctors={doctors.map((d) => ({ id: d.id, name: d.name }))}
                 services={store.products
                   .filter((p) => p.id)
                   .map((p) => ({
