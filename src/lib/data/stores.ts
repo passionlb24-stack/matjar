@@ -1,5 +1,7 @@
 import "server-only";
+import { unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public-client";
 import {
   featuredStores,
   stores as demoStores,
@@ -63,25 +65,34 @@ function rowToStore(row: {
 // to server-side pagination / PostGIS nearest-search when store count nears it.
 const STORE_FETCH_LIMIT = 200;
 
-async function fetchActiveStores(): Promise<Store[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("stores")
-    .select("id, name, area, region, plan, is_verified, commercial_reg_verified, featured_until, logo_url, cover_url, lat, lng, hours, rating_avg, rating_count, business_types(slug)")
-    .eq("status", "active")
-    .is("deleted_at", null)
-    .order("created_at", { ascending: false })
-    .limit(STORE_FETCH_LIMIT);
-  const list = ((data ?? []) as unknown as Parameters<typeof rowToStore>[0][]).map(
-    rowToStore,
-  );
-  // Paid featured stores float to the top of the default listing (stable
-  // otherwise — the pages re-sort for "near me"/rating when the user asks).
-  list.sort((a, b) => Number(b.featured ?? false) - Number(a.featured ?? false));
+// The active-store listing is public, identical for everyone, and the heaviest
+// query behind the homepage / explore / category pages. Cache it cross-request
+// (60s) with the cookie-less client so those pages don't re-run it per visitor.
+// Per-user data (favourites) is layered on AFTER, uncached (see markFavorites).
+// Tagged "stores" so a store create/edit could bust it immediately if wired.
+const fetchActiveStores = unstable_cache(
+  async (): Promise<Store[]> => {
+    const supabase = createPublicClient();
+    const { data } = await supabase
+      .from("stores")
+      .select("id, name, area, region, plan, is_verified, commercial_reg_verified, featured_until, logo_url, cover_url, lat, lng, hours, rating_avg, rating_count, business_types(slug)")
+      .eq("status", "active")
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(STORE_FETCH_LIMIT);
+    const list = ((data ?? []) as unknown as Parameters<typeof rowToStore>[0][]).map(
+      rowToStore,
+    );
+    // Paid featured stores float to the top of the default listing (stable
+    // otherwise — the pages re-sort for "near me"/rating when the user asks).
+    list.sort((a, b) => Number(b.featured ?? false) - Number(a.featured ?? false));
 
-  await attachLocations(list);
-  return list;
-}
+    await attachLocations(list);
+    return list;
+  },
+  ["active-stores-listing"],
+  { revalidate: 60, tags: ["stores"] },
+);
 
 // Attaches the active branch locations of each store (one query, scoped to
 // just these ids). "Near me" ranks a store by its closest branch and the map
@@ -89,7 +100,9 @@ async function fetchActiveStores(): Promise<Store[]> {
 // not only the primary lat/lng copied onto the store row.
 async function attachLocations(list: Store[]): Promise<void> {
   if (!list.length) return;
-  const supabase = await createClient();
+  // Cookie-less: this runs inside the cached fetchActiveStores (unstable_cache
+  // can't read request cookies) and branch locations are public data.
+  const supabase = createPublicClient();
   const ids = list.map((s) => s.id);
   const { data: locs } = await supabase
     .from("store_locations")
@@ -146,12 +159,16 @@ async function markFavorites(list: Store[]): Promise<Store[]> {
 // Real active stores, optionally padded with demo samples so listings aren't
 // empty before the platform fills up.
 export async function getStoresForListing(): Promise<Store[]> {
-  const real = await fetchActiveStores();
+  // fetchActiveStores is cached (shared across requests), and markFavorites
+  // mutates `favorited` per user — so shallow-clone first to never write a
+  // viewer's favourites onto the shared cached objects. (Demo stores are
+  // module-level statics; clone them for the same reason.)
+  const real = (await fetchActiveStores()).map((s) => ({ ...s }));
   if (!SHOW_DEMO_STORES) return markFavorites(real);
   const realIds = new Set(real.map((s) => s.id));
   return markFavorites([
     ...real,
-    ...demoStores.filter((s) => !realIds.has(s.id)),
+    ...demoStores.filter((s) => !realIds.has(s.id)).map((s) => ({ ...s })),
   ]);
 }
 
