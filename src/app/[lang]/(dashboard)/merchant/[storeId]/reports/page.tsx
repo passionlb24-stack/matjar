@@ -192,6 +192,8 @@ export default async function StoreReportsPage({
   const r = (report ?? {}) as {
     total_orders?: number;
     online_sales?: number;
+    online_realized?: number;
+    online_pending?: number;
     pos_total?: number;
     week?: { count: number; pct: number };
     month?: { count: number; pct: number };
@@ -200,7 +202,10 @@ export default async function StoreReportsPage({
     top_products?: { name: string; qty: number }[];
   };
 
-  const totalSales = Number(r.online_sales ?? 0) + Number(r.pos_total ?? 0);
+  // Sales leads with REALIZED (completed) revenue; pending is surfaced below so
+  // the figure isn't inflated by orders still in progress.
+  const totalSales = Number(r.online_realized ?? 0) + Number(r.pos_total ?? 0);
+  const pendingSales = Number(r.online_pending ?? 0);
 
   const dayLabel = (iso: string) =>
     new Date(`${iso}T00:00:00Z`).toLocaleDateString(
@@ -267,6 +272,13 @@ export default async function StoreReportsPage({
             </div>
           ))}
         </div>
+
+        {pendingSales > 0 && (
+          <p className="mt-2 text-xs font-semibold text-amber-600">
+            {dict.os.finance.pending}: {formatPrice(pendingSales)} —{" "}
+            {dict.os.finance.pendingHint}
+          </p>
+        )}
 
         <div className="mt-6 rounded-2xl border border-border bg-surface p-5">
           <h2 className="text-sm font-bold text-muted-foreground">

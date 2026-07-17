@@ -311,7 +311,10 @@
     "finance": {
       "online": "Online",
       "pos": "POS",
-      "supplierDues": "Owed to suppliers"
+      "supplierDues": "Owed to suppliers",
+      "realized": "Realized",
+      "pending": "Pending",
+      "pendingHint": "Placed but not yet completed"
     },
     "pos": {
       "title": "Point of sale",

@@ -311,7 +311,10 @@
     "finance": {
       "online": "أونلاين",
       "pos": "نقطة البيع",
-      "supplierDues": "ديون للمورّدين"
+      "supplierDues": "ديون للمورّدين",
+      "realized": "محقّق",
+      "pending": "قيد الانتظار",
+      "pendingHint": "طلبات وصلت بس لسا ما تأكّدت"
     },
     "pos": {
       "title": "نقطة البيع",

@@ -79,15 +79,21 @@ export default async function AccountingPage({
 
   const acct = (acctData ?? {}) as {
     online_revenue?: number;
+    online_realized?: number;
+    online_pending?: number;
     pos_revenue?: number;
     total_expenses?: number;
     supplier_dues?: number;
   };
   const expenses = (expData ?? []) as Expense[];
 
-  const onlineRevenue = Number(acct.online_revenue ?? 0);
+  // Revenue leads with REALIZED (completed orders, net of refunds) so profit
+  // isn't inflated by orders still in progress. Pending is shown separately so
+  // nothing is hidden.
+  const onlineRealized = Number(acct.online_realized ?? 0);
+  const onlinePending = Number(acct.online_pending ?? 0);
   const posRevenue = Number(acct.pos_revenue ?? 0);
-  const revenue = onlineRevenue + posRevenue;
+  const revenue = onlineRealized + posRevenue;
   const totalExpenses = Number(acct.total_expenses ?? 0);
   const profit = revenue - totalExpenses;
   const supplierDues = Number(acct.supplier_dues ?? 0);
@@ -119,8 +125,13 @@ export default async function AccountingPage({
             </p>
             {posRevenue > 0 && (
               <p className="mt-1 text-[11px] font-semibold text-muted-foreground">
-                {dict.os.finance.online} {money(onlineRevenue)} ·{" "}
+                {dict.os.finance.online} {money(onlineRealized)} ·{" "}
                 {dict.os.finance.pos} {money(posRevenue)}
+              </p>
+            )}
+            {onlinePending > 0 && (
+              <p className="mt-1 text-[11px] font-semibold text-amber-600">
+                {dict.os.finance.pending}: {money(onlinePending)}
               </p>
             )}
           </div>
