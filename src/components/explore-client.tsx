@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Search,
   Navigation,
@@ -22,6 +22,7 @@ import {
 } from "@/lib/catalog";
 import { nearestDistance } from "@/lib/geo";
 import { getCurrentPosition } from "@/lib/native";
+import { createClient } from "@/lib/supabase/client";
 import { Container } from "@/components/ui/container";
 import { StoreCard } from "@/components/store-card";
 
@@ -64,6 +65,52 @@ export function ExploreClient({
   const [locating, setLocating] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
 
+  // Product-name search: the RPC (migration 0113) returns ids of active stores
+  // that carry a product matching the query (substring or fuzzy). null = no
+  // active product search (query < 2 chars); a Set = the matching store ids.
+  const supabase = useMemo(() => createClient(), []);
+  const [productMatchIds, setProductMatchIds] = useState<Set<string> | null>(
+    null,
+  );
+  const [searching, setSearching] = useState(false);
+  // Latest term this effect fired for, so a slow/out-of-order response that
+  // resolves after the query changed is discarded instead of clobbering state.
+  const latestTermRef = useRef("");
+
+  useEffect(() => {
+    const term = query.trim();
+    latestTermRef.current = term;
+    // Store-name filtering below always runs; product search only kicks in at
+    // 2+ chars (matches the RPC's own guard and avoids a full-catalog scan).
+    if (term.length < 2) {
+      setProductMatchIds(null);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    const handle = setTimeout(() => {
+      void (async () => {
+        const { data, error } = await supabase.rpc(
+          "search_store_ids_by_product",
+          { p_q: term },
+        );
+        // Ignore this response if the query moved on while it was in flight.
+        if (latestTermRef.current !== term) return;
+        if (error) {
+          setProductMatchIds(null);
+        } else {
+          setProductMatchIds(
+            new Set(
+              ((data ?? []) as { store_id: string }[]).map((r) => r.store_id),
+            ),
+          );
+        }
+        setSearching(false);
+      })();
+    }, 250);
+    return () => clearTimeout(handle);
+  }, [query, supabase]);
+
   async function findNearMe() {
     setLocating(true);
     setGeoError(null);
@@ -101,12 +148,13 @@ export function ExploreClient({
     if (region !== "all" && s.region !== region) return false;
     if (query.trim()) {
       const q = query.trim().toLowerCase();
-      if (
-        !s.name.ar.toLowerCase().includes(q) &&
-        !s.name.en.toLowerCase().includes(q)
-      ) {
-        return false;
-      }
+      const nameMatch =
+        s.name.ar.toLowerCase().includes(q) ||
+        s.name.en.toLowerCase().includes(q);
+      // Keep the store if its NAME matches (client-side, as before) OR one of
+      // its PRODUCTS matched server-side via the RPC.
+      const productMatch = productMatchIds?.has(s.id) ?? false;
+      if (!nameMatch && !productMatch) return false;
     }
     return true;
   });
@@ -152,7 +200,11 @@ export function ExploreClient({
         <p className="mt-2 text-muted-foreground">{dict.explore.subtitle}</p>
 
         <div className="mt-6 flex items-center gap-2 rounded-xl border border-border bg-surface px-4 sm:max-w-md">
-          <Search className="h-5 w-5 shrink-0 text-muted-foreground" />
+          {searching ? (
+            <Loader2 className="h-5 w-5 shrink-0 animate-spin text-muted-foreground" />
+          ) : (
+            <Search className="h-5 w-5 shrink-0 text-muted-foreground" />
+          )}
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}

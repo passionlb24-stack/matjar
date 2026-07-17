@@ -418,7 +418,7 @@
   "explore": {
     "title": "تصفّح المتاجر",
     "subtitle": "لاقِ أقرب متجر أو خدمة إلك حسب التصنيف والمنطقة.",
-    "searchPlaceholder": "دوّر على متجر…",
+    "searchPlaceholder": "دوّر على متجر أو منتج…",
     "allCategories": "كل التصنيفات",
     "allRegions": "كل المناطق",
     "results": "متجر",
@@ -689,6 +689,7 @@
     "subscriptionLink": "اشتراكي",
     "subscription": {
       "title": "اشتراك المتجر",
+      "trialBanner": "تجربة Pro مجانية — باقي {days} يوم. اشترك للاستمرار.",
       "currentPlan": "خطتك الحالية",
       "free": "مجاني",
       "pro": "Matjar Pro",
@@ -1180,6 +1181,10 @@
     "perYear": "/سنة",
     "yearlyNote": "أو $150/سنة — وفّر شهرين",
     "contactNote": "الدفع يدوي حالياً — تواصل معنا لتفعيل Pro بعد الدفع.",
+    "freeTrial": "14 يوم تجربة مجانية",
+    "discountOff": "خصم {pct}%",
+    "monthly": "شهري",
+    "yearly": "سنوي",
     "freeFeatures": [
       "صفحة أعمال أساسية",
       "معلومات التواصل وواتساب",

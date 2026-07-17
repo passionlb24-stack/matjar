@@ -1,12 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Check, Crown } from "lucide-react";
+import { Check, Crown, Sparkles } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
-import { PRO_PRICE_MONTHLY } from "@/lib/plan";
+import {
+  PRO_PRICE_MONTHLY,
+  PRO_PRICE_YEARLY,
+  PRO_PRICE_MONTHLY_LIST,
+  PRO_PRICE_YEARLY_LIST,
+  PRO_MONTHLY_DISCOUNT_PCT,
+  PRO_YEARLY_DISCOUNT_PCT,
+} from "@/lib/plan";
 
 export async function generateMetadata({
   params,
@@ -34,6 +41,8 @@ export default async function PricingPage({
 
   const freeFeatures = dict.pricing.freeFeatures;
   const proFeatures = dict.pricing.proFeatures;
+  const discountLabel = (pct: number) =>
+    dict.pricing.discountOff.replace("{pct}", String(pct));
 
   return (
     <div className="py-14 sm:py-16">
@@ -78,17 +87,61 @@ export default async function PricingPage({
               <Crown className="h-5 w-5 text-amber-500" />
               {dict.pricing.pro}
             </h2>
-            <p className="mt-3">
-              <span className="text-4xl font-extrabold">
-                ${PRO_PRICE_MONTHLY}
-              </span>
-              <span className="text-muted-foreground">
-                {dict.pricing.perMonth}
-              </span>
-            </p>
-            <p className="mt-1 text-sm font-semibold text-amber-600">
-              {dict.pricing.yearlyNote}
-            </p>
+
+            {/* Monthly + yearly, each showing the list price struck through next
+                to the discounted effective price and a launch-discount badge. */}
+            <div className="mt-4 space-y-3">
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-background/50 px-4 py-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {dict.pricing.monthly}
+                  </p>
+                  <p className="mt-0.5 flex items-baseline gap-1.5">
+                    <span className="text-3xl font-extrabold">
+                      ${PRO_PRICE_MONTHLY}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {dict.pricing.perMonth}
+                    </span>
+                    <span className="text-sm text-muted-foreground line-through">
+                      ${PRO_PRICE_MONTHLY_LIST}
+                    </span>
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                  {discountLabel(PRO_MONTHLY_DISCOUNT_PCT)}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-background/50 px-4 py-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {dict.pricing.yearly}
+                  </p>
+                  <p className="mt-0.5 flex items-baseline gap-1.5">
+                    <span className="text-3xl font-extrabold">
+                      ${PRO_PRICE_YEARLY}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {dict.pricing.perYear}
+                    </span>
+                    <span className="text-sm text-muted-foreground line-through">
+                      ${PRO_PRICE_YEARLY_LIST}
+                    </span>
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                  {discountLabel(PRO_YEARLY_DISCOUNT_PCT)}
+                </span>
+              </div>
+            </div>
+
+            {/* Prominent free-trial line. */}
+            <div className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-primary/10 px-4 py-2.5 text-center text-sm font-bold text-primary">
+              <Sparkles className="h-4 w-4 shrink-0" />
+              {dict.pricing.freeTrial}
+            </div>
+
             <ul className="mt-6 space-y-3">
               {proFeatures.map((f) => (
                 <li key={f} className="flex items-start gap-2">

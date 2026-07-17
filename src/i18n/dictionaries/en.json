@@ -418,7 +418,7 @@
   "explore": {
     "title": "Explore stores",
     "subtitle": "Find the nearest store or service to you by category and region.",
-    "searchPlaceholder": "Search for a store…",
+    "searchPlaceholder": "Search for a store or product…",
     "allCategories": "All categories",
     "allRegions": "All regions",
     "results": "stores",
@@ -689,6 +689,7 @@
     "subscriptionLink": "Subscription",
     "subscription": {
       "title": "Store subscription",
+      "trialBanner": "Free Pro trial — {days} days left. Subscribe to keep your Pro features.",
       "currentPlan": "Your current plan",
       "free": "Free",
       "pro": "Matjar Pro",
@@ -1180,6 +1181,10 @@
     "perYear": "/year",
     "yearlyNote": "or $150/year — save 2 months",
     "contactNote": "Payment is manual for now — contact us to activate Pro after payment.",
+    "freeTrial": "14-day free trial",
+    "discountOff": "{pct}% off",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
     "freeFeatures": [
       "Basic business page",
       "Contact info + WhatsApp",

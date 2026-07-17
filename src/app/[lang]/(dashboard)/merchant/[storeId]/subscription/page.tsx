@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight, Crown, Check } from "lucide-react";
+import { ChevronRight, Crown, Check, Sparkles } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -38,15 +38,28 @@ export default async function StoreSubscriptionPage({
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, plan, owner_id")
+    .select("id, name, plan, owner_id, trial_ends_at")
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
   // Billing is owner-only (matches the registry's ownerOnly flag).
   if ((store as unknown as { owner_id: string }).owner_id !== user.id)
     redirect(`/${lang}/merchant/${storeId}`);
+  // Read the RAW plan here (not the trial-collapsed effective plan): a store on
+  // an active free trial is still on the free plan for billing, so we keep the
+  // subscribe CTA visible and show a trial-countdown banner instead.
   const plan = (store as { plan: "free" | "pro" }).plan;
   const isPro = plan === "pro";
+  const trialEndsAt =
+    (store as { trial_ends_at: string | null }).trial_ends_at ?? null;
+  const trialEnd = trialEndsAt ? new Date(trialEndsAt) : null;
+  const onTrial = !isPro && trialEnd != null && trialEnd > new Date();
+  const trialDaysLeft = onTrial
+    ? Math.max(
+        1,
+        Math.ceil((trialEnd!.getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
+      )
+    : 0;
 
   const { data: sub } = await supabase
     .from("subscriptions")
@@ -113,7 +126,18 @@ export default async function StoreSubscriptionPage({
           )}
         </div>
 
-        {/* Upgrade CTA for free stores */}
+        {/* Active free trial: Pro features are unlocked but billing is still
+            free — nudge the owner to subscribe before the trial ends. */}
+        {onTrial && (
+          <div className="mt-4 flex items-start gap-2 rounded-2xl border border-primary/30 bg-primary/10 p-4 text-sm font-semibold text-primary">
+            <Sparkles className="mt-0.5 h-5 w-5 shrink-0" />
+            <span>
+              {t.trialBanner.replace("{days}", String(trialDaysLeft))}
+            </span>
+          </div>
+        )}
+
+        {/* Upgrade CTA for free stores (kept visible during the trial). */}
         {!isPro && (
           <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 p-6">
             <h2 className="flex items-center gap-2 text-lg font-extrabold">
