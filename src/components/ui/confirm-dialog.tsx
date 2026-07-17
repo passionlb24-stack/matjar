@@ -31,8 +31,12 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
   const [opts, setOpts] = useState<ConfirmOptions | null>(null);
   const resolverRef = useRef<((v: boolean) => void) | null>(null);
   const confirmBtnRef = useRef<HTMLButtonElement>(null);
+  const cancelBtnRef = useRef<HTMLButtonElement>(null);
 
   const confirm = useCallback<ConfirmFn>((o) => {
+    // If a dialog is somehow already open, resolve it (cancelled) so its caller
+    // never hangs before we replace it.
+    resolverRef.current?.(false);
     setOpts(o);
     return new Promise<boolean>((resolve) => {
       resolverRef.current = resolve;
@@ -49,7 +53,28 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
     if (!opts) return;
     confirmBtnRef.current?.focus();
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") settle(false);
+      if (e.key === "Escape") {
+        settle(false);
+        return;
+      }
+      // Minimal focus trap: the dialog has exactly two focusable controls, so
+      // keep Tab / Shift+Tab cycling between them.
+      if (e.key === "Tab") {
+        const a = cancelBtnRef.current;
+        const b = confirmBtnRef.current;
+        if (!a || !b) return;
+        const active = document.activeElement;
+        if (!e.shiftKey && active === b) {
+          e.preventDefault();
+          a.focus();
+        } else if (e.shiftKey && active === a) {
+          e.preventDefault();
+          b.focus();
+        } else if (active !== a && active !== b) {
+          e.preventDefault();
+          b.focus();
+        }
+      }
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -80,6 +105,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
             <p className="mt-1 text-sm text-muted-foreground">{opts.message}</p>
             <div className="mt-5 flex justify-end gap-2">
               <button
+                ref={cancelBtnRef}
                 onClick={() => settle(false)}
                 className="rounded-xl px-4 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
               >

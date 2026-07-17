@@ -32,8 +32,6 @@ const TONE: Record<string, string> = {
 };
 const FALLBACK_TONE = "border-border bg-surface-muted text-muted-foreground";
 
-const DAY_MS = 86_400_000;
-
 // Local YYYY-MM-DD — not toISOString(), which converts to UTC and can land on
 // the wrong calendar day. Matches the Postgres `date` value on requested_date.
 function ymd(d: Date): string {
@@ -100,9 +98,12 @@ export function BookingsCalendar({
     const start = new Date(today);
     start.setHours(0, 0, 0, 0);
     start.setDate(start.getDate() - start.getDay() + weekOffset * 7);
+    // Step by calendar date, not by fixed 24h ms — otherwise a DST transition in
+    // the visible week would duplicate one day and skip its neighbour.
     return Array.from(
       { length: 7 },
-      (_, i) => new Date(start.getTime() + i * DAY_MS),
+      (_, i) =>
+        new Date(start.getFullYear(), start.getMonth(), start.getDate() + i),
     );
   }, [today, weekOffset]);
 
