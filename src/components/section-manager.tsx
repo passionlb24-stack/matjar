@@ -112,26 +112,28 @@ export function SectionManager({
     router.refresh();
   }
 
-  // Reorder by swapping sort_order with the neighbour in the given direction.
+  // Reorder by moving the section one slot in the given direction, then
+  // renumbering sort_order densely by array index (0,1,2,…). Renumbering the
+  // whole list keeps up/down working even when legacy rows share a sort_order
+  // (e.g. all at 0), where a two-row swap would be a no-op.
   async function move(index: number, dir: -1 | 1) {
     const target = index + dir;
     if (target < 0 || target >= initial.length) return;
-    const a = initial[index];
-    const b = initial[target];
+    const reordered = [...initial];
+    const [moved] = reordered.splice(index, 1);
+    reordered.splice(target, 0, moved);
     setBusy(true);
     const supabase = createClient();
-    const [r1, r2] = await Promise.all([
-      supabase
-        .from("store_sections")
-        .update({ sort_order: b.sort_order })
-        .eq("id", a.id),
-      supabase
-        .from("store_sections")
-        .update({ sort_order: a.sort_order })
-        .eq("id", b.id),
-    ]);
+    const results = await Promise.all(
+      reordered.map((s, i) =>
+        supabase
+          .from("store_sections")
+          .update({ sort_order: i })
+          .eq("id", s.id),
+      ),
+    );
     setBusy(false);
-    if (r1.error || r2.error) {
+    if (results.some((r) => r.error)) {
       notifyError(dict.common.actionFailed);
       return;
     }

@@ -35,7 +35,7 @@ export default async function StoreDoctorsPage({
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, business_types(slug)")
+    .select("id, name, owner_id, business_types(slug)")
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
@@ -48,6 +48,21 @@ export default async function StoreDoctorsPage({
     .business_types?.slug;
   // Doctors are a healthcare-only feature.
   if (slug !== "healthcare") redirect(`/${lang}/merchant/${storeId}`);
+
+  // Staff need the bookings permission to manage the doctors roster.
+  const isOwner =
+    (store as unknown as { owner_id: string }).owner_id === user.id;
+  if (!isOwner) {
+    const { data: staffRow } = await supabase
+      .from("store_staff")
+      .select("permissions")
+      .eq("store_id", storeId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const perms =
+      (staffRow?.permissions as Record<string, boolean> | null) ?? {};
+    if (!(perms.bookings ?? false)) redirect(`/${lang}/merchant/${storeId}`);
+  }
 
   const { data: doctorsData } = await supabase
     .from("doctors")

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -30,10 +30,13 @@ export type DerivedCustomer = {
   phone: string | null;
   count: number;
   total: number;
-  // profiles.id when the order was placed by a registered account (loyalty
-  // points are keyed by user, so only these customers can have a balance).
+  // profiles.id when the order was placed by a registered account. Loyalty
+  // points are tracked per (user, store) since migration 0095, so only these
+  // registered customers can have a redeemable balance AT THIS store.
   customerId: string | null;
 };
+
+type RedemptionSettingsRow = { enabled: boolean; points_per_unit: number };
 
 const statusStyle: Record<BookCustomer["status"], string> = {
   new: "bg-sky-100 text-sky-700",
@@ -76,6 +79,33 @@ export function CrmManager({
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
+
+  // Per-store redemption opt-in + rate (migration 0107). Loaded on mount via the
+  // manager-guarded reader; redemption controls stay hidden until it resolves.
+  const [redemption, setRedemption] = useState<{
+    enabled: boolean;
+    rate: number;
+  } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    createClient()
+      .rpc("get_loyalty_redemption", { p_store_id: storeId })
+      .then(({ data }) => {
+        if (!active) return;
+        const row = (
+          Array.isArray(data) ? data[0] : data
+        ) as RedemptionSettingsRow | undefined;
+        setRedemption(
+          row
+            ? { enabled: !!row.enabled, rate: Number(row.points_per_unit) || 100 }
+            : { enabled: false, rate: 100 },
+        );
+      });
+    return () => {
+      active = false;
+    };
+  }, [storeId]);
 
   const bookPhones = new Set(book.map((c) => c.phone).filter(Boolean));
 
@@ -370,9 +400,19 @@ export function CrmManager({
             </div>
           )}
         </>
-      ) : filteredDerived.length ? (
-        <div className="mt-4 space-y-2">
-          {filteredDerived.map((c, i) => {
+      ) : (
+        <>
+          {redemption && (
+            <RedemptionSettings
+              storeId={storeId}
+              value={redemption}
+              dict={dict}
+              onSaved={setRedemption}
+            />
+          )}
+          {filteredDerived.length ? (
+            <div className="mt-4 space-y-2">
+              {filteredDerived.map((c, i) => {
             const points = c.customerId ? (balances[c.customerId] ?? 0) : 0;
             return (
               <div
@@ -411,39 +451,46 @@ export function CrmManager({
                     </button>
                   )}
                 </div>
-                {c.customerId && points > 0 && (
+                {c.customerId && points > 0 && redemption?.enabled && (
                   <RedeemControl
                     storeId={storeId}
                     customerId={c.customerId}
                     balance={points}
+                    pointsPerUnit={redemption.rate}
                     dict={dict}
                   />
                 )}
               </div>
             );
           })}
-        </div>
-      ) : (
-        <div className="mt-4 rounded-2xl border border-dashed border-border py-12 text-center text-muted-foreground">
-          {t.emptyDerived}
-        </div>
+            </div>
+          ) : (
+            <div className="mt-4 rounded-2xl border border-dashed border-border py-12 text-center text-muted-foreground">
+              {t.emptyDerived}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
 }
 
 // Redeem a registered customer's loyalty points (e.g. as an in-store discount).
-// Points are a single global per-user balance; the server RPC re-checks that the
-// caller manages the store, recomputes the balance, and caps the redemption.
+// Points are a PER-(user, store) balance (migration 0095): this redeems from what
+// the customer earned at THIS store. The server RPC re-checks that the caller
+// manages the store, that the store has opted in to redemption (0107), recomputes
+// the per-store balance, and caps the redemption.
 function RedeemControl({
   storeId,
   customerId,
   balance,
+  pointsPerUnit,
   dict,
 }: {
   storeId: string;
   customerId: string;
   balance: number;
+  pointsPerUnit: number;
   dict: Dictionary;
 }) {
   const router = useRouter();
@@ -452,6 +499,11 @@ function RedeemControl({
   const [points, setPoints] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+
+  // How much discount the entered points are worth at this store's rate.
+  const enteredPoints = Math.floor(Number(points)) || 0;
+  const discountValue =
+    pointsPerUnit > 0 ? enteredPoints / pointsPerUnit : 0;
 
   async function submit() {
     const p = Math.floor(Number(points));
@@ -500,7 +552,16 @@ function RedeemControl({
   return (
     <div className="mt-3 flex flex-wrap items-end gap-2 rounded-xl border border-border bg-surface-muted/50 p-3">
       <label className="text-xs font-semibold">
-        <span className="mb-1 block text-muted-foreground">{t.redeemAmount}</span>
+        <span className="mb-1 block text-muted-foreground">
+          {t.redeemAmount}
+          {enteredPoints > 0 && (
+            <span className="ms-1 font-bold text-primary" dir="ltr">
+              {t.redeemValue} ${discountValue.toLocaleString("en-US", {
+                maximumFractionDigits: 2,
+              })}
+            </span>
+          )}
+        </span>
         <input
           type="number"
           min="1"
@@ -536,5 +597,100 @@ function RedeemControl({
         {t.cancel}
       </button>
     </div>
+  );
+}
+
+// Merchant opt-in for this store's loyalty redemption (migration 0107): a switch
+// to turn redemption on/off and the points-per-$1 conversion rate. Redemption is
+// off by default, so a merchant deliberately chooses to fund it. Persisted via
+// the manager-guarded set_loyalty_redemption RPC.
+function RedemptionSettings({
+  storeId,
+  value,
+  dict,
+  onSaved,
+}: {
+  storeId: string;
+  value: { enabled: boolean; rate: number };
+  dict: Dictionary;
+  onSaved: (v: { enabled: boolean; rate: number }) => void;
+}) {
+  const t = dict.os.crm;
+  const [enabled, setEnabled] = useState(value.enabled);
+  const [rate, setRate] = useState(String(value.rate));
+  const [busy, setBusy] = useState(false);
+
+  async function save() {
+    const r = Math.floor(Number(rate));
+    if (!r || r < 1 || busy) return;
+    setBusy(true);
+    const { error } = await createClient().rpc("set_loyalty_redemption", {
+      p_store_id: storeId,
+      p_enabled: enabled,
+      p_points_per_unit: r,
+    });
+    setBusy(false);
+    if (error) {
+      notifyError(dict.common.actionFailed);
+      return;
+    }
+    onSaved({ enabled, rate: r });
+    notifySuccess(t.redemptionSaved);
+  }
+
+  return (
+    <section className="mt-4 rounded-2xl border border-border bg-surface p-4">
+      <div className="flex items-start gap-3">
+        <Gift className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+        <div className="min-w-0 flex-1">
+          <h2 className="font-bold">{t.redemptionSettings}</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            {t.redemptionHint}
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={enabled}
+          aria-label={t.enableRedemption}
+          onClick={() => setEnabled((v) => !v)}
+          className={`relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition-colors ${
+            enabled ? "bg-primary" : "bg-border"
+          }`}
+        >
+          <span
+            className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${
+              enabled ? "start-[22px]" : "start-0.5"
+            }`}
+          />
+        </button>
+      </div>
+      <div className="mt-3 flex flex-wrap items-end gap-2 border-t border-border pt-3">
+        {enabled && (
+          <label className="text-xs font-semibold">
+            <span className="mb-1 block text-muted-foreground">
+              {t.pointsPerUnit}
+            </span>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={rate}
+              onChange={(e) => setRate(e.target.value)}
+              dir="ltr"
+              className="w-28 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+            />
+          </label>
+        )}
+        <button
+          type="button"
+          onClick={save}
+          disabled={busy || !Math.floor(Number(rate))}
+          className="ms-auto rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+        >
+          {t.save}
+        </button>
+      </div>
+    </section>
   );
 }

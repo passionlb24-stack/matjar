@@ -4,6 +4,7 @@ import type { CategoryKey } from "@/lib/catalog";
 export type RelatedProduct = {
   id: string;
   name: string;
+  nameEn: string | null;
   price: number;
   discountPrice: number | null;
   imageUrl: string | null;
@@ -14,6 +15,7 @@ function mapRows(
   rows: {
     id: string;
     name: string;
+    name_en: string | null;
     price: number;
     discount_price: number | null;
     image_url: string | null;
@@ -23,6 +25,7 @@ function mapRows(
   return rows.map((r) => ({
     id: r.id,
     name: r.name,
+    nameEn: r.name_en,
     price: Number(r.price),
     discountPrice: r.discount_price != null ? Number(r.discount_price) : null,
     imageUrl: r.image_url,
@@ -43,7 +46,7 @@ export async function getBoughtTogether(
   if (ids.length === 0) return [];
   const { data } = await supabase
     .from("products")
-    .select("id, name, price, discount_price, image_url, stores(name)")
+    .select("id, name, name_en, price, discount_price, image_url, stores(name)")
     .in("id", ids)
     .eq("status", "active")
     .eq("is_available", true)
@@ -65,7 +68,7 @@ export async function getMoreFromStore(
   const supabase = await createClient();
   const { data } = await supabase
     .from("products")
-    .select("id, name, price, discount_price, image_url, stores(name)")
+    .select("id, name, name_en, price, discount_price, image_url, stores(name)")
     .eq("store_id", storeId)
     .eq("status", "active")
     .eq("is_available", true)
@@ -96,7 +99,7 @@ export async function getSimilarProducts(
   const { data } = await supabase
     .from("products")
     .select(
-      "id, name, price, discount_price, image_url, store_id, stores!inner(name, status, business_type_id)",
+      "id, name, name_en, price, discount_price, image_url, store_id, stores!inner(name, status, business_type_id)",
     )
     .eq("status", "active")
     .eq("is_available", true)

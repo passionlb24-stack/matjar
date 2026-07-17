@@ -79,6 +79,12 @@ export function CouponManager({
   }
 
   async function save() {
+    // Percent coupons can't exceed 100% — otherwise the discount RPC
+    // (subtotal * value / 100) would refund more than the order total.
+    if (draft.type === "percent" && Number(draft.value) > 100) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
     setBusy(true);
     const supabase = createClient();
     const payload = {

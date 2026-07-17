@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ImageIcon } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import { formatLbp } from "@/lib/currency";
+import { localized } from "@/lib/i18n-field";
 
 function formatPrice(price: number) {
   return price >= 1000 ? `$${Number(price).toLocaleString("en-US")}` : `$${price}`;
@@ -13,6 +14,7 @@ export function ProductMiniCard({
   lang,
   id,
   name,
+  nameEn,
   price,
   discountPrice,
   imageUrl,
@@ -22,6 +24,7 @@ export function ProductMiniCard({
   lang: Locale;
   id: string;
   name: string;
+  nameEn?: string | null;
   price: number;
   discountPrice: number | null;
   imageUrl: string | null;
@@ -29,6 +32,7 @@ export function ProductMiniCard({
   lbpRate?: number;
 }) {
   const shown = discountPrice ?? price;
+  const displayName = localized(name, nameEn, lang);
   return (
     <Link
       href={`/${lang}/product/${id}`}
@@ -37,7 +41,7 @@ export function ProductMiniCard({
       {imageUrl ? (
         <Image
           src={imageUrl}
-          alt={name}
+          alt={displayName}
           width={300}
           height={200}
           className="h-32 w-full object-cover"
@@ -50,7 +54,7 @@ export function ProductMiniCard({
       )}
       <div className="flex flex-1 flex-col p-3">
         <h3 className="line-clamp-2 text-sm font-bold leading-tight group-hover:text-primary">
-          {name}
+          {displayName}
         </h3>
         {storeName ? (
           <p className="mt-0.5 text-xs text-muted-foreground">{storeName}</p>

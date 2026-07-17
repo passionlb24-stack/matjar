@@ -17,10 +17,12 @@ type Staff = {
 const PERM_KEYS = ["orders", "products", "bookings"] as const;
 
 function normalize(p: Record<string, boolean> | null): Perms {
+  // Default missing keys to false so the toggle matches enforcement, which
+  // coalesces a missing permission to false (staff_can, items/pos pages).
   return {
-    orders: p?.orders ?? true,
-    products: p?.products ?? true,
-    bookings: p?.bookings ?? true,
+    orders: p?.orders ?? false,
+    products: p?.products ?? false,
+    bookings: p?.bookings ?? false,
   };
 }
 

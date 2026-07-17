@@ -436,6 +436,7 @@ export default async function ProductPage({
                   lang={lang}
                   id={p.id}
                   name={p.name}
+                  nameEn={p.nameEn}
                   price={p.price}
                   discountPrice={p.discountPrice}
                   imageUrl={p.imageUrl}
@@ -475,6 +476,7 @@ export default async function ProductPage({
                   lang={lang}
                   id={p.id}
                   name={p.name}
+                  nameEn={p.nameEn}
                   price={p.price}
                   discountPrice={p.discountPrice}
                   imageUrl={p.imageUrl}
@@ -495,6 +497,7 @@ export default async function ProductPage({
                   lang={lang}
                   id={p.id}
                   name={p.name}
+                  nameEn={p.nameEn}
                   price={p.price}
                   discountPrice={p.discountPrice}
                   imageUrl={p.imageUrl}

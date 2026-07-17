@@ -74,20 +74,29 @@ export default async function AdminReportsPage({
   const l = lang as Locale;
 
   const supabase = await createClient();
-  const [storesRes, profilesRes, ordersRes, bookingsRes] = await Promise.all([
+  // Headline KPIs are aggregated server-side (super_admin gated): counting rows
+  // fetched into the page silently truncated past PostgREST's 1000-row cap, so
+  // total orders / Pro conversion read low at scale. The distribution bars below
+  // still fetch rows (best-effort breakdowns, not exact platform totals).
+  const [reportRes, storesRes, profilesRes, ordersRes] = await Promise.all([
+    supabase.rpc("admin_platform_report"),
     supabase
       .from("stores")
       .select("id, name, status, region, plan, business_types(name_ar, name_en)")
       .is("deleted_at", null),
     supabase.from("profiles").select("role"),
     supabase.from("orders").select("store_id"),
-    supabase.from("bookings").select("id", { count: "exact", head: true }),
   ]);
 
+  const report = (reportRes.data ?? {}) as {
+    total_orders?: number;
+    total_bookings?: number;
+    pro_stores?: number;
+    conversion?: number;
+  };
   const stores = (storesRes.data ?? []) as unknown as StoreRow[];
   const profiles = (profilesRes.data ?? []) as { role: string }[];
   const orders = (ordersRes.data ?? []) as { store_id: string }[];
-  const bookingsCount = bookingsRes.count ?? 0;
 
   const regionName = (key: string) =>
     regions.find((r) => r.key === key)?.name[l] ?? key;
@@ -110,10 +119,6 @@ export default async function AdminReportsPage({
     value: v,
   }));
 
-  const proCount = stores.filter((s) => s.plan === "pro").length;
-  const activeCount = stores.filter((s) => s.status === "active").length;
-  const conversion = activeCount ? Math.round((proCount / activeCount) * 100) : 0;
-
   const orderByStore = tally(orders, (o) => o.store_id);
   const topStores = stores
     .map((s) => ({ label: s.name, value: orderByStore.get(s.id) ?? 0 }))
@@ -122,10 +127,10 @@ export default async function AdminReportsPage({
     .slice(0, 8);
 
   const kpis = [
-    { label: t.totalOrders, value: orders.length },
-    { label: t.totalBookings, value: bookingsCount },
-    { label: t.proStores, value: proCount },
-    { label: t.conversion, value: `${conversion}%` },
+    { label: t.totalOrders, value: report.total_orders ?? 0 },
+    { label: t.totalBookings, value: report.total_bookings ?? 0 },
+    { label: t.proStores, value: report.pro_stores ?? 0 },
+    { label: t.conversion, value: `${report.conversion ?? 0}%` },
   ];
 
   return (

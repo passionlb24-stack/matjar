@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 export type OfferProduct = {
   id: string;
   name: string;
+  nameEn: string | null;
   price: number;
   discountPrice: number | null;
   imageUrl: string | null;
@@ -17,7 +18,9 @@ export async function getDailyDeal(): Promise<OfferProduct | null> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("products")
-    .select("id, name, price, discount_price, image_url, store_id, stores(name)")
+    .select(
+      "id, name, name_en, price, discount_price, image_url, store_id, stores(name)",
+    )
     .eq("status", "active")
     .eq("is_available", true)
     .is("deleted_at", null)
@@ -29,6 +32,7 @@ export async function getDailyDeal(): Promise<OfferProduct | null> {
   const r = data as unknown as {
     id: string;
     name: string;
+    name_en: string | null;
     price: number;
     discount_price: number | null;
     image_url: string | null;
@@ -40,6 +44,7 @@ export async function getDailyDeal(): Promise<OfferProduct | null> {
   return {
     id: r.id,
     name: r.name,
+    nameEn: r.name_en,
     price,
     discountPrice,
     imageUrl: r.image_url,
@@ -59,7 +64,7 @@ export async function getOffers(limit = 60): Promise<OfferProduct[]> {
   const { data } = await supabase
     .from("products")
     .select(
-      "id, name, price, discount_price, image_url, store_id, in_offers, stores(name)",
+      "id, name, name_en, price, discount_price, image_url, store_id, in_offers, stores(name)",
     )
     .eq("status", "active")
     .eq("is_available", true)
@@ -71,6 +76,7 @@ export async function getOffers(limit = 60): Promise<OfferProduct[]> {
   const rows = (data ?? []) as unknown as {
     id: string;
     name: string;
+    name_en: string | null;
     price: number;
     discount_price: number | null;
     image_url: string | null;
@@ -87,6 +93,7 @@ export async function getOffers(limit = 60): Promise<OfferProduct[]> {
       return {
         id: r.id,
         name: r.name,
+        nameEn: r.name_en,
         price,
         discountPrice,
         imageUrl: r.image_url,
@@ -109,7 +116,7 @@ export async function getClearance(limit = 60): Promise<OfferProduct[]> {
   const { data } = await supabase
     .from("products")
     .select(
-      "id, name, price, discount_price, image_url, store_id, stores(name)",
+      "id, name, name_en, price, discount_price, image_url, store_id, stores(name)",
     )
     .eq("status", "active")
     .eq("is_available", true)
@@ -121,6 +128,7 @@ export async function getClearance(limit = 60): Promise<OfferProduct[]> {
   const rows = (data ?? []) as unknown as {
     id: string;
     name: string;
+    name_en: string | null;
     price: number;
     discount_price: number | null;
     image_url: string | null;
@@ -135,6 +143,7 @@ export async function getClearance(limit = 60): Promise<OfferProduct[]> {
     return {
       id: r.id,
       name: r.name,
+      nameEn: r.name_en,
       price,
       discountPrice,
       imageUrl: r.image_url,

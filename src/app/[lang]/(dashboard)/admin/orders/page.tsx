@@ -43,22 +43,20 @@ export default async function AdminOrdersPage({
 
   const supabase = await createClient();
 
-  // Platform-wide money totals (append-only ledger; cheap aggregate).
-  const { data: ledger } = await supabase
-    .from("order_payments")
-    .select("kind, amount");
-  let collected = 0;
-  let refunded = 0;
-  ((ledger ?? []) as { kind: "payment" | "refund"; amount: number }[]).forEach(
-    (p) => {
-      if (p.kind === "refund") refunded += Number(p.amount);
-      else collected += Number(p.amount);
-    },
-  );
-
-  const { count: orderCount } = await supabase
-    .from("orders")
-    .select("id", { count: "exact", head: true });
+  // Platform-wide money totals + order count, aggregated server-side (super_admin
+  // gated). Fetching the whole ledger and reducing in JS silently truncated past
+  // PostgREST's 1000-row cap, so totals read low at scale.
+  const { data: report } = await supabase.rpc("admin_orders_report");
+  const summary = (report ?? {}) as {
+    collected?: number;
+    refunded?: number;
+    net?: number;
+    order_count?: number;
+  };
+  const collected = Number(summary.collected ?? 0);
+  const refunded = Number(summary.refunded ?? 0);
+  const net = Number(summary.net ?? 0);
+  const orderCount = summary.order_count ?? 0;
 
   const { data } = await supabase
     .from("orders")
@@ -120,7 +118,7 @@ export default async function AdminOrdersPage({
     {
       Icon: Coins,
       label: t.netRevenue,
-      value: money(collected - refunded),
+      value: money(net),
       tone: "text-foreground",
     },
     {

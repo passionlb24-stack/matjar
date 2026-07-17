@@ -37,10 +37,25 @@ export default async function StoreRequestsPage({
   if (!canManage) redirect(`/${lang}/merchant`);
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name")
+    .select("id, name, owner_id")
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
+
+  // Staff need the bookings permission to manage service requests.
+  const isOwner =
+    (store as unknown as { owner_id: string }).owner_id === user.id;
+  if (!isOwner) {
+    const { data: staffRow } = await supabase
+      .from("store_staff")
+      .select("permissions")
+      .eq("store_id", storeId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const perms =
+      (staffRow?.permissions as Record<string, boolean> | null) ?? {};
+    if (!(perms.bookings ?? false)) redirect(`/${lang}/merchant/${storeId}`);
+  }
 
   const { data } = await supabase
     .from("service_requests")

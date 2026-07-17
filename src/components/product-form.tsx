@@ -107,8 +107,16 @@ export function ProductForm({
         stock: v.stock.trim() === "" ? null : Number(v.stock),
         sort_order: i,
       }));
-    if (cleanVariants.length)
-      await supabase.from("product_variants").insert(cleanVariants);
+    if (cleanVariants.length) {
+      const { error: variantsError } = await supabase
+        .from("product_variants")
+        .insert(cleanVariants);
+      if (variantsError) {
+        setError(dict.auth.errorGeneric);
+        setLoading(false);
+        return;
+      }
+    }
 
     const cleanOptions = options
       .filter((o) => o.name.trim())
@@ -118,8 +126,16 @@ export function ProductForm({
         price: o.price.trim() === "" ? 0 : Number(o.price),
         sort_order: i,
       }));
-    if (cleanOptions.length)
-      await supabase.from("product_options").insert(cleanOptions);
+    if (cleanOptions.length) {
+      const { error: optionsError } = await supabase
+        .from("product_options")
+        .insert(cleanOptions);
+      if (optionsError) {
+        setError(dict.auth.errorGeneric);
+        setLoading(false);
+        return;
+      }
+    }
 
     // Cross-post to سوق الأحد if selected (a pending listing derived from the
     // product; the merchant can refine it later from "My listings").

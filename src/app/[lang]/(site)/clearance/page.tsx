@@ -8,6 +8,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { getClearance } from "@/lib/data/offers";
 import { getUsdLbpRate } from "@/lib/data/settings";
 import { formatLbp } from "@/lib/currency";
+import { localized } from "@/lib/i18n-field";
 import { Container } from "@/components/ui/container";
 import { EmptyState } from "@/components/ui/empty-state";
 
@@ -58,7 +59,7 @@ export default async function ClearancePage({
                 className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all hover:-translate-y-0.5 hover:shadow-md"
               >
                 {p.imageUrl ? (
-                  <Image src={p.imageUrl} alt={p.name} width={300} height={200} className="h-36 w-full object-cover" sizes="(max-width: 640px) 50vw, 25vw" />
+                  <Image src={p.imageUrl} alt={localized(p.name, p.nameEn, l)} width={300} height={200} className="h-36 w-full object-cover" sizes="(max-width: 640px) 50vw, 25vw" />
                 ) : (
                   <div className="flex h-36 w-full items-center justify-center bg-surface-muted">
                     <ImageIcon className="h-10 w-10 text-black/10" />
@@ -66,7 +67,7 @@ export default async function ClearancePage({
                 )}
                 <div className="flex flex-1 flex-col p-3">
                   <h3 className="line-clamp-2 font-bold leading-tight group-hover:text-primary">
-                    {p.name}
+                    {localized(p.name, p.nameEn, l)}
                   </h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">{p.storeName}</p>
                   <p className="mt-2">

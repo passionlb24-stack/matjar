@@ -7,11 +7,13 @@ import { Zap, ImageIcon } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { formatUsd, formatLbp } from "@/lib/currency";
+import { localized } from "@/lib/i18n-field";
 import { Container } from "@/components/ui/container";
 
 type Deal = {
   id: string;
   name: string;
+  nameEn: string | null;
   price: number;
   discountPrice: number | null;
   imageUrl: string | null;
@@ -56,6 +58,7 @@ export function DealOfTheDay({
   const t = dict.deal;
   const left = useCountdownToMidnight();
   const shown = deal.discountPrice ?? deal.price;
+  const displayName = localized(deal.name, deal.nameEn, lang);
 
   return (
     <section className="py-8">
@@ -68,7 +71,7 @@ export function DealOfTheDay({
             {deal.imageUrl ? (
               <Image
                 src={deal.imageUrl}
-                alt={deal.name}
+                alt={displayName}
                 fill
                 className="object-cover"
                 sizes="(max-width: 640px) 100vw, 50vw"
@@ -91,7 +94,7 @@ export function DealOfTheDay({
               {t.title}
             </span>
             <h2 className="text-2xl font-extrabold leading-tight group-hover:text-primary sm:text-3xl">
-              {deal.name}
+              {displayName}
             </h2>
             <p className="text-sm text-muted-foreground">{deal.storeName}</p>
             <div className="flex items-end gap-2">

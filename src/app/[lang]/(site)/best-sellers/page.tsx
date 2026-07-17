@@ -8,6 +8,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { getBestSellers } from "@/lib/data/best-sellers";
 import { getUsdLbpRate } from "@/lib/data/settings";
 import { formatLbp } from "@/lib/currency";
+import { localized } from "@/lib/i18n-field";
 import { Container } from "@/components/ui/container";
 import { EmptyState } from "@/components/ui/empty-state";
 
@@ -65,7 +66,7 @@ export default async function BestSellersPage({
                   {p.imageUrl ? (
                     <Image
                       src={p.imageUrl}
-                      alt={p.name}
+                      alt={localized(p.name, p.nameEn, l)}
                       width={300}
                       height={200}
                       className="h-36 w-full object-cover"
@@ -85,7 +86,7 @@ export default async function BestSellersPage({
                 </div>
                 <div className="flex flex-1 flex-col p-3">
                   <h3 className="line-clamp-2 font-bold leading-tight group-hover:text-primary">
-                    {p.name}
+                    {localized(p.name, p.nameEn, l)}
                   </h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">{p.storeName}</p>
                   <p className="mt-2">

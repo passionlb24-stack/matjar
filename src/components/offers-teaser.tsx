@@ -4,6 +4,7 @@ import { Tag, ImageIcon } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { getOffers } from "@/lib/data/offers";
+import { localized } from "@/lib/i18n-field";
 import { Container } from "@/components/ui/container";
 
 function formatPrice(price: number) {
@@ -52,7 +53,7 @@ export async function OffersTeaser({
                 {p.imageUrl ? (
                   <Image
                     src={p.imageUrl}
-                    alt={p.name}
+                    alt={localized(p.name, p.nameEn, lang)}
                     width={300}
                     height={200}
                     className="h-36 w-full object-cover"
@@ -71,7 +72,7 @@ export async function OffersTeaser({
               </div>
               <div className="flex flex-1 flex-col p-3">
                 <h3 className="line-clamp-2 font-bold leading-tight group-hover:text-primary">
-                  {p.name}
+                  {localized(p.name, p.nameEn, lang)}
                 </h3>
                 <p className="mt-2">
                   <span className="font-bold text-primary">
