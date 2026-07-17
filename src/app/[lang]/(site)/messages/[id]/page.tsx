@@ -29,7 +29,7 @@ export default async function ThreadPage({
   // RLS returns the row only if the user is a participant.
   const { data: conv } = await supabase
     .from("conversations")
-    .select("id, store_id, stores(name)")
+    .select("id, store_id, stores(name, owner_id)")
     .eq("id", id)
     .maybeSingle();
   if (!conv) notFound();
@@ -42,9 +42,16 @@ export default async function ThreadPage({
   const otherName =
     (others?.[0]?.profiles as unknown as { full_name: string | null } | null)
       ?.full_name ?? null;
-  const storeName =
-    (conv.stores as unknown as { name: string } | null)?.name ?? null;
-  const header = storeName || otherName || dict.messages.unknown;
+  const store = conv.stores as unknown as {
+    name: string;
+    owner_id: string;
+  } | null;
+  // Show the counterparty from the viewer's side: a customer sees the store's
+  // name; the store owner (viewing their own store's chat) sees the person.
+  const header =
+    store && store.owner_id !== user.id
+      ? store.name
+      : otherName || store?.name || dict.messages.unknown;
 
   const { data: msgs } = await supabase
     .from("messages")
@@ -70,7 +77,7 @@ export default async function ThreadPage({
           {dict.messages.title}
         </Link>
         <h1 className="mt-2 text-xl font-extrabold tracking-tight">{header}</h1>
-        {conv.store_id && storeName && (
+        {conv.store_id && store && (
           <Link
             href={`/${lang}/store/${conv.store_id}`}
             className="text-sm font-semibold text-primary hover:underline"

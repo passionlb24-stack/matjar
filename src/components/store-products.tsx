@@ -13,11 +13,13 @@ import { attributeSummary } from "@/lib/attributes";
 import { effectivePrice, compareAtPrice, isFlashActive } from "@/lib/pricing";
 import { waLink, buildOrderMessage } from "@/lib/whatsapp";
 import { formatLbp } from "@/lib/currency";
+import { localized } from "@/lib/i18n-field";
 import { categoryIcons } from "@/components/category-icon";
 
 type Product = {
   id: string;
   name: string;
+  nameEn?: string | null;
   price: number;
   discountPrice?: number | null;
   imageUrl?: string | null;
@@ -356,7 +358,7 @@ export function StoreProducts({
     return p.imageUrl ? (
       <Image
         src={p.imageUrl}
-        alt={p.name}
+        alt={localized(p.name, p.nameEn, lang)}
         width={isGrid ? 300 : 64}
         height={isGrid ? 200 : 64}
         className={isGrid ? "h-40 w-full object-cover" : "h-16 w-16 shrink-0 rounded-xl object-cover"}
@@ -385,7 +387,7 @@ export function StoreProducts({
                     href={`/${lang}/product/${p.id}`}
                     className="font-bold leading-tight transition-colors hover:text-primary"
                   >
-                    {p.name}
+                    {localized(p.name, p.nameEn, lang)}
                   </Link>
                   {attributeSummary(category, p.attributes, lang) && (
                     <p className="mt-0.5 text-xs text-muted-foreground">
@@ -433,7 +435,7 @@ export function StoreProducts({
                     href={`/${lang}/product/${p.id}`}
                     className="block truncate font-bold transition-colors hover:text-primary"
                   >
-                    {p.name}
+                    {localized(p.name, p.nameEn, lang)}
                   </Link>
                   {attributeSummary(category, p.attributes, lang) && (
                     <p className="truncate text-xs text-muted-foreground">

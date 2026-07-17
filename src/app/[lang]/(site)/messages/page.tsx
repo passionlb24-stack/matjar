@@ -10,6 +10,7 @@ type Convo = {
   conversation_id: string;
   store_name: string | null;
   other_name: string | null;
+  display_name: string | null;
   last_body: string | null;
   last_at: string;
   unread: boolean;
@@ -53,7 +54,7 @@ export default async function MessagesPage({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="truncate font-bold">
-                        {c.store_name || c.other_name || t.unknown}
+                        {c.display_name || c.store_name || c.other_name || t.unknown}
                       </span>
                       {c.unread && (
                         <span className="h-2 w-2 shrink-0 rounded-full bg-primary" />

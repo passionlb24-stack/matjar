@@ -29,9 +29,11 @@ type OptionRow = { name: string; price: string };
 
 export type ProductInitial = {
   name: string;
+  nameEn: string;
   price: string;
   discountPrice: string;
   description: string;
+  descriptionEn: string;
   imageUrl: string | null;
   gallery: string[];
   stock: string;
@@ -102,9 +104,11 @@ export function ProductEditForm({
       .from("products")
       .update({
         name: String(form.get("name")),
+        name_en: String(form.get("name_en") ?? "").trim() || null,
         price: Number(form.get("price")) || 0,
         discount_price: Number(form.get("discount_price")) || null,
         description: String(form.get("description")) || null,
+        description_en: String(form.get("description_en") ?? "").trim() || null,
         image_url: imageUrl,
         gallery,
         stock: stockRaw === "" ? null : Number(stockRaw),
@@ -260,6 +264,21 @@ export function ProductEditForm({
       <div>
         <label className={label} htmlFor="description">{p.description}</label>
         <textarea id="description" name="description" rows={2} defaultValue={initial.description} className={field} />
+      </div>
+
+      {/* Optional English overrides — shown to customers browsing in English. */}
+      <div className="rounded-xl border border-border/70 p-4">
+        <span className={label}>{p.englishOptional}</span>
+        <div className="mt-3 space-y-3">
+          <div>
+            <label className={label} htmlFor="name_en">{p.nameEn}</label>
+            <input id="name_en" name="name_en" type="text" defaultValue={initial.nameEn} className={field} />
+          </div>
+          <div>
+            <label className={label} htmlFor="description_en">{p.descriptionEn}</label>
+            <textarea id="description_en" name="description_en" rows={2} defaultValue={initial.descriptionEn} className={field} />
+          </div>
+        </div>
       </div>
 
       {attrFields.length > 0 && (

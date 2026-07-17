@@ -12,11 +12,13 @@ import { categoryStyles, type CategoryKey } from "@/lib/catalog";
 import { attributeSummary } from "@/lib/attributes";
 import { waLink } from "@/lib/whatsapp";
 import { daySpan, generateSlots, type WeekHours } from "@/lib/hours";
+import { localized } from "@/lib/i18n-field";
 import { categoryIcons } from "@/components/category-icon";
 
 type Service = {
   id: string;
   name: string;
+  nameEn?: string | null;
   price: number;
   imageUrl?: string | null;
   attributes?: Record<string, string> | null;
@@ -222,14 +224,14 @@ export function BookingPanel({
             className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4"
           >
             {s.imageUrl ? (
-              <Image src={s.imageUrl} alt={s.name} width={64} height={64} className="h-16 w-16 shrink-0 rounded-xl object-cover" sizes="64px" />
+              <Image src={s.imageUrl} alt={localized(s.name, s.nameEn, lang)} width={64} height={64} className="h-16 w-16 shrink-0 rounded-xl object-cover" sizes="64px" />
             ) : (
               <span className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${style.cover}`}>
                 <Icon className="h-7 w-7 text-black/20" />
               </span>
             )}
             <div className="min-w-0 flex-1">
-              <h3 className="truncate font-bold">{s.name}</h3>
+              <h3 className="truncate font-bold">{localized(s.name, s.nameEn, lang)}</h3>
               {attributeSummary(category, s.attributes, lang) && (
                 <p className="truncate text-xs text-muted-foreground">
                   {attributeSummary(category, s.attributes, lang)}
@@ -258,7 +260,7 @@ export function BookingPanel({
                 </option>
                 {services.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.name}
+                    {localized(s.name, s.nameEn, lang)}
                   </option>
                 ))}
               </select>

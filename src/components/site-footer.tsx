@@ -90,7 +90,7 @@ export function SiteFooter({ lang, dict }: { lang: Locale; dict: Dictionary }) {
           <p className="text-sm text-muted-foreground">
             © 2026 {dict.common.brand}. {dict.footer.rights}
           </p>
-          <LanguageSwitcher currentLocale={lang} pathname={`/${lang}`} />
+          <LanguageSwitcher currentLocale={lang} />
         </div>
       </Container>
     </footer>

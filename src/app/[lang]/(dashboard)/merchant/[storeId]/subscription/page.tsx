@@ -5,6 +5,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { RequestProButton } from "@/components/request-pro-button";
 import { PRO_PRICE_MONTHLY, PRO_PRICE_YEARLY } from "@/lib/plan";
 
 const UUID_RE =
@@ -143,13 +144,12 @@ export default async function StoreSubscriptionPage({
                 </li>
               ))}
             </ul>
-            <Link
-              href={`/${lang}/pricing`}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-amber-600"
-            >
-              <Check className="h-4 w-4" />
-              {t.viewPlans}
-            </Link>
+            <RequestProButton
+              storeId={storeId}
+              requestLabel={t.requestUpgrade}
+              sentLabel={t.requestSent}
+            />
+            <p className="mt-2 text-xs text-amber-900/70">{t.requestNote}</p>
           </div>
         )}
 

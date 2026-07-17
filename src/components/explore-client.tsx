@@ -1,7 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Navigation, Loader2 } from "lucide-react";
+import {
+  Search,
+  Navigation,
+  Loader2,
+  Sparkles,
+  Star,
+  Clock,
+  DoorOpen,
+  type LucideIcon,
+} from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import {
@@ -22,6 +31,14 @@ function chipClass(active: boolean) {
     : "bg-surface text-foreground border-border hover:border-primary/40";
 }
 
+// Single-select sort/filter modes for the store listing.
+//  - recommended: incoming order (server already floats featured to the top).
+//  - nearest: needs the buyer's location; ranks by closest branch.
+//  - topRated: rating desc, then review count desc.
+//  - newest: incoming order == server's created_at desc (no client createdAt).
+//  - openNow: filters to open stores, keeping the recommended sub-order.
+type SortMode = "recommended" | "nearest" | "topRated" | "newest" | "openNow";
+
 export function ExploreClient({
   lang,
   dict,
@@ -40,6 +57,7 @@ export function ExploreClient({
   const [category, setCategory] = useState<CategoryKey | "all">(initialCategory);
   const [region, setRegion] = useState<RegionKey | "all">(initialRegion);
   const [query, setQuery] = useState(initialQuery ?? "");
+  const [sortMode, setSortMode] = useState<SortMode>("recommended");
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(
     null,
   );
@@ -52,12 +70,31 @@ export function ExploreClient({
     try {
       const loc = await getCurrentPosition();
       setUserLoc(loc);
+      setSortMode("nearest");
     } catch {
       setGeoError(dict.explore.locationError);
     } finally {
       setLocating(false);
     }
   }
+
+  // Picking "Nearest" requests location first if we don't have it yet; on
+  // success findNearMe() flips the sort. Every other mode applies immediately.
+  function selectSort(mode: SortMode) {
+    if (mode === "nearest" && !userLoc) {
+      void findNearMe();
+      return;
+    }
+    setSortMode(mode);
+  }
+
+  const sortOptions: { key: SortMode; label: string; Icon: LucideIcon }[] = [
+    { key: "recommended", label: dict.sort.recommended, Icon: Sparkles },
+    { key: "nearest", label: dict.sort.nearest, Icon: Navigation },
+    { key: "topRated", label: dict.sort.topRated, Icon: Star },
+    { key: "newest", label: dict.sort.newest, Icon: Clock },
+    { key: "openNow", label: dict.sort.openNow, Icon: DoorOpen },
+  ];
 
   const filtered = stores.filter((s) => {
     if (category !== "all" && s.category !== category) return false;
@@ -74,20 +111,37 @@ export function ExploreClient({
     return true;
   });
 
-  // When the buyer shares their location, annotate distance to the store's
-  // CLOSEST branch and sort nearest first (stores without coordinates fall to
-  // the end).
-  const displayed = userLoc
-    ? filtered
-        .map((s) => ({
-          ...s,
-          distanceKm: nearestDistance(s, userLoc.lat, userLoc.lng),
-        }))
-        .sort(
-          (a, b) =>
-            (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity),
-        )
+  // Annotate distance to the store's CLOSEST branch whenever the buyer has
+  // shared their location, so the distance badge shows in every sort mode
+  // (stores without coordinates get no distance).
+  const withDistance = userLoc
+    ? filtered.map((s) => ({
+        ...s,
+        distanceKm: nearestDistance(s, userLoc.lat, userLoc.lng),
+      }))
     : filtered;
+
+  // "Open now" is a filter; the rest keep the full scoped list.
+  const scoped =
+    sortMode === "openNow"
+      ? withDistance.filter((s) => s.isOpen)
+      : withDistance;
+
+  // Sort is stable (Array.prototype.sort), so equal keys keep the incoming
+  // featured-first / newest-first order. recommended/newest/openNow need no
+  // re-sort — the server already delivered them in that order.
+  const displayed = [...scoped];
+  if (sortMode === "nearest") {
+    displayed.sort(
+      (a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity),
+    );
+  } else if (sortMode === "topRated") {
+    displayed.sort(
+      (a, b) =>
+        (b.rating ?? -1) - (a.rating ?? -1) ||
+        (b.reviews ?? 0) - (a.reviews ?? 0),
+    );
+  }
 
   return (
     <div className="py-10">
@@ -143,23 +197,36 @@ export function ExploreClient({
           ))}
         </div>
 
-        <div className="mt-4">
-          <button
-            onClick={findNearMe}
-            disabled={locating}
-            className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60 ${
-              userLoc
-                ? "border-primary bg-primary-soft text-primary"
-                : "border-border hover:border-primary hover:text-primary"
-            }`}
+        <div className="mt-5">
+          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {dict.sort.label}
+          </div>
+          <div
+            role="group"
+            aria-label={dict.sort.label}
+            className="flex flex-wrap gap-2"
           >
-            {locating ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Navigation className="h-4 w-4" />
-            )}
-            {locating ? dict.explore.locating : dict.explore.nearest}
-          </button>
+            {sortOptions.map(({ key, label, Icon }) => {
+              const active = sortMode === key;
+              const isLocating = key === "nearest" && locating;
+              const ChipIcon = isLocating ? Loader2 : Icon;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => selectSort(key)}
+                  disabled={isLocating}
+                  aria-pressed={active}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-medium transition-colors disabled:opacity-60 ${chipClass(active)}`}
+                >
+                  <ChipIcon
+                    className={`h-3.5 w-3.5 ${isLocating ? "animate-spin" : ""}`}
+                  />
+                  {isLocating ? dict.explore.locating : label}
+                </button>
+              );
+            })}
+          </div>
           {geoError && (
             <p className="mt-2 text-sm font-medium text-red-600">{geoError}</p>
           )}

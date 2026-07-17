@@ -89,7 +89,7 @@ export function SiteHeader({
               {lang === "ar" ? "ل.ل." : "LBP"}
             </span>
           )}
-          <LanguageSwitcher currentLocale={lang} pathname={`/${lang}`} />
+          <LanguageSwitcher currentLocale={lang} />
           {user ? (
             <>
               {dashboardHref && (

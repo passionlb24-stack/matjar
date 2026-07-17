@@ -1,14 +1,18 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { locales, localeNames, type Locale } from "@/i18n/config";
 
-// Segmented toggle that swaps the leading locale segment of the current path.
+// Segmented toggle that swaps ONLY the leading locale segment of the CURRENT
+// path — so switching language keeps you on the same page (it used to jump home
+// because callers passed a hardcoded pathname).
 export function LanguageSwitcher({
   currentLocale,
-  pathname,
 }: {
   currentLocale: Locale;
-  pathname: string;
 }) {
+  const pathname = usePathname() || `/${currentLocale}`;
   const rest = pathname.replace(/^\/(ar|en)(?=\/|$)/, "");
 
   return (

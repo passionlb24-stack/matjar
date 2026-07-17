@@ -29,7 +29,7 @@ export default async function AuthLayout({
               {dict.common.brand}
             </span>
           </Link>
-          <LanguageSwitcher currentLocale={lang} pathname={`/${lang}`} />
+          <LanguageSwitcher currentLocale={lang} />
         </Container>
       </header>
       <div className="flex flex-1 items-center justify-center px-5 py-12">

@@ -69,6 +69,8 @@ type StoreView = {
   products: {
     id?: string;
     name: string;
+    nameEn?: string | null;
+    descriptionEn?: string | null;
     price: number;
     discountPrice?: number | null;
     imageUrl?: string | null;
@@ -98,7 +100,7 @@ const loadStore = cache(async function loadStore(
       const bt = data.business_types as unknown as { slug: string } | null;
       const { data: prods } = await supabase
         .from("products")
-        .select("id, name, price, discount_price, image_url, attributes, flash_price, flash_start, flash_end, stock")
+        .select("id, name, name_en, description_en, price, discount_price, image_url, attributes, flash_price, flash_start, flash_end, stock")
         .eq("store_id", id)
         .eq("status", "active")
         .eq("is_available", true)
@@ -133,6 +135,8 @@ const loadStore = cache(async function loadStore(
         products: (prods ?? []).map((p) => ({
           id: p.id as string,
           name: p.name as string,
+          nameEn: (p.name_en as string | null) ?? null,
+          descriptionEn: (p.description_en as string | null) ?? null,
           price: Number(p.price),
           discountPrice:
             p.discount_price != null ? Number(p.discount_price) : null,
@@ -656,6 +660,7 @@ export default async function StorePage({
                   .map((p) => ({
                     id: p.id as string,
                     name: p.name,
+                    nameEn: p.nameEn,
                     price: p.price,
                     imageUrl: p.imageUrl,
                     attributes: p.attributes,
@@ -690,6 +695,7 @@ export default async function StorePage({
                   .map((p) => ({
                     id: p.id as string,
                     name: p.name,
+                    nameEn: p.nameEn,
                     price: p.price,
                     discountPrice: p.discountPrice,
                     imageUrl: p.imageUrl,

@@ -59,6 +59,12 @@ export default async function NotificationsPage({
         .replace("{product}", n.data?.product_name ?? "")
         .replace("{price}", String(n.data?.new_price ?? ""));
     }
+    if (t === "pro_request") {
+      return dict.notifications.proRequest.replace(
+        "{store}",
+        n.data?.store_name ?? "",
+      );
+    }
     return t === "order_new"
       ? dict.notifications.orderNew
       : t === "order_status"
@@ -92,7 +98,7 @@ export default async function NotificationsPage({
         ? `/${lang}/product/${n.data.product_id}`
         : n.type === "store_product" && n.data?.store_id
         ? `/${lang}/store/${n.data.store_id}`
-        : n.type === "store_new"
+        : n.type === "store_new" || n.type === "pro_request"
           ? `/${lang}/admin/stores`
           : n.type === "message"
           ? n.data?.conversation_id

@@ -40,9 +40,17 @@ export function StoreForm({
       router.push(`/${lang}/login`);
       return;
     }
+    // Field-level checks with clear messages so the merchant knows exactly what
+    // to fix (not just a browser tooltip).
     const name = String(form.get("name") ?? "").trim();
     if (!name) {
       setError(dict.merchant.storeNameRequired);
+      setLoading(false);
+      return;
+    }
+    const businessType = String(form.get("business_type_id") ?? "");
+    if (!businessType) {
+      setError(dict.merchant.businessTypeRequired);
       setLoading(false);
       return;
     }
@@ -51,7 +59,7 @@ export function StoreForm({
       .insert({
         owner_id: user.id,
         name,
-        business_type_id: String(form.get("business_type_id")) || null,
+        business_type_id: businessType,
         region: String(form.get("region")) || null,
         area: String(form.get("area")) || null,
         phone: String(form.get("phone")) || null,
@@ -60,14 +68,14 @@ export function StoreForm({
       })
       .select("id")
       .single();
-    // Surface the real reason (RLS, constraint, network) instead of a generic
-    // "something went wrong" — a merchant who hits this can now tell support
-    // exactly what failed, and we can confirm the row actually persisted.
     if (error || !created?.id) {
+      // Map the common failures to a clear message; fall back to the raw reason.
       setError(
-        error?.message
-          ? `${dict.merchant.createFailed} (${error.message})`
-          : dict.auth.errorGeneric,
+        error?.code === "23505"
+          ? dict.merchant.storeNameTaken
+          : error?.message
+            ? `${dict.merchant.createFailed} (${error.message})`
+            : dict.auth.errorGeneric,
       );
       setLoading(false);
       return;

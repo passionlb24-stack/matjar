@@ -3,6 +3,14 @@
     "forYou": "For you",
     "forYouSubtitle": "Stores we think you'll love, based on who you follow and order from."
   },
+  "sort": {
+    "label": "Sort by",
+    "recommended": "Recommended",
+    "nearest": "Nearest",
+    "topRated": "Top rated",
+    "newest": "Newest",
+    "openNow": "Open now"
+  },
   "common": {
     "brand": "Matjar",
     "rateTitle": "Platform USD exchange rate",
@@ -534,6 +542,8 @@
     "createTitle": "Open your store",
     "createSubtitle": "Fill in the basics and get going — you can complete the details later.",
     "storeNameRequired": "Store name is required.",
+    "businessTypeRequired": "Please choose your business type.",
+    "storeNameTaken": "This store name is already taken — try another.",
     "createFailed": "Couldn't create the store. Try again, and if it keeps failing send us this message",
     "storeName": "Store name",
     "storeNamePlaceholder": "e.g. Beit El Zeitoun",
@@ -602,6 +612,9 @@
       "image": "Product image (optional)",
       "name": "Product name",
       "namePlaceholder": "e.g. Mixed grill",
+      "nameEn": "Name (English)",
+      "descriptionEn": "Description (English)",
+      "englishOptional": "English (optional)",
       "price": "Price ($)",
       "discountPrice": "Discounted price ($) — optional",
       "dealToday": "Feature this product as the home-page Deal of the Day",
@@ -657,7 +670,10 @@
       "yearly": "Yearly",
       "upgradeTitle": "Upgrade to Matjar Pro",
       "upgradeBody": "A full store, unlimited orders, higher search visibility, a Pro badge and better support. Payment is manual for now — contact us to activate Pro after payment.",
-      "viewPlans": "View plans & pricing"
+      "viewPlans": "View plans & pricing",
+      "requestUpgrade": "Request Pro upgrade",
+      "requestSent": "Request sent — our team will contact you to activate Pro.",
+      "requestNote": "Payment is manual for now; we'll reach out to complete your upgrade."
     },
     "settingsLink": "Settings",
     "settings": {
@@ -1627,6 +1643,7 @@
     "storeProduct": "New product from a store you follow",
     "storeProductNamed": "{store} added a new product",
     "priceDrop": "{product} dropped to ${price}",
+    "proRequest": "{store} requested a Pro upgrade",
     "listingApproved": "Your Sunday Market listing was approved",
     "listingRejected": "Your Sunday Market listing was rejected",
     "listingMatch": "A new listing matches your saved search 🔔",

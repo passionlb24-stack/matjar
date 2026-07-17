@@ -25,6 +25,7 @@ import { ProductReviews } from "@/components/product-reviews";
 import { ProductQA } from "@/components/product-qa";
 import { RecentlyViewed } from "@/components/recently-viewed";
 import { formatLbp } from "@/lib/currency";
+import { localized } from "@/lib/i18n-field";
 import { ProductMiniCard } from "@/components/product-mini-card";
 import { Container } from "@/components/ui/container";
 import { ProductGallery } from "@/components/product-gallery";
@@ -53,7 +54,9 @@ type ProductView = {
   acceptsPickup: boolean;
   category: CategoryKey;
   name: string;
+  nameEn: string | null;
   description: string | null;
+  descriptionEn: string | null;
   price: number;
   discountPrice: number | null;
   flashPrice: number | null;
@@ -76,7 +79,7 @@ const loadProduct = cache(async function loadProduct(
   const { data } = await supabase
     .from("products")
     .select(
-      "id, store_id, name, description, price, discount_price, flash_price, flash_start, flash_end, image_url, gallery, stock, attributes, stores(name, accepts_delivery, accepts_pickup, business_types(slug))",
+      "id, store_id, name, name_en, description, description_en, price, discount_price, flash_price, flash_start, flash_end, image_url, gallery, stock, attributes, stores(name, accepts_delivery, accepts_pickup, business_types(slug))",
     )
     .eq("id", id)
     .is("deleted_at", null)
@@ -116,7 +119,9 @@ const loadProduct = cache(async function loadProduct(
     acceptsPickup: store?.accepts_pickup ?? true,
     category: (store?.business_types?.slug as CategoryKey) ?? "retail",
     name: data.name as string,
+    nameEn: (data.name_en as string | null) ?? null,
     description: (data.description as string | null) ?? null,
+    descriptionEn: (data.description_en as string | null) ?? null,
     price: Number(data.price),
     discountPrice: data.discount_price != null ? Number(data.discount_price) : null,
     flashPrice: data.flash_price != null ? Number(data.flash_price) : null,
@@ -149,24 +154,30 @@ export async function generateMetadata({
   if (!isLocale(lang)) return {};
   const product = await loadProduct(id);
   if (!product) return { title: "Matjar" };
+  const name = localized(product.name, product.nameEn, lang);
+  const localizedDesc = localized(
+    product.description ?? "",
+    product.descriptionEn,
+    lang,
+  );
   const description =
-    product.description ||
+    localizedDesc ||
     (lang === "ar"
-      ? `${product.name} من ${product.storeName} على متجر.`
-      : `${product.name} from ${product.storeName} on Matjar.`);
+      ? `${name} من ${product.storeName} على متجر.`
+      : `${name} from ${product.storeName} on Matjar.`);
   const image = product.images[0];
   return {
-    title: product.name,
+    title: name,
     description,
     alternates: localeAlternates(lang, `/product/${id}`),
     openGraph: {
-      title: product.name,
+      title: name,
       description,
       images: image ? [image] : undefined,
     },
     twitter: {
       card: image ? "summary_large_image" : "summary",
-      title: product.name,
+      title: name,
       description,
     },
   };
@@ -184,6 +195,12 @@ export default async function ProductPage({
 
   const dict = await getDictionary(lang);
   const l = lang as Locale;
+  const name = localized(product.name, product.nameEn, l);
+  const description = localized(
+    product.description ?? "",
+    product.descriptionEn,
+    l,
+  );
 
   // Prefill checkout from the customer's saved address.
   const supabase = await createClient();
@@ -261,8 +278,8 @@ export default async function ProductPage({
         dangerouslySetInnerHTML={{
           __html: jsonLdScript(
             productJsonLd({
-              name: product.name,
-              description: product.description,
+              name,
+              description,
               image: product.images[0],
               url: `${SITE_URL}/${lang}/product/${id}`,
               price: basePrice,
@@ -282,16 +299,16 @@ export default async function ProductPage({
               label: product.storeName || dict.product.backToStore,
               href: `/${lang}/store/${product.storeId}`,
             },
-            { label: product.name },
+            { label: name },
           ]}
         />
 
         <div className="grid gap-8 lg:grid-cols-2">
-          <ProductGallery images={product.images} alt={product.name} />
+          <ProductGallery images={product.images} alt={name} />
 
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight">
-              {product.name}
+              {name}
             </h1>
 
             <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -339,13 +356,13 @@ export default async function ProductPage({
             {attrText && (
               <p className="mt-3 text-sm text-muted-foreground">{attrText}</p>
             )}
-            {product.description && (
+            {description && (
               <div className="mt-5">
                 <h2 className="text-sm font-bold text-muted-foreground">
                   {dict.product.description}
                 </h2>
                 <p className="mt-1.5 whitespace-pre-line leading-relaxed">
-                  {product.description}
+                  {description}
                 </p>
               </div>
             )}
@@ -386,10 +403,10 @@ export default async function ProductPage({
               />
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              <ShareButton title={product.name} dict={dict} />
+              <ShareButton title={name} dict={dict} />
               <ProductStoryCard
                 productId={product.id}
-                name={product.name}
+                name={name}
                 price={basePrice}
                 imageUrl={product.images[0] ?? null}
                 baseUrl={SITE_URL}
