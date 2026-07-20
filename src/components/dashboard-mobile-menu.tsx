@@ -2,18 +2,23 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, X, Store, Shield, ExternalLink } from "lucide-react";
+import { Menu, X, Store, Shield, ExternalLink, User } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { LogoutButton } from "@/components/logout-button";
 
 export function DashboardMobileMenu({
   lang,
   dict,
   isAdmin,
+  name,
 }: {
   lang: Locale;
   dict: Dictionary;
   isAdmin: boolean;
+  name?: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -43,7 +48,13 @@ export function DashboardMobileMenu({
             className="fixed inset-0 top-16 z-40 bg-black/30"
             onClick={() => setOpen(false)}
           />
-          <nav className="fixed inset-x-0 top-16 z-40 border-b border-border bg-background p-3 shadow-lg">
+          <nav className="fixed inset-x-0 top-16 z-40 max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-border bg-background p-3 shadow-lg">
+            {name && (
+              <div className="mb-1 flex items-center gap-2 px-3 py-2 text-sm font-semibold text-muted-foreground">
+                <User className="h-4 w-4 text-primary" />
+                {name}
+              </div>
+            )}
             <div className="space-y-1">
               {items.map((item) => {
                 const Icon = item.icon;
@@ -59,6 +70,16 @@ export function DashboardMobileMenu({
                   </Link>
                 );
               })}
+            </div>
+
+            {/* Controls that live in the bar on wider screens move here on a
+                phone, so the header row never overflows. */}
+            <div className="mt-2 flex items-center justify-between gap-2 border-t border-border pt-3">
+              <LanguageSwitcher currentLocale={lang} />
+              <ThemeToggle />
+            </div>
+            <div className="mt-1">
+              <LogoutButton label={dict.auth.logout} />
             </div>
           </nav>
         </>

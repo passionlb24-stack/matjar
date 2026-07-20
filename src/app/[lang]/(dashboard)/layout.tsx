@@ -79,15 +79,17 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-surface-muted/30">
+    <div className="flex min-h-dvh flex-col overflow-x-clip bg-surface-muted/30">
       <header className="sticky top-0 z-50 border-b border-border bg-background print:hidden">
-        <Container className="flex h-16 items-center justify-between gap-4">
-          <div className="flex items-center gap-6">
+        <Container className="flex h-16 items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-6">
             <Link href={`/${lang}/merchant`} className="flex items-center gap-2">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                 <LayoutDashboard className="h-5 w-5" />
               </span>
-              <span className="text-lg font-extrabold tracking-tight">
+              {/* Brand text is redundant next to the logo on a phone — hide it
+                  so the header never outgrows a narrow viewport. */}
+              <span className="hidden text-lg font-extrabold tracking-tight sm:inline">
                 {dict.dashboard.panel}
               </span>
             </Link>
@@ -113,25 +115,34 @@ export default async function DashboardLayout({
               )}
             </nav>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href={`/${lang}`}
-              className="hidden items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted sm:flex"
-            >
-              <ExternalLink className="h-4 w-4" />
-              {dict.dashboard.visitSite}
-            </Link>
+          <div className="flex shrink-0 items-center gap-1 sm:gap-3">
             <HeaderBells
               lang={lang}
               dict={dict}
               unreadNotifications={unread ?? 0}
               unreadMessages={(msgCount as number | null) ?? 0}
             />
-            <ThemeToggle />
-            <LanguageSwitcher currentLocale={lang} />
-            <span className="hidden text-sm font-semibold sm:block">{name}</span>
-            <LogoutButton label={dict.auth.logout} />
-            <DashboardMobileMenu lang={lang} dict={dict} isAdmin={isAdmin} />
+            {/* Full controls on tablet/desktop; on a phone these live inside the
+                menu below so the bar can't overflow. */}
+            <div className="hidden items-center gap-2 md:flex lg:gap-3">
+              <Link
+                href={`/${lang}`}
+                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface-muted"
+              >
+                <ExternalLink className="h-4 w-4" />
+                {dict.dashboard.visitSite}
+              </Link>
+              <ThemeToggle />
+              <LanguageSwitcher currentLocale={lang} />
+              <span className="text-sm font-semibold">{name}</span>
+              <LogoutButton label={dict.auth.logout} />
+            </div>
+            <DashboardMobileMenu
+              lang={lang}
+              dict={dict}
+              isAdmin={isAdmin}
+              name={name}
+            />
           </div>
         </Container>
       </header>
