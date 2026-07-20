@@ -10,6 +10,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { ImageUpload } from "@/components/image-upload";
 import { HoursEditor } from "@/components/hours-editor";
 import { parseHours } from "@/lib/hours";
+import { accentStyle } from "@/lib/color";
 
 type Option = { value: string; label: string };
 
@@ -30,7 +31,14 @@ type Initial = {
   instagram: string | null;
   facebook: string | null;
   website: string | null;
+  accent_color: string | null;
 };
+
+// A few tasteful brand presets the merchant can pick with one tap.
+const ACCENT_PRESETS = [
+  "#1556c2", "#0f766e", "#b8842a", "#b83280",
+  "#7c3aed", "#dc2626", "#059669", "#0891b2",
+];
 
 const fieldClass =
   "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
@@ -60,6 +68,8 @@ export function EditStoreForm({
   // the DB (migration 0115) is the final authority on format/reserved/uniqueness.
   const [slug, setSlug] = useState(initial.slug ?? "");
   const [copied, setCopied] = useState(false);
+  // Brand color: drives the storefront's --primary. "" = platform default.
+  const [accent, setAccent] = useState(initial.accent_color ?? "");
 
   async function copyLink() {
     try {
@@ -97,6 +107,7 @@ export function EditStoreForm({
         instagram: String(form.get("instagram")) || null,
         facebook: String(form.get("facebook")) || null,
         website: String(form.get("website")) || null,
+        accent_color: /^#[0-9a-fA-F]{6}$/.test(accent) ? accent : null,
       })
       .eq("id", storeId);
     if (error) {
@@ -126,6 +137,66 @@ export function EditStoreForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <ImageUpload folder={storeId} value={logo} onChange={setLogo} label={dict.merchant.logo} />
         <ImageUpload folder={storeId} value={cover} onChange={setCover} label={dict.merchant.cover} />
+      </div>
+
+      <div>
+        <label className={labelClass}>{dict.merchant.brandColor}</label>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {dict.merchant.brandColorHint}
+        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {ACCENT_PRESETS.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => setAccent(c)}
+              aria-label={c}
+              className={`h-8 w-8 rounded-full border-2 transition-transform hover:scale-110 ${
+                accent.toLowerCase() === c.toLowerCase()
+                  ? "border-foreground"
+                  : "border-transparent"
+              }`}
+              style={{ backgroundColor: c }}
+            />
+          ))}
+          <label
+            className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-dashed border-border"
+            title={dict.merchant.brandColorCustom}
+          >
+            <input
+              type="color"
+              value={/^#[0-9a-fA-F]{6}$/.test(accent) ? accent : "#1556c2"}
+              onChange={(e) => setAccent(e.target.value)}
+              className="h-6 w-6 cursor-pointer border-0 bg-transparent p-0"
+            />
+          </label>
+          {accent && (
+            <button
+              type="button"
+              onClick={() => setAccent("")}
+              className="text-xs font-semibold text-muted-foreground underline"
+            >
+              {dict.merchant.brandColorReset}
+            </button>
+          )}
+        </div>
+        <div className="mt-3 flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">
+            {dict.merchant.brandColorPreview}
+          </span>
+          {(() => {
+            const hex = /^#[0-9a-fA-F]{6}$/.test(accent) ? accent : "#1556c2";
+            const fg = accentStyle(hex)?.["--primary-foreground"] ?? "#ffffff";
+            return (
+              <span
+                className="rounded-lg px-3 py-1.5 text-xs font-bold"
+                style={{ backgroundColor: hex, color: fg }}
+              >
+                {initial.name}
+              </span>
+            );
+          })()}
+        </div>
       </div>
 
       <div>
