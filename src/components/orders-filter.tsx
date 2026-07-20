@@ -119,7 +119,7 @@ export function OrdersFilter({
                 key={order.id}
                 className="rounded-2xl border border-border bg-surface p-5"
               >
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                   <span className="min-w-0 text-sm font-semibold text-muted-foreground">
                     {dict.orders.order} #{order.id.slice(0, 8)}
                     {order.customer_name && (

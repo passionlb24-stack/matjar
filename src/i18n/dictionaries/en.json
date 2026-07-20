@@ -62,7 +62,9 @@
         "order_completed": "Order completed",
         "low_stock": "Low stock",
         "new_review": "New review",
-        "payment_recorded": "Payment recorded"
+        "payment_recorded": "Payment recorded",
+        "booking_reminder": "Booking reminder",
+        "customer_inactive": "Inactive customer"
       },
       "actions": {
         "notify": "Notification + Push",
@@ -90,6 +92,10 @@
         "anyLocation": "All branches",
         "maxRating": "Rating ≤",
         "maxRatingHint": "Only when the rating is less than or equal to this (low ratings)",
+        "hoursBefore": "Hours before appointment",
+        "hoursBeforeHint": "How long before the appointment the reminder is sent — in hours (default 1).",
+        "inactiveDays": "Days inactive",
+        "inactiveDaysHint": "How many days without an order before a customer counts as inactive (default 30).",
         "none": "No conditions for this trigger — it will always run."
       },
       "addAction": "Add action",
@@ -110,6 +116,10 @@
       "condMinTotal": "Total ≥",
       "condLocation": "Branch",
       "condMaxRating": "Rating ≤",
+      "condHoursBefore": "Before appointment",
+      "hoursUnit": "h",
+      "condInactiveDays": "Inactive",
+      "daysUnit": "d",
       "pointsUnit": "pts",
       "percentOff": "% off",
       "activityTitle": "Recent activity",
@@ -153,6 +163,15 @@
           "desc": "When a review of 2 stars or less comes in → instant notification",
           "notifyTitle": "Review needs attention ⚠️",
           "notifyBody": "A low rating just came in — reach out to the customer quickly and try to make it right."
+        },
+        "bookingReminder": {
+          "name": "Booking reminder",
+          "desc": "An hour before the appointment → remind the customer on WhatsApp",
+          "message": "Hi! Just a reminder of your appointment with {store} coming up soon ⏰ We're expecting you — let us know if anything changes."
+        },
+        "winback": {
+          "name": "Win back a lapsed customer",
+          "desc": "When a customer goes 30 days without ordering → a 10% coupon to bring them back"
         }
       }
     },

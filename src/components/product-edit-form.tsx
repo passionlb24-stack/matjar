@@ -350,8 +350,8 @@ export function ProductEditForm({
             </div>
             <div className="mt-3 space-y-2">
               {variants.map((v, i) => (
-                <div key={i} className="flex gap-2">
-                  <input value={v.label} onChange={(e) => setVariants(variants.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))} placeholder={p.variantLabelPlaceholder} className="flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary" />
+                <div key={i} className="flex flex-wrap items-stretch gap-2">
+                  <input value={v.label} onChange={(e) => setVariants(variants.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))} placeholder={p.variantLabelPlaceholder} className="w-full min-w-0 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary sm:w-auto sm:flex-1" />
                   <input value={v.price} onChange={(e) => setVariants(variants.map((x, j) => (j === i ? { ...x, price: e.target.value } : x)))} type="number" min="0" step="0.01" placeholder={p.variantPrice} className="w-24 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary" />
                   <input value={v.stock} onChange={(e) => setVariants(variants.map((x, j) => (j === i ? { ...x, stock: e.target.value } : x)))} type="number" min="0" step="1" placeholder={p.variantStock} className="w-20 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary" />
                   <button type="button" onClick={() => setVariants(variants.filter((_, j) => j !== i))} aria-label={p.remove} className="flex w-9 shrink-0 items-center justify-center rounded-lg border border-border text-red-600 transition-colors hover:bg-red-50">
@@ -376,8 +376,8 @@ export function ProductEditForm({
             </div>
             <div className="mt-3 space-y-2">
               {options.map((o, i) => (
-                <div key={i} className="flex gap-2">
-                  <input value={o.name} onChange={(e) => setOptions(options.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} placeholder={p.addonNamePlaceholder} className="flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary" />
+                <div key={i} className="flex flex-wrap items-stretch gap-2">
+                  <input value={o.name} onChange={(e) => setOptions(options.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} placeholder={p.addonNamePlaceholder} className="w-full min-w-0 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary sm:w-auto sm:flex-1" />
                   <input value={o.price} onChange={(e) => setOptions(options.map((x, j) => (j === i ? { ...x, price: e.target.value } : x)))} type="number" min="0" step="0.01" placeholder={p.addonPrice} className="w-24 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary" />
                   <button type="button" onClick={() => setOptions(options.filter((_, j) => j !== i))} aria-label={p.remove} className="flex w-9 shrink-0 items-center justify-center rounded-lg border border-border text-red-600 transition-colors hover:bg-red-50">
                     <Trash2 className="h-4 w-4" />

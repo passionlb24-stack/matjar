@@ -24,6 +24,10 @@ import {
   Wand2,
   ChevronRight,
   MapPin,
+  Clock,
+  CalendarClock,
+  UserX,
+  Moon,
   type LucideIcon,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
@@ -37,7 +41,9 @@ export type TriggerKey =
   | "order_completed"
   | "low_stock"
   | "new_review"
-  | "payment_recorded";
+  | "payment_recorded"
+  | "booking_reminder"
+  | "customer_inactive";
 
 export type ActionType = "notify" | "whatsapp" | "loyalty" | "coupon";
 
@@ -45,6 +51,8 @@ export type Conditions = {
   min_total?: number;
   location_id?: string;
   max_rating?: number;
+  hours_before?: number;
+  inactive_days?: number;
 };
 
 export type Action =
@@ -84,6 +92,8 @@ const TRIGGERS: TriggerKey[] = [
   "low_stock",
   "new_review",
   "payment_recorded",
+  "booking_reminder",
+  "customer_inactive",
 ];
 
 const TRIGGER_ICON: Record<TriggerKey, LucideIcon> = {
@@ -92,18 +102,28 @@ const TRIGGER_ICON: Record<TriggerKey, LucideIcon> = {
   low_stock: PackageX,
   new_review: Star,
   payment_recorded: Wallet,
+  booking_reminder: CalendarClock,
+  customer_inactive: UserX,
 };
 
 // Which optional conditions make sense per trigger.
 const TRIGGER_CONDS: Record<
   TriggerKey,
-  { minTotal?: boolean; location?: boolean; maxRating?: boolean }
+  {
+    minTotal?: boolean;
+    location?: boolean;
+    maxRating?: boolean;
+    hoursBefore?: boolean;
+    inactiveDays?: boolean;
+  }
 > = {
   order_created: { minTotal: true, location: true },
   order_completed: { minTotal: true, location: true },
   low_stock: { location: true },
   new_review: { maxRating: true },
   payment_recorded: { minTotal: true, location: true },
+  booking_reminder: { hoursBefore: true },
+  customer_inactive: { inactiveDays: true },
 };
 
 const ACTION_TYPES: ActionType[] = ["notify", "whatsapp", "loyalty", "coupon"];
@@ -159,6 +179,8 @@ type Draft = {
   minTotal: string;
   locationId: string;
   maxRating: string;
+  hoursBefore: string;
+  inactiveDays: string;
   actions: Action[];
 };
 
@@ -168,6 +190,8 @@ const emptyDraft: Draft = {
   minTotal: "",
   locationId: "",
   maxRating: "",
+  hoursBefore: "",
+  inactiveDays: "",
   actions: [{ type: "whatsapp", message: "" }],
 };
 
@@ -294,6 +318,28 @@ export function AutomationManager({
           },
         ] as Action[],
       },
+      {
+        id: "bookingReminder",
+        Icon: Clock,
+        tint: "bg-sky-100 text-sky-700",
+        name: r.bookingReminder.name,
+        desc: r.bookingReminder.desc,
+        trigger: "booking_reminder" as TriggerKey,
+        conditions: { hours_before: 1 } as Conditions,
+        actions: [
+          { type: "whatsapp", message: wa(r.bookingReminder.message) },
+        ] as Action[],
+      },
+      {
+        id: "winback",
+        Icon: Moon,
+        tint: "bg-violet-100 text-violet-700",
+        name: r.winback.name,
+        desc: r.winback.desc,
+        trigger: "customer_inactive" as TriggerKey,
+        conditions: { inactive_days: 30 } as Conditions,
+        actions: [{ type: "coupon", percent: 10 }] as Action[],
+      },
     ];
   }, [t, storeName]);
 
@@ -331,6 +377,8 @@ export function AutomationManager({
       minTotal: c.min_total != null ? String(c.min_total) : "",
       locationId: c.location_id ?? "",
       maxRating: c.max_rating != null ? String(c.max_rating) : "",
+      hoursBefore: c.hours_before != null ? String(c.hours_before) : "",
+      inactiveDays: c.inactive_days != null ? String(c.inactive_days) : "",
       actions: (a.actions ?? []).length
         ? (a.actions as Action[])
         : [defaultAction("notify")],
@@ -370,6 +418,10 @@ export function AutomationManager({
       conditions.location_id = draft.locationId;
     if (flags.maxRating && draft.maxRating.trim())
       conditions.max_rating = Number(draft.maxRating);
+    if (flags.hoursBefore && draft.hoursBefore.trim())
+      conditions.hours_before = Math.max(1, Number(draft.hoursBefore) || 1);
+    if (flags.inactiveDays && draft.inactiveDays.trim())
+      conditions.inactive_days = Math.max(1, Number(draft.inactiveDays) || 30);
 
     // Normalise numeric action params.
     const actions: Action[] = draft.actions.map((a) => {
@@ -449,6 +501,10 @@ export function AutomationManager({
     if (c.min_total != null) out.push(`${t.condMinTotal} $${c.min_total}`);
     if (c.location_id) out.push(`${t.condLocation}: ${locationName(c.location_id)}`);
     if (c.max_rating != null) out.push(`${t.condMaxRating} ${c.max_rating}★`);
+    if (c.hours_before != null)
+      out.push(`${t.condHoursBefore} ${c.hours_before} ${t.hoursUnit}`);
+    if (c.inactive_days != null)
+      out.push(`${t.condInactiveDays} ${c.inactive_days} ${t.daysUnit}`);
     return out;
   }
   function actionLabel(a: Action): string {
@@ -461,7 +517,12 @@ export function AutomationManager({
 
   const flags = TRIGGER_CONDS[draft.trigger];
   const showLocation = !!flags.location && locations.length > 0;
-  const hasAnyCond = !!flags.minTotal || showLocation || !!flags.maxRating;
+  const hasAnyCond =
+    !!flags.minTotal ||
+    showLocation ||
+    !!flags.maxRating ||
+    !!flags.hoursBefore ||
+    !!flags.inactiveDays;
 
   // ===== Builder form (shared by new + edit) =====
   const form = (
@@ -506,6 +567,12 @@ export function AutomationManager({
                       minTotal: TRIGGER_CONDS[tr].minTotal ? d.minTotal : "",
                       locationId: TRIGGER_CONDS[tr].location ? d.locationId : "",
                       maxRating: TRIGGER_CONDS[tr].maxRating ? d.maxRating : "",
+                      hoursBefore: TRIGGER_CONDS[tr].hoursBefore
+                        ? d.hoursBefore
+                        : "",
+                      inactiveDays: TRIGGER_CONDS[tr].inactiveDays
+                        ? d.inactiveDays
+                        : "",
                     }))
                   }
                   className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-start text-sm font-semibold transition-all ${
@@ -597,6 +664,52 @@ export function AutomationManager({
                   </select>
                   <span className="mt-1 block text-xs font-normal text-muted-foreground">
                     {t.conditions.maxRatingHint}
+                  </span>
+                </label>
+              )}
+              {flags.hoursBefore && (
+                <label className="text-sm font-semibold sm:col-span-2">
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    {t.conditions.hoursBefore}
+                  </span>
+                  <input
+                    type="number"
+                    min="1"
+                    inputMode="numeric"
+                    value={draft.hoursBefore}
+                    onChange={(e) =>
+                      setDraft({ ...draft, hoursBefore: e.target.value })
+                    }
+                    placeholder="1"
+                    dir="ltr"
+                    className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm outline-none focus:border-primary"
+                  />
+                  <span className="mt-1 block text-xs font-normal text-muted-foreground">
+                    {t.conditions.hoursBeforeHint}
+                  </span>
+                </label>
+              )}
+              {flags.inactiveDays && (
+                <label className="text-sm font-semibold sm:col-span-2">
+                  <span className="flex items-center gap-1">
+                    <Moon className="h-4 w-4 text-muted-foreground" />
+                    {t.conditions.inactiveDays}
+                  </span>
+                  <input
+                    type="number"
+                    min="1"
+                    inputMode="numeric"
+                    value={draft.inactiveDays}
+                    onChange={(e) =>
+                      setDraft({ ...draft, inactiveDays: e.target.value })
+                    }
+                    placeholder="30"
+                    dir="ltr"
+                    className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm outline-none focus:border-primary"
+                  />
+                  <span className="mt-1 block text-xs font-normal text-muted-foreground">
+                    {t.conditions.inactiveDaysHint}
                   </span>
                 </label>
               )}
