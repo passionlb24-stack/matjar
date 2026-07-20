@@ -6,6 +6,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
+import { ButtonLink } from "@/components/ui/button";
 import {
   PRO_PRICE_MONTHLY,
   PRO_PRICE_YEARLY,
@@ -71,12 +72,15 @@ export default async function PricingPage({
                 </li>
               ))}
             </ul>
-            <Link
+            <ButtonLink
               href={`/${lang}/signup`}
-              className="mt-8 block rounded-xl border border-border px-5 py-3 text-center font-bold transition-colors hover:border-primary hover:text-primary"
+              variant="secondary"
+              size="lg"
+              full
+              className="mt-8"
             >
               {dict.pricing.startFree}
-            </Link>
+            </ButtonLink>
           </div>
 
           <div className="relative rounded-3xl border-2 border-primary bg-surface p-8">
@@ -150,12 +154,15 @@ export default async function PricingPage({
                 </li>
               ))}
             </ul>
-            <Link
+            <ButtonLink
               href={`/${lang}/merchant/new`}
-              className="mt-8 block rounded-xl bg-primary px-5 py-3 text-center font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+              variant="primary"
+              size="lg"
+              full
+              className="mt-8"
             >
               {dict.pricing.goPro}
-            </Link>
+            </ButtonLink>
             <p className="mt-3 text-center text-xs text-muted-foreground">
               {dict.pricing.contactNote}
             </p>

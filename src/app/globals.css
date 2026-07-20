@@ -47,6 +47,51 @@
 
   --radius-xl: 1rem;
   --radius-2xl: 1.25rem;
+
+  /* Premium, layered shadows — soft near-shadow + a wider ambient one. Tuned to
+     the slate ink so cards feel lifted, not boxed. Used app-wide via shadow-*. */
+  --shadow-xs: 0 1px 2px rgba(11, 22, 32, 0.05);
+  --shadow-sm: 0 1px 2px rgba(11, 22, 32, 0.04), 0 2px 6px rgba(11, 22, 32, 0.05);
+  --shadow-md: 0 2px 4px rgba(11, 22, 32, 0.04), 0 6px 16px rgba(11, 22, 32, 0.07);
+  --shadow-lg: 0 4px 8px rgba(11, 22, 32, 0.05), 0 14px 32px rgba(11, 22, 32, 0.09);
+  --shadow-xl: 0 8px 18px rgba(11, 22, 32, 0.06), 0 28px 56px rgba(11, 22, 32, 0.12);
+
+  /* Signature easing — a gentle overshoot for entrances/hovers. */
+  --ease-out-back: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Entrance motion. Add `data-animate` to a container and its direct children
+   fade/rise in with a small stagger. Honors prefers-reduced-motion (guarded
+   below). Kept CSS-only so there's no runtime motion dependency. */
+@keyframes matjar-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-rise {
+  animation: matjar-rise 0.55s var(--ease-out-back) both;
+}
+
+[data-animate] > * {
+  animation: matjar-rise 0.6s var(--ease-out-back) both;
+}
+[data-animate] > *:nth-child(2) {
+  animation-delay: 0.06s;
+}
+[data-animate] > *:nth-child(3) {
+  animation-delay: 0.12s;
+}
+[data-animate] > *:nth-child(4) {
+  animation-delay: 0.18s;
+}
+[data-animate] > *:nth-child(5) {
+  animation-delay: 0.24s;
 }
 
 * {
