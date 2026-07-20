@@ -80,59 +80,67 @@ export function SiteHeader({
             </Link>
           </nav>
         </div>
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Daily habit hook: Lebanese users check the USD rate constantly. */}
-          {lbpRate > 0 && (
-            <span
-              title={dict.common.rateTitle}
-              className="hidden whitespace-nowrap rounded-full bg-surface-muted px-3 py-1.5 text-xs font-bold text-muted-foreground lg:block"
-            >
-              $1 = {lbpRate.toLocaleString("en-US")}{" "}
-              {lang === "ar" ? "ل.ل." : "LBP"}
-            </span>
+        <div className="flex shrink-0 items-center gap-1 sm:gap-3">
+          {/* Bells stay visible for signed-in users even on a phone. */}
+          {user && (
+            <HeaderBells
+              lang={lang}
+              dict={dict}
+              unreadNotifications={unread}
+              unreadMessages={unreadMessages}
+            />
           )}
-          <ThemeToggle />
-          <LanguageSwitcher currentLocale={lang} />
-          {user ? (
-            <>
-              {dashboardHref && (
-                <Link
-                  href={dashboardHref}
-                  className="hidden rounded-lg px-3 py-2 text-sm font-bold text-primary transition-colors hover:bg-surface-muted sm:block"
-                >
-                  {dict.dashboard.panel}
-                </Link>
-              )}
-              <HeaderBells
-                lang={lang}
-                dict={dict}
-                unreadNotifications={unread}
-                unreadMessages={unreadMessages}
-              />
-              <Link
-                href={`/${lang}/account`}
-                className="hidden items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted sm:flex"
+          {/* Full controls on tablet/desktop; on a phone these move into the ☰
+              menu so the bar can never overflow. */}
+          <div className="hidden items-center gap-2 md:flex md:gap-3">
+            {/* Daily habit hook: Lebanese users check the USD rate constantly. */}
+            {lbpRate > 0 && (
+              <span
+                title={dict.common.rateTitle}
+                className="hidden whitespace-nowrap rounded-full bg-surface-muted px-3 py-1.5 text-xs font-bold text-muted-foreground lg:block"
               >
-                <User className="h-4 w-4 text-primary" />
-                {user.name}
-              </Link>
-              <LogoutButton label={dict.auth.logout} />
-            </>
-          ) : (
-            <>
+                $1 = {lbpRate.toLocaleString("en-US")}{" "}
+                {lang === "ar" ? "ل.ل." : "LBP"}
+              </span>
+            )}
+            <ThemeToggle />
+            <LanguageSwitcher currentLocale={lang} />
+            {user ? (
+              <>
+                {dashboardHref && (
+                  <Link
+                    href={dashboardHref}
+                    className="rounded-lg px-3 py-2 text-sm font-bold text-primary transition-colors hover:bg-surface-muted"
+                  >
+                    {dict.dashboard.panel}
+                  </Link>
+                )}
+                <Link
+                  href={`/${lang}/account`}
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted"
+                >
+                  <User className="h-4 w-4 text-primary" />
+                  {user.name}
+                </Link>
+                <LogoutButton label={dict.auth.logout} />
+              </>
+            ) : (
               <Link
                 href={`/${lang}/login`}
-                className="hidden rounded-lg px-3 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted sm:block"
+                className="rounded-lg px-3 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted"
               >
                 {dict.common.login}
               </Link>
-              <Link
-                href={`/${lang}/merchant/new`}
-                className="rounded-lg bg-primary px-3 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover sm:px-4"
-              >
-                {dict.common.openStore}
-              </Link>
-            </>
+            )}
+          </div>
+          {/* Open-store is the primary guest CTA — keep it visible always. */}
+          {!user && (
+            <Link
+              href={`/${lang}/merchant/new`}
+              className="rounded-lg bg-primary px-3 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover sm:px-4"
+            >
+              {dict.common.openStore}
+            </Link>
           )}
           <MobileMenu
             lang={lang}

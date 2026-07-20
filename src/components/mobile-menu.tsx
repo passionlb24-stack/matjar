@@ -22,6 +22,9 @@ import {
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { LogoutButton } from "@/components/logout-button";
 
 type Item = { href: string; label: string; icon: typeof Compass; bold?: boolean };
 
@@ -149,6 +152,18 @@ export function MobileMenu({
                 );
               })}
             </div>
+
+            {/* Language + theme live in the bar on desktop; on a phone they
+                move here so the header can't overflow. */}
+            <div className="mt-2 flex items-center justify-between gap-2 border-t border-border pt-3">
+              <LanguageSwitcher currentLocale={lang} />
+              <ThemeToggle />
+            </div>
+            {user && (
+              <div className="mt-1" onClick={() => setOpen(false)}>
+                <LogoutButton label={dict.auth.logout} />
+              </div>
+            )}
           </nav>
         </>
       )}
