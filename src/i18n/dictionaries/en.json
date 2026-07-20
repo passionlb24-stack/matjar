@@ -631,7 +631,9 @@
     "trendKicker": "Best sellers",
     "trendTitle": "Trending this week",
     "trendDesc": "See what Lebanon is buying right now across all sectors.",
-    "trendCta": "Browse"
+    "trendCta": "Browse",
+    "jobsTitle": "Latest jobs",
+    "jobsSubtitle": "New opportunities across Lebanon."
   },
   "homeFaq": {
     "eyebrow": "FAQ",

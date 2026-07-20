@@ -12,6 +12,31 @@ export async function getRestaurants(limit = 8): Promise<Store[]> {
   return all.filter((s) => s.category === "food").slice(0, limit);
 }
 
+export type LatestJob = {
+  id: string;
+  title: string;
+  company_name: string;
+  region: string | null;
+  job_type: string | null;
+  salary_note: string | null;
+};
+
+// Newest active job postings for the homepage teaser. Public read, cached.
+export const getLatestJobs = unstable_cache(
+  async (limit = 4): Promise<LatestJob[]> => {
+    const supabase = createPublicClient();
+    const { data } = await supabase
+      .from("job_postings")
+      .select("id, title, company_name, region, job_type, salary_note")
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    return (data ?? []) as LatestJob[];
+  },
+  ["home-latest-jobs"],
+  { revalidate: 300 },
+);
+
 // Real, honest platform counts for the homepage stat rows — cached so the
 // numbers don't add a per-request DB round-trip. Deliberately conservative:
 // we count only live/active rows and never fabricate figures.

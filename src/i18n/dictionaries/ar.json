@@ -631,7 +631,9 @@
     "trendKicker": "الأكثر مبيعاً",
     "trendTitle": "الرائج هالأسبوع",
     "trendDesc": "شوف شو عم يشتري اللبنانيين هلّق بكل القطاعات.",
-    "trendCta": "تصفّح"
+    "trendCta": "تصفّح",
+    "jobsTitle": "أحدث الوظائف",
+    "jobsSubtitle": "فرص عمل جديدة بكل لبنان."
   },
   "homeFaq": {
     "eyebrow": "أسئلة شائعة",

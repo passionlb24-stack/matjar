@@ -20,6 +20,7 @@ import { FeaturedStores } from "@/components/featured-stores";
 import { RestaurantsRail } from "@/components/restaurants-rail";
 import { CitiesStrip } from "@/components/cities-strip";
 import { HomePromoSplit } from "@/components/home-promo-split";
+import { LatestJobs } from "@/components/latest-jobs";
 import { ForYouStrip } from "@/components/for-you-strip";
 import { HomeStats } from "@/components/home-stats";
 import { HowItWorks } from "@/components/how-it-works";
@@ -102,6 +103,9 @@ export default async function Home({
       </Suspense>
       <HomePromoSplit lang={lang} dict={dict} />
       <ServicesGrid lang={lang} dict={dict} />
+      <Suspense fallback={null}>
+        <LatestJobs lang={lang} dict={dict} />
+      </Suspense>
       <HomeStats
         lang={lang}
         dict={dict}

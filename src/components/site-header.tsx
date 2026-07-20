@@ -10,6 +10,7 @@ import { LogoutButton } from "@/components/logout-button";
 import { MobileMenu } from "@/components/mobile-menu";
 import { NavDropdown } from "@/components/nav-dropdown";
 import { HeaderBells } from "@/components/header-bells";
+import { HeaderSearch } from "@/components/header-search";
 
 export function SiteHeader({
   lang,
@@ -142,6 +143,7 @@ export function SiteHeader({
           />
         </div>
       </Container>
+      <HeaderSearch lang={lang} dict={dict} />
     </header>
   );
 }
