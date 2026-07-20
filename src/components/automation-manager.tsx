@@ -15,6 +15,7 @@ import {
   Sparkles,
   Ticket,
   ShoppingBag,
+  ShoppingCart,
   PackageCheck,
   PackageX,
   Star,
@@ -39,6 +40,7 @@ import { notifyError, notifySuccess } from "@/lib/notify";
 export type TriggerKey =
   | "order_created"
   | "order_completed"
+  | "order_abandoned"
   | "low_stock"
   | "new_review"
   | "payment_recorded"
@@ -89,6 +91,7 @@ export type LocationOption = {
 const TRIGGERS: TriggerKey[] = [
   "order_created",
   "order_completed",
+  "order_abandoned",
   "low_stock",
   "new_review",
   "payment_recorded",
@@ -99,6 +102,7 @@ const TRIGGERS: TriggerKey[] = [
 const TRIGGER_ICON: Record<TriggerKey, LucideIcon> = {
   order_created: ShoppingBag,
   order_completed: PackageCheck,
+  order_abandoned: ShoppingCart,
   low_stock: PackageX,
   new_review: Star,
   payment_recorded: Wallet,
@@ -119,6 +123,7 @@ const TRIGGER_CONDS: Record<
 > = {
   order_created: { minTotal: true, location: true },
   order_completed: { minTotal: true, location: true },
+  order_abandoned: {},
   low_stock: { location: true },
   new_review: { maxRating: true },
   payment_recorded: { minTotal: true, location: true },
@@ -246,6 +251,18 @@ export function AutomationManager({
         conditions: {} as Conditions,
         actions: [
           { type: "whatsapp", message: wa(r.thanks.message) },
+        ] as Action[],
+      },
+      {
+        id: "abandonedCart",
+        Icon: ShoppingCart,
+        tint: "bg-rose-100 text-rose-700",
+        name: r.abandonedCart.name,
+        desc: r.abandonedCart.desc,
+        trigger: "order_abandoned" as TriggerKey,
+        conditions: {} as Conditions,
+        actions: [
+          { type: "whatsapp", message: wa(r.abandonedCart.message) },
         ] as Action[],
       },
       {

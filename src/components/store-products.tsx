@@ -248,6 +248,34 @@ export function StoreProducts({
     setCouponMsg(null);
   }
 
+  // Abandoned-cart capture: fire-and-forget a "checkout intent" as the customer
+  // enters a phone, so the merchant's order_abandoned automation can win them
+  // back if they never place the order. It is NEVER awaited and can NEVER throw
+  // — wrapped so it cannot touch the checkout / order-submit path in any way.
+  function captureCheckoutIntent(phone: string, name: string) {
+    const trimmed = phone.trim();
+    if (trimmed.length < 4 || items.length === 0) return;
+    try {
+      void createClient()
+        .rpc("record_checkout_intent", {
+          p_store_id: storeId,
+          p_phone: trimmed,
+          p_name: name.trim() || null,
+          p_items: items.map((p) => ({
+            product_id: p.id,
+            name: p.name,
+            quantity: cart[p.id],
+          })),
+        })
+        .then(
+          () => {},
+          () => {},
+        );
+    } catch {
+      /* never affect checkout */
+    }
+  }
+
   const waUrl =
     whatsapp && items.length
       ? waLink(
@@ -775,7 +803,22 @@ export function StoreProducts({
               <label className="text-sm font-semibold" htmlFor="phone">
                 {dict.store.phone}
               </label>
-              <input id="phone" name="phone" type="tel" inputMode="tel" required placeholder="+961 …" className={fieldClass} />
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                inputMode="tel"
+                required
+                placeholder="+961 …"
+                className={fieldClass}
+                onBlur={(e) => {
+                  const form = e.currentTarget.form;
+                  const name = form
+                    ? String(new FormData(form).get("name") ?? "")
+                    : "";
+                  captureCheckoutIntent(e.currentTarget.value, name);
+                }}
+              />
             </div>
             <div>
               <label className="text-sm font-semibold" htmlFor="note">

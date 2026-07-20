@@ -60,6 +60,7 @@
       "triggers": {
         "order_created": "New order",
         "order_completed": "Order completed",
+        "order_abandoned": "Abandoned cart",
         "low_stock": "Low stock",
         "new_review": "New review",
         "payment_recorded": "Payment recorded",
@@ -136,6 +137,11 @@
           "name": "WhatsApp thank-you after order",
           "desc": "When an order is completed → send a thank-you on WhatsApp",
           "message": "Hi! Thank you for ordering from {store} 🙏 It's a pleasure to serve you — we're here whenever you need anything."
+        },
+        "abandonedCart": {
+          "name": "Recover an abandoned cart",
+          "desc": "When a customer leaves without checking out → nudge them on WhatsApp to finish",
+          "message": "Hi! We noticed you started an order from {store} but didn't finish 🛒 Your cart is still saved — come back and complete it whenever, we're here to help."
         },
         "reviewReq": {
           "name": "Review reminder",
