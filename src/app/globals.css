@@ -255,6 +255,21 @@ select:focus-visible,
   box-shadow: var(--shadow-md);
 }
 
+/* Gentle bob for the hero's floating category pills (decorative, desktop).
+   Globally paused by the prefers-reduced-motion guard below. */
+@keyframes matjar-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+.animate-float {
+  animation: matjar-float 6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

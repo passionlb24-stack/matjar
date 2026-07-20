@@ -571,14 +571,60 @@
     }
   },
   "hero": {
-    "badge": "Lebanon's local commerce platform",
-    "title": "Every store, product, and service in Lebanon,",
+    "badge": "Lebanon's local platform · Live now",
+    "title": "Every store, restaurant, and service in Lebanon",
     "titleHighlight": "in one place",
-    "subtitle": "Restaurants, shops, services, clinics, real estate and cars. Order, book, or discover the nearest store to you in seconds.",
-    "searchPlaceholder": "Search for a store, product, or service…",
+    "subtitle": "Shop, order, book, or hire — and find the nearest store or service to you in seconds. One platform for everything.",
+    "searchPlaceholder": "Search for a store, product, restaurant, or service…",
     "locationAll": "All Lebanon",
     "searchButton": "Search",
-    "popular": "Trending"
+    "popular": "Trending",
+    "ctaPrimary": "Start shopping",
+    "ctaSecondary": "Open your store free",
+    "stats": {
+      "storesLabel": "stores & services",
+      "sectorsLabel": "sectors",
+      "citiesLabel": "cities",
+      "codLabel": "Cash on delivery",
+      "codValue": "Free"
+    },
+    "floats": {
+      "food": "Restaurants & food",
+      "realEstate": "Real estate",
+      "jobs": "New jobs",
+      "cars": "Cars"
+    }
+  },
+  "worlds": {
+    "eyebrow": "One platform",
+    "title": "8 worlds in one place",
+    "subtitle": "You don't need 10 apps — everything in Lebanon is now in one place.",
+    "items": {
+      "stores": { "title": "Stores", "desc": "Clothing, electronics, accessories" },
+      "food": { "title": "Restaurants & food", "desc": "Order delivery or pickup" },
+      "services": { "title": "Services", "desc": "Repair, cleaning, maintenance" },
+      "jobs": { "title": "Jobs", "desc": "Find work near you" },
+      "freelance": { "title": "Freelancers", "desc": "Designers, developers, photographers" },
+      "realEstate": { "title": "Real estate", "desc": "Buy, sell, rent" },
+      "automotive": { "title": "Cars", "desc": "Dealerships & direct sales" },
+      "market": { "title": "Sunday Market", "desc": "Classifieds & swaps" }
+    }
+  },
+  "homeStats": {
+    "storesLabel": "stores & services",
+    "sectorsLabel": "different sectors",
+    "citiesLabel": "Lebanese cities",
+    "productsLabel": "products & listings"
+  },
+  "homeFaq": {
+    "eyebrow": "FAQ",
+    "title": "Got a question?",
+    "items": [
+      { "q": "Is Matjar free to use?", "a": "Yes — browsing and buying are completely free. Opening a basic store is also free, with no commission on your sales." },
+      { "q": "How do I pay?", "a": "Most stores accept cash on delivery — you pay when your order arrives — and some offer additional options." },
+      { "q": "Are the stores trustworthy?", "a": "Every store is manually reviewed before it goes live, and there are real ratings and reviews from customers." },
+      { "q": "How do I open my store?", "a": "Tap \"Open your store\", enter your store name and type, and start adding products — it takes minutes." }
+    ]
   },
   "categories": {
     "title": "Browse by category",
@@ -635,6 +681,11 @@
     "exploreTitle": "Explore",
     "merchantsTitle": "For merchants",
     "companyTitle": "Company",
+    "appTitle": "Get the app",
+    "downloadOn": "Download on the",
+    "appStore": "App Store",
+    "getItOn": "Get it on",
+    "googlePlay": "Google Play",
     "links": {
       "stores": "Stores",
       "categories": "Categories",

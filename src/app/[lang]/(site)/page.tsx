@@ -7,16 +7,20 @@ import { localeAlternates, SITE_URL } from "@/lib/site";
 import { siteJsonLd, jsonLdScript } from "@/lib/jsonld";
 import { getDailyDeal } from "@/lib/data/offers";
 import { getUsdLbpRate } from "@/lib/data/settings";
+import { getHomeCounts } from "@/lib/data/home";
 import { DealOfTheDay } from "@/components/deal-of-the-day";
 import { Hero } from "@/components/hero";
 import { TrustStrip } from "@/components/trust-strip";
+import { WorldsShowcase } from "@/components/worlds-showcase";
 import { CategoryGrid } from "@/components/category-grid";
 import { ServicesGrid } from "@/components/services-grid";
 import { OffersTeaser } from "@/components/offers-teaser";
 import { BestSellersTeaser } from "@/components/best-sellers-teaser";
 import { FeaturedStores } from "@/components/featured-stores";
 import { ForYouStrip } from "@/components/for-you-strip";
+import { HomeStats } from "@/components/home-stats";
 import { HowItWorks } from "@/components/how-it-works";
+import { HomeFaq } from "@/components/home-faq";
 import { MerchantCta } from "@/components/merchant-cta";
 import { SectionSkeleton } from "@/components/section-skeleton";
 
@@ -47,10 +51,13 @@ export default async function Home({
   if (!isLocale(lang)) notFound();
 
   const dict = await getDictionary(lang);
+  // Real, cached platform counts (stores + listings) for the honest stat rows.
+  const counts = await getHomeCounts();
 
-  // The Hero + static sections (Trust, Category, Services, HowItWorks, CTA)
-  // render in the shell immediately. Every data-backed section streams inside
-  // its own <Suspense> so a slow query never blocks first paint.
+  // The Hero + static sections render in the shell immediately. Every
+  // data-backed section streams inside its own <Suspense> so a slow query
+  // never blocks first paint. Order tells the V2 story: hero → the 8 worlds
+  // (breadth) → trending/curated → proof (stats) → how it works → convert.
   return (
     <>
       <script
@@ -66,8 +73,9 @@ export default async function Home({
           ),
         }}
       />
-      <Hero lang={lang} dict={dict} />
+      <Hero lang={lang} dict={dict} storeCount={counts.stores} />
       <TrustStrip dict={dict} />
+      <WorldsShowcase lang={lang} dict={dict} />
       <Suspense fallback={null}>
         <DealSection lang={lang} dict={dict} />
       </Suspense>
@@ -76,17 +84,24 @@ export default async function Home({
           page cacheable. Renders nothing for anon / no-history users. */}
       <ForYouStrip lang={lang} dict={dict} />
       <CategoryGrid lang={lang} dict={dict} />
-      <ServicesGrid lang={lang} dict={dict} />
-      <Suspense fallback={<SectionSkeleton cards={4} />}>
-        <OffersTeaser lang={lang} dict={dict} />
-      </Suspense>
       <Suspense fallback={<SectionSkeleton cards={4} />}>
         <FeaturedStores lang={lang} dict={dict} />
       </Suspense>
       <Suspense fallback={<SectionSkeleton cards={4} />}>
+        <OffersTeaser lang={lang} dict={dict} />
+      </Suspense>
+      <Suspense fallback={<SectionSkeleton cards={4} />}>
         <BestSellersTeaser lang={lang} dict={dict} />
       </Suspense>
+      <ServicesGrid lang={lang} dict={dict} />
+      <HomeStats
+        lang={lang}
+        dict={dict}
+        storeCount={counts.stores}
+        productCount={counts.products}
+      />
       <HowItWorks dict={dict} />
+      <HomeFaq dict={dict} />
       <MerchantCta lang={lang} dict={dict} />
     </>
   );
