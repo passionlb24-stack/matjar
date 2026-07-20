@@ -14,14 +14,14 @@ export function HowItWorks({ dict }: { dict: Dictionary }) {
           </h2>
         </div>
 
-        <div className="grid gap-8 sm:grid-cols-3">
+        <div data-animate className="grid gap-8 sm:grid-cols-3">
           {dict.howItWorks.steps.map((step, i) => {
             const Icon = stepIcons[i];
             return (
-              <div key={step.title} className="text-center">
-                <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-soft text-primary">
+              <div key={step.title} className="group text-center">
+                <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-soft text-primary shadow-xs transition-transform duration-300 group-hover:scale-110">
                   <Icon className="h-7 w-7" />
-                  <span className="absolute -end-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+                  <span className="absolute -end-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-sm">
                     {i + 1}
                   </span>
                 </div>

@@ -28,14 +28,14 @@ export function ServicesGrid({
           <p className="mt-2 text-muted-foreground">{v.subtitle}</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <div data-animate className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {items.map(({ href, title, desc, Icon }) => (
             <Link
               key={href}
               href={href}
-              className="group flex flex-col items-center rounded-2xl border border-border bg-surface p-5 text-center transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+              className="group flex flex-col items-center rounded-2xl border border-border bg-surface p-5 text-center shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
             >
-              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-soft text-primary">
+              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-soft text-primary shadow-xs transition-transform duration-300 group-hover:scale-110">
                 <Icon className="h-6 w-6" />
               </span>
               <h3 className="mt-3 font-bold">{title}</h3>

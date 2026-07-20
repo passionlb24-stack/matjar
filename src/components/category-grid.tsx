@@ -16,7 +16,7 @@ export function CategoryGrid({ lang, dict }: { lang: Locale; dict: Dictionary })
           <p className="mt-2 text-muted-foreground">{dict.categories.subtitle}</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+        <div data-animate className="grid grid-cols-2 gap-4 md:grid-cols-3">
           {categoryKeys.map((key) => {
             const Icon = categoryIcons[key];
             const cat = dict.catalog[key];
@@ -24,10 +24,10 @@ export function CategoryGrid({ lang, dict }: { lang: Locale; dict: Dictionary })
               <Link
                 key={key}
                 href={`/${lang}/category/${key}`}
-                className="group rounded-2xl border border-border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+                className="group rounded-2xl border border-border bg-surface p-5 shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
               >
                 <span
-                  className={`flex h-12 w-12 items-center justify-center rounded-xl ${categoryStyles[key].iconWrap}`}
+                  className={`flex h-12 w-12 items-center justify-center rounded-xl shadow-xs transition-transform duration-300 group-hover:scale-110 ${categoryStyles[key].iconWrap}`}
                 >
                   <Icon className="h-6 w-6" />
                 </span>

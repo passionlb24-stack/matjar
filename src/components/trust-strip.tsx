@@ -15,10 +15,10 @@ export function TrustStrip({ dict }: { dict: Dictionary }) {
   return (
     <section className="border-y border-border bg-surface-muted/30 py-6">
       <Container>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div data-animate className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {items.map(({ Icon, title, desc }) => (
-            <div key={title} className="flex items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
+            <div key={title} className="group flex items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary shadow-xs transition-transform duration-300 group-hover:scale-110">
                 <Icon className="h-5 w-5" />
               </span>
               <div className="min-w-0">

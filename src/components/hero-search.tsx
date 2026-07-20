@@ -39,9 +39,9 @@ export function HeroSearch({
           e.preventDefault();
           go();
         }}
-        className="flex flex-col gap-2 rounded-2xl border border-border bg-surface p-2 shadow-sm sm:flex-row sm:items-center sm:gap-0 sm:rounded-full"
+        className="flex flex-col gap-2 rounded-2xl border border-border bg-surface p-2 shadow-lg transition-all duration-300 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 sm:flex-row sm:items-center sm:gap-0 sm:rounded-full"
       >
-        <div className="flex items-center gap-2 px-3 text-sm sm:border-e sm:border-border">
+        <div className="flex items-center gap-2 px-3 text-sm sm:h-14 sm:border-e sm:border-border">
           <MapPin className="h-4 w-4 shrink-0 text-primary" />
           <select
             value={region}
@@ -57,19 +57,19 @@ export function HeroSearch({
             ))}
           </select>
         </div>
-        <div className="flex flex-1 items-center gap-2 px-3">
+        <div className="flex flex-1 items-center gap-2 px-3 sm:h-14">
           <Search className="h-5 w-5 shrink-0 text-muted-foreground" />
           <input
             type="text"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder={dict.hero.searchPlaceholder}
-            className="w-full bg-transparent py-2.5 text-sm outline-none placeholder:text-muted-foreground"
+            className="w-full bg-transparent py-3 text-[15px] outline-none placeholder:text-muted-foreground"
           />
         </div>
         <button
           type="submit"
-          className="rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover sm:rounded-full"
+          className="h-11 rounded-xl bg-primary px-7 text-sm font-bold text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary-hover hover:shadow-md active:scale-[0.97] sm:rounded-full"
         >
           {dict.hero.searchButton}
         </button>
@@ -81,7 +81,7 @@ export function HeroSearch({
           <button
             key={p}
             onClick={() => go(p)}
-            className="rounded-full border border-border bg-surface px-3 py-1 font-medium transition-colors hover:border-primary hover:text-primary"
+            className="rounded-full border border-border bg-surface px-3.5 py-1.5 font-medium shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:text-primary hover:shadow-sm"
           >
             {p}
           </button>

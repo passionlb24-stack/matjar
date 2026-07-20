@@ -41,21 +41,21 @@ export async function BestSellersTeaser({
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div data-animate className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {products.map((p, i) => (
             <Link
               key={p.id}
               href={`/${lang}/product/${p.id}`}
-              className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all hover:-translate-y-0.5 hover:shadow-md"
+              className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md"
             >
-              <div className="relative">
+              <div className="relative overflow-hidden">
                 {p.imageUrl ? (
                   <Image
                     src={p.imageUrl}
                     alt={localized(p.name, p.nameEn, lang)}
                     width={300}
                     height={200}
-                    className="h-36 w-full object-cover"
+                    className="h-36 w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
                     sizes="(max-width: 640px) 50vw, 25vw"
                   />
                 ) : (
@@ -63,12 +63,12 @@ export async function BestSellersTeaser({
                     <ImageIcon className="h-10 w-10 text-black/10" />
                   </div>
                 )}
-                <span className="absolute start-2 top-2 rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">
+                <span className="absolute start-2 top-2 rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground shadow-sm">
                   #{i + 1}
                 </span>
               </div>
               <div className="flex flex-1 flex-col p-3">
-                <h3 className="line-clamp-2 font-bold leading-tight group-hover:text-primary">
+                <h3 className="line-clamp-2 font-bold leading-tight transition-colors group-hover:text-primary">
                   {localized(p.name, p.nameEn, lang)}
                 </h3>
                 <p className="mt-0.5 text-xs text-muted-foreground">{p.storeName}</p>

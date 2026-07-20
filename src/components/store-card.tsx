@@ -26,19 +26,24 @@ export function StoreCard({
   const isReal = UUID_RE.test(store.id);
 
   return (
-    <article className="group relative overflow-hidden rounded-2xl border border-border bg-surface transition-all hover:-translate-y-0.5 hover:shadow-md">
+    <article className="group relative overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md">
       <div className={`relative h-32 bg-gradient-to-br ${style.cover}`}>
-        {store.coverUrl ? (
-          <Image
-            src={store.coverUrl}
-            alt={store.name[lang]}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 100vw, 320px"
-          />
-        ) : (
-          <Icon className="absolute end-4 top-4 h-16 w-16 text-black/[0.06]" />
-        )}
+        <div className="absolute inset-0 overflow-hidden">
+          {store.coverUrl ? (
+            <Image
+              src={store.coverUrl}
+              alt={store.name[lang]}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+              sizes="(max-width: 640px) 100vw, 320px"
+            />
+          ) : (
+            <Icon className="absolute end-4 top-4 h-16 w-16 text-black/[0.06] transition-transform duration-500 group-hover:scale-110" />
+          )}
+          {store.coverUrl && (
+            <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-black/0 to-transparent" />
+          )}
+        </div>
         <span
           className={`absolute start-3 top-3 rounded-full px-2.5 py-1 text-xs font-bold text-white ${
             store.isOpen ? "bg-emerald-600" : "bg-slate-500"
@@ -65,7 +70,7 @@ export function StoreCard({
             className="absolute end-3 top-3 z-10"
           />
         )}
-        <span className="absolute -bottom-6 end-4 z-10 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border-2 border-surface bg-surface shadow-sm">
+        <span className="absolute -bottom-6 end-4 z-10 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border-2 border-surface bg-surface shadow-md">
           {store.logoUrl ? (
             <Image
               src={store.logoUrl}
@@ -103,7 +108,7 @@ export function StoreCard({
             </span>
           )}
         </div>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="mt-1 text-[13px] text-muted-foreground">
           {cat.name} · {store.area[lang]}
         </p>
         {store.distanceKm != null && (

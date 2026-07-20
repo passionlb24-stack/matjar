@@ -463,13 +463,16 @@ export default async function StorePage({
             <Icon className="h-28 w-28 text-black/[0.06]" />
           </div>
         )}
+        {store.coverUrl && (
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/5 to-transparent" />
+        )}
       </div>
 
       <Container>
-        <div className="-mt-6 rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
+        <div className="-mt-6 rounded-2xl border border-border bg-surface p-5 shadow-md sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-start gap-4">
-              <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+              <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-surface shadow-md ring-4 ring-surface">
                 {store.logoUrl ? (
                   <Image src={store.logoUrl} alt={store.name} width={64} height={64} className="h-full w-full object-cover" sizes="64px" />
                 ) : (
@@ -482,7 +485,7 @@ export default async function StorePage({
               </span>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-2xl font-extrabold tracking-tight">
+                  <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
                     {store.name}
                   </h1>
                   <span
@@ -498,10 +501,10 @@ export default async function StorePage({
                     </span>
                   )}
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground">{cat.name}</p>
-                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                <p className="mt-1 text-sm font-medium text-muted-foreground">{cat.name}</p>
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
                   {headerRating != null && (
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1">
                       <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                       <span className="font-bold">{headerRating.toFixed(1)}</span>
                       <span className="text-muted-foreground">
@@ -510,7 +513,7 @@ export default async function StorePage({
                     </span>
                   )}
                   {ordersFulfilled > 0 && (
-                    <span className="flex items-center gap-1 font-semibold text-emerald-700">
+                    <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-700">
                       <BadgeCheck className="h-4 w-4" />
                       {dict.store.ordersFulfilled.replace(
                         "{n}",
@@ -519,13 +522,13 @@ export default async function StorePage({
                     </span>
                   )}
                   {store.prepTime && store.acceptsDelivery && (
-                    <span className="flex items-center gap-1 text-muted-foreground">
+                    <span className="flex items-center gap-1 rounded-full bg-surface-muted px-2.5 py-1 text-muted-foreground">
                       <Clock className="h-4 w-4" />
                       {dict.store.deliveryIn.replace("{t}", store.prepTime)}
                     </span>
                   )}
                   {store.area && (
-                    <span className="flex items-center gap-1 text-muted-foreground">
+                    <span className="flex items-center gap-1 rounded-full bg-surface-muted px-2.5 py-1 text-muted-foreground">
                       <MapPin className="h-4 w-4" />
                       {store.area}
                     </span>
@@ -563,7 +566,7 @@ export default async function StorePage({
                       );
                     }
                     return store.openingHours ? (
-                      <span className="flex items-center gap-1 text-muted-foreground">
+                      <span className="flex items-center gap-1 rounded-full bg-surface-muted px-2.5 py-1 text-muted-foreground">
                         <Clock className="h-4 w-4" />
                         {store.openingHours}
                       </span>

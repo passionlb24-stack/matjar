@@ -427,7 +427,7 @@ export function StoreProducts({
         height={isGrid ? (isShowcase ? 300 : 200) : 64}
         className={
           isGrid
-            ? `${isShowcase ? "h-56" : "h-40"} w-full object-cover`
+            ? `${isShowcase ? "h-56" : "h-40"} w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]`
             : "h-16 w-16 shrink-0 rounded-xl object-cover"
         }
         sizes={isGrid ? "(max-width: 640px) 100vw, 50vw" : "64px"}
@@ -456,7 +456,7 @@ export function StoreProducts({
         {list.map((p) => {
           const qty = cart[p.id] ?? 0;
           return (
-            <div key={p.id} className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface">
+            <div key={p.id} className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                 <Card p={p} />
                 <div className="flex flex-1 flex-col p-4">
                   <Link
@@ -504,7 +504,7 @@ export function StoreProducts({
           {list.map((p) => {
             const qty = cart[p.id] ?? 0;
             return (
-              <div key={p.id} className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4">
+              <div key={p.id} className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                 <Card p={p} />
                 <div className="min-w-0 flex-1">
                   <Link
