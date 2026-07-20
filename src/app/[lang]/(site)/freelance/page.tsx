@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { localeAlternates } from "@/lib/site";
 import { GIG_CATEGORIES, type Gig } from "@/lib/gigs";
 import { Container } from "@/components/ui/container";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHero } from "@/components/ui/page-hero";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -65,23 +65,22 @@ export default async function FreelancePage({
     }`;
 
   return (
-    <div className="py-10">
-      <Container>
-        <PageHeader
-          title={t.title}
-          subtitle={t.subtitle}
-          icon={Sparkles}
-          actions={
-            <ButtonLink
-              href={`/${lang}/freelance/new`}
-              leftIcon={<Plus className="h-4 w-4" />}
-            >
-              {t.offerService}
-            </ButtonLink>
-          }
-        />
-
-        <div className="mt-2 flex flex-wrap gap-2">
+    <div className="pb-16">
+      <PageHero
+        title={t.title}
+        subtitle={t.subtitle}
+        icon={Sparkles}
+        actions={
+          <ButtonLink
+            href={`/${lang}/freelance/new`}
+            leftIcon={<Plus className="h-4 w-4" />}
+          >
+            {t.offerService}
+          </ButtonLink>
+        }
+      />
+      <Container className="py-8">
+        <div className="flex flex-wrap gap-2">
           <Link href={`/${lang}/freelance`} className={chip(!cat)}>
             {t.allCategories}
           </Link>

@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { localeAlternates } from "@/lib/site";
 import { WHOLESALE_CATEGORIES, type WholesaleProduct } from "@/lib/wholesale";
 import { Container } from "@/components/ui/container";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHero } from "@/components/ui/page-hero";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -66,23 +66,22 @@ export default async function WholesalePage({
     }`;
 
   return (
-    <div className="py-10">
-      <Container>
-        <PageHeader
-          title={t.title}
-          subtitle={t.subtitle}
-          icon={Boxes}
-          actions={
-            <ButtonLink
-              href={`/${lang}/wholesale/new`}
-              leftIcon={<Plus className="h-4 w-4" />}
-            >
-              {t.listProduct}
-            </ButtonLink>
-          }
-        />
-
-        <div className="mt-2 flex flex-wrap gap-2">
+    <div className="pb-16">
+      <PageHero
+        title={t.title}
+        subtitle={t.subtitle}
+        icon={Boxes}
+        actions={
+          <ButtonLink
+            href={`/${lang}/wholesale/new`}
+            leftIcon={<Plus className="h-4 w-4" />}
+          >
+            {t.listProduct}
+          </ButtonLink>
+        }
+      />
+      <Container className="py-8">
+        <div className="flex flex-wrap gap-2">
           <Link href={`/${lang}/wholesale`} className={chip(!cat)}>
             {t.allCategories}
           </Link>

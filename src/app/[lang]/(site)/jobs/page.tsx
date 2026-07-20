@@ -9,7 +9,7 @@ import { localeAlternates } from "@/lib/site";
 import { regions } from "@/lib/catalog";
 import { JOB_TYPES, type JobPosting } from "@/lib/jobs";
 import { Container } from "@/components/ui/container";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHero } from "@/components/ui/page-hero";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -79,22 +79,21 @@ export default async function JobsPage({
   };
 
   return (
-    <div className="py-10">
-      <Container>
-        <PageHeader
-          title={t.title}
-          subtitle={t.subtitle}
-          icon={Briefcase}
-          actions={
-            <ButtonLink
-              href={`/${lang}/jobs/new`}
-              leftIcon={<Plus className="h-4 w-4" />}
-            >
-              {t.postJob}
-            </ButtonLink>
-          }
-        />
-
+    <div className="pb-16">
+      <PageHero
+        title={t.title}
+        subtitle={t.subtitle}
+        icon={Briefcase}
+        actions={
+          <ButtonLink
+            href={`/${lang}/jobs/new`}
+            leftIcon={<Plus className="h-4 w-4" />}
+          >
+            {t.postJob}
+          </ButtonLink>
+        }
+      />
+      <Container className="py-8">
         {/* Type filter */}
         <div className="mt-2 flex flex-wrap gap-2">
           <Link href={qs({ type: "" })} className={chip(!type)}>

@@ -11,7 +11,7 @@ import {
   type ListingFilters,
 } from "@/lib/data/market";
 import { Container } from "@/components/ui/container";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHero } from "@/components/ui/page-hero";
 import { ButtonLink } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MarketFilters } from "@/components/market-filters";
@@ -80,22 +80,21 @@ export default async function MarketPage({
   };
 
   return (
-    <div className="py-10">
-      <Container>
-        <PageHeader
-          title={dict.market.title}
-          subtitle={dict.market.subtitle}
-          icon={StoreIcon}
-          actions={
-            <ButtonLink
-              href={`/${lang}/market/new`}
-              leftIcon={<Plus className="h-4 w-4" />}
-            >
-              {dict.market.publish}
-            </ButtonLink>
-          }
-        />
-
+    <div className="pb-16">
+      <PageHero
+        title={dict.market.title}
+        subtitle={dict.market.subtitle}
+        icon={StoreIcon}
+        actions={
+          <ButtonLink
+            href={`/${lang}/market/new`}
+            leftIcon={<Plus className="h-4 w-4" />}
+          >
+            {dict.market.publish}
+          </ButtonLink>
+        }
+      />
+      <Container className="py-8">
         <div className="mt-2">
           <MarketFilters
             lang={lang}
