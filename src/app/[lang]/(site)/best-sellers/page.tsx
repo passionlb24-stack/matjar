@@ -10,6 +10,7 @@ import { getUsdLbpRate } from "@/lib/data/settings";
 import { formatLbp } from "@/lib/currency";
 import { localized } from "@/lib/i18n-field";
 import { Container } from "@/components/ui/container";
+import { PageHero } from "@/components/ui/page-hero";
 import { EmptyState } from "@/components/ui/empty-state";
 
 function formatPrice(price: number) {
@@ -44,15 +45,13 @@ export default async function BestSellersPage({
   const l = lang as Locale;
 
   return (
-    <div className="py-10">
-      <Container>
-        <div className="flex items-center gap-2">
-          <Flame className="h-6 w-6 text-primary" />
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-            {dict.bestSellers.title}
-          </h1>
-        </div>
-        <p className="mt-2 text-muted-foreground">{dict.bestSellers.subtitle}</p>
+    <div className="pb-16">
+      <PageHero
+        title={dict.bestSellers.title}
+        subtitle={dict.bestSellers.subtitle}
+        icon={Flame}
+      />
+      <Container className="py-8">
 
         {products.length ? (
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">

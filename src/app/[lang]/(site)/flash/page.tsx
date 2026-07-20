@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUsdLbpRate } from "@/lib/data/settings";
 import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
+import { PageHero } from "@/components/ui/page-hero";
 import { ProductMiniCard } from "@/components/product-mini-card";
 
 export async function generateMetadata({
@@ -64,15 +65,13 @@ export default async function FlashPage({
   const lbpRate = await getUsdLbpRate();
 
   return (
-    <div className="py-10">
-      <Container>
-        <div className="flex items-center gap-2">
-          <Zap className="h-7 w-7 fill-accent text-accent" />
-          <h1 className="text-3xl font-extrabold tracking-tight">
-            {dict.flash.title}
-          </h1>
-        </div>
-        <p className="mt-1 text-muted-foreground">{dict.flash.subtitle}</p>
+    <div className="pb-16">
+      <PageHero
+        title={dict.flash.title}
+        subtitle={dict.flash.subtitle}
+        icon={Zap}
+      />
+      <Container className="py-8">
 
         {rows.length ? (
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">

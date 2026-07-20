@@ -10,6 +10,7 @@ import { getUsdLbpRate } from "@/lib/data/settings";
 import { formatLbp } from "@/lib/currency";
 import { localized } from "@/lib/i18n-field";
 import { Container } from "@/components/ui/container";
+import { PageHero } from "@/components/ui/page-hero";
 import { EmptyState } from "@/components/ui/empty-state";
 
 function formatPrice(price: number) {
@@ -40,15 +41,13 @@ export default async function ClearancePage({
   const lbpRate = await getUsdLbpRate();
 
   return (
-    <div className="py-10">
-      <Container>
-        <div className="flex items-center gap-2">
-          <Percent className="h-6 w-6 text-primary" />
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-            {dict.clearance.title}
-          </h1>
-        </div>
-        <p className="mt-2 text-muted-foreground">{dict.clearance.subtitle}</p>
+    <div className="pb-16">
+      <PageHero
+        title={dict.clearance.title}
+        subtitle={dict.clearance.subtitle}
+        icon={Percent}
+      />
+      <Container className="py-8">
 
         {products.length ? (
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
