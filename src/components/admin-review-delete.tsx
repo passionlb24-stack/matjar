@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
 
 export function AdminReviewDelete({
   reviewId,
@@ -35,13 +36,15 @@ export function AdminReviewDelete({
   }
 
   return (
-    <button
+    <Button
+      size="sm"
+      variant="secondary"
       onClick={remove}
       disabled={busy}
-      className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+      leftIcon={<Trash2 className="h-4 w-4" />}
+      className="shrink-0 !text-danger"
     >
-      <Trash2 className="h-4 w-4" />
       {label}
-    </button>
+    </Button>
   );
 }

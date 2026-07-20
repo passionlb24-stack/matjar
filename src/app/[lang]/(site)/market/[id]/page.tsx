@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Eye, MapPin, User, BadgeCheck, Store as StoreIcon } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
@@ -10,6 +9,9 @@ import { localeAlternates } from "@/lib/site";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { getListingById, getMarketRegions } from "@/lib/data/market";
 import { Container } from "@/components/ui/container";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ButtonLink } from "@/components/ui/button";
 import { ProductGallery } from "@/components/product-gallery";
 import { ListingFavoriteButton } from "@/components/listing-favorite-button";
 import { ListingReport } from "@/components/listing-report";
@@ -96,9 +98,9 @@ export default async function ListingPage({
                 {listing.title}
               </h1>
               {listing.status === "sold" && (
-                <span className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs font-bold text-white">
+                <Badge className="bg-zinc-800 text-white">
                   {dict.market.soldBadge}
-                </span>
+                </Badge>
               )}
             </div>
 
@@ -125,20 +127,21 @@ export default async function ListingPage({
             </div>
 
             {/* Seller identity */}
-            <div className="mt-5 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-surface p-4">
+            <Card className="mt-5 flex flex-wrap items-center gap-3 p-4">
               {listing.storeId ? (
                 <>
                   <span className="flex items-center gap-1.5 font-bold text-primary">
                     <BadgeCheck className="h-5 w-5" />
                     {dict.market.sellerMerchant}
                   </span>
-                  <Link
+                  <ButtonLink
                     href={`/${lang}/store/${listing.storeId}`}
-                    className="ms-auto flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                    size="sm"
+                    className="ms-auto"
+                    leftIcon={<StoreIcon className="h-4 w-4" />}
                   >
-                    <StoreIcon className="h-4 w-4" />
                     {dict.market.visitStore}
-                  </Link>
+                  </ButtonLink>
                 </>
               ) : (
                 <span className="flex items-center gap-1.5 font-bold">
@@ -146,7 +149,7 @@ export default async function ListingPage({
                   {dict.market.sellerUser}
                 </span>
               )}
-            </div>
+            </Card>
 
             {listing.description && (
               <p className="mt-5 whitespace-pre-line leading-relaxed">

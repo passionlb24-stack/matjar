@@ -1,10 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Sparkles } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
 import { GigForm } from "@/components/gig-form";
 
 export default async function NewGigPage({
@@ -42,10 +43,12 @@ export default async function NewGigPage({
           <ChevronRight className="h-4 w-4 rtl:rotate-180" />
           {dict.freelance.title}
         </Link>
-        <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
-          {dict.freelance.offerService}
-        </h1>
-        <div className="mt-6">
+        <PageHeader
+          className="mt-3"
+          title={dict.freelance.offerService}
+          icon={Sparkles}
+        />
+        <div className="mt-2">
           <GigForm lang={lang} dict={dict} freelancerName={freelancerName} />
         </div>
       </Container>

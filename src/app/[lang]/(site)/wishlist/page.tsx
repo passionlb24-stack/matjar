@@ -1,13 +1,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import { Heart, ImageIcon } from "lucide-react";
+import { Bookmark, ImageIcon } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { getUsdLbpRate } from "@/lib/data/settings";
 import { formatLbp } from "@/lib/currency";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 
 function formatPrice(price: number) {
   return price >= 1000 ? `$${Number(price).toLocaleString("en-US")}` : `$${price}`;
@@ -57,12 +59,10 @@ export default async function WishlistPage({
   return (
     <div className="py-10">
       <Container>
-        <h1 className="text-3xl font-extrabold tracking-tight">
-          {dict.wishlist.title}
-        </h1>
+        <PageHeader title={dict.wishlist.title} icon={Bookmark} />
 
         {products.length ? (
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {products.map((p) => {
               const price = Number(p.price);
               const discount = p.discount_price != null ? Number(p.discount_price) : null;
@@ -114,12 +114,11 @@ export default async function WishlistPage({
             })}
           </div>
         ) : (
-          <div className="mt-8 rounded-2xl border border-dashed border-border py-16 text-center">
-            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-soft text-primary">
-              <Heart className="h-7 w-7" />
-            </span>
-            <p className="mt-4 text-muted-foreground">{dict.wishlist.empty}</p>
-          </div>
+          <EmptyState
+            icon={Bookmark}
+            title={dict.wishlist.empty}
+            action={{ href: `/${lang}/explore`, label: dict.common.explore }}
+          />
         )}
       </Container>
     </div>

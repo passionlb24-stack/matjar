@@ -4,12 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MapPin, Plus, Pencil, Trash2, Star, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { fieldClass as uiFieldClass } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { regions } from "@/lib/catalog";
 
-const fieldClass =
-  "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
+// Shared control styling from the UI library, plus the label gap this form uses.
+const fieldClass = `${uiFieldClass} mt-1.5`;
 const labelClass = "text-sm font-semibold";
 
 export type AddressRow = {
@@ -192,9 +195,9 @@ export function AddressManager({
                     {a.label || t.title}
                   </span>
                   {a.is_default && (
-                    <span className="rounded-full bg-primary-soft px-2 py-0.5 text-xs font-bold text-primary">
+                    <Badge variant="primary" size="sm">
                       {t.defaultBadge}
-                    </span>
+                    </Badge>
                   )}
                 </div>
                 <p className="mt-1 truncate text-sm text-muted-foreground">
@@ -372,21 +375,16 @@ function AddressFields({
       )}
 
       <div className="flex items-center gap-3">
-        <button
+        <Button
           type="submit"
-          disabled={busy}
-          className="flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+          loading={busy}
+          leftIcon={<Check className="h-4 w-4" />}
         >
-          <Check className="h-4 w-4" />
           {busy ? dict.account.saving : dict.account.save}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
-        >
+        </Button>
+        <Button type="button" variant="secondary" onClick={onCancel}>
           {t.cancel}
-        </button>
+        </Button>
         {error && (
           <span className="text-sm font-semibold text-red-600">{error}</span>
         )}

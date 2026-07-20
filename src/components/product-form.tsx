@@ -10,9 +10,11 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import type { CategoryKey } from "@/lib/catalog";
 import { categoryAttributes } from "@/lib/attributes";
 import { ImageUpload } from "@/components/image-upload";
+import { fieldClass } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 
-const field =
-  "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
+// Shared control styling from the UI library, plus the label gap this form uses.
+const field = `${fieldClass} mt-1.5`;
 const label = "text-sm font-semibold";
 
 type VariantRow = { label: string; price: string; stock: string };
@@ -448,14 +450,14 @@ export function ProductForm({
       </div>
 
       {error && <p className="text-sm font-medium text-red-600">{error}</p>}
-      <button
+      <Button
         type="submit"
-        disabled={loading}
-        className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+        full
+        loading={loading}
+        leftIcon={<Plus className="h-4 w-4" />}
       >
-        <Plus className="h-4 w-4" />
         {loading ? p.saving : p.save}
-      </button>
+      </Button>
     </form>
   );
 }

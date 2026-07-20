@@ -1,13 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, ExternalLink, Flag } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
+import { Card, CardBody } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export type AdminReport = {
   id: string;
@@ -45,65 +49,62 @@ export function AdminMarketReportsClient({
   return (
     <div className="py-10">
       <Container>
-        <div className="flex items-center gap-2">
-          <Flag className="h-6 w-6 text-primary" />
-          <h1 className="text-3xl font-extrabold tracking-tight">
-            {t.reportsTitle}
-          </h1>
-        </div>
-        <p className="mt-2 text-muted-foreground">{t.reportsSubtitle}</p>
+        <PageHeader
+          icon={Flag}
+          title={t.reportsTitle}
+          subtitle={t.reportsSubtitle}
+        />
 
-        <div className="mt-6 space-y-2">
-          {reports.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
-              {t.noReports}
-            </div>
-          )}
-          {reports.map((r) => (
-            <div
-              key={r.id}
-              className={`flex flex-wrap items-center justify-between gap-4 rounded-2xl border p-4 ${
-                r.status === "open"
-                  ? "border-amber-300 bg-amber-50/50"
-                  : "border-border bg-surface"
-              }`}
-            >
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-bold">{r.listingTitle}</span>
-                  <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700">
-                    {reasons[r.reason] ?? r.reason}
-                  </span>
-                  {r.status === "reviewed" && (
-                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">
-                      ✓
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <Link
-                  href={`/${lang}/market/${r.listingId}`}
-                  target="_blank"
-                  className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-surface-muted"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  {t.viewListing}
-                </Link>
-                {r.status === "open" && (
-                  <button
-                    disabled={busyId === r.id}
-                    onClick={() => markReviewed(r.id)}
-                    className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
-                  >
-                    <Check className="h-4 w-4" />
-                    {t.markReviewed}
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+        {reports.length === 0 ? (
+          <EmptyState icon={Flag} title={t.noReports} />
+        ) : (
+          <div className="space-y-2">
+            {reports.map((r) => (
+              <Card
+                key={r.id}
+                className={r.status === "open" ? "border-warning/40" : ""}
+              >
+                <CardBody className="flex flex-wrap items-center justify-between gap-4 p-4">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-bold">{r.listingTitle}</span>
+                      <Badge variant="danger" size="sm">
+                        {reasons[r.reason] ?? r.reason}
+                      </Badge>
+                      <Badge
+                        variant={r.status === "open" ? "warning" : "success"}
+                        size="sm"
+                      >
+                        {r.status === "open" ? "●" : "✓"}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <ButtonLink
+                      href={`/${lang}/market/${r.listingId}`}
+                      target="_blank"
+                      variant="secondary"
+                      size="sm"
+                      leftIcon={<ExternalLink className="h-4 w-4" />}
+                    >
+                      {t.viewListing}
+                    </ButtonLink>
+                    {r.status === "open" && (
+                      <Button
+                        size="sm"
+                        disabled={busyId === r.id}
+                        onClick={() => markReviewed(r.id)}
+                        leftIcon={<Check className="h-4 w-4" />}
+                      >
+                        {t.markReviewed}
+                      </Button>
+                    )}
+                  </div>
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+        )}
       </Container>
     </div>
   );

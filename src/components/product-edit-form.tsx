@@ -10,9 +10,11 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import type { CategoryKey } from "@/lib/catalog";
 import { categoryAttributes } from "@/lib/attributes";
 import { ImageUpload } from "@/components/image-upload";
+import { fieldClass } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 
-const field =
-  "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
+// Shared control styling from the UI library, plus the label gap this form uses.
+const field = `${fieldClass} mt-1.5`;
 const label = "text-sm font-semibold";
 
 // ISO timestamp → a datetime-local input value in the browser's local time.
@@ -391,21 +393,21 @@ export function ProductEditForm({
 
       {error && <p className="text-sm font-medium text-red-600">{error}</p>}
       <div className="flex gap-2">
-        <button
+        <Button
           type="submit"
-          disabled={loading}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+          loading={loading}
+          leftIcon={<Save className="h-4 w-4" />}
+          className="flex-1"
         >
-          <Save className="h-4 w-4" />
           {loading ? p.saving : p.update}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="secondary"
           onClick={() => router.push(`/${lang}/merchant/${storeId}`)}
-          className="rounded-xl border border-border px-5 py-3 text-sm font-semibold transition-colors hover:bg-surface-muted"
         >
           {dict.store.back}
-        </button>
+        </Button>
       </div>
     </form>
   );

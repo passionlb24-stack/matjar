@@ -10,6 +10,8 @@ import { localeAlternates } from "@/lib/site";
 import { regions } from "@/lib/catalog";
 import type { Gig } from "@/lib/gigs";
 import { Container } from "@/components/ui/container";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ContactFreelancerButton } from "@/components/contact-freelancer-button";
 
 const UUID_RE =
@@ -93,14 +95,14 @@ export default async function GigDetailPage({
           />
         )}
 
-        <div className="mt-4 rounded-2xl border border-border bg-surface p-6">
+        <Card className="mt-4 p-6">
           {gig.category && (
-            <span className="text-sm font-semibold text-muted-foreground">
+            <Badge variant="primary" size="sm">
               {t.categories[gig.category as keyof typeof t.categories] ??
                 gig.category}
-            </span>
+            </Badge>
           )}
-          <h1 className="mt-1 text-2xl font-extrabold tracking-tight">
+          <h1 className="mt-2 text-2xl font-extrabold tracking-tight">
             {gig.title}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
@@ -142,7 +144,7 @@ export default async function GigDetailPage({
               />
             )}
           </div>
-        </div>
+        </Card>
       </Container>
     </div>
   );

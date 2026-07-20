@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Package, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
@@ -73,26 +75,26 @@ export function InventoryManager({
   const badge = (p: InventoryProduct) => {
     if (p.stock == null)
       return (
-        <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-bold text-zinc-500">
+        <Badge variant="neutral" size="sm">
           {t.untracked}
-        </span>
+        </Badge>
       );
     if (p.stock <= 0)
       return (
-        <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-700">
+        <Badge variant="danger" size="sm">
           {t.out}
-        </span>
+        </Badge>
       );
     if (p.stock <= p.low_stock_threshold)
       return (
-        <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-700">
+        <Badge variant="warning" size="sm">
           {t.low} · {p.stock}
-        </span>
+        </Badge>
       );
     return (
-      <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
+      <Badge variant="success" size="sm">
         {t.inStock} · {p.stock}
-      </span>
+      </Badge>
     );
   };
 
@@ -139,14 +141,15 @@ export function InventoryManager({
           placeholder={p.stock == null ? t.qty : String(p.stock)}
           className="w-20 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-sm outline-none focus:border-primary"
         />
-        <button
+        <Button
           type="button"
-          disabled={busy === p.id || !(drafts[p.id] ?? "").trim()}
+          size="sm"
+          loading={busy === p.id}
+          disabled={!(drafts[p.id] ?? "").trim()}
           onClick={() => save(p)}
-          className="flex h-9 items-center gap-1 rounded-lg bg-primary px-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-50"
         >
           {savedId === p.id ? <Check className="h-4 w-4" /> : t.save}
-        </button>
+        </Button>
       </div>
     </div>
   );

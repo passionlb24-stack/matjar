@@ -9,6 +9,11 @@ import { localeAlternates } from "@/lib/site";
 import { regions } from "@/lib/catalog";
 import { JOB_TYPES, type JobPosting } from "@/lib/jobs";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
+import { ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export async function generateMetadata({
   params,
@@ -76,25 +81,22 @@ export default async function JobsPage({
   return (
     <div className="py-10">
       <Container>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="flex items-center gap-2 text-3xl font-extrabold tracking-tight">
-              <Briefcase className="h-7 w-7 text-primary" />
-              {t.title}
-            </h1>
-            <p className="mt-2 text-muted-foreground">{t.subtitle}</p>
-          </div>
-          <Link
-            href={`/${lang}/jobs/new`}
-            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-          >
-            <Plus className="h-4 w-4" />
-            {t.postJob}
-          </Link>
-        </div>
+        <PageHeader
+          title={t.title}
+          subtitle={t.subtitle}
+          icon={Briefcase}
+          actions={
+            <ButtonLink
+              href={`/${lang}/jobs/new`}
+              leftIcon={<Plus className="h-4 w-4" />}
+            >
+              {t.postJob}
+            </ButtonLink>
+          }
+        />
 
         {/* Type filter */}
-        <div className="mt-6 flex flex-wrap gap-2">
+        <div className="mt-2 flex flex-wrap gap-2">
           <Link href={qs({ type: "" })} className={chip(!type)}>
             {t.allTypes}
           </Link>
@@ -121,19 +123,19 @@ export default async function JobsPage({
         </div>
 
         {jobs.length ? (
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          <div data-animate className="mt-8 grid gap-4 sm:grid-cols-2">
             {jobs.map((j) => {
               const regionName =
                 regions.find((r) => r.key === j.region)?.name[lang] ?? j.region;
               return (
-                <Link
+                <Card
                   key={j.id}
-                  href={`/${lang}/jobs/${j.id}`}
-                  className="group rounded-2xl border border-border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:shadow-md"
+                  variant="interactive"
+                  className="group relative p-5"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <h2 className="font-bold leading-tight group-hover:text-primary">
+                      <h2 className="font-bold leading-tight transition-colors group-hover:text-primary">
                         {j.title}
                       </h2>
                       <p className="mt-0.5 text-sm text-muted-foreground">
@@ -141,9 +143,9 @@ export default async function JobsPage({
                       </p>
                     </div>
                     {j.job_type && (
-                      <span className="shrink-0 rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-bold text-primary">
+                      <Badge variant="primary" size="sm" className="shrink-0">
                         {t.types[j.job_type as keyof typeof t.types] ?? j.job_type}
-                      </span>
+                      </Badge>
                     )}
                   </div>
                   <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
@@ -160,17 +162,22 @@ export default async function JobsPage({
                     )}
                     <span>{timeAgo(j.created_at, lang as Locale)}</span>
                   </div>
-                </Link>
+                  <Link
+                    href={`/${lang}/jobs/${j.id}`}
+                    aria-label={j.title}
+                    className="absolute inset-0"
+                  />
+                </Card>
               );
             })}
           </div>
         ) : (
-          <div className="mt-8 rounded-2xl border border-dashed border-border py-16 text-center">
-            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-soft text-primary">
-              <Briefcase className="h-7 w-7" />
-            </span>
-            <p className="mt-4 text-muted-foreground">{t.empty}</p>
-          </div>
+          <EmptyState
+            className="mt-8"
+            icon={Briefcase}
+            title={t.empty}
+            action={{ href: `/${lang}/jobs/new`, label: t.postJob }}
+          />
         )}
       </Container>
     </div>

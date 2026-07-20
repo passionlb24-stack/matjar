@@ -14,6 +14,7 @@ import {
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
 import { localized } from "@/lib/i18n-field";
 import { notifyError } from "@/lib/notify";
 
@@ -162,20 +163,17 @@ export function SectionManager({
         </label>
       </div>
       <div className="mt-3 flex gap-2">
-        <button
+        <Button
           onClick={save}
-          disabled={busy || !draft.name.trim()}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+          loading={busy}
+          disabled={!draft.name.trim()}
+          leftIcon={<Check className="h-4 w-4" />}
         >
-          <Check className="h-4 w-4" />
           {t.save}
-        </button>
-        <button
-          onClick={cancel}
-          className="rounded-xl px-3 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
-        >
+        </Button>
+        <Button variant="ghost" onClick={cancel}>
           {t.cancel}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -188,13 +186,14 @@ export function SectionManager({
           {t.title}
         </h2>
         {editingId === null && (
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={openNew}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border px-3 py-1.5 text-sm font-bold transition-colors hover:border-primary hover:text-primary"
+            leftIcon={<Plus className="h-4 w-4" />}
           >
-            <Plus className="h-4 w-4" />
             {t.add}
-          </button>
+          </Button>
         )}
       </div>
       <p className="mt-1 text-sm text-muted-foreground">{t.subtitle}</p>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -15,12 +14,20 @@ import {
   Map,
   Flag,
   ImageIcon,
+  ShoppingBag,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
 import { notifyError } from "@/lib/notify";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
+import { Stat } from "@/components/ui/stat";
+import { Card, CardBody } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { Input } from "@/components/ui/field";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export type AdminListing = {
   id: string;
@@ -48,13 +55,16 @@ const STATUS_TABS = [
 ] as const;
 type Tab = (typeof STATUS_TABS)[number];
 
-const statusStyle: Record<AdminListing["status"], string> = {
-  draft: "bg-zinc-100 text-zinc-600",
-  pending: "bg-amber-100 text-amber-700",
-  active: "bg-emerald-100 text-emerald-700",
-  sold: "bg-blue-100 text-blue-700",
-  rejected: "bg-red-100 text-red-700",
-  expired: "bg-orange-100 text-orange-700",
+const statusVariant: Record<
+  AdminListing["status"],
+  "neutral" | "primary" | "success" | "warning" | "danger" | "info"
+> = {
+  draft: "neutral",
+  pending: "warning",
+  active: "success",
+  sold: "info",
+  rejected: "danger",
+  expired: "warning",
 };
 
 function formatPrice(price: number) {
@@ -147,67 +157,71 @@ export function AdminMarketClient({
   return (
     <div className="py-10">
       <Container>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight">{t.title}</h1>
-            <p className="mt-2 text-muted-foreground">{t.subtitle}</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href={`/${lang}/admin/market/categories`}
-              className="flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted"
-            >
-              <Tags className="h-4 w-4" />
-              {t.categoriesLink}
-            </Link>
-            <Link
-              href={`/${lang}/admin/market/cities`}
-              className="flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted"
-            >
-              <MapPin className="h-4 w-4" />
-              {t.citiesLink}
-            </Link>
-            <Link
-              href={`/${lang}/admin/market/regions`}
-              className="flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted"
-            >
-              <Map className="h-4 w-4" />
-              {t.regionsLink}
-            </Link>
-            <Link
-              href={`/${lang}/admin/market/reports`}
-              className="flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted"
-            >
-              <Flag className="h-4 w-4" />
-              {t.reportsLink}
-            </Link>
-          </div>
-        </div>
+        <PageHeader
+          icon={ShoppingBag}
+          title={t.title}
+          subtitle={t.subtitle}
+          actions={
+            <div className="flex flex-wrap gap-2">
+              <ButtonLink
+                href={`/${lang}/admin/market/categories`}
+                variant="secondary"
+                size="sm"
+                leftIcon={<Tags className="h-4 w-4" />}
+              >
+                {t.categoriesLink}
+              </ButtonLink>
+              <ButtonLink
+                href={`/${lang}/admin/market/cities`}
+                variant="secondary"
+                size="sm"
+                leftIcon={<MapPin className="h-4 w-4" />}
+              >
+                {t.citiesLink}
+              </ButtonLink>
+              <ButtonLink
+                href={`/${lang}/admin/market/regions`}
+                variant="secondary"
+                size="sm"
+                leftIcon={<Map className="h-4 w-4" />}
+              >
+                {t.regionsLink}
+              </ButtonLink>
+              <ButtonLink
+                href={`/${lang}/admin/market/reports`}
+                variant="secondary"
+                size="sm"
+                leftIcon={<Flag className="h-4 w-4" />}
+              >
+                {t.reportsLink}
+              </ButtonLink>
+            </div>
+          }
+        />
 
         {/* Stats */}
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {(
-            [
-              { label: t.allStatuses, value: counts.all },
-              { label: t.statusLabels.active, value: counts.active },
-              { label: t.statusLabels.pending, value: counts.pending },
-              { label: t.featuredBadge, value: counts.featured },
-              { label: t.statViews, value: totalViews },
-              { label: t.statReports, value: openReports },
-            ] as const
-          ).map((s, i) => (
-            <div
-              key={i}
-              className="rounded-2xl border border-border bg-surface p-4"
-            >
-              <div className="text-2xl font-extrabold text-primary">
-                {s.value.toLocaleString("en-US")}
-              </div>
-              <div className="mt-1 text-xs font-semibold text-muted-foreground">
-                {s.label}
-              </div>
-            </div>
-          ))}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <Stat label={t.allStatuses} value={counts.all.toLocaleString("en-US")} />
+          <Stat
+            label={t.statusLabels.active}
+            value={counts.active.toLocaleString("en-US")}
+          />
+          <Stat
+            label={t.statusLabels.pending}
+            value={counts.pending.toLocaleString("en-US")}
+          />
+          <Stat
+            label={t.featuredBadge}
+            value={counts.featured.toLocaleString("en-US")}
+          />
+          <Stat
+            label={t.statViews}
+            value={totalViews.toLocaleString("en-US")}
+          />
+          <Stat
+            label={t.statReports}
+            value={openReports.toLocaleString("en-US")}
+          />
         </div>
 
         {/* Tabs */}
@@ -232,118 +246,125 @@ export function AdminMarketClient({
           ))}
         </div>
 
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder={t.search}
-          className="mt-4 w-full max-w-sm rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
-        />
-
-        <div className="mt-6 space-y-2">
-          {filtered.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
-              {t.empty}
-            </div>
-          )}
-          {filtered.map((l) => (
-            <div
-              key={l.id}
-              className="flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-surface p-3"
-            >
-              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-surface-muted">
-                {l.image ? (
-                  <Image
-                    src={l.image}
-                    alt=""
-                    width={64}
-                    height={64}
-                    className="h-16 w-16 object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center">
-                    <ImageIcon className="h-6 w-6 text-black/10" />
-                  </div>
-                )}
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-bold">{l.title}</span>
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-bold ${statusStyle[l.status]}`}
-                  >
-                    {t.statusLabels[l.status]}
-                  </span>
-                  {l.isFeatured && (
-                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">
-                      ★ {t.featuredBadge}
-                    </span>
-                  )}
-                  <span className="rounded-full bg-surface-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
-                    {l.storeName ? `${t.merchant} · ${l.storeName}` : t.user}
-                  </span>
-                </div>
-                <div className="mt-1 flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
-                  <span className="font-bold text-primary">
-                    {formatPrice(l.price)}
-                  </span>
-                  {(l.city || l.region) && (
-                    <span>{[l.city, l.region].filter(Boolean).join("، ")}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex shrink-0 flex-wrap items-center gap-1.5">
-                <Link
-                  href={`/${lang}/market/${l.id}`}
-                  target="_blank"
-                  className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold transition-colors hover:bg-surface-muted"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </Link>
-                {l.status !== "active" && (
-                  <button
-                    disabled={busyId === l.id}
-                    onClick={() => patch(l.id, { status: "active" })}
-                    className="flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
-                  >
-                    <Check className="h-3.5 w-3.5" />
-                    {t.approve}
-                  </button>
-                )}
-                {l.status !== "rejected" && (
-                  <button
-                    disabled={busyId === l.id}
-                    onClick={() => patch(l.id, { status: "rejected" })}
-                    className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                    {t.reject}
-                  </button>
-                )}
-                <button
-                  disabled={busyId === l.id}
-                  onClick={() => patch(l.id, { is_featured: !l.isFeatured })}
-                  className={`flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60 ${
-                    l.isFeatured
-                      ? "border-amber-300 bg-amber-50 text-amber-700"
-                      : "border-border hover:bg-surface-muted"
-                  }`}
-                >
-                  <Star className="h-3.5 w-3.5" />
-                  {l.isFeatured ? t.unfeature : t.feature}
-                </button>
-                <button
-                  disabled={busyId === l.id}
-                  onClick={() => remove(l.id)}
-                  className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-          ))}
+        <div className="relative mt-4 max-w-sm">
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder={t.search}
+          />
         </div>
+
+        {filtered.length === 0 ? (
+          <EmptyState className="mt-6" icon={ShoppingBag} title={t.empty} />
+        ) : (
+          <div data-animate className="mt-6 space-y-2">
+            {filtered.map((l) => (
+              <Card key={l.id}>
+                <CardBody className="flex flex-wrap items-center gap-4 p-3">
+                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-surface-muted">
+                    {l.image ? (
+                      <Image
+                        src={l.image}
+                        alt=""
+                        width={64}
+                        height={64}
+                        className="h-16 w-16 object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <ImageIcon className="h-6 w-6 text-black/10" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-bold">{l.title}</span>
+                      <Badge variant={statusVariant[l.status]} size="sm">
+                        {t.statusLabels[l.status]}
+                      </Badge>
+                      {l.isFeatured && (
+                        <Badge variant="warning" size="sm">
+                          <Star className="h-3 w-3 fill-current" />
+                          {t.featuredBadge}
+                        </Badge>
+                      )}
+                      <Badge variant="neutral" size="sm">
+                        {l.storeName
+                          ? `${t.merchant} · ${l.storeName}`
+                          : t.user}
+                      </Badge>
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
+                      <span className="font-bold text-primary tabular-nums">
+                        {formatPrice(l.price)}
+                      </span>
+                      {(l.city || l.region) && (
+                        <span>
+                          {[l.city, l.region].filter(Boolean).join("، ")}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex shrink-0 flex-wrap items-center gap-1.5">
+                    <ButtonLink
+                      href={`/${lang}/market/${l.id}`}
+                      target="_blank"
+                      variant="secondary"
+                      size="sm"
+                      aria-label={t.viewListing}
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </ButtonLink>
+                    {l.status !== "active" && (
+                      <Button
+                        size="sm"
+                        disabled={busyId === l.id}
+                        onClick={() => patch(l.id, { status: "active" })}
+                        leftIcon={<Check className="h-3.5 w-3.5" />}
+                      >
+                        {t.approve}
+                      </Button>
+                    )}
+                    {l.status !== "rejected" && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={busyId === l.id}
+                        onClick={() => patch(l.id, { status: "rejected" })}
+                        leftIcon={<X className="h-3.5 w-3.5" />}
+                        className="!text-danger"
+                      >
+                        {t.reject}
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      disabled={busyId === l.id}
+                      onClick={() => patch(l.id, { is_featured: !l.isFeatured })}
+                      leftIcon={<Star className="h-3.5 w-3.5" />}
+                      className={l.isFeatured ? "!text-warning" : ""}
+                    >
+                      {l.isFeatured ? t.unfeature : t.feature}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      disabled={busyId === l.id}
+                      onClick={() => remove(l.id)}
+                      aria-label={t.delete}
+                      className="!text-danger"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+        )}
       </Container>
     </div>
   );

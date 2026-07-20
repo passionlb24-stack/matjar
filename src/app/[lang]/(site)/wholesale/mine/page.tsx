@@ -6,6 +6,10 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
+import { ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 
 export default async function MyWholesalePage({
@@ -46,24 +50,27 @@ export default async function MyWholesalePage({
           <ChevronRight className="h-4 w-4 rtl:rotate-180" />
           {t.title}
         </Link>
-        <div className="mt-3 flex items-center justify-between gap-3">
-          <h1 className="text-3xl font-extrabold tracking-tight">{t.myListings}</h1>
-          <Link
-            href={`/${lang}/wholesale/new`}
-            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-          >
-            <Plus className="h-4 w-4" />
-            {t.listProduct}
-          </Link>
-        </div>
+        <PageHeader
+          className="mt-3"
+          title={t.myListings}
+          icon={Package}
+          actions={
+            <ButtonLink
+              href={`/${lang}/wholesale/new`}
+              leftIcon={<Plus className="h-4 w-4" />}
+            >
+              {t.listProduct}
+            </ButtonLink>
+          }
+        />
 
         {items.length ? (
-          <div className="mt-8 space-y-3">
+          <div data-animate className="mt-6 space-y-3">
             {items.map((w) => (
-              <Link
+              <Card
                 key={w.id}
-                href={`/${lang}/wholesale/${w.id}`}
-                className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4 transition-colors hover:border-primary"
+                variant="interactive"
+                className="relative flex items-center gap-4 p-4"
               >
                 {w.image_url ? (
                   <Image
@@ -80,11 +87,21 @@ export default async function MyWholesalePage({
                 )}
                 <div>
                   <p className="font-bold">{w.title}</p>
-                  <p className="mt-0.5 text-sm text-muted-foreground">
-                    {w.status === "active" ? t.statusActive : t.statusPaused}
+                  <p className="mt-1">
+                    <Badge
+                      variant={w.status === "active" ? "success" : "neutral"}
+                      size="sm"
+                    >
+                      {w.status === "active" ? t.statusActive : t.statusPaused}
+                    </Badge>
                   </p>
                 </div>
-              </Link>
+                <Link
+                  href={`/${lang}/wholesale/${w.id}`}
+                  aria-label={w.title}
+                  className="absolute inset-0"
+                />
+              </Card>
             ))}
           </div>
         ) : (

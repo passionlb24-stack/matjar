@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { HelpCircle, MessageCircle } from "lucide-react";
 import { isLocale } from "@/i18n/config";
@@ -7,6 +6,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
 import { jsonLdScript } from "@/lib/jsonld";
 import { Container } from "@/components/ui/container";
+import { ButtonLink } from "@/components/ui/button";
 
 export async function generateMetadata({
   params,
@@ -61,7 +61,7 @@ export default async function HelpPage({
           {t.items.map((it, i) => (
             <details
               key={i}
-              className="group rounded-2xl border border-border bg-surface p-4 [&_summary::-webkit-details-marker]:hidden"
+              className="group rounded-2xl border border-border bg-surface p-4 shadow-xs transition-colors open:border-primary/30 [&_summary::-webkit-details-marker]:hidden"
             >
               <summary className="flex cursor-pointer items-center justify-between gap-3 font-bold">
                 {it.q}
@@ -74,13 +74,13 @@ export default async function HelpPage({
           ))}
         </div>
 
-        <Link
+        <ButtonLink
           href={`/${lang}/contact`}
-          className="mt-8 inline-flex items-center gap-1.5 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+          className="mt-8"
+          leftIcon={<MessageCircle className="h-4 w-4" />}
         >
-          <MessageCircle className="h-4 w-4" />
           {t.contactCta}
-        </Link>
+        </ButtonLink>
       </Container>
     </div>
   );

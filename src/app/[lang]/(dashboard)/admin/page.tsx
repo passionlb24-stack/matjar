@@ -1,9 +1,14 @@
 import { notFound } from "next/navigation";
-import { ShieldCheck, Star } from "lucide-react";
+import { ShieldCheck, Star, Store as StoreIcon, Clock, Users, Receipt } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
+import { Stat, StatGrid } from "@/components/ui/stat";
+import { Card, CardBody } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { AdminBroadcast } from "@/components/admin-broadcast";
 import { AdminStoreActions } from "@/components/admin-store-actions";
 import { AdminReviewDelete } from "@/components/admin-review-delete";
@@ -59,111 +64,133 @@ export default async function AdminOverviewPage({
     .limit(20);
   const reviews = (reviewData ?? []) as unknown as ReviewRow[];
 
+  const initial = (name: string) => name.trim().charAt(0).toUpperCase() || "?";
+
   return (
     <div className="py-10">
       <Container>
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="h-6 w-6 text-primary" />
-          <h1 className="text-3xl font-extrabold tracking-tight">
-            {dict.admin.title}
-          </h1>
-        </div>
-        <p className="mt-2 text-muted-foreground">{dict.admin.subtitle}</p>
+        <PageHeader
+          icon={ShieldCheck}
+          title={dict.admin.title}
+          subtitle={dict.admin.subtitle}
+        />
 
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            { label: dict.admin.totalStores, value: storesRes.count ?? 0 },
-            { label: dict.admin.pendingTitle, value: pending.length },
-            { label: dict.admin.users, value: usersRes.count ?? 0 },
-            { label: dict.admin.ordersTotal, value: ordersRes.count ?? 0 },
-          ].map((s) => (
-            <div key={s.label} className="rounded-2xl bg-surface-muted/60 p-4">
-              <p className="text-xs font-medium text-muted-foreground">
-                {s.label}
-              </p>
-              <p className="mt-1 text-2xl font-extrabold">{s.value}</p>
-            </div>
-          ))}
-        </div>
+        <div data-animate className="space-y-8">
+          <StatGrid>
+            <Stat
+              label={dict.admin.totalStores}
+              value={(storesRes.count ?? 0).toLocaleString("en-US")}
+              icon={<StoreIcon />}
+            />
+            <Stat
+              label={dict.admin.pendingTitle}
+              value={pending.length.toLocaleString("en-US")}
+              icon={<Clock />}
+            />
+            <Stat
+              label={dict.admin.users}
+              value={(usersRes.count ?? 0).toLocaleString("en-US")}
+              icon={<Users />}
+            />
+            <Stat
+              label={dict.admin.ordersTotal}
+              value={(ordersRes.count ?? 0).toLocaleString("en-US")}
+              icon={<Receipt />}
+            />
+          </StatGrid>
 
-        <div className="mt-6">
           <AdminBroadcast dict={dict} />
-        </div>
 
-        <h2 className="mb-4 mt-8 text-lg font-bold">{dict.admin.pendingTitle}</h2>
-        {pending.length ? (
-          <div className="space-y-3">
-            {pending.map((store) => (
-              <div
-                key={store.id}
-                className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-5 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div>
-                  <h3 className="font-bold">{store.name}</h3>
-                  <p className="mt-0.5 text-sm text-muted-foreground">
-                    {store.business_types
-                      ? lang === "ar"
-                        ? store.business_types.name_ar
-                        : store.business_types.name_en
-                      : null}
-                    {store.area ? ` · ${store.area}` : null}
-                  </p>
-                </div>
-                <AdminStoreActions
-                  storeId={store.id}
-                  approveLabel={dict.admin.approve}
-                  rejectLabel={dict.admin.reject}
-                  confirmRejectLabel={dict.admin.confirmReject}
-                  errorLabel={dict.auth.errorGeneric}
-                />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
-            {dict.admin.noPending}
-          </div>
-        )}
-
-        {reviews.length > 0 && (
-          <>
-            <h2 className="mb-4 mt-10 text-lg font-bold">
-              {dict.admin.reviewsTitle}
-            </h2>
-            <div className="space-y-3">
-              {reviews.map((r) => (
-                <div
-                  key={r.id}
-                  className="flex items-start justify-between gap-4 rounded-2xl border border-border bg-surface p-5"
-                >
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-bold">{r.customer_name ?? "—"}</span>
-                      <span className="text-sm text-muted-foreground">
-                        · {r.stores?.name}
-                      </span>
-                      <span className="flex items-center gap-0.5 text-sm font-bold">
-                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                        {r.rating}
-                      </span>
-                    </div>
-                    {r.comment && (
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {r.comment}
-                      </p>
-                    )}
-                  </div>
-                  <AdminReviewDelete
-                    reviewId={r.id}
-                    label={dict.admin.deleteReview}
-                    confirmLabel={dict.admin.confirmDeleteReview}
-                    errorLabel={dict.auth.errorGeneric}
-                  />
-                </div>
-              ))}
+          <section>
+            <div className="mb-4 flex items-center gap-2">
+              <h2 className="text-lg font-bold">{dict.admin.pendingTitle}</h2>
+              {pending.length > 0 && (
+                <Badge variant="warning" size="sm">
+                  {pending.length}
+                </Badge>
+              )}
             </div>
-          </>
-        )}
+            {pending.length ? (
+              <div className="space-y-3">
+                {pending.map((store) => (
+                  <Card key={store.id}>
+                    <CardBody className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-base font-extrabold text-primary">
+                          {initial(store.name)}
+                        </span>
+                        <div className="min-w-0">
+                          <h3 className="truncate font-bold">{store.name}</h3>
+                          <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                            {store.business_types
+                              ? lang === "ar"
+                                ? store.business_types.name_ar
+                                : store.business_types.name_en
+                              : null}
+                            {store.area ? ` · ${store.area}` : null}
+                          </p>
+                        </div>
+                      </div>
+                      <AdminStoreActions
+                        storeId={store.id}
+                        approveLabel={dict.admin.approve}
+                        rejectLabel={dict.admin.reject}
+                        confirmRejectLabel={dict.admin.confirmReject}
+                        errorLabel={dict.auth.errorGeneric}
+                      />
+                    </CardBody>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <EmptyState icon={ShieldCheck} title={dict.admin.noPending} />
+            )}
+          </section>
+
+          {reviews.length > 0 && (
+            <section>
+              <h2 className="mb-4 text-lg font-bold">
+                {dict.admin.reviewsTitle}
+              </h2>
+              <Card>
+                <div className="divide-y divide-border">
+                  {reviews.map((r) => (
+                    <div
+                      key={r.id}
+                      className="flex items-start justify-between gap-4 p-5 transition-colors hover:bg-surface-muted"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-bold">
+                            {r.customer_name ?? "—"}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            · {r.stores?.name}
+                          </span>
+                          <Badge variant="warning" size="sm">
+                            <Star className="h-3 w-3 fill-current" />
+                            {r.rating}
+                          </Badge>
+                        </div>
+                        {r.comment && (
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {r.comment}
+                          </p>
+                        )}
+                      </div>
+                      <AdminReviewDelete
+                        reviewId={r.id}
+                        label={dict.admin.deleteReview}
+                        confirmLabel={dict.admin.confirmDeleteReview}
+                        errorLabel={dict.auth.errorGeneric}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </section>
+          )}
+        </div>
       </Container>
     </div>
   );

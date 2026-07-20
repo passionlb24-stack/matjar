@@ -9,6 +9,11 @@ import { createClient } from "@/lib/supabase/server";
 import { localeAlternates } from "@/lib/site";
 import { WHOLESALE_CATEGORIES, type WholesaleProduct } from "@/lib/wholesale";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
+import { ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export async function generateMetadata({
   params,
@@ -63,24 +68,21 @@ export default async function WholesalePage({
   return (
     <div className="py-10">
       <Container>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="flex items-center gap-2 text-3xl font-extrabold tracking-tight">
-              <Boxes className="h-7 w-7 text-primary" />
-              {t.title}
-            </h1>
-            <p className="mt-2 text-muted-foreground">{t.subtitle}</p>
-          </div>
-          <Link
-            href={`/${lang}/wholesale/new`}
-            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-          >
-            <Plus className="h-4 w-4" />
-            {t.listProduct}
-          </Link>
-        </div>
+        <PageHeader
+          title={t.title}
+          subtitle={t.subtitle}
+          icon={Boxes}
+          actions={
+            <ButtonLink
+              href={`/${lang}/wholesale/new`}
+              leftIcon={<Plus className="h-4 w-4" />}
+            >
+              {t.listProduct}
+            </ButtonLink>
+          }
+        />
 
-        <div className="mt-6 flex flex-wrap gap-2">
+        <div className="mt-2 flex flex-wrap gap-2">
           <Link href={`/${lang}/wholesale`} className={chip(!cat)}>
             {t.allCategories}
           </Link>
@@ -96,29 +98,43 @@ export default async function WholesalePage({
         </div>
 
         {items.length ? (
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div
+            data-animate
+            className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+          >
             {items.map((w) => (
-              <Link
+              <Card
                 key={w.id}
-                href={`/${lang}/wholesale/${w.id}`}
-                className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all hover:-translate-y-0.5 hover:shadow-md"
+                variant="interactive"
+                className="group relative flex flex-col overflow-hidden"
               >
-                {w.image_url ? (
-                  <Image
-                    src={w.image_url}
-                    alt={w.title}
-                    width={300}
-                    height={200}
-                    className="h-36 w-full object-cover"
-                    sizes="(max-width: 640px) 50vw, 25vw"
-                  />
-                ) : (
-                  <div className="flex h-36 w-full items-center justify-center bg-surface-muted">
-                    <ImageIcon className="h-9 w-9 text-black/10" />
-                  </div>
-                )}
+                <div className="relative overflow-hidden">
+                  {w.image_url ? (
+                    <Image
+                      src={w.image_url}
+                      alt={w.title}
+                      width={300}
+                      height={200}
+                      className="h-36 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      sizes="(max-width: 640px) 50vw, 25vw"
+                    />
+                  ) : (
+                    <div className="flex h-36 w-full items-center justify-center bg-surface-muted">
+                      <ImageIcon className="h-9 w-9 text-black/10" />
+                    </div>
+                  )}
+                  {w.moq != null && (
+                    <Badge
+                      variant="neutral"
+                      size="sm"
+                      className="absolute start-2 top-2 bg-surface/90 backdrop-blur"
+                    >
+                      {t.moqShort}: {w.moq} {w.unit ?? ""}
+                    </Badge>
+                  )}
+                </div>
                 <div className="flex flex-1 flex-col p-3">
-                  <h2 className="line-clamp-2 text-sm font-bold leading-tight group-hover:text-primary">
+                  <h2 className="line-clamp-2 text-sm font-bold leading-tight transition-colors group-hover:text-primary">
                     {w.title}
                   </h2>
                   <div className="mt-auto pt-2">
@@ -128,23 +144,23 @@ export default async function WholesalePage({
                         {w.unit ? ` / ${w.unit}` : ""}
                       </p>
                     )}
-                    {w.moq != null && (
-                      <p className="text-xs text-muted-foreground">
-                        {t.moqShort}: {w.moq} {w.unit ?? ""}
-                      </p>
-                    )}
                   </div>
                 </div>
-              </Link>
+                <Link
+                  href={`/${lang}/wholesale/${w.id}`}
+                  aria-label={w.title}
+                  className="absolute inset-0 z-0"
+                />
+              </Card>
             ))}
           </div>
         ) : (
-          <div className="mt-8 rounded-2xl border border-dashed border-border py-16 text-center">
-            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-soft text-primary">
-              <Boxes className="h-7 w-7" />
-            </span>
-            <p className="mt-4 text-muted-foreground">{t.empty}</p>
-          </div>
+          <EmptyState
+            className="mt-8"
+            icon={Boxes}
+            title={t.empty}
+            action={{ href: `/${lang}/wholesale/new`, label: t.listProduct }}
+          />
         )}
       </Container>
     </div>

@@ -8,10 +8,8 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { regions } from "@/lib/catalog";
 import { GIG_CATEGORIES } from "@/lib/gigs";
 import { ImageUpload } from "@/components/image-upload";
-
-const field =
-  "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
-const label = "text-sm font-semibold";
+import { Field, Input, Textarea, Select } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 
 export function GigForm({
   lang,
@@ -74,51 +72,41 @@ export function GigForm({
     >
       <ImageUpload folder="gigs" value={imageUrl} onChange={setImageUrl} label={t.sample} />
 
-      <div>
-        <label className={label} htmlFor="title">{t.gigTitle}</label>
-        <input id="title" name="title" type="text" required placeholder={t.gigTitlePlaceholder} className={field} />
-      </div>
+      <Field label={t.gigTitle} htmlFor="title" required>
+        <Input id="title" name="title" type="text" required placeholder={t.gigTitlePlaceholder} />
+      </Field>
       <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label className={label} htmlFor="category">{t.category}</label>
-          <select id="category" name="category" defaultValue="" className={field}>
+        <Field label={t.category} htmlFor="category">
+          <Select id="category" name="category" defaultValue="">
             <option value="">{t.selectCategory}</option>
             {GIG_CATEGORIES.map((c) => (
               <option key={c} value={c}>{t.categories[c]}</option>
             ))}
-          </select>
-        </div>
-        <div>
-          <label className={label} htmlFor="region">{t.region}</label>
-          <select id="region" name="region" defaultValue="" className={field}>
+          </Select>
+        </Field>
+        <Field label={t.region} htmlFor="region">
+          <Select id="region" name="region" defaultValue="">
             <option value="">{t.selectRegion}</option>
             {regions.map((r) => (
               <option key={r.key} value={r.key}>{r.name[lang]}</option>
             ))}
-          </select>
-        </div>
-        <div>
-          <label className={label} htmlFor="price">{t.startingPrice}</label>
-          <input id="price" name="price" type="number" min="0" step="0.01" className={field} placeholder="$" />
-        </div>
-        <div>
-          <label className={label} htmlFor="delivery_days">{t.deliveryDays}</label>
-          <input id="delivery_days" name="delivery_days" type="number" min="1" step="1" className={field} />
-        </div>
+          </Select>
+        </Field>
+        <Field label={t.startingPrice} htmlFor="price">
+          <Input id="price" name="price" type="number" min="0" step="0.01" placeholder="$" />
+        </Field>
+        <Field label={t.deliveryDays} htmlFor="delivery_days">
+          <Input id="delivery_days" name="delivery_days" type="number" min="1" step="1" />
+        </Field>
       </div>
-      <div>
-        <label className={label} htmlFor="description">{t.description}</label>
-        <textarea id="description" name="description" rows={5} required placeholder={t.descriptionPlaceholder} className={field} />
-      </div>
+      <Field label={t.description} htmlFor="description" required>
+        <Textarea id="description" name="description" rows={5} required placeholder={t.descriptionPlaceholder} />
+      </Field>
 
       {error && <p className="text-sm font-medium text-red-600">{error}</p>}
-      <button
-        type="submit"
-        disabled={loading}
-        className="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
-      >
+      <Button type="submit" loading={loading}>
         {loading ? dict.account.saving : t.publish}
-      </button>
+      </Button>
     </form>
   );
 }

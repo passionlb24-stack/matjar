@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Clock } from "lucide-react";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { Badge } from "@/components/ui/badge";
 import { WEEK_DAYS, type WeekHours } from "@/lib/hours";
 
 // Structured business-hours editor: 7 rows (day + closed toggle + open/close
@@ -81,9 +82,9 @@ export function HoursEditor({
                   />
                 </div>
               ) : (
-                <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-bold text-zinc-500">
+                <Badge variant="neutral" size="sm">
                   {t.closed}
-                </span>
+                </Badge>
               )}
             </div>
           );

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Check, CircleDashed } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
@@ -134,15 +136,9 @@ export function TasksManager({
           {task.title}
         </span>
         {task.due_on && (
-          <span
-            className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${
-              overdue
-                ? "bg-red-100 text-red-700"
-                : "bg-surface-muted text-muted-foreground"
-            }`}
-          >
+          <Badge variant={overdue ? "danger" : "neutral"} size="sm" className="shrink-0">
             {fmtDue(task.due_on)}
-          </span>
+          </Badge>
         )}
         <button
           type="button"
@@ -185,14 +181,14 @@ export function TasksManager({
             </option>
           ))}
         </select>
-        <button
+        <Button
           type="submit"
-          disabled={busy || !title.trim()}
-          className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+          loading={busy}
+          disabled={!title.trim()}
+          leftIcon={<Plus className="h-4 w-4" />}
         >
-          <Plus className="h-4 w-4" />
           {dict.os.crm.add}
-        </button>
+        </Button>
       </form>
 
       {open.length ? (

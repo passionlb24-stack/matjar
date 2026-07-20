@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { Input } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
 type Perms = { orders: boolean; products: boolean; bookings: boolean };
@@ -106,19 +108,16 @@ export function StaffManager({
   return (
     <div>
       <form onSubmit={onAdd} className="flex gap-2">
-        <input
+        <Input
           name="email"
           type="email"
           required
           placeholder={dict.merchant.staffEmail}
-          className="flex-1 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
+          className="flex-1 min-w-0"
         />
-        <button
-          disabled={busy}
-          className="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
-        >
+        <Button type="submit" loading={busy}>
           {dict.merchant.staffAdd}
-        </button>
+        </Button>
       </form>
       {msg && (
         <p className="mt-2 text-sm font-medium text-muted-foreground">{msg}</p>

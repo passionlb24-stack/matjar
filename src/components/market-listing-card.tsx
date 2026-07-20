@@ -4,6 +4,8 @@ import { ImageIcon, Store, MapPin } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { ListingCard } from "@/lib/data/market";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 function formatPrice(price: number) {
   return price >= 1000 ? `$${Number(price).toLocaleString("en-US")}` : `$${price}`;
@@ -19,18 +21,18 @@ export function MarketListingCard({
   dict: Dictionary;
 }) {
   return (
-    <Link
-      href={`/${lang}/market/${listing.id}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all hover:-translate-y-0.5 hover:shadow-md"
+    <Card
+      variant="interactive"
+      className="group relative flex flex-col overflow-hidden"
     >
-      <div className="relative">
+      <div className="relative overflow-hidden">
         {listing.image ? (
           <Image
             src={listing.image}
             alt={listing.title}
             width={300}
             height={220}
-            className="h-40 w-full object-cover"
+            className="h-40 w-full object-cover transition-transform duration-500 group-hover:scale-105"
             sizes="(max-width: 640px) 50vw, 25vw"
           />
         ) : (
@@ -39,26 +41,36 @@ export function MarketListingCard({
           </div>
         )}
         {listing.storeName && (
-          <span className="absolute start-2 top-2 inline-flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">
+          <Badge
+            variant="primary"
+            size="sm"
+            className="absolute start-2 top-2 bg-primary text-primary-foreground shadow-sm"
+          >
             <Store className="h-3 w-3" />
             {dict.market.sellerMerchant}
-          </span>
+          </Badge>
         )}
       </div>
       <div className="flex flex-1 flex-col p-3">
-        <h3 className="line-clamp-2 font-bold leading-tight group-hover:text-primary">
+        <h3 className="line-clamp-2 font-bold leading-tight transition-colors group-hover:text-primary">
           {listing.title}
         </h3>
         {listing.price != null && (
-          <p className="mt-1 font-extrabold text-primary">
+          <p className="mt-1 text-lg font-extrabold text-primary">
             {formatPrice(listing.price)}
           </p>
         )}
         <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-          <MapPin className="h-3 w-3" />
+          <MapPin className="h-3 w-3 shrink-0" />
           {[listing.city, listing.categoryName].filter(Boolean).join(" · ")}
         </p>
       </div>
-    </Link>
+
+      <Link
+        href={`/${lang}/market/${listing.id}`}
+        aria-label={listing.title}
+        className="absolute inset-0 z-0"
+      />
+    </Card>
   );
 }

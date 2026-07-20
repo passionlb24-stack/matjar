@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FileText, Send } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { notifyError, notifySuccess } from "@/lib/notify";
 
 type MyRequest = {
@@ -167,14 +167,14 @@ export function ServiceRequestForm({
                 className="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
               />
             </div>
-            <button
+            <Button
               onClick={submit}
-              disabled={busy || !description.trim() || phone.trim().length < 4}
-              className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+              loading={busy}
+              disabled={!description.trim() || phone.trim().length < 4}
+              leftIcon={<Send className="h-4 w-4" />}
             >
-              <Send className="h-4 w-4" />
               {t.send}
-            </button>
+            </Button>
           </div>
 
           {mine.length > 0 && (
@@ -232,12 +232,9 @@ export function ServiceRequestForm({
           )}
         </>
       ) : (
-        <Link
-          href={`/${lang}/login`}
-          className="mt-4 inline-block rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-        >
+        <ButtonLink href={`/${lang}/login`} className="mt-4">
           {t.loginToRequest}
-        </Link>
+        </ButtonLink>
       )}
     </div>
   );

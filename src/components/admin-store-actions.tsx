@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { revalidateStores } from "@/lib/cache-actions";
+import { Button } from "@/components/ui/button";
 
 export function AdminStoreActions({
   storeId,
@@ -39,23 +40,25 @@ export function AdminStoreActions({
   }
 
   return (
-    <div className="flex gap-2">
-      <button
+    <div className="flex shrink-0 gap-2">
+      <Button
+        size="sm"
         disabled={busy}
         onClick={() => setStatus("active")}
-        className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1.5 text-sm font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
+        leftIcon={<Check className="h-4 w-4" />}
       >
-        <Check className="h-4 w-4" />
         {approveLabel}
-      </button>
-      <button
+      </Button>
+      <Button
+        size="sm"
+        variant="secondary"
         disabled={busy}
         onClick={() => setStatus("rejected")}
-        className="flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+        leftIcon={<X className="h-4 w-4" />}
+        className="!text-danger"
       >
-        <X className="h-4 w-4" />
         {rejectLabel}
-      </button>
+      </Button>
     </div>
   );
 }

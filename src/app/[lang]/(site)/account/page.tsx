@@ -10,6 +10,7 @@ import {
   Briefcase,
   Sparkles,
   Boxes,
+  CircleUser,
 } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -17,6 +18,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getMyListings } from "@/lib/data/market";
 import { SITE_URL } from "@/lib/site";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
+import { ButtonLink } from "@/components/ui/button";
 import { ProfileForm } from "@/components/profile-form";
 import { LoyaltyPanel } from "@/components/loyalty-panel";
 import { AddressManager, type AddressRow } from "@/components/address-manager";
@@ -91,11 +94,9 @@ export default async function AccountPage({
   return (
     <div className="py-10">
       <Container className="max-w-xl">
-        <h1 className="text-3xl font-extrabold tracking-tight">
-          {dict.account.title}
-        </h1>
+        <PageHeader title={dict.account.title} icon={CircleUser} />
 
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary-soft p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary-soft p-4">
           <p className="text-sm font-semibold">{dict.push.prompt}</p>
           <PushOptIn dict={dict} />
         </div>
@@ -130,13 +131,13 @@ export default async function AccountPage({
           <h2 className="text-2xl font-extrabold tracking-tight">
             {dict.market.myListings}
           </h2>
-          <Link
+          <ButtonLink
             href={`/${lang}/market/new`}
-            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+            className="shrink-0"
+            leftIcon={<Plus className="h-4 w-4" />}
           >
-            <Plus className="h-4 w-4" />
             {dict.market.publish}
-          </Link>
+          </ButtonLink>
         </div>
         <div className="mt-4">
           <MyListingsManager

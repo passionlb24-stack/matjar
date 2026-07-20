@@ -7,6 +7,8 @@ import { Plus, Pencil, Trash2, X, Stethoscope } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { ImageUpload } from "@/components/image-upload";
+import { fieldClass as uiFieldClass } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 
 export type Doctor = {
   id: string;
@@ -19,8 +21,8 @@ export type Doctor = {
 type Draft = { name: string; specialty: string; photo_url: string | null; bio: string };
 
 const empty: Draft = { name: "", specialty: "", photo_url: null, bio: "" };
-const fieldClass =
-  "mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary";
+// Shared control styling from the UI library, plus the label gap this form uses.
+const fieldClass = `${uiFieldClass} mt-1`;
 const labelClass = "text-sm font-semibold";
 
 export function DoctorManager({
@@ -134,20 +136,16 @@ export function DoctorManager({
         />
       </div>
       <div className="flex gap-2">
-        <button
-          disabled={busy || !draft.name.trim()}
+        <Button
+          disabled={!draft.name.trim()}
+          loading={busy}
           onClick={save}
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
         >
           {busy ? t.saving : t.save}
-        </button>
-        <button
-          onClick={cancel}
-          className="flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted"
-        >
-          <X className="h-4 w-4" />
+        </Button>
+        <Button variant="secondary" onClick={cancel} leftIcon={<X className="h-4 w-4" />}>
           {t.cancel}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -157,13 +155,9 @@ export function DoctorManager({
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-muted-foreground">{t.subtitle}</p>
         {editingId === null && (
-          <button
-            onClick={startNew}
-            className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-          >
-            <Plus className="h-4 w-4" />
+          <Button onClick={startNew} className="shrink-0" leftIcon={<Plus className="h-4 w-4" />}>
             {t.add}
-          </button>
+          </Button>
         )}
       </div>
 

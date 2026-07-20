@@ -2,11 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Ban, Play } from "lucide-react";
+import { Search, Ban, Play, Users } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/field";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export type AdminUser = {
   id: string;
@@ -17,11 +23,14 @@ export type AdminUser = {
   created_at: string;
 };
 
-const roleStyle: Record<AdminUser["role"], string> = {
-  super_admin: "bg-primary-soft text-primary",
-  merchant: "bg-sky-100 text-sky-700",
-  customer: "bg-zinc-100 text-zinc-600",
-  driver: "bg-violet-100 text-violet-700",
+const roleVariant: Record<
+  AdminUser["role"],
+  "neutral" | "primary" | "info" | "warning"
+> = {
+  super_admin: "primary",
+  merchant: "info",
+  customer: "neutral",
+  driver: "warning",
 };
 
 export function AdminUsersClient({
@@ -71,89 +80,89 @@ export function AdminUsersClient({
       day: "numeric",
     });
 
+  const initial = (name: string | null) =>
+    (name ?? "").trim().charAt(0).toUpperCase() || "?";
+
   return (
     <div className="py-10">
       <Container>
-        <h1 className="text-3xl font-extrabold tracking-tight">{t.title}</h1>
-        <p className="mt-2 text-muted-foreground">{t.subtitle}</p>
+        <PageHeader icon={Users} title={t.title} subtitle={t.subtitle} />
 
-        <div className="mt-6 flex items-center gap-2 rounded-xl border border-border bg-surface px-4 sm:max-w-md">
-          <Search className="h-5 w-5 shrink-0 text-muted-foreground" />
-          <input
+        <div className="relative mb-6 sm:max-w-md">
+          <Search className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t.search}
-            className="w-full bg-transparent py-2.5 text-sm outline-none placeholder:text-muted-foreground"
+            className="ps-10"
           />
         </div>
 
         {filtered.length ? (
-          <div className="mt-6 space-y-2">
-            {filtered.map((u) => {
-              const isSelf = u.id === currentUserId;
-              return (
-                <div
-                  key={u.id}
-                  className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-bold">
-                        {u.full_name ?? "—"}
-                        {isSelf && (
-                          <span className="ms-1 text-xs font-normal text-muted-foreground">
-                            ({t.you})
+          <Card>
+            <div data-animate className="divide-y divide-border">
+              {filtered.map((u) => {
+                const isSelf = u.id === currentUserId;
+                return (
+                  <div
+                    key={u.id}
+                    className="flex flex-col gap-3 p-4 transition-colors hover:bg-surface-muted sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-soft text-sm font-extrabold text-primary">
+                        {initial(u.full_name)}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-bold">
+                            {u.full_name ?? "—"}
+                            {isSelf && (
+                              <span className="ms-1 text-xs font-normal text-muted-foreground">
+                                ({t.you})
+                              </span>
+                            )}
                           </span>
-                        )}
-                      </span>
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-bold ${roleStyle[u.role]}`}
-                      >
-                        {t.roles[u.role]}
-                      </span>
-                      {!u.is_active && (
-                        <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700">
-                          {t.suspended}
-                        </span>
-                      )}
+                          <Badge variant={roleVariant[u.role]} size="sm">
+                            {t.roles[u.role]}
+                          </Badge>
+                          {!u.is_active && (
+                            <Badge variant="danger" size="sm">
+                              {t.suspended}
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="mt-0.5 text-sm text-muted-foreground">
+                          {u.phone ? `${u.phone} · ` : ""}
+                          {t.joined} {fmtDate(u.created_at)}
+                        </p>
+                      </div>
                     </div>
-                    <p className="mt-0.5 text-sm text-muted-foreground">
-                      {u.phone ? `${u.phone} · ` : ""}
-                      {t.joined} {fmtDate(u.created_at)}
-                    </p>
-                  </div>
 
-                  {!isSelf && u.role !== "super_admin" && (
-                    <button
-                      disabled={busy === u.id}
-                      onClick={() => toggle(u.id, !u.is_active)}
-                      className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold transition-colors disabled:opacity-60 ${
-                        u.is_active
-                          ? "border border-border text-red-600 hover:bg-red-50"
-                          : "bg-emerald-600 text-white hover:bg-emerald-700"
-                      }`}
-                    >
-                      {u.is_active ? (
-                        <>
-                          <Ban className="h-4 w-4" />
-                          {t.suspend}
-                        </>
-                      ) : (
-                        <>
-                          <Play className="h-4 w-4" />
-                          {t.reactivate}
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                    {!isSelf && u.role !== "super_admin" && (
+                      <Button
+                        size="sm"
+                        variant={u.is_active ? "secondary" : "primary"}
+                        disabled={busy === u.id}
+                        onClick={() => toggle(u.id, !u.is_active)}
+                        leftIcon={
+                          u.is_active ? (
+                            <Ban className="h-4 w-4" />
+                          ) : (
+                            <Play className="h-4 w-4" />
+                          )
+                        }
+                        className={u.is_active ? "shrink-0 !text-danger" : "shrink-0"}
+                      >
+                        {u.is_active ? t.suspend : t.reactivate}
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
         ) : (
-          <div className="mt-6 rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
-            {t.empty}
-          </div>
+          <EmptyState icon={Users} title={t.empty} />
         )}
       </Container>
     </div>

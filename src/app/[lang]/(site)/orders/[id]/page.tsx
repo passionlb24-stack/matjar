@@ -6,6 +6,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { formatUsd } from "@/lib/currency";
 import { Container } from "@/components/ui/container";
+import { Card } from "@/components/ui/card";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { OrderCancelButton } from "@/components/order-cancel-button";
 import { ReorderButton } from "@/components/reorder-button";
@@ -140,7 +141,7 @@ export default async function OrderDetailPage({
             {t.status[order.status as "cancelled" | "rejected"]}
           </div>
         ) : (
-          <ol className="mt-6 space-y-3 rounded-2xl border border-border bg-surface p-5">
+          <ol className="mt-6 space-y-3 rounded-2xl border border-border bg-surface p-5 shadow-xs">
             {FLOW.map((s, i) => {
               const done = i <= currentIdx;
               return (
@@ -180,7 +181,7 @@ export default async function OrderDetailPage({
         )}
 
         {/* Items */}
-        <div className="mt-6 rounded-2xl border border-border bg-surface p-5">
+        <Card className="mt-6 p-5">
           <h2 className="mb-3 font-bold">{t.items}</h2>
           <div className="space-y-2">
             {order.order_items.map((it, i) => (
@@ -211,10 +212,10 @@ export default async function OrderDetailPage({
               <span className="text-primary">{formatUsd(order.total)}</span>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Fulfillment */}
-        <div className="mt-6 space-y-2 rounded-2xl border border-border bg-surface p-5 text-sm">
+        <Card className="mt-6 space-y-2 p-5 text-sm">
           {order.address && (
             <p className="flex items-start gap-2">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
@@ -233,7 +234,7 @@ export default async function OrderDetailPage({
               {order.customer_note}
             </p>
           )}
-        </div>
+        </Card>
 
         <Link
           href={`/${lang}/orders`}

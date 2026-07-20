@@ -32,12 +32,14 @@ export default async function AboutPage({
   return (
     <div className="py-14">
       <Container className="max-w-2xl">
-        <h1 className="text-3xl font-extrabold tracking-tight">
-          {dict.footer.links.about}
-        </h1>
-        <p className="mt-5 leading-8 text-muted-foreground">
-          {dict.aboutPage.body}
-        </p>
+        <div data-animate>
+          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+            {dict.footer.links.about}
+          </h1>
+          <p className="mt-6 text-lg leading-8 text-muted-foreground">
+            {dict.aboutPage.body}
+          </p>
+        </div>
       </Container>
     </div>
   );

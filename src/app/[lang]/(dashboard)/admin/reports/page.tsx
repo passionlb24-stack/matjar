@@ -1,35 +1,63 @@
 import { notFound } from "next/navigation";
-import { BarChart3 } from "lucide-react";
+import {
+  BarChart3,
+  ShoppingBag,
+  CalendarCheck,
+  Crown,
+  TrendingUp,
+} from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { regions } from "@/lib/catalog";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
+import { Stat, StatGrid } from "@/components/ui/stat";
+import { Card } from "@/components/ui/card";
+import { MiniBars } from "@/components/ui/sparkline";
 
-function Bars({
+type Row = { label: string; value: number };
+
+// A distribution card: a MiniBars chart of the values up top for an at-a-glance
+// shape, then the ranked bar list underneath for exact figures.
+function DistributionCard({
   title,
   rows,
   empty,
+  tone = "text-primary",
 }: {
   title: string;
-  rows: { label: string; value: number }[];
+  rows: Row[];
   empty: string;
+  tone?: string;
 }) {
   const max = Math.max(1, ...rows.map((r) => r.value));
   return (
-    <div className="rounded-2xl border border-border bg-surface p-5">
-      <h2 className="text-sm font-bold text-muted-foreground">{title}</h2>
+    <Card className="p-5">
+      <div className="flex items-start justify-between gap-3">
+        <h2 className="text-sm font-bold text-muted-foreground">{title}</h2>
+        {rows.length > 1 && (
+          <MiniBars
+            values={rows.map((r) => r.value)}
+            width={96}
+            height={30}
+            className={tone}
+          />
+        )}
+      </div>
       {rows.length ? (
         <div className="mt-4 space-y-3">
           {rows.map((r) => (
             <div key={r.label}>
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium">{r.label}</span>
-                <span className="font-bold">{r.value}</span>
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <span className="min-w-0 truncate font-medium">{r.label}</span>
+                <span className="font-bold tabular-nums">
+                  {r.value.toLocaleString("en-US")}
+                </span>
               </div>
-              <div className="mt-1 h-2 overflow-hidden rounded-full bg-surface-muted">
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-surface-muted">
                 <div
-                  className="h-full rounded-full bg-primary"
+                  className="h-full rounded-full bg-primary transition-[width] duration-500"
                   style={{ width: `${(r.value / max) * 100}%` }}
                 />
               </div>
@@ -39,7 +67,7 @@ function Bars({
       ) : (
         <p className="mt-4 text-sm text-muted-foreground">{empty}</p>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -107,39 +135,66 @@ export default async function AdminReportsPage({
     value: r.count,
   }));
 
-  const kpis = [
-    { label: t.totalOrders, value: report.total_orders ?? 0 },
-    { label: t.totalBookings, value: report.total_bookings ?? 0 },
-    { label: t.proStores, value: report.pro_stores ?? 0 },
-    { label: t.conversion, value: `${report.conversion ?? 0}%` },
-  ];
-
   return (
     <div className="py-10">
       <Container>
-        <div className="flex items-center gap-2">
-          <BarChart3 className="h-6 w-6 text-primary" />
-          <h1 className="text-3xl font-extrabold tracking-tight">{t.title}</h1>
-        </div>
-        <p className="mt-2 text-muted-foreground">{t.subtitle}</p>
+        <PageHeader icon={BarChart3} title={t.title} subtitle={t.subtitle} />
 
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {kpis.map((k) => (
-            <div key={k.label} className="rounded-2xl bg-surface-muted/60 p-4">
-              <p className="text-xs font-medium text-muted-foreground">
-                {k.label}
-              </p>
-              <p className="mt-1 text-2xl font-extrabold">{k.value}</p>
-            </div>
-          ))}
-        </div>
+        <div data-animate className="space-y-6">
+          <StatGrid>
+            <Stat
+              label={t.totalOrders}
+              value={(report.total_orders ?? 0).toLocaleString("en-US")}
+              icon={<ShoppingBag />}
+            />
+            <Stat
+              label={t.totalBookings}
+              value={(report.total_bookings ?? 0).toLocaleString("en-US")}
+              icon={<CalendarCheck />}
+            />
+            <Stat
+              label={t.proStores}
+              value={(report.pro_stores ?? 0).toLocaleString("en-US")}
+              icon={<Crown />}
+            />
+            <Stat
+              label={t.conversion}
+              value={`${report.conversion ?? 0}%`}
+              icon={<TrendingUp />}
+            />
+          </StatGrid>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
-          <Bars title={t.storesByStatus} rows={byStatus} empty={t.noData} />
-          <Bars title={t.usersByRole} rows={byRole} empty={t.noData} />
-          <Bars title={t.storesByRegion} rows={byRegion} empty={t.noData} />
-          <Bars title={t.storesByType} rows={byType} empty={t.noData} />
-          <Bars title={t.topStores} rows={topStores} empty={t.noData} />
+          <div className="grid gap-4 lg:grid-cols-2">
+            <DistributionCard
+              title={t.storesByStatus}
+              rows={byStatus}
+              empty={t.noData}
+            />
+            <DistributionCard
+              title={t.usersByRole}
+              rows={byRole}
+              empty={t.noData}
+              tone="text-info"
+            />
+            <DistributionCard
+              title={t.storesByRegion}
+              rows={byRegion}
+              empty={t.noData}
+              tone="text-success"
+            />
+            <DistributionCard
+              title={t.storesByType}
+              rows={byType}
+              empty={t.noData}
+              tone="text-warning"
+            />
+            <DistributionCard
+              title={t.topStores}
+              rows={topStores}
+              empty={t.noData}
+              tone="text-primary"
+            />
+          </div>
         </div>
       </Container>
     </div>

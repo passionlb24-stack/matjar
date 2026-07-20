@@ -1,10 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Boxes } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
 import { WholesaleForm } from "@/components/wholesale-form";
 
 export default async function NewWholesalePage({
@@ -49,10 +50,12 @@ export default async function NewWholesalePage({
           <ChevronRight className="h-4 w-4 rtl:rotate-180" />
           {dict.wholesale.title}
         </Link>
-        <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
-          {dict.wholesale.listProduct}
-        </h1>
-        <div className="mt-6">
+        <PageHeader
+          className="mt-3"
+          title={dict.wholesale.listProduct}
+          icon={Boxes}
+        />
+        <div className="mt-2">
           <WholesaleForm lang={lang} dict={dict} sellerName={sellerName} />
         </div>
       </Container>

@@ -15,6 +15,8 @@ import {
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { notifyError, notifySuccess } from "@/lib/notify";
 
 // ===== Contract (matches migration 0122) =====
@@ -214,15 +216,15 @@ export function CampaignManager({
         </label>
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
-          <button
+          <Button
             type="button"
             onClick={send}
-            disabled={busy || !body.trim()}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+            loading={busy}
+            disabled={!body.trim()}
+            leftIcon={<Send className="h-4 w-4" />}
           >
-            <Send className="h-4 w-4" />
             {t.send}
-          </button>
+          </Button>
           <span className="text-xs font-semibold text-muted-foreground">
             {t.willReach.replace("{n}", String(targetCount))}
           </span>
@@ -259,14 +261,14 @@ export function CampaignManager({
                         {c.body}
                       </p>
                       <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 font-bold text-primary">
+                        <Badge variant="primary" size="sm">
                           <AIcon className="h-3 w-3" />
                           {t.audiences[c.audience]}
-                        </span>
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-700">
+                        </Badge>
+                        <Badge variant="success" size="sm">
                           <Check className="h-3 w-3" />
                           {t.sentCount.replace("{n}", String(c.sent_count))}
-                        </span>
+                        </Badge>
                       </div>
                     </div>
                     <time

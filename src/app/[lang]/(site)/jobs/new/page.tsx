@@ -1,10 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Briefcase } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
 import { JobPostForm } from "@/components/job-post-form";
 
 export default async function NewJobPage({
@@ -45,10 +46,8 @@ export default async function NewJobPage({
           <ChevronRight className="h-4 w-4 rtl:rotate-180" />
           {dict.jobs.title}
         </Link>
-        <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
-          {dict.jobs.postJob}
-        </h1>
-        <div className="mt-6">
+        <PageHeader className="mt-3" title={dict.jobs.postJob} icon={Briefcase} />
+        <div className="mt-2">
           <JobPostForm lang={lang} dict={dict} defaultCompany={defaultCompany} />
         </div>
       </Container>

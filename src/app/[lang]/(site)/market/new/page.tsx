@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { Tag } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -8,6 +9,7 @@ import {
   getMarketRegions,
 } from "@/lib/data/market";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
 import { ListingForm } from "@/components/listing-form";
 
 export default async function NewListingPage({
@@ -43,10 +45,8 @@ export default async function NewListingPage({
   return (
     <div className="py-10">
       <Container className="max-w-2xl">
-        <h1 className="text-3xl font-extrabold tracking-tight">
-          {dict.market.form.newTitle}
-        </h1>
-        <div className="mt-6">
+        <PageHeader title={dict.market.form.newTitle} icon={Tag} />
+        <div className="mt-2">
           <ListingForm
             lang={lang}
             dict={dict}

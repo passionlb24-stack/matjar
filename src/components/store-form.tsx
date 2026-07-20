@@ -3,13 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { fieldClass } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
 type Option = { value: string; label: string };
 
-const field =
-  "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
+// Shared control styling from the UI library, plus the label gap this form uses.
+const field = `${fieldClass} mt-1.5`;
 const label = "text-sm font-semibold";
 
 // A URL-friendly slug from the store name (latin/digits only). Arabic-only names
@@ -222,13 +224,9 @@ export function StoreForm({
 
       {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
-      >
+      <Button type="submit" full loading={loading}>
         {loading ? dict.merchant.creating : dict.merchant.create}
-      </button>
+      </Button>
     </form>
   );
 }

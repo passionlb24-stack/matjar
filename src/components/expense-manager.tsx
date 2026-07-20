@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { fieldClass } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
-const field =
-  "w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
+const field = fieldClass;
 
 export type Expense = {
   id: string;
@@ -89,14 +90,14 @@ export function ExpenseManager({
           <input name="category" type="text" placeholder={t.categoryPlaceholder} className={field} />
           <input name="spent_on" type="date" className={field} />
         </div>
-        <button
+        <Button
           type="submit"
-          disabled={busy}
-          className="mt-3 flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+          loading={busy}
+          leftIcon={<Plus className="h-4 w-4" />}
+          className="mt-3"
         >
-          <Plus className="h-4 w-4" />
           {t.add}
-        </button>
+        </Button>
       </form>
 
       {expenses.length ? (

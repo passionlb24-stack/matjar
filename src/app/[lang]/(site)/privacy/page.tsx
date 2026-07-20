@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
+import { Check } from "lucide-react";
 import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
 
@@ -47,16 +48,21 @@ export default async function PrivacyPage({
   return (
     <div className="py-14">
       <Container className="max-w-2xl">
-        <h1 className="text-3xl font-extrabold tracking-tight">
-          {dict.footer.links.privacy}
-        </h1>
-        <ul className="mt-5 space-y-3">
-          {points.map((p) => (
-            <li key={p} className="leading-8 text-muted-foreground">
-              • {p}
-            </li>
-          ))}
-        </ul>
+        <div data-animate>
+          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+            {dict.footer.links.privacy}
+          </h1>
+          <ul className="mt-8 space-y-4">
+            {points.map((p) => (
+              <li key={p} className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary">
+                  <Check className="h-3.5 w-3.5" />
+                </span>
+                <span className="leading-8 text-muted-foreground">{p}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </Container>
     </div>
   );

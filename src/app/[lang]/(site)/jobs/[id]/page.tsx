@@ -9,6 +9,9 @@ import { localeAlternates } from "@/lib/site";
 import { regions } from "@/lib/catalog";
 import type { JobPosting } from "@/lib/jobs";
 import { Container } from "@/components/ui/container";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { JobApplyForm } from "@/components/job-apply-form";
 
 const UUID_RE =
@@ -105,7 +108,7 @@ export default async function JobDetailPage({
           {t.title}
         </Link>
 
-        <div className="mt-4 rounded-2xl border border-border bg-surface p-6">
+        <Card className="mt-4 p-6">
           <div className="flex items-start justify-between gap-3">
             <div>
               <h1 className="text-2xl font-extrabold tracking-tight">
@@ -116,9 +119,9 @@ export default async function JobDetailPage({
               </p>
             </div>
             {job.job_type && (
-              <span className="shrink-0 rounded-full bg-primary-soft px-3 py-1 text-sm font-bold text-primary">
+              <Badge variant="primary" className="shrink-0">
                 {t.types[job.job_type as keyof typeof t.types] ?? job.job_type}
-              </span>
+              </Badge>
             )}
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
@@ -140,7 +143,7 @@ export default async function JobDetailPage({
               <span className="font-bold">{t.howToApply}:</span> {job.how_to_apply}
             </p>
           )}
-        </div>
+        </Card>
 
         {/* Poster sees applicants; others see the apply form */}
         {isPoster ? (
@@ -152,10 +155,7 @@ export default async function JobDetailPage({
             {applicants.length ? (
               <div className="space-y-3">
                 {applicants.map((a) => (
-                  <div
-                    key={a.id}
-                    className="rounded-2xl border border-border bg-surface p-4"
-                  >
+                  <Card key={a.id} className="p-4">
                     <p className="font-bold">
                       {a.profiles?.full_name ?? t.applicant}
                     </p>
@@ -187,13 +187,11 @@ export default async function JobDetailPage({
                         </a>
                       )}
                     </div>
-                  </div>
+                  </Card>
                 ))}
               </div>
             ) : (
-              <p className="rounded-2xl border border-dashed border-border py-10 text-center text-sm text-muted-foreground">
-                {t.noApplicants}
-              </p>
+              <EmptyState icon={Briefcase} title={t.noApplicants} />
             )}
           </div>
         ) : (

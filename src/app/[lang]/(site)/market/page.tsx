@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Plus, Store as StoreIcon } from "lucide-react";
+import { Plus, Store as StoreIcon, PackageSearch } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import {
@@ -12,6 +11,9 @@ import {
   type ListingFilters,
 } from "@/lib/data/market";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
+import { ButtonLink } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { MarketFilters } from "@/components/market-filters";
 import { MarketListingCard } from "@/components/market-listing-card";
 
@@ -80,26 +82,21 @@ export default async function MarketPage({
   return (
     <div className="py-10">
       <Container>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <StoreIcon className="h-6 w-6 text-primary" />
-              <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-                {dict.market.title}
-              </h1>
-            </div>
-            <p className="mt-2 text-muted-foreground">{dict.market.subtitle}</p>
-          </div>
-          <Link
-            href={`/${lang}/market/new`}
-            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-          >
-            <Plus className="h-4 w-4" />
-            {dict.market.publish}
-          </Link>
-        </div>
+        <PageHeader
+          title={dict.market.title}
+          subtitle={dict.market.subtitle}
+          icon={StoreIcon}
+          actions={
+            <ButtonLink
+              href={`/${lang}/market/new`}
+              leftIcon={<Plus className="h-4 w-4" />}
+            >
+              {dict.market.publish}
+            </ButtonLink>
+          }
+        />
 
-        <div className="mt-6">
+        <div className="mt-2">
           <MarketFilters
             lang={lang}
             dict={dict}
@@ -128,36 +125,35 @@ export default async function MarketPage({
           )}
         </div>
         {listings.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div
+            data-animate
+            className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+          >
             {listings.map((x) => (
               <MarketListingCard key={x.id} listing={x} lang={lang} dict={dict} />
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
-            {page > 1 ? dict.market.noMore : dict.market.empty}
-          </div>
+          <EmptyState
+            icon={PackageSearch}
+            title={page > 1 ? dict.market.noMore : dict.market.empty}
+            action={{ href: `/${lang}/market/new`, label: dict.market.publish }}
+          />
         )}
 
         {(page > 1 || hasMore) && (
           <div className="mt-8 flex items-center justify-center gap-3">
             {page > 1 ? (
-              <Link
-                href={pageHref(page - 1)}
-                className="rounded-xl border border-border px-5 py-2.5 text-sm font-bold transition-colors hover:bg-surface-muted"
-              >
+              <ButtonLink href={pageHref(page - 1)} variant="secondary">
                 {dict.market.prevPage}
-              </Link>
+              </ButtonLink>
             ) : (
               <span />
             )}
             {hasMore && (
-              <Link
-                href={pageHref(page + 1)}
-                className="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-              >
+              <ButtonLink href={pageHref(page + 1)}>
                 {dict.market.nextPage}
-              </Link>
+              </ButtonLink>
             )}
           </div>
         )}

@@ -12,6 +12,7 @@ import {
   Crown,
   Sparkles,
   Landmark,
+  Store as StoreIcon,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -19,6 +20,12 @@ import { createClient } from "@/lib/supabase/client";
 import { revalidateStores } from "@/lib/cache-actions";
 import { regions } from "@/lib/catalog";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
+import { Card, CardBody } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/field";
+import { EmptyState } from "@/components/ui/empty-state";
 import { OverflowMenu, type OverflowAction } from "@/components/overflow-menu";
 
 export type AdminStore = {
@@ -35,11 +42,14 @@ export type AdminStore = {
   ownerName: string | null;
 };
 
-const statusStyle: Record<AdminStore["status"], string> = {
-  pending: "bg-amber-100 text-amber-700",
-  active: "bg-emerald-100 text-emerald-700",
-  suspended: "bg-red-100 text-red-700",
-  rejected: "bg-zinc-200 text-zinc-600",
+const statusVariant: Record<
+  AdminStore["status"],
+  "neutral" | "success" | "warning" | "danger"
+> = {
+  pending: "warning",
+  active: "success",
+  suspended: "danger",
+  rejected: "neutral",
 };
 
 function chip(active: boolean) {
@@ -95,19 +105,20 @@ export function AdminStoresClient({
     "rejected",
   ];
 
+  const initial = (name: string) => name.trim().charAt(0).toUpperCase() || "?";
+
   return (
     <div className="py-10">
       <Container>
-        <h1 className="text-3xl font-extrabold tracking-tight">{t.title}</h1>
-        <p className="mt-2 text-muted-foreground">{t.subtitle}</p>
+        <PageHeader icon={StoreIcon} title={t.title} subtitle={t.subtitle} />
 
-        <div className="mt-6 flex items-center gap-2 rounded-xl border border-border bg-surface px-4 sm:max-w-md">
-          <Search className="h-5 w-5 shrink-0 text-muted-foreground" />
-          <input
+        <div className="relative sm:max-w-md">
+          <Search className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t.search}
-            className="w-full bg-transparent py-2.5 text-sm outline-none placeholder:text-muted-foreground"
+            className="ps-10"
           />
         </div>
 
@@ -141,30 +152,35 @@ export function AdminStoresClient({
           ))}
         </div>
 
-        <p className="mt-6 text-sm text-muted-foreground">{filtered.length}</p>
+        <p className="mt-6 text-sm font-semibold text-muted-foreground">
+          {filtered.length}
+        </p>
 
         {filtered.length ? (
-          <div className="mt-2 space-y-3">
+          <div data-animate className="mt-2 space-y-3">
             {filtered.map((s) => (
-              <div
-                key={s.id}
-                className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-5 lg:flex-row lg:items-center lg:justify-between"
-              >
-                <div className="min-w-0">
+              <Card key={s.id}>
+                <CardBody className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex min-w-0 items-start gap-3">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-base font-extrabold text-primary">
+                    {initial(s.name)}
+                  </span>
+                  <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-bold">{s.name}</h3>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-bold ${statusStyle[s.status]}`}
-                    >
+                    <Badge variant={statusVariant[s.status]} size="sm">
                       {t.statusLabels[s.status]}
-                    </span>
+                    </Badge>
                     {s.isVerified && (
-                      <BadgeCheck className="h-4 w-4 text-primary" />
+                      <Badge variant="primary" size="sm">
+                        <BadgeCheck className="h-3 w-3" />
+                      </Badge>
                     )}
                     {s.plan === "pro" && (
-                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">
+                      <Badge variant="warning" size="sm">
+                        <Crown className="h-3 w-3" />
                         Pro
-                      </span>
+                      </Badge>
                     )}
                   </div>
                   <p className="mt-0.5 truncate text-sm text-muted-foreground">
@@ -183,6 +199,7 @@ export function AdminStoresClient({
                       )}
                     </p>
                   )}
+                  </div>
                 </div>
 
                 {(() => {
@@ -250,53 +267,57 @@ export function AdminStoresClient({
                     });
                   }
                   return (
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2 lg:shrink-0">
                       {s.status === "pending" && (
                         <>
-                          <button
+                          <Button
+                            size="sm"
                             disabled={busy === s.id}
                             onClick={() => patch(s.id, { status: "active" })}
-                            className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
+                            leftIcon={<Check className="h-4 w-4" />}
                           >
-                            <Check className="h-4 w-4" />
                             {dict.admin.approve}
-                          </button>
-                          <button
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="secondary"
                             disabled={busy === s.id}
                             onClick={() => {
                               if (window.confirm(dict.admin.confirmReject))
                                 patch(s.id, { status: "rejected" });
                             }}
-                            className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+                            leftIcon={<X className="h-4 w-4" />}
+                            className="!text-danger"
                           >
-                            <X className="h-4 w-4" />
                             {dict.admin.reject}
-                          </button>
+                          </Button>
                         </>
                       )}
                       {s.status === "active" && (
-                        <button
+                        <Button
+                          size="sm"
+                          variant="secondary"
                           disabled={busy === s.id}
                           onClick={() => {
                             if (window.confirm(dict.admin.confirmSuspend))
                               patch(s.id, { status: "suspended" });
                           }}
-                          className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+                          leftIcon={<Ban className="h-4 w-4" />}
+                          className="!text-danger"
                         >
-                          <Ban className="h-4 w-4" />
                           {t.suspend}
-                        </button>
+                        </Button>
                       )}
                       {(s.status === "suspended" ||
                         s.status === "rejected") && (
-                        <button
+                        <Button
+                          size="sm"
                           disabled={busy === s.id}
                           onClick={() => patch(s.id, { status: "active" })}
-                          className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
+                          leftIcon={<Play className="h-4 w-4" />}
                         >
-                          <Play className="h-4 w-4" />
                           {t.activate}
-                        </button>
+                        </Button>
                       )}
                       <OverflowMenu
                         actions={menuActions}
@@ -306,13 +327,12 @@ export function AdminStoresClient({
                     </div>
                   );
                 })()}
-              </div>
+                </CardBody>
+              </Card>
             ))}
           </div>
         ) : (
-          <div className="mt-6 rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
-            {t.empty}
-          </div>
+          <EmptyState icon={StoreIcon} title={t.empty} />
         )}
       </Container>
     </div>

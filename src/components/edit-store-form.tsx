@@ -16,6 +16,8 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { ImageUpload } from "@/components/image-upload";
 import { HoursEditor } from "@/components/hours-editor";
+import { fieldClass as uiFieldClass } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 import { parseHours } from "@/lib/hours";
 import { accentStyle } from "@/lib/color";
 
@@ -48,8 +50,8 @@ const ACCENT_PRESETS = [
   "#7c3aed", "#dc2626", "#059669", "#0891b2",
 ];
 
-const fieldClass =
-  "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
+// Shared control styling from the UI library, plus the label gap this form uses.
+const fieldClass = `${uiFieldClass} mt-1.5`;
 const labelClass = "text-sm font-semibold";
 
 export function EditStoreForm({
@@ -400,13 +402,9 @@ export function EditStoreForm({
 
       {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
-      >
+      <Button type="submit" full loading={loading}>
         {loading ? dict.merchant.saving : dict.merchant.save}
-      </button>
+      </Button>
     </form>
   );
 }

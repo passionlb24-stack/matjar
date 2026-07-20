@@ -5,6 +5,10 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
+import { ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 
 export default async function MyJobsPage({
@@ -45,38 +49,49 @@ export default async function MyJobsPage({
           <ChevronRight className="h-4 w-4 rtl:rotate-180" />
           {t.title}
         </Link>
-        <div className="mt-3 flex items-center justify-between gap-3">
-          <h1 className="text-3xl font-extrabold tracking-tight">
-            {t.myPostings}
-          </h1>
-          <Link
-            href={`/${lang}/jobs/new`}
-            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-          >
-            <Plus className="h-4 w-4" />
-            {t.postJob}
-          </Link>
-        </div>
+        <PageHeader
+          className="mt-3"
+          title={t.myPostings}
+          icon={Briefcase}
+          actions={
+            <ButtonLink
+              href={`/${lang}/jobs/new`}
+              leftIcon={<Plus className="h-4 w-4" />}
+            >
+              {t.postJob}
+            </ButtonLink>
+          }
+        />
 
         {jobs.length ? (
-          <div className="mt-8 space-y-3">
+          <div data-animate className="mt-6 space-y-3">
             {jobs.map((j) => (
-              <Link
+              <Card
                 key={j.id}
-                href={`/${lang}/jobs/${j.id}`}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-primary"
+                variant="interactive"
+                className="relative flex items-center justify-between gap-4 p-5"
               >
                 <div>
                   <p className="font-bold">{j.title}</p>
-                  <p className="mt-0.5 text-sm text-muted-foreground">
-                    {j.status === "active" ? t.statusActive : t.statusClosed}
+                  <p className="mt-0.5">
+                    <Badge
+                      variant={j.status === "active" ? "success" : "neutral"}
+                      size="sm"
+                    >
+                      {j.status === "active" ? t.statusActive : t.statusClosed}
+                    </Badge>
                   </p>
                 </div>
-                <span className="flex items-center gap-1.5 rounded-full bg-primary-soft px-3 py-1 text-sm font-bold text-primary">
+                <Badge variant="primary">
                   <Users className="h-4 w-4" />
                   {j.job_applications?.[0]?.count ?? 0}
-                </span>
-              </Link>
+                </Badge>
+                <Link
+                  href={`/${lang}/jobs/${j.id}`}
+                  aria-label={j.title}
+                  className="absolute inset-0"
+                />
+              </Card>
             ))}
           </div>
         ) : (

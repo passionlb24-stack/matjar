@@ -5,6 +5,8 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 import { MarkNotificationsRead } from "@/components/mark-notifications-read";
 
 type Notif = {
@@ -129,40 +131,45 @@ export default async function NotificationsPage({
     <div className="py-10">
       <Container className="max-w-3xl">
         <MarkNotificationsRead />
-        <h1 className="text-3xl font-extrabold tracking-tight">
-          {dict.notifications.title}
-        </h1>
+        <PageHeader title={dict.notifications.title} icon={Bell} />
 
         {notifs.length ? (
-          <div className="mt-8 space-y-2">
+          <div className="space-y-2">
             {notifs.map((n) => (
               <Link
                 key={n.id}
                 href={linkFor(n)}
-                className={`block rounded-2xl border p-4 transition-colors ${
+                className={`flex items-start gap-3 rounded-2xl border p-4 transition-colors ${
                   n.is_read
-                    ? "border-border bg-surface"
+                    ? "border-border bg-surface hover:border-primary/40"
                     : "border-primary/30 bg-primary-soft"
                 }`}
               >
-                <p className="font-semibold">{titleFor(n)}</p>
-                {n.type === "store_campaign" && n.data?.body?.trim() && (
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {n.data.body}
-                  </p>
+                <span
+                  className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+                    n.is_read
+                      ? "bg-surface-muted text-muted-foreground"
+                      : "bg-primary text-primary-foreground"
+                  }`}
+                >
+                  <Bell className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold">{titleFor(n)}</p>
+                  {n.type === "store_campaign" && n.data?.body?.trim() && (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {n.data.body}
+                    </p>
+                  )}
+                </div>
+                {!n.is_read && (
+                  <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-primary" />
                 )}
               </Link>
             ))}
           </div>
         ) : (
-          <div className="mt-8 rounded-2xl border border-dashed border-border py-16 text-center">
-            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-soft text-primary">
-              <Bell className="h-7 w-7" />
-            </span>
-            <p className="mt-4 text-muted-foreground">
-              {dict.notifications.empty}
-            </p>
-          </div>
+          <EmptyState icon={Bell} title={dict.notifications.empty} />
         )}
       </Container>
     </div>

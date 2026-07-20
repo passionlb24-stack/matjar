@@ -7,7 +7,9 @@ import {
   getMarketCities,
   getMarketRegions,
 } from "@/lib/data/market";
+import { Tag } from "lucide-react";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
 import { ListingForm, type ListingInitial } from "@/components/listing-form";
 
 const UUID_RE =
@@ -70,10 +72,8 @@ export default async function EditListingPage({
   return (
     <div className="py-10">
       <Container className="max-w-2xl">
-        <h1 className="text-3xl font-extrabold tracking-tight">
-          {dict.market.form.editTitle}
-        </h1>
-        <div className="mt-6">
+        <PageHeader title={dict.market.form.editTitle} icon={Tag} />
+        <div className="mt-2">
           <ListingForm
             lang={lang}
             dict={dict}

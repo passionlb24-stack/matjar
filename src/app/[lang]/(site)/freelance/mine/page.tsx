@@ -6,6 +6,10 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
+import { ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 
 export default async function MyGigsPage({
@@ -46,24 +50,27 @@ export default async function MyGigsPage({
           <ChevronRight className="h-4 w-4 rtl:rotate-180" />
           {t.title}
         </Link>
-        <div className="mt-3 flex items-center justify-between gap-3">
-          <h1 className="text-3xl font-extrabold tracking-tight">{t.myGigs}</h1>
-          <Link
-            href={`/${lang}/freelance/new`}
-            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-          >
-            <Plus className="h-4 w-4" />
-            {t.offerService}
-          </Link>
-        </div>
+        <PageHeader
+          className="mt-3"
+          title={t.myGigs}
+          icon={Sparkles}
+          actions={
+            <ButtonLink
+              href={`/${lang}/freelance/new`}
+              leftIcon={<Plus className="h-4 w-4" />}
+            >
+              {t.offerService}
+            </ButtonLink>
+          }
+        />
 
         {gigs.length ? (
-          <div className="mt-8 space-y-3">
+          <div data-animate className="mt-6 space-y-3">
             {gigs.map((g) => (
-              <Link
+              <Card
                 key={g.id}
-                href={`/${lang}/freelance/${g.id}`}
-                className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4 transition-colors hover:border-primary"
+                variant="interactive"
+                className="relative flex items-center gap-4 p-4"
               >
                 {g.image_url ? (
                   <Image
@@ -80,11 +87,21 @@ export default async function MyGigsPage({
                 )}
                 <div>
                   <p className="font-bold">{g.title}</p>
-                  <p className="mt-0.5 text-sm text-muted-foreground">
-                    {g.status === "active" ? t.statusActive : t.statusPaused}
+                  <p className="mt-1">
+                    <Badge
+                      variant={g.status === "active" ? "success" : "neutral"}
+                      size="sm"
+                    >
+                      {g.status === "active" ? t.statusActive : t.statusPaused}
+                    </Badge>
                   </p>
                 </div>
-              </Link>
+                <Link
+                  href={`/${lang}/freelance/${g.id}`}
+                  aria-label={g.title}
+                  className="absolute inset-0"
+                />
+              </Card>
             ))}
           </div>
         ) : (

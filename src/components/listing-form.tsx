@@ -14,10 +14,8 @@ import type {
   MarketRegion,
 } from "@/lib/data/market";
 import { ImageUpload } from "@/components/image-upload";
-
-const field =
-  "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
-const label = "text-sm font-semibold";
+import { Field, Input, Textarea, Select } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 
 export type ListingInitial = {
   title: string;
@@ -151,7 +149,7 @@ export function ListingForm({
     <div className="space-y-5 rounded-2xl border border-border bg-surface p-5 sm:p-6">
       {/* Images */}
       <div>
-        <span className={label}>{t.images}</span>
+        <span className="text-sm font-semibold">{t.images}</span>
         <p className="text-xs text-muted-foreground">{t.imagesHint}</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {images.map((url, i) => (
@@ -207,42 +205,36 @@ export function ListingForm({
         </div>
       </div>
 
-      <div>
-        <label className={label} htmlFor="title">{t.title}</label>
-        <input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t.titlePlaceholder} className={field} />
-      </div>
+      <Field label={t.title} htmlFor="title" required>
+        <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t.titlePlaceholder} />
+      </Field>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label className={label} htmlFor="price">{t.price}</label>
-          <input id="price" value={price} onChange={(e) => setPrice(e.target.value)} type="number" min="0" step="0.01" placeholder="0" className={field} />
-        </div>
-        <div>
-          <label className={label} htmlFor="category">{t.category}</label>
-          <select id="category" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={field}>
+        <Field label={t.price} htmlFor="price">
+          <Input id="price" value={price} onChange={(e) => setPrice(e.target.value)} type="number" min="0" step="0.01" placeholder="0" />
+        </Field>
+        <Field label={t.category} htmlFor="category">
+          <Select id="category" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
             <option value="">{t.selectCategory}</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
-          </select>
-        </div>
-        <div>
-          <label className={label} htmlFor="region">{t.region}</label>
-          <select id="region" value={region} onChange={(e) => setRegion(e.target.value)} className={field}>
+          </Select>
+        </Field>
+        <Field label={t.region} htmlFor="region">
+          <Select id="region" value={region} onChange={(e) => setRegion(e.target.value)}>
             <option value="">{t.selectRegion}</option>
             {regionList.map((r) => (
               <option key={r.key} value={r.key}>{r.name}</option>
             ))}
-          </select>
-        </div>
-        <div>
-          <label className={label} htmlFor="city">{t.city}</label>
-          <input
+          </Select>
+        </Field>
+        <Field label={t.city} htmlFor="city">
+          <Input
             id="city"
             list="market-cities"
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            className={field}
           />
           <datalist id="market-cities">
             {cities
@@ -251,44 +243,44 @@ export function ListingForm({
                 <option key={c.id} value={c.name} />
               ))}
           </datalist>
-        </div>
+        </Field>
       </div>
 
-      <div>
-        <label className={label} htmlFor="description">{t.description}</label>
-        <textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} placeholder={t.descriptionPlaceholder} className={field} />
-      </div>
+      <Field label={t.description} htmlFor="description">
+        <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} placeholder={t.descriptionPlaceholder} />
+      </Field>
 
       {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
       <div className="flex flex-wrap gap-2">
-        <button
+        <Button
           type="button"
-          disabled={busy || !title.trim()}
+          variant="primary"
+          disabled={!title.trim()}
+          loading={busy}
+          leftIcon={<Send className="h-4 w-4" />}
           onClick={() => submit("pending")}
-          className="flex items-center gap-1.5 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
         >
-          <Send className="h-4 w-4" />
           {busy ? t.saving : listingId ? t.update : t.publish}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="secondary"
           disabled={busy || !title.trim()}
+          leftIcon={<Eye className="h-4 w-4" />}
           onClick={() => setPreview(true)}
-          className="flex items-center gap-1.5 rounded-xl border border-border px-6 py-3 text-sm font-bold transition-colors hover:bg-surface-muted disabled:opacity-60"
         >
-          <Eye className="h-4 w-4" />
           {t.preview}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="secondary"
           disabled={busy || !title.trim()}
+          leftIcon={<Save className="h-4 w-4" />}
           onClick={() => submit("draft")}
-          className="flex items-center gap-1.5 rounded-xl border border-border px-6 py-3 text-sm font-bold transition-colors hover:bg-surface-muted disabled:opacity-60"
         >
-          <Save className="h-4 w-4" />
           {t.saveDraft}
-        </button>
+        </Button>
       </div>
 
       {preview && (

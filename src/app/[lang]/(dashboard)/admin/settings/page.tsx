@@ -4,6 +4,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
 import { AdminSettingsForm } from "@/components/admin-settings-form";
 
 export default async function AdminSettingsPage({
@@ -27,16 +28,12 @@ export default async function AdminSettingsPage({
   return (
     <div className="py-10">
       <Container>
-        <div className="flex items-center gap-2">
-          <Settings className="h-6 w-6 text-primary" />
-          <h1 className="text-3xl font-extrabold tracking-tight">
-            {dict.admin.platform.title}
-          </h1>
-        </div>
-        <p className="mt-2 text-muted-foreground">
-          {dict.admin.platform.subtitle}
-        </p>
-        <div className="mt-6">
+        <PageHeader
+          icon={Settings}
+          title={dict.admin.platform.title}
+          subtitle={dict.admin.platform.subtitle}
+        />
+        <div data-animate>
           <AdminSettingsForm dict={dict} initialRate={rate} />
         </div>
       </Container>

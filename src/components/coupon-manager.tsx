@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Pencil, Trash2, X, Ticket } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { fieldClass as uiFieldClass } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
 export type Coupon = {
@@ -38,8 +41,8 @@ const empty: Draft = {
   is_active: true,
 };
 
-const fieldClass =
-  "mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary";
+// Shared control styling from the UI library, plus the label gap this form uses.
+const fieldClass = `${uiFieldClass} mt-1`;
 const labelClass = "text-sm font-semibold";
 
 export function CouponManager({
@@ -175,17 +178,16 @@ export function CouponManager({
         </label>
       </div>
       <div className="flex gap-2">
-        <button
-          disabled={busy || !draft.code.trim() || !draft.value}
+        <Button
+          disabled={!draft.code.trim() || !draft.value}
+          loading={busy}
           onClick={save}
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
         >
           {busy ? t.saving : t.save}
-        </button>
-        <button onClick={cancel} className="flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted">
-          <X className="h-4 w-4" />
+        </Button>
+        <Button variant="secondary" onClick={cancel} leftIcon={<X className="h-4 w-4" />}>
           {t.cancel}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -195,10 +197,9 @@ export function CouponManager({
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-muted-foreground">{t.subtitle}</p>
         {editingId === null && (
-          <button onClick={startNew} className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover">
-            <Plus className="h-4 w-4" />
+          <Button onClick={startNew} className="shrink-0" leftIcon={<Plus className="h-4 w-4" />}>
             {t.add}
-          </button>
+          </Button>
         )}
       </div>
 
@@ -221,13 +222,13 @@ export function CouponManager({
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-mono font-bold">{c.code}</span>
-                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">
+                  <Badge variant="success" size="sm">
                     {c.type === "percent" ? `${c.value}%` : `$${c.value}`}
-                  </span>
+                  </Badge>
                   {!c.is_active && (
-                    <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-xs font-bold text-zinc-600">
+                    <Badge variant="neutral" size="sm">
                       {t.inactiveBadge}
-                    </span>
+                    </Badge>
                   )}
                 </div>
                 <p className="mt-0.5 text-xs text-muted-foreground">

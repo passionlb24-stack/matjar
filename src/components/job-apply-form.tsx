@@ -6,9 +6,8 @@ import { Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
-
-const field =
-  "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
+import { Input, Textarea } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 
 export function JobApplyForm({
   jobId,
@@ -71,23 +70,11 @@ export function JobApplyForm({
       className="space-y-3 rounded-2xl border border-border bg-surface p-5"
     >
       <h2 className="font-bold">{t.applyTitle}</h2>
-      <div>
-        <input name="phone" type="tel" inputMode="tel" placeholder={t.applyPhone} className={field} />
-      </div>
-      <div>
-        <input name="cv_url" type="url" placeholder={t.applyCv} className={field} dir="ltr" />
-      </div>
-      <div>
-        <textarea name="cover_note" rows={3} placeholder={t.applyNote} className={field} />
-      </div>
+      <Input name="phone" type="tel" inputMode="tel" placeholder={t.applyPhone} />
+      <Input name="cv_url" type="url" placeholder={t.applyCv} dir="ltr" />
+      <Textarea name="cover_note" rows={3} placeholder={t.applyNote} />
       {error && <p className="text-sm font-medium text-red-600">{error}</p>}
-      <button
-        type="submit"
-        disabled={loading}
-        className="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
-      >
-        {loading ? dict.account.saving : t.apply}
-      </button>
+      <Button type="submit" loading={loading}>{t.apply}</Button>
     </form>
   );
 }

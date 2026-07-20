@@ -9,6 +9,10 @@ import { createClient } from "@/lib/supabase/server";
 import { localeAlternates } from "@/lib/site";
 import { GIG_CATEGORIES, type Gig } from "@/lib/gigs";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
+import { ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export async function generateMetadata({
   params,
@@ -63,24 +67,21 @@ export default async function FreelancePage({
   return (
     <div className="py-10">
       <Container>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="flex items-center gap-2 text-3xl font-extrabold tracking-tight">
-              <Sparkles className="h-7 w-7 text-primary" />
-              {t.title}
-            </h1>
-            <p className="mt-2 text-muted-foreground">{t.subtitle}</p>
-          </div>
-          <Link
-            href={`/${lang}/freelance/new`}
-            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-          >
-            <Plus className="h-4 w-4" />
-            {t.offerService}
-          </Link>
-        </div>
+        <PageHeader
+          title={t.title}
+          subtitle={t.subtitle}
+          icon={Sparkles}
+          actions={
+            <ButtonLink
+              href={`/${lang}/freelance/new`}
+              leftIcon={<Plus className="h-4 w-4" />}
+            >
+              {t.offerService}
+            </ButtonLink>
+          }
+        />
 
-        <div className="mt-6 flex flex-wrap gap-2">
+        <div className="mt-2 flex flex-wrap gap-2">
           <Link href={`/${lang}/freelance`} className={chip(!cat)}>
             {t.allCategories}
           </Link>
@@ -96,27 +97,32 @@ export default async function FreelancePage({
         </div>
 
         {gigs.length ? (
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div
+            data-animate
+            className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+          >
             {gigs.map((g) => (
-              <Link
+              <Card
                 key={g.id}
-                href={`/${lang}/freelance/${g.id}`}
-                className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all hover:-translate-y-0.5 hover:shadow-md"
+                variant="interactive"
+                className="group relative flex flex-col overflow-hidden"
               >
-                {g.image_url ? (
-                  <Image
-                    src={g.image_url}
-                    alt={g.title}
-                    width={300}
-                    height={200}
-                    className="h-36 w-full object-cover"
-                    sizes="(max-width: 640px) 50vw, 25vw"
-                  />
-                ) : (
-                  <div className="flex h-36 w-full items-center justify-center bg-surface-muted">
-                    <ImageIcon className="h-9 w-9 text-black/10" />
-                  </div>
-                )}
+                <div className="relative overflow-hidden">
+                  {g.image_url ? (
+                    <Image
+                      src={g.image_url}
+                      alt={g.title}
+                      width={300}
+                      height={200}
+                      className="h-36 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      sizes="(max-width: 640px) 50vw, 25vw"
+                    />
+                  ) : (
+                    <div className="flex h-36 w-full items-center justify-center bg-surface-muted">
+                      <ImageIcon className="h-9 w-9 text-black/10" />
+                    </div>
+                  )}
+                </div>
                 <div className="flex flex-1 flex-col p-3">
                   {g.category && (
                     <span className="text-xs font-semibold text-muted-foreground">
@@ -124,7 +130,7 @@ export default async function FreelancePage({
                         g.category}
                     </span>
                   )}
-                  <h2 className="mt-0.5 line-clamp-2 text-sm font-bold leading-tight group-hover:text-primary">
+                  <h2 className="mt-0.5 line-clamp-2 text-sm font-bold leading-tight transition-colors group-hover:text-primary">
                     {g.title}
                   </h2>
                   <div className="mt-auto flex items-center justify-between pt-2">
@@ -142,16 +148,21 @@ export default async function FreelancePage({
                     )}
                   </div>
                 </div>
-              </Link>
+                <Link
+                  href={`/${lang}/freelance/${g.id}`}
+                  aria-label={g.title}
+                  className="absolute inset-0 z-0"
+                />
+              </Card>
             ))}
           </div>
         ) : (
-          <div className="mt-8 rounded-2xl border border-dashed border-border py-16 text-center">
-            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-soft text-primary">
-              <Sparkles className="h-7 w-7" />
-            </span>
-            <p className="mt-4 text-muted-foreground">{t.empty}</p>
-          </div>
+          <EmptyState
+            className="mt-8"
+            icon={Sparkles}
+            title={t.empty}
+            action={{ href: `/${lang}/freelance/new`, label: t.offerService }}
+          />
         )}
       </Container>
     </div>

@@ -7,10 +7,8 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { regions } from "@/lib/catalog";
 import { JOB_TYPES } from "@/lib/jobs";
-
-const field =
-  "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
-const label = "text-sm font-semibold";
+import { Field, Input, Textarea, Select } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 
 export function JobPostForm({
   lang,
@@ -67,55 +65,42 @@ export function JobPostForm({
       onSubmit={onSubmit}
       className="space-y-4 rounded-2xl border border-border bg-surface p-6 shadow-sm"
     >
-      <div>
-        <label className={label} htmlFor="title">{t.jobTitle}</label>
-        <input id="title" name="title" type="text" required placeholder={t.jobTitlePlaceholder} className={field} />
-      </div>
-      <div>
-        <label className={label} htmlFor="company_name">{t.company}</label>
-        <input id="company_name" name="company_name" type="text" required defaultValue={defaultCompany} className={field} />
-      </div>
+      <Field label={t.jobTitle} htmlFor="title" required>
+        <Input id="title" name="title" type="text" required placeholder={t.jobTitlePlaceholder} />
+      </Field>
+      <Field label={t.company} htmlFor="company_name" required>
+        <Input id="company_name" name="company_name" type="text" required defaultValue={defaultCompany} />
+      </Field>
       <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label className={label} htmlFor="region">{t.region}</label>
-          <select id="region" name="region" defaultValue="" className={field}>
+        <Field label={t.region} htmlFor="region">
+          <Select id="region" name="region" defaultValue="">
             <option value="">{t.selectRegion}</option>
             {regions.map((r) => (
               <option key={r.key} value={r.key}>{r.name[lang]}</option>
             ))}
-          </select>
-        </div>
-        <div>
-          <label className={label} htmlFor="job_type">{t.type}</label>
-          <select id="job_type" name="job_type" defaultValue="" className={field}>
+          </Select>
+        </Field>
+        <Field label={t.type} htmlFor="job_type">
+          <Select id="job_type" name="job_type" defaultValue="">
             <option value="">{t.selectType}</option>
             {JOB_TYPES.map((ty) => (
               <option key={ty} value={ty}>{t.types[ty]}</option>
             ))}
-          </select>
-        </div>
+          </Select>
+        </Field>
       </div>
-      <div>
-        <label className={label} htmlFor="salary_note">{t.salary}</label>
-        <input id="salary_note" name="salary_note" type="text" placeholder={t.salaryPlaceholder} className={field} />
-      </div>
-      <div>
-        <label className={label} htmlFor="description">{t.description}</label>
-        <textarea id="description" name="description" rows={5} required placeholder={t.descriptionPlaceholder} className={field} />
-      </div>
-      <div>
-        <label className={label} htmlFor="how_to_apply">{t.howToApply}</label>
-        <input id="how_to_apply" name="how_to_apply" type="text" placeholder={t.howToApplyPlaceholder} className={field} />
-      </div>
+      <Field label={t.salary} htmlFor="salary_note">
+        <Input id="salary_note" name="salary_note" type="text" placeholder={t.salaryPlaceholder} />
+      </Field>
+      <Field label={t.description} htmlFor="description" required>
+        <Textarea id="description" name="description" rows={5} required placeholder={t.descriptionPlaceholder} />
+      </Field>
+      <Field label={t.howToApply} htmlFor="how_to_apply">
+        <Input id="how_to_apply" name="how_to_apply" type="text" placeholder={t.howToApplyPlaceholder} />
+      </Field>
 
       {error && <p className="text-sm font-medium text-red-600">{error}</p>}
-      <button
-        type="submit"
-        disabled={loading}
-        className="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
-      >
-        {loading ? dict.account.saving : t.publish}
-      </button>
+      <Button type="submit" loading={loading}>{t.publish}</Button>
     </form>
   );
 }

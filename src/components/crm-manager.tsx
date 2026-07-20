@@ -13,6 +13,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { notifyError, notifySuccess } from "@/lib/notify";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
@@ -38,11 +40,14 @@ export type DerivedCustomer = {
 
 type RedemptionSettingsRow = { enabled: boolean; points_per_unit: number };
 
-const statusStyle: Record<BookCustomer["status"], string> = {
-  new: "bg-sky-100 text-sky-700",
-  regular: "bg-primary-soft text-primary",
-  vip: "bg-amber-100 text-amber-700",
-  inactive: "bg-zinc-100 text-zinc-500",
+const statusVariant: Record<
+  BookCustomer["status"],
+  "info" | "primary" | "warning" | "neutral"
+> = {
+  new: "info",
+  regular: "primary",
+  vip: "warning",
+  inactive: "neutral",
 };
 
 function waHref(phone: string) {
@@ -300,14 +305,14 @@ export function CrmManager({
               dir="ltr"
               className="w-40 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
             />
-            <button
+            <Button
               type="submit"
-              disabled={busy || !name.trim()}
-              className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+              loading={busy}
+              disabled={!name.trim()}
+              leftIcon={<Plus className="h-4 w-4" />}
             >
-              <Plus className="h-4 w-4" />
               {t.add}
-            </button>
+            </Button>
           </form>
 
           {filteredBook.length ? (
@@ -329,11 +334,9 @@ export function CrmManager({
                         </span>
                       )}
                     </span>
-                    <span
-                      className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${statusStyle[c.status]}`}
-                    >
+                    <Badge variant={statusVariant[c.status]} size="sm" className="shrink-0">
                       {t.status[c.status]}
-                    </span>
+                    </Badge>
                     {c.phone && (
                       <a
                         href={waHref(c.phone)}
@@ -431,10 +434,10 @@ export function CrmManager({
                     </span>
                   </span>
                   {points > 0 && (
-                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-bold text-primary">
+                    <Badge variant="primary" size="sm" className="shrink-0">
                       <Sparkles className="h-3.5 w-3.5" />
                       {points.toLocaleString("en-US")} {t.points}
-                    </span>
+                    </Badge>
                   )}
                   <span className="shrink-0 font-bold text-primary">
                     {formatPrice(c.total)}
@@ -581,21 +584,18 @@ function RedeemControl({
           className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
         />
       </label>
-      <button
+      <Button
         type="button"
+        size="sm"
         onClick={submit}
-        disabled={busy || !points}
-        className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+        loading={busy}
+        disabled={!points}
       >
         {t.redeemConfirm}
-      </button>
-      <button
-        type="button"
-        onClick={() => setOpen(false)}
-        className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
-      >
+      </Button>
+      <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)}>
         {t.cancel}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -682,14 +682,16 @@ function RedemptionSettings({
             />
           </label>
         )}
-        <button
+        <Button
           type="button"
+          size="sm"
           onClick={save}
-          disabled={busy || !Math.floor(Number(rate))}
-          className="ms-auto rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+          loading={busy}
+          disabled={!Math.floor(Number(rate))}
+          className="ms-auto"
         >
           {t.save}
-        </button>
+        </Button>
       </div>
     </section>
   );

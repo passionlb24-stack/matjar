@@ -4,6 +4,11 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { PageHeader } from "@/components/ui/page-header";
+import { Stat, StatGrid } from "@/components/ui/stat";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { OrderPayments, type OrderPayment } from "@/components/order-payments";
 
 type OrderRow = {
@@ -102,102 +107,107 @@ export default async function AdminOrdersPage({
     paymentsByOrder.set(p.order_id, list);
   });
 
-  const cards = [
-    {
-      Icon: TrendingUp,
-      label: t.totalCollected,
-      value: money(collected),
-      tone: "text-emerald-600",
-    },
-    {
-      Icon: Undo2,
-      label: t.totalRefunded,
-      value: money(refunded),
-      tone: "text-red-600",
-    },
-    {
-      Icon: Coins,
-      label: t.netRevenue,
-      value: money(net),
-      tone: "text-foreground",
-    },
-    {
-      Icon: Receipt,
-      label: t.orderCount,
-      value: String(orderCount ?? 0),
-      tone: "text-primary",
-    },
-  ];
+  const orderStatus = dict.orders.status as Record<string, string>;
+  const statusVariant: Record<
+    string,
+    "neutral" | "primary" | "success" | "warning" | "danger" | "info"
+  > = {
+    pending: "warning",
+    accepted: "info",
+    preparing: "info",
+    ready: "primary",
+    out_for_delivery: "primary",
+    completed: "success",
+    cancelled: "neutral",
+    rejected: "danger",
+  };
 
   return (
     <div className="py-10">
       <Container>
-        <h1 className="text-3xl font-extrabold tracking-tight">{t.title}</h1>
-        <p className="mt-2 text-muted-foreground">{t.subtitle}</p>
+        <PageHeader icon={Receipt} title={t.title} subtitle={t.subtitle} />
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {cards.map((c) => (
-            <div
-              key={c.label}
-              className="rounded-2xl border border-border bg-surface p-4"
-            >
-              <c.Icon className={`h-5 w-5 ${c.tone}`} />
-              <div className={`mt-2 text-2xl font-extrabold ${c.tone}`}>
-                {c.value}
-              </div>
-              <div className="text-xs font-semibold text-muted-foreground">
-                {c.label}
-              </div>
-            </div>
-          ))}
-        </div>
+        <div data-animate className="space-y-8">
+          <StatGrid>
+            <Stat
+              label={t.totalCollected}
+              value={money(collected)}
+              icon={<TrendingUp className="text-success" />}
+            />
+            <Stat
+              label={t.totalRefunded}
+              value={money(refunded)}
+              icon={<Undo2 className="text-danger" />}
+            />
+            <Stat
+              label={t.netRevenue}
+              value={money(net)}
+              icon={<Coins />}
+            />
+            <Stat
+              label={t.orderCount}
+              value={(orderCount ?? 0).toLocaleString("en-US")}
+              icon={<Receipt className="text-primary" />}
+            />
+          </StatGrid>
 
-        {orders.length ? (
-          <div className="mt-8 space-y-3">
-            {orders.map((order) => {
-              const branch =
-                order.location_id &&
-                (branchCountByStore.get(order.store_id) ?? 0) > 1
-                  ? locationById.get(order.location_id)
-                  : undefined;
-              return (
-                <div
-                  key={order.id}
-                  className="rounded-2xl border border-border bg-surface p-4"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                    <span className="min-w-0 font-semibold text-muted-foreground">
-                      #{order.id.slice(0, 8)}
-                      <span className="ms-2 font-bold text-foreground">
-                        {order.stores?.name ?? "—"}
-                      </span>
-                      {order.customer_name && (
-                        <span className="ms-2">· {order.customer_name}</span>
-                      )}
-                      {branch && (
-                        <span className="ms-2 whitespace-nowrap rounded-full bg-surface-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
-                          {branch.name || branch.area
-                            ? `${dict.os.branches.branchLabel}: ${branch.name || branch.area}`
-                            : dict.os.branches.branchLabel}
+          {orders.length ? (
+            <Card>
+              <div className="divide-y divide-border">
+                {orders.map((order) => {
+                  const branch =
+                    order.location_id &&
+                    (branchCountByStore.get(order.store_id) ?? 0) > 1
+                      ? locationById.get(order.location_id)
+                      : undefined;
+                  return (
+                    <div
+                      key={order.id}
+                      className="p-4 transition-colors hover:bg-surface-muted"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                        <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
+                          <span dir="ltr" className="font-mono text-xs">
+                            #{order.id.slice(0, 8)}
+                          </span>
+                          <span className="font-bold text-foreground">
+                            {order.stores?.name ?? "—"}
+                          </span>
+                          {order.customer_name && (
+                            <span>· {order.customer_name}</span>
+                          )}
+                          <Badge
+                            variant={statusVariant[order.status] ?? "neutral"}
+                            size="sm"
+                          >
+                            {orderStatus[order.status] ?? order.status}
+                          </Badge>
+                          {branch && (
+                            <Badge variant="neutral" size="sm">
+                              {branch.name || branch.area
+                                ? `${dict.os.branches.branchLabel}: ${branch.name || branch.area}`
+                                : dict.os.branches.branchLabel}
+                            </Badge>
+                          )}
                         </span>
-                      )}
-                    </span>
-                    <span className="font-bold">{money(order.total)}</span>
-                  </div>
-                  <OrderPayments
-                    orderId={order.id}
-                    payments={paymentsByOrder.get(order.id) ?? []}
-                    dict={dict}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="mt-8 rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
-            {t.empty}
-          </div>
-        )}
+                        <span className="font-bold tabular-nums">
+                          {money(order.total)}
+                        </span>
+                      </div>
+                      <OrderPayments
+                        orderId={order.id}
+                        payments={paymentsByOrder.get(order.id) ?? []}
+                        dict={dict}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+          ) : (
+            <EmptyState icon={Receipt} title={t.empty} />
+          )}
+        </div>
       </Container>
     </div>
   );

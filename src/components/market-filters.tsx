@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, SlidersHorizontal, BellPlus, Check } from "lucide-react";
+import { SlidersHorizontal, BellPlus, Check } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
@@ -13,6 +13,8 @@ import type {
   MarketCity,
   MarketRegion,
 } from "@/lib/data/market";
+import { Input, Select } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 
 export type MarketFilterValues = {
   q: string;
@@ -24,9 +26,6 @@ export type MarketFilterValues = {
   datePosted: string;
   sort: string;
 };
-
-const field =
-  "rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary";
 
 export function MarketFilters({
   lang,
@@ -114,18 +113,17 @@ export function MarketFilters({
           e.preventDefault();
           navigate();
         }}
-        className="flex items-center gap-2 rounded-xl border border-border bg-surface px-4"
+        className="flex items-center gap-2"
       >
-        <Search className="h-5 w-5 shrink-0 text-muted-foreground" />
-        <input
+        <Input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={t.search}
-          className="w-full bg-transparent py-2.5 text-sm outline-none placeholder:text-muted-foreground"
+          className="flex-1"
         />
-        <button type="submit" className="shrink-0 rounded-lg bg-primary px-4 py-1.5 text-sm font-bold text-primary-foreground">
+        <Button type="submit" size="sm">
           {t.search.replace("…", "")}
-        </button>
+        </Button>
       </form>
 
       <div className="flex flex-wrap gap-2">
@@ -154,15 +152,17 @@ export function MarketFilters({
 
       <div className="flex flex-wrap items-end gap-2 rounded-xl border border-border bg-surface-muted/40 p-3">
         <SlidersHorizontal className="h-4 w-4 self-center text-muted-foreground" />
-        <select value={region} onChange={(e) => setRegion(e.target.value)} className={field}>
+        <Select value={region} onChange={(e) => setRegion(e.target.value)} className="w-40">
           <option value="all">{t.allRegions}</option>
           {regionList.map((r) => (
             <option key={r.key} value={r.key}>
               {r.name}
             </option>
           ))}
-        </select>
-        <input value={city} onChange={(e) => setCity(e.target.value)} list="market-filter-cities" placeholder={t.city} className={`${field} w-28`} />
+        </Select>
+        <div className="w-28">
+          <Input value={city} onChange={(e) => setCity(e.target.value)} list="market-filter-cities" placeholder={t.city} />
+        </div>
         <datalist id="market-filter-cities">
           {cities
             .filter((c) => region === "all" || c.region === region)
@@ -170,38 +170,45 @@ export function MarketFilters({
               <option key={c.id} value={c.name} />
             ))}
         </datalist>
-        <input value={priceMin} onChange={(e) => setPriceMin(e.target.value)} type="number" min="0" placeholder={t.priceMin} className={`${field} w-24`} />
-        <input value={priceMax} onChange={(e) => setPriceMax(e.target.value)} type="number" min="0" placeholder={t.priceMax} className={`${field} w-24`} />
-        <select value={datePosted} onChange={(e) => setDatePosted(e.target.value)} className={field}>
+        <div className="w-24">
+          <Input value={priceMin} onChange={(e) => setPriceMin(e.target.value)} type="number" min="0" placeholder={t.priceMin} />
+        </div>
+        <div className="w-24">
+          <Input value={priceMax} onChange={(e) => setPriceMax(e.target.value)} type="number" min="0" placeholder={t.priceMax} />
+        </div>
+        <Select value={datePosted} onChange={(e) => setDatePosted(e.target.value)} className="w-32">
           <option value="any">{t.dateAny}</option>
           <option value="24h">{t.date24h}</option>
           <option value="7d">{t.date7d}</option>
           <option value="30d">{t.date30d}</option>
-        </select>
-        <select value={sort} onChange={(e) => setSort(e.target.value)} className={field}>
+        </Select>
+        <Select value={sort} onChange={(e) => setSort(e.target.value)} className="w-40">
           <option value="newest">{t.sortNewest}</option>
           <option value="oldest">{t.sortOldest}</option>
           <option value="cheapest">{t.sortCheapest}</option>
           <option value="expensive">{t.sortExpensive}</option>
-        </select>
-        <button onClick={() => navigate()} className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">
+        </Select>
+        <Button size="sm" onClick={() => navigate()}>
           {t.sort}
-        </button>
+        </Button>
       </div>
 
       {hasCriteria && (
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           onClick={saveSearch}
           disabled={saved}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-sm font-semibold transition-colors hover:border-primary hover:text-primary disabled:opacity-70"
+          leftIcon={
+            saved ? (
+              <Check className="h-4 w-4 text-primary" />
+            ) : (
+              <BellPlus className="h-4 w-4" />
+            )
+          }
         >
-          {saved ? (
-            <Check className="h-4 w-4 text-primary" />
-          ) : (
-            <BellPlus className="h-4 w-4" />
-          )}
           {saved ? t.searchSaved : t.saveSearch}
-        </button>
+        </Button>
       )}
     </div>
   );
