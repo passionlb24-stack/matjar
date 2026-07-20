@@ -12,6 +12,17 @@ const field =
   "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
 const label = "text-sm font-semibold";
 
+// A URL-friendly slug from the store name (latin/digits only). Arabic-only names
+// yield "" — the merchant then just types their own handle. Kept in sync with the
+// DB format rule in migration 0115 (a-z0-9-, trimmed).
+function slugify(s: string) {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 30);
+}
+
 export function StoreForm({
   lang,
   dict,
@@ -26,6 +37,9 @@ export function StoreForm({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Vanity handle, auto-suggested from the name until the merchant edits it.
+  const [slug, setSlug] = useState("");
+  const [slugEdited, setSlugEdited] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -59,6 +73,7 @@ export function StoreForm({
       .insert({
         owner_id: user.id,
         name,
+        slug: slug.trim().toLowerCase() || null,
         business_type_id: businessType,
         region: String(form.get("region")) || null,
         area: String(form.get("area")) || null,
@@ -70,12 +85,20 @@ export function StoreForm({
       .single();
     if (error || !created?.id) {
       // Map the common failures to a clear message; fall back to the raw reason.
+      // A 23505 can come from the name OR the slug unique index — disambiguate.
+      const msg = error?.message ?? "";
       setError(
-        error?.code === "23505"
-          ? dict.merchant.storeNameTaken
-          : error?.message
-            ? `${dict.merchant.createFailed} (${error.message})`
-            : dict.auth.errorGeneric,
+        msg.includes("stores_slug_unique")
+          ? dict.merchant.customLinkTaken
+          : msg.includes("slug_reserved")
+            ? dict.merchant.customLinkReserved
+            : msg.includes("slug_invalid")
+              ? dict.merchant.customLinkInvalid
+              : error?.code === "23505"
+                ? dict.merchant.storeNameTaken
+                : error?.message
+                  ? `${dict.merchant.createFailed} (${error.message})`
+                  : dict.auth.errorGeneric,
       );
       setLoading(false);
       return;
@@ -93,7 +116,46 @@ export function StoreForm({
         <label className={label} htmlFor="name">
           {dict.merchant.storeName}
         </label>
-        <input id="name" name="name" type="text" required placeholder={dict.merchant.storeNamePlaceholder} className={field} />
+        <input
+          id="name"
+          name="name"
+          type="text"
+          required
+          placeholder={dict.merchant.storeNamePlaceholder}
+          className={field}
+          onChange={(e) => {
+            if (!slugEdited) setSlug(slugify(e.target.value));
+          }}
+        />
+      </div>
+
+      <div>
+        <label className={label} htmlFor="slug">
+          {dict.merchant.customLink}
+        </label>
+        <div className="mt-1.5 flex items-stretch overflow-hidden rounded-xl border border-border bg-surface transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
+          <span
+            dir="ltr"
+            className="flex select-none items-center whitespace-nowrap border-e border-border bg-surface-muted px-3 text-sm text-muted-foreground"
+          >
+            matjarlb.com/
+          </span>
+          <input
+            id="slug"
+            dir="ltr"
+            value={slug}
+            onChange={(e) => {
+              setSlugEdited(true);
+              setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""));
+            }}
+            placeholder="passion"
+            maxLength={30}
+            className="w-full bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground"
+          />
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {dict.merchant.customLinkHint}
+        </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
