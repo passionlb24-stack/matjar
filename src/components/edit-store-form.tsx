@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Check, Copy } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { revalidateStores } from "@/lib/cache-actions";
 import type { Locale } from "@/i18n/config";
@@ -14,6 +15,7 @@ type Option = { value: string; label: string };
 
 type Initial = {
   name: string;
+  slug: string | null;
   description: string | null;
   business_type_id: string | null;
   region: string | null;
@@ -54,6 +56,20 @@ export function EditStoreForm({
   const [error, setError] = useState<string | null>(null);
   const [logo, setLogo] = useState<string | null>(initial.logo_url);
   const [cover, setCover] = useState<string | null>(initial.cover_url);
+  // Vanity handle: matjarlb.com/<slug>. Sanitised to a-z0-9- as the user types;
+  // the DB (migration 0115) is the final authority on format/reserved/uniqueness.
+  const [slug, setSlug] = useState(initial.slug ?? "");
+  const [copied, setCopied] = useState(false);
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(`https://matjarlb.com/${slug.trim()}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard blocked (rare); the link is visible for manual copy anyway.
+    }
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -65,6 +81,7 @@ export function EditStoreForm({
       .from("stores")
       .update({
         name: String(form.get("name")),
+        slug: slug.trim().toLowerCase() || null,
         description: String(form.get("description")) || null,
         business_type_id: String(form.get("business_type_id")) || null,
         region: String(form.get("region")) || null,
@@ -83,7 +100,16 @@ export function EditStoreForm({
       })
       .eq("id", storeId);
     if (error) {
-      setError(dict.auth.errorGeneric);
+      const msg = error.message ?? "";
+      setError(
+        error.code === "23505" || msg.includes("stores_slug_unique")
+          ? dict.merchant.customLinkTaken
+          : msg.includes("slug_reserved")
+            ? dict.merchant.customLinkReserved
+            : msg.includes("slug_invalid")
+              ? dict.merchant.customLinkInvalid
+              : dict.auth.errorGeneric,
+      );
       setLoading(false);
       return;
     }
@@ -107,6 +133,49 @@ export function EditStoreForm({
           {dict.merchant.storeName}
         </label>
         <input id="name" name="name" type="text" required defaultValue={initial.name} className={fieldClass} />
+      </div>
+
+      <div>
+        <label className={labelClass} htmlFor="slug">
+          {dict.merchant.customLink}
+        </label>
+        <div className="mt-1.5 flex items-stretch overflow-hidden rounded-xl border border-border bg-surface transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
+          <span
+            dir="ltr"
+            className="flex select-none items-center whitespace-nowrap border-e border-border bg-surface-muted px-3 text-sm text-muted-foreground"
+          >
+            matjarlb.com/
+          </span>
+          <input
+            id="slug"
+            dir="ltr"
+            value={slug}
+            onChange={(e) =>
+              setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
+            }
+            placeholder="passion"
+            maxLength={30}
+            className="w-full bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground"
+          />
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {dict.merchant.customLinkHint}
+        </p>
+        {slug.trim().length >= 3 && (
+          <button
+            type="button"
+            onClick={copyLink}
+            dir="ltr"
+            className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold transition-colors hover:border-primary hover:text-primary"
+          >
+            {copied ? (
+              <Check className="h-3.5 w-3.5 text-primary" />
+            ) : (
+              <Copy className="h-3.5 w-3.5" />
+            )}
+            matjarlb.com/{slug.trim()}
+          </button>
+        )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

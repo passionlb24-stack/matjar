@@ -11,16 +11,20 @@ import { share } from "@/lib/native";
 export function ShareButton({
   title,
   dict,
+  url,
 }: {
   title: string;
   dict: Dictionary;
+  // Preferred share URL (e.g. the store's vanity link). Falls back to the
+  // current page when omitted.
+  url?: string;
 }) {
   const [copied, setCopied] = useState(false);
+  const shareUrl = () => url ?? window.location.href;
 
   function whatsappShare() {
-    const url = window.location.href;
     window.open(
-      `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`,
+      `https://wa.me/?text=${encodeURIComponent(`${title} ${shareUrl()}`)}`,
       "_blank",
       "noopener,noreferrer",
     );
@@ -29,7 +33,7 @@ export function ShareButton({
   async function nativeShareOrCopy() {
     // Native share sheet in the app, Web Share API in the browser, clipboard
     // as a last resort — the helper picks the best available channel.
-    const result = await share({ title, url: window.location.href });
+    const result = await share({ title, url: shareUrl() });
     if (result === "copied") {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);

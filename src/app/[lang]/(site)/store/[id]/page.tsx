@@ -40,6 +40,7 @@ function formatPrice(price: number) {
 
 type StoreView = {
   name: string;
+  slug?: string | null;
   category: CategoryKey;
   area: string | null;
   description: string | null;
@@ -101,7 +102,7 @@ const loadStore = cache(async function loadStore(
     const supabase = await createClient();
     const { data } = await supabase
       .from("stores")
-      .select("name, description, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, hours, booking_slot_minutes, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, loyalty_redemption_enabled, loyalty_points_per_unit, business_types(slug)")
+      .select("name, slug, description, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, hours, booking_slot_minutes, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, loyalty_redemption_enabled, loyalty_points_per_unit, business_types(slug)")
       .eq("id", id)
       .is("deleted_at", null)
       .maybeSingle();
@@ -124,6 +125,7 @@ const loadStore = cache(async function loadStore(
         .order("sort_order", { ascending: true });
       return {
         name: data.name as string,
+        slug: (data.slug as string | null) ?? null,
         category: (bt?.slug as CategoryKey) ?? "retail",
         area: (data.area as string | null) ?? null,
         description: (data.description as string | null) ?? null,
@@ -570,7 +572,15 @@ export default async function StorePage({
                   dict={dict}
                 />
               )}
-              <ShareButton title={store.name} dict={dict} />
+              <ShareButton
+                title={store.name}
+                dict={dict}
+                url={
+                  store.slug
+                    ? `${SITE_URL}/${lang}/${store.slug}`
+                    : `${SITE_URL}/${lang}/store/${id}`
+                }
+              />
               {store.isReal && (
                 <MessageStoreButton storeId={id} lang={lang} dict={dict} />
               )}
