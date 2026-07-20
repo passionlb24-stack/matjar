@@ -16,7 +16,7 @@ const statusStyle: Record<string, string> = {
   active: "bg-success-soft text-success",
   pending: "bg-warning-soft text-warning",
   sold: "bg-zinc-800 text-white",
-  expired: "bg-orange-100 text-orange-700",
+  expired: "bg-warning-soft text-warning",
   rejected: "bg-danger-soft text-danger",
   draft: "bg-zinc-200 text-zinc-600",
 };

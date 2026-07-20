@@ -139,20 +139,20 @@ export default async function StoreSubscriptionPage({
 
         {/* Upgrade CTA for free stores (kept visible during the trial). */}
         {!isPro && (
-          <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 p-6">
+          <div className="mt-4 rounded-2xl border border-warning/30 bg-warning-soft p-6">
             <h2 className="flex items-center gap-2 text-lg font-extrabold">
               <Crown className="h-5 w-5 text-amber-500" />
               {t.upgradeTitle}
             </h2>
-            <p className="mt-2 text-sm text-amber-900/80">{t.upgradeBody}</p>
+            <p className="mt-2 text-sm text-warning/80">{t.upgradeBody}</p>
             <p className="mt-3 flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-amber-900">
+              <span className="text-3xl font-extrabold text-warning">
                 ${PRO_PRICE_MONTHLY}
               </span>
-              <span className="text-sm font-semibold text-amber-900/70">
+              <span className="text-sm font-semibold text-warning/70">
                 {dict.pricing.perMonth}
               </span>
-              <span className="text-sm font-bold text-amber-700">
+              <span className="text-sm font-bold text-warning">
                 · ${PRO_PRICE_YEARLY}
                 {dict.pricing.perYear}
               </span>
@@ -161,7 +161,7 @@ export default async function StoreSubscriptionPage({
               {dict.os.pro.benefits.map((b) => (
                 <li
                   key={b}
-                  className="flex items-start gap-2 text-sm font-medium text-amber-900"
+                  className="flex items-start gap-2 text-sm font-medium text-warning"
                 >
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
                   {b}
@@ -173,7 +173,7 @@ export default async function StoreSubscriptionPage({
               requestLabel={t.requestUpgrade}
               sentLabel={t.requestSent}
             />
-            <p className="mt-2 text-xs text-amber-900/70">{t.requestNote}</p>
+            <p className="mt-2 text-xs text-warning/70">{t.requestNote}</p>
           </div>
         )}
 

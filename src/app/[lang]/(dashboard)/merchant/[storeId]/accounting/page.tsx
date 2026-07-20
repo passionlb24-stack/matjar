@@ -155,12 +155,12 @@ export default async function AccountingPage({
         {supplierDues > 0 && (
           <Link
             href={`/${lang}/merchant/${storeId}/suppliers`}
-            className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 transition-colors hover:border-amber-400"
+            className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-warning/30 bg-warning-soft p-4 transition-colors hover:border-warning/50"
           >
-            <span className="text-sm font-bold text-amber-800">
+            <span className="text-sm font-bold text-warning">
               {dict.os.finance.supplierDues}
             </span>
-            <span className="text-lg font-extrabold tabular-nums text-amber-800">
+            <span className="text-lg font-extrabold tabular-nums text-warning">
               {money(supplierDues)}
             </span>
           </Link>
