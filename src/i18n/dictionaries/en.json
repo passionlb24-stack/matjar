@@ -36,6 +36,38 @@
     "account": "Account"
   },
   "os": {
+    "campaigns": {
+      "link": "Campaigns",
+      "title": "Marketing campaigns",
+      "subtitle": "Send an offer or announcement to your store's audience — it lands as an in-app notification and a phone push, fully automatic.",
+      "composeTitle": "New campaign",
+      "audienceLabel": "Who gets it?",
+      "audiences": {
+        "all": "Everyone",
+        "followers": "Followers",
+        "customers": "Past customers"
+      },
+      "recipientsUnit": "people",
+      "titleLabel": "Title",
+      "optional": "(optional)",
+      "titleHint": "e.g. Weekend offer 🎉",
+      "bodyLabel": "Message",
+      "bodyHint": "e.g. 20% off everything this weekend — order now!",
+      "linkLabel": "Link",
+      "linkHint": "e.g. /ar/store/... or an offer page",
+      "send": "Send campaign",
+      "willReach": "Reaches about {n} people",
+      "sentToast": "Sent to {n} 🎉",
+      "recentTitle": "Recent campaigns",
+      "recentEmpty": "You haven't sent any campaigns yet.",
+      "sentCount": "Sent to {n}",
+      "errors": {
+        "rate_limited": "You already sent a campaign recently — please try again in a few hours.",
+        "empty_body": "Write a message before sending.",
+        "bad_audience": "Pick a valid audience.",
+        "not_authorized": "You're not allowed to send campaigns for this store."
+      }
+    },
     "automations": {
       "link": "Automations",
       "title": "Automations",
@@ -1852,7 +1884,8 @@
     "listingRejected": "Your Sunday Market listing was rejected",
     "listingMatch": "A new listing matches your saved search 🔔",
     "message": "New message 💬",
-    "storeNew": "A new store is awaiting review 🏪"
+    "storeNew": "A new store is awaiting review 🏪",
+    "storeCampaign": "New offer from a store you follow 📣"
   },
   "dashboard": {
     "panel": "Dashboard",

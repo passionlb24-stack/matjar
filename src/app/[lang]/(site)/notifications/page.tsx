@@ -19,6 +19,9 @@ type Notif = {
     new_price?: number | string;
     listing_id?: string;
     conversation_id?: string;
+    title?: string;
+    body?: string;
+    url?: string;
   } | null;
   is_read: boolean;
 };
@@ -65,6 +68,11 @@ export default async function NotificationsPage({
         n.data?.store_name ?? "",
       );
     }
+    // Merchant marketing campaign: the merchant authored the title/body; fall
+    // back to a generic label when no title was given.
+    if (t === "store_campaign") {
+      return n.data?.title?.trim() || dict.notifications.storeCampaign;
+    }
     return t === "order_new"
       ? dict.notifications.orderNew
       : t === "order_status"
@@ -86,8 +94,15 @@ export default async function NotificationsPage({
                         : t;
   };
 
-  const linkFor = (n: Notif) =>
-    (n.type === "listing_approved" ||
+  // Campaigns carry an explicit destination in data.url (the store, an offer,
+  // etc.); fall back to the store page.
+  const linkFor = (n: Notif): string =>
+    n.type === "store_campaign"
+      ? n.data?.url?.trim() ||
+        (n.data?.store_id
+          ? `/${lang}/store/${n.data.store_id}`
+          : `/${lang}/notifications`)
+      : (n.type === "listing_approved" ||
       n.type === "listing_rejected" ||
       n.type === "listing_match") &&
     n.data?.listing_id
@@ -131,6 +146,11 @@ export default async function NotificationsPage({
                 }`}
               >
                 <p className="font-semibold">{titleFor(n)}</p>
+                {n.type === "store_campaign" && n.data?.body?.trim() && (
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {n.data.body}
+                  </p>
+                )}
               </Link>
             ))}
           </div>

@@ -176,6 +176,7 @@ export default async function StoreOsHomePage({
     items: dict.store[sector.flow.itemsKey],
     doctors: dict.merchant.doctorsLink,
     customers: dict.os.nouns[sector.customersNoun],
+    campaigns: dict.os.campaigns.link,
     staff: dict.merchant.staffLink,
     automations: dict.os.automations.link,
     tasks: dict.os.tasks.link,
