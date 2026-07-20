@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy } from "lucide-react";
+import {
+  Check,
+  Copy,
+  Sparkles,
+  LayoutGrid,
+  Rows3,
+  GalleryThumbnails,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { revalidateStores } from "@/lib/cache-actions";
 import type { Locale } from "@/i18n/config";
@@ -32,6 +39,7 @@ type Initial = {
   facebook: string | null;
   website: string | null;
   accent_color: string | null;
+  storefront_layout: string | null;
 };
 
 // A few tasteful brand presets the merchant can pick with one tap.
@@ -70,6 +78,8 @@ export function EditStoreForm({
   const [copied, setCopied] = useState(false);
   // Brand color: drives the storefront's --primary. "" = platform default.
   const [accent, setAccent] = useState(initial.accent_color ?? "");
+  // Storefront layout template. "" = auto by sector.
+  const [layout, setLayout] = useState(initial.storefront_layout ?? "");
 
   async function copyLink() {
     try {
@@ -108,6 +118,10 @@ export function EditStoreForm({
         facebook: String(form.get("facebook")) || null,
         website: String(form.get("website")) || null,
         accent_color: /^#[0-9a-fA-F]{6}$/.test(accent) ? accent : null,
+        storefront_layout:
+          layout === "grid" || layout === "menu" || layout === "showcase"
+            ? layout
+            : null,
       })
       .eq("id", storeId);
     if (error) {
@@ -196,6 +210,44 @@ export function EditStoreForm({
               </span>
             );
           })()}
+        </div>
+      </div>
+
+      <div>
+        <label className={labelClass}>{dict.merchant.layout}</label>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {dict.merchant.layoutHint}
+        </p>
+        <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {(
+            [
+              { value: "", Icon: Sparkles, label: dict.merchant.layoutAuto },
+              { value: "grid", Icon: LayoutGrid, label: dict.merchant.layoutGrid },
+              { value: "menu", Icon: Rows3, label: dict.merchant.layoutMenu },
+              {
+                value: "showcase",
+                Icon: GalleryThumbnails,
+                label: dict.merchant.layoutShowcase,
+              },
+            ] as const
+          ).map((opt) => {
+            const active = layout === opt.value;
+            return (
+              <button
+                key={opt.value || "auto"}
+                type="button"
+                onClick={() => setLayout(opt.value)}
+                className={`flex flex-col items-center gap-1.5 rounded-xl border-2 p-3 text-xs font-semibold transition-colors ${
+                  active
+                    ? "border-primary bg-primary-soft/40 text-primary"
+                    : "border-border bg-surface text-muted-foreground hover:border-primary/40"
+                }`}
+              >
+                <opt.Icon className="h-5 w-5" />
+                {opt.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 

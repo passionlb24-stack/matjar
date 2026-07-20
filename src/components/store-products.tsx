@@ -88,6 +88,7 @@ export function StoreProducts({
   loyaltyPointsPerUnit = 0,
   branches = [],
   sections = [],
+  layout = null,
 }: {
   storeId: string;
   lang: Locale;
@@ -95,6 +96,7 @@ export function StoreProducts({
   category: CategoryKey;
   isBooking: boolean;
   products: Product[];
+  layout?: "grid" | "menu" | "showcase" | null;
   sections?: SectionInfo[];
   loggedIn?: boolean;
   defaultAddress?: string;
@@ -172,7 +174,14 @@ export function StoreProducts({
 
   const Icon = categoryIcons[category];
   const style = categoryStyles[category];
-  const isGrid = GRID_CATEGORIES.has(category);
+  // Layout: the merchant's chosen template overrides the sector default. "menu"
+  // is the compact row list; "grid"/"showcase" are both image-top card grids
+  // (showcase = fewer, larger cards).
+  const effectiveLayout =
+    layout ?? (GRID_CATEGORIES.has(category) ? "grid" : "menu");
+  const isRow = effectiveLayout === "menu";
+  const isShowcase = effectiveLayout === "showcase";
+  const isGrid = !isRow; // image-top card (grid or showcase) vs. row list
   const addLabel = isBooking ? dict.store.book : dict.store.order;
 
   function setQty(id: string, qty: number) {
@@ -414,14 +423,18 @@ export function StoreProducts({
       <Image
         src={p.imageUrl}
         alt={localized(p.name, p.nameEn, lang)}
-        width={isGrid ? 300 : 64}
-        height={isGrid ? 200 : 64}
-        className={isGrid ? "h-40 w-full object-cover" : "h-16 w-16 shrink-0 rounded-xl object-cover"}
-        sizes={isGrid ? "(max-width: 640px) 50vw, 25vw" : "64px"}
+        width={isGrid ? 400 : 64}
+        height={isGrid ? (isShowcase ? 300 : 200) : 64}
+        className={
+          isGrid
+            ? `${isShowcase ? "h-56" : "h-40"} w-full object-cover`
+            : "h-16 w-16 shrink-0 rounded-xl object-cover"
+        }
+        sizes={isGrid ? "(max-width: 640px) 100vw, 50vw" : "64px"}
       />
     ) : (
       <div
-        className={`flex items-center justify-center bg-gradient-to-br ${style.cover} ${isGrid ? "h-40 w-full" : "h-16 w-16 shrink-0 rounded-xl"}`}
+        className={`flex items-center justify-center bg-gradient-to-br ${style.cover} ${isGrid ? `${isShowcase ? "h-56" : "h-40"} w-full` : "h-16 w-16 shrink-0 rounded-xl"}`}
       >
         <Icon className={isGrid ? "h-10 w-10 text-black/20" : "h-7 w-7 text-black/20"} />
       </div>
@@ -433,7 +446,13 @@ export function StoreProducts({
   // decides which products land in which call.
   function renderList(list: Product[]) {
     return isGrid ? (
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      <div
+        className={
+          isShowcase
+            ? "grid grid-cols-1 gap-5 sm:grid-cols-2"
+            : "grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+        }
+      >
         {list.map((p) => {
           const qty = cart[p.id] ?? 0;
           return (

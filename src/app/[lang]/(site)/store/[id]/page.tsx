@@ -43,6 +43,7 @@ type StoreView = {
   name: string;
   slug?: string | null;
   accentColor?: string | null;
+  storefrontLayout?: "grid" | "menu" | "showcase" | null;
   category: CategoryKey;
   area: string | null;
   description: string | null;
@@ -104,7 +105,7 @@ const loadStore = cache(async function loadStore(
     const supabase = await createClient();
     const { data } = await supabase
       .from("stores")
-      .select("name, slug, description, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, hours, booking_slot_minutes, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, loyalty_redemption_enabled, loyalty_points_per_unit, accent_color, business_types(slug)")
+      .select("name, slug, description, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, hours, booking_slot_minutes, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, loyalty_redemption_enabled, loyalty_points_per_unit, accent_color, storefront_layout, business_types(slug)")
       .eq("id", id)
       .is("deleted_at", null)
       .maybeSingle();
@@ -129,6 +130,9 @@ const loadStore = cache(async function loadStore(
         name: data.name as string,
         slug: (data.slug as string | null) ?? null,
         accentColor: (data.accent_color as string | null) ?? null,
+        storefrontLayout:
+          (data.storefront_layout as "grid" | "menu" | "showcase" | null) ??
+          null,
         category: (bt?.slug as CategoryKey) ?? "retail",
         area: (data.area as string | null) ?? null,
         description: (data.description as string | null) ?? null,
@@ -743,6 +747,7 @@ export default async function StorePage({
                 prepTime={store.prepTime ?? null}
                 whatsapp={store.whatsapp ?? null}
                 storeName={store.name}
+                layout={store.storefrontLayout}
                 lbpRate={lbpRate}
                 loyaltyPoints={loyaltyPoints}
                 loyaltyPointsPerUnit={store.loyaltyPointsPerUnit ?? 0}
