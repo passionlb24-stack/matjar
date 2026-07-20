@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUsdLbpRate } from "@/lib/data/settings";
 import { formatLbp } from "@/lib/currency";
 import { Container } from "@/components/ui/container";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHero } from "@/components/ui/page-hero";
 import { EmptyState } from "@/components/ui/empty-state";
 
 function formatPrice(price: number) {
@@ -57,10 +57,9 @@ export default async function WishlistPage({
   const l = lang as Locale;
 
   return (
-    <div className="py-10">
-      <Container>
-        <PageHeader title={dict.wishlist.title} icon={Bookmark} />
-
+    <div className="pb-16">
+      <PageHero title={dict.wishlist.title} icon={Bookmark} />
+      <Container className="py-8">
         {products.length ? (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {products.map((p) => {

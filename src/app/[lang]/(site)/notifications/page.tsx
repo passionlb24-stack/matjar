@@ -5,7 +5,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHero } from "@/components/ui/page-hero";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MarkNotificationsRead } from "@/components/mark-notifications-read";
 
@@ -128,11 +128,10 @@ export default async function NotificationsPage({
               : `/${lang}/bookings`;
 
   return (
-    <div className="py-10">
-      <Container className="max-w-3xl">
-        <MarkNotificationsRead />
-        <PageHeader title={dict.notifications.title} icon={Bell} />
-
+    <div className="pb-16">
+      <MarkNotificationsRead />
+      <PageHero title={dict.notifications.title} icon={Bell} />
+      <Container className="max-w-3xl py-8">
         {notifs.length ? (
           <div className="space-y-2">
             {notifs.map((n) => (

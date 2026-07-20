@@ -4,7 +4,7 @@ import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHero } from "@/components/ui/page-hero";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StoreCard } from "@/components/store-card";
 import type { CategoryKey, RegionKey, Store } from "@/lib/catalog";
@@ -55,10 +55,9 @@ export default async function FavoritesPage({
     }));
 
   return (
-    <div className="py-10">
-      <Container>
-        <PageHeader title={dict.favorites.title} icon={Heart} />
-
+    <div className="pb-16">
+      <PageHero title={dict.favorites.title} icon={Heart} />
+      <Container className="py-8">
         {stores.length ? (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {stores.map((s) => (

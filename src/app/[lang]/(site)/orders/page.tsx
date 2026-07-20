@@ -5,7 +5,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHero } from "@/components/ui/page-hero";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -71,10 +71,9 @@ export default async function OrdersPage({
   const orders = (data ?? []) as unknown as OrderRow[];
 
   return (
-    <div className="py-10">
-      <Container className="max-w-3xl">
-        <PageHeader title={dict.orders.title} icon={Package} />
-
+    <div className="pb-16">
+      <PageHero title={dict.orders.title} icon={Package} />
+      <Container className="max-w-3xl py-8">
         {orders.length ? (
           <div data-animate className="space-y-3">
             {orders.map((order) => (
