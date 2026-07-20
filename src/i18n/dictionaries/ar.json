@@ -616,6 +616,23 @@
     "citiesLabel": "مدينة لبنانية",
     "productsLabel": "منتج وإعلان"
   },
+  "home2": {
+    "seeAll": "شوف الكل",
+    "restaurantsTitle": "مطاعم قربك",
+    "restaurantsSubtitle": "اطلب من أقرب مطعم إلك — توصيل أو استلام.",
+    "restaurantsEmpty": "لسا ما في مطاعم مدرجة — كن أول واحد!",
+    "citiesTitle": "تصفّح حسب المدينة",
+    "citiesSubtitle": "لاقِ متاجر وخدمات بمنطقتك.",
+    "citiesCount": "متاجر وخدمات",
+    "marketKicker": "سوق الأحد",
+    "marketTitle": "بيع، اشترِ، وبدّل",
+    "marketDesc": "إعلانات محليّة لكل شي — انشر إعلانك مجّاناً بثواني.",
+    "marketCta": "افتح السوق",
+    "trendKicker": "الأكثر مبيعاً",
+    "trendTitle": "الرائج هالأسبوع",
+    "trendDesc": "شوف شو عم يشتري اللبنانيين هلّق بكل القطاعات.",
+    "trendCta": "تصفّح"
+  },
   "homeFaq": {
     "eyebrow": "أسئلة شائعة",
     "title": "عندك سؤال؟",

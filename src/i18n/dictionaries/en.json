@@ -616,6 +616,23 @@
     "citiesLabel": "Lebanese cities",
     "productsLabel": "products & listings"
   },
+  "home2": {
+    "seeAll": "See all",
+    "restaurantsTitle": "Restaurants near you",
+    "restaurantsSubtitle": "Order from the nearest restaurant — delivery or pickup.",
+    "restaurantsEmpty": "No restaurants listed yet — be the first!",
+    "citiesTitle": "Browse by city",
+    "citiesSubtitle": "Find stores and services in your area.",
+    "citiesCount": "stores & services",
+    "marketKicker": "Sunday Market",
+    "marketTitle": "Buy, sell, and swap",
+    "marketDesc": "Local classifieds for everything — post your ad free in seconds.",
+    "marketCta": "Open the market",
+    "trendKicker": "Best sellers",
+    "trendTitle": "Trending this week",
+    "trendDesc": "See what Lebanon is buying right now across all sectors.",
+    "trendCta": "Browse"
+  },
   "homeFaq": {
     "eyebrow": "FAQ",
     "title": "Got a question?",

@@ -17,6 +17,9 @@ import { ServicesGrid } from "@/components/services-grid";
 import { OffersTeaser } from "@/components/offers-teaser";
 import { BestSellersTeaser } from "@/components/best-sellers-teaser";
 import { FeaturedStores } from "@/components/featured-stores";
+import { RestaurantsRail } from "@/components/restaurants-rail";
+import { CitiesStrip } from "@/components/cities-strip";
+import { HomePromoSplit } from "@/components/home-promo-split";
 import { ForYouStrip } from "@/components/for-you-strip";
 import { HomeStats } from "@/components/home-stats";
 import { HowItWorks } from "@/components/how-it-works";
@@ -87,12 +90,17 @@ export default async function Home({
       <Suspense fallback={<SectionSkeleton cards={4} />}>
         <FeaturedStores lang={lang} dict={dict} />
       </Suspense>
+      <Suspense fallback={null}>
+        <RestaurantsRail lang={lang} dict={dict} />
+      </Suspense>
       <Suspense fallback={<SectionSkeleton cards={4} />}>
         <OffersTeaser lang={lang} dict={dict} />
       </Suspense>
+      <CitiesStrip lang={lang} dict={dict} />
       <Suspense fallback={<SectionSkeleton cards={4} />}>
         <BestSellersTeaser lang={lang} dict={dict} />
       </Suspense>
+      <HomePromoSplit lang={lang} dict={dict} />
       <ServicesGrid lang={lang} dict={dict} />
       <HomeStats
         lang={lang}

@@ -1,6 +1,16 @@
 import "server-only";
 import { unstable_cache } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/public-client";
+import { getStoresForListing } from "@/lib/data/stores";
+import type { Store } from "@/lib/catalog";
+
+// Food-category stores for the homepage "Restaurants near you" rail. Reuses the
+// cached active-stores listing (padded with demo samples early on) and filters
+// to food so the rail is never empty on a fresh platform.
+export async function getRestaurants(limit = 8): Promise<Store[]> {
+  const all = await getStoresForListing();
+  return all.filter((s) => s.category === "food").slice(0, limit);
+}
 
 // Real, honest platform counts for the homepage stat rows — cached so the
 // numbers don't add a per-request DB round-trip. Deliberately conservative:
