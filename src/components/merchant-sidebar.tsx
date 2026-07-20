@@ -269,9 +269,13 @@ export function MerchantSidebar({
         </Link>
       </div>
 
-      {/* Mobile drawer — always mounted so it can slide, inert when closed. */}
+      {/* Mobile drawer — always mounted so it can slide, inert when closed.
+          overflow-hidden clips the off-canvas panel (translated a full width
+          past the inline-start edge when closed) so it never adds horizontal
+          page scroll — which on mobile would blow up the layout viewport and
+          shrink the whole dashboard. */}
       <div
-        className={`fixed inset-0 z-50 lg:hidden ${open ? "" : "pointer-events-none"}`}
+        className={`fixed inset-0 z-50 overflow-hidden lg:hidden ${open ? "" : "pointer-events-none"}`}
         aria-hidden={!open}
       >
         <div
