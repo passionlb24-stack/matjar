@@ -923,9 +923,14 @@
       "hours": "أضف ساعات العمل",
       "whatsapp": "أضف رقم واتساب",
       "products": "أضف 3 عناصر على الأقل",
+      "brandColor": "اختار لون علامتك",
+      "customLink": "حدّد رابطك المخصّص",
       "fix": "أكمل",
       "addItems": "أضف عناصر",
-      "completeBadge": "متجر مكتمل ✓"
+      "completeBadge": "متجر مكتمل ✓",
+      "readyTitle": "متجرك جاهز! 🎉",
+      "readySubtitle": "شارك رابطك مع الزبائن لتوصلك أول طلبات.",
+      "viewPage": "شوف صفحتك"
     },
     "coupons": {
       "link": "كوبونات",

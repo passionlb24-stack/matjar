@@ -923,9 +923,14 @@
       "hours": "Add opening hours",
       "whatsapp": "Add a WhatsApp number",
       "products": "Add at least 3 items",
+      "brandColor": "Pick your brand color",
+      "customLink": "Set your custom link",
       "fix": "Complete",
       "addItems": "Add items",
-      "completeBadge": "Store complete ✓"
+      "completeBadge": "Store complete ✓",
+      "readyTitle": "Your store is ready! 🎉",
+      "readySubtitle": "Share your link with customers to get your first orders.",
+      "viewPage": "View page"
     },
     "coupons": {
       "link": "Coupons",

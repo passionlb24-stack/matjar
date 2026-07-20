@@ -51,7 +51,7 @@ export default async function StoreOsHomePage({
   const { data: store } = await supabase
     .from("stores")
     .select(
-      "id, name, owner_id, short_code, plan, logo_url, cover_url, description, opening_hours, whatsapp, business_types(slug, name_ar, name_en)",
+      "id, name, slug, accent_color, owner_id, short_code, plan, logo_url, cover_url, description, opening_hours, whatsapp, business_types(slug, name_ar, name_en)",
     )
     .eq("id", storeId)
     .maybeSingle();
@@ -59,6 +59,8 @@ export default async function StoreOsHomePage({
 
   const s = store as unknown as {
     name: string;
+    slug: string | null;
+    accent_color: string | null;
     owner_id: string;
     short_code: string;
     plan: "free" | "pro" | null;
@@ -198,8 +200,9 @@ export default async function StoreOsHomePage({
     hours: !!s.opening_hours?.trim(),
     whatsapp: !!s.whatsapp?.trim(),
     products: itemsCount >= 3,
+    brandColor: !!s.accent_color,
+    customLink: !!s.slug,
   };
-  const checklistComplete = Object.values(checklist).every(Boolean);
 
   const SectorIcon = sector.Icon;
 
@@ -290,12 +293,14 @@ export default async function StoreOsHomePage({
           </div>
         </div>
 
-        {isOwner && !checklistComplete && (
+        {isOwner && (
           <div className="mt-6">
             <StoreChecklist
               lang={lang}
               dict={dict}
               storeId={storeId}
+              storeName={s.name}
+              storeSlug={s.slug}
               state={checklist}
             />
           </div>
