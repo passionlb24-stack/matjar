@@ -27,6 +27,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Container } from "@/components/ui/container";
 import { StoreCard } from "@/components/store-card";
 import { ProductMiniCard } from "@/components/product-mini-card";
+import { categoryIcons } from "@/components/category-icon";
 
 // A product hit from the search_products_fuzzy RPC (migration 0114).
 type ProductHit = {
@@ -210,43 +211,57 @@ export function ExploreClient({
   }
 
   return (
-    <div className="py-10">
-      <Container>
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-          {dict.explore.title}
-        </h1>
-        <p className="mt-2 text-muted-foreground">{dict.explore.subtitle}</p>
+    <div className="pb-16">
+      {/* Header band — the search is the centerpiece, like the homepage hero. */}
+      <div className="relative overflow-hidden border-b border-border">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary-soft/60 via-background to-background"
+        />
+        <Container className="py-10 text-center sm:py-14">
+          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
+            {dict.explore.title}
+          </h1>
+          <p className="mx-auto mt-3 max-w-xl text-muted-foreground sm:text-lg">
+            {dict.explore.subtitle}
+          </p>
+          <div className="mx-auto mt-7 flex max-w-xl items-center gap-2.5 rounded-full border border-border bg-surface px-5 shadow-lg transition-all focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10">
+            {searching ? (
+              <Loader2 className="h-5 w-5 shrink-0 animate-spin text-muted-foreground" />
+            ) : (
+              <Search className="h-5 w-5 shrink-0 text-muted-foreground" />
+            )}
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={dict.explore.searchPlaceholder}
+              className="w-full bg-transparent py-4 text-[15px] outline-none placeholder:text-muted-foreground"
+            />
+          </div>
+        </Container>
+      </div>
 
-        <div className="mt-6 flex items-center gap-2 rounded-xl border border-border bg-surface px-4 sm:max-w-md">
-          {searching ? (
-            <Loader2 className="h-5 w-5 shrink-0 animate-spin text-muted-foreground" />
-          ) : (
-            <Search className="h-5 w-5 shrink-0 text-muted-foreground" />
-          )}
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={dict.explore.searchPlaceholder}
-            className="w-full bg-transparent py-2.5 text-sm outline-none placeholder:text-muted-foreground"
-          />
-        </div>
-
-        <div className="mt-5 flex flex-wrap gap-2">
+      <Container className="py-8">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setCategory("all")}
-            className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${chipClass(category === "all")}`}
+            className={`rounded-full border px-4 py-2 text-sm font-semibold transition-all ${chipClass(category === "all")}`}
           >
             {dict.explore.allCategories}
           </button>
-          {categoryKeys.map((k) => (
-            <button
-              key={k}
-              onClick={() => setCategory(k)}
-              className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${chipClass(category === k)}`}
-            >
-              {dict.catalog[k].name}
-            </button>
-          ))}
+          {categoryKeys.map((k) => {
+            const CatIcon = categoryIcons[k];
+            return (
+              <button
+                key={k}
+                onClick={() => setCategory(k)}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition-all ${chipClass(category === k)}`}
+              >
+                <CatIcon className="h-4 w-4" />
+                {dict.catalog[k].name}
+              </button>
+            );
+          })}
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
