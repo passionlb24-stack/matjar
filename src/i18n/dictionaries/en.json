@@ -655,7 +655,11 @@
     "services": { "name": "Services", "desc": "Cleaning, maintenance, photography, advice" },
     "healthcare": { "name": "Health & clinics", "desc": "Clinics, labs and pharmacies" },
     "realEstate": { "name": "Real estate", "desc": "Apartments, shops and land to buy or rent" },
-    "automotive": { "name": "Automotive", "desc": "Showrooms, rentals and spare parts" }
+    "automotive": { "name": "Automotive", "desc": "Showrooms, rentals and spare parts" },
+    "beauty": { "name": "Beauty & care", "desc": "Salons, spa, barbers and care" },
+    "fitness": { "name": "Fitness & clubs", "desc": "Gyms, clubs and trainers" },
+    "sportsCourts": { "name": "Sports & courts", "desc": "Courts, padel and time booking" },
+    "education": { "name": "Education & courses", "desc": "Courses, tutors and training" }
   },
   "featured": {
     "title": "Featured stores",

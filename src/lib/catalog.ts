@@ -8,6 +8,10 @@ export const categoryKeys = [
   "healthcare",
   "realEstate",
   "automotive",
+  "beauty",
+  "fitness",
+  "sportsCourts",
+  "education",
 ] as const;
 
 export type CategoryKey = (typeof categoryKeys)[number];
@@ -25,6 +29,10 @@ export const categoryStyles: Record<
   healthcare: { cover: "from-emerald-100 to-teal-100", iconWrap: "bg-emerald-500/10 text-emerald-600" },
   realEstate: { cover: "from-rose-100 to-pink-100", iconWrap: "bg-rose-500/10 text-rose-600" },
   automotive: { cover: "from-slate-100 to-zinc-200", iconWrap: "bg-slate-500/10 text-slate-600" },
+  beauty: { cover: "from-pink-100 to-rose-100", iconWrap: "bg-pink-500/10 text-pink-600" },
+  fitness: { cover: "from-lime-100 to-green-100", iconWrap: "bg-lime-500/10 text-lime-700" },
+  sportsCourts: { cover: "from-teal-100 to-cyan-100", iconWrap: "bg-teal-500/10 text-teal-600" },
+  education: { cover: "from-indigo-100 to-blue-100", iconWrap: "bg-indigo-500/10 text-indigo-600" },
 };
 
 export type RegionKey =
@@ -226,5 +234,24 @@ export const sampleProducts: Record<CategoryKey, Product[]> = {
     { name: { ar: "تغيير زيت وفلتر", en: "Oil and filter change" }, price: 35 },
     { name: { ar: "فحص ميكانيكي شامل", en: "Full mechanical check" }, price: 25 },
     { name: { ar: "تبديل إطارات", en: "Tire replacement" }, price: 90 },
+  ],
+  beauty: [
+    { name: { ar: "قصّة شعر وتصفيف", en: "Haircut & styling" }, price: 20 },
+    { name: { ar: "جلسة عناية بالوجه", en: "Facial session" }, price: 35 },
+    { name: { ar: "مانيكير وباديكير", en: "Manicure & pedicure" }, price: 25 },
+  ],
+  fitness: [
+    { name: { ar: "اشتراك شهري", en: "Monthly membership" }, price: 40 },
+    { name: { ar: "حصّة تدريب شخصي", en: "Personal training session" }, price: 25 },
+    { name: { ar: "حصّة جماعية", en: "Group class" }, price: 10 },
+  ],
+  sportsCourts: [
+    { name: { ar: "حجز ملعب بادل / ساعة", en: "Padel court / hour" }, price: 30 },
+    { name: { ar: "حجز ملعب كرة قدم / ساعة", en: "Football pitch / hour" }, price: 50 },
+  ],
+  education: [
+    { name: { ar: "دورة لغة إنجليزية", en: "English course" }, price: 120 },
+    { name: { ar: "درس خصوصي / ساعة", en: "Private lesson / hour" }, price: 15 },
+    { name: { ar: "دورة برمجة للمبتدئين", en: "Beginner coding course" }, price: 150 },
   ],
 };

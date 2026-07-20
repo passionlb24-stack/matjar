@@ -22,4 +22,8 @@ export const categoryModule: Record<CategoryKey, StoreModule> = {
   healthcare: { kind: "booking", itemsKey: "services", addKey: "addService", simplifiedItem: true },
   realEstate: { kind: "booking", itemsKey: "listings", addKey: "addListing", simplifiedItem: true },
   automotive: { kind: "commerce", itemsKey: "listings", addKey: "addListing", simplifiedItem: true },
+  beauty: { kind: "booking", itemsKey: "services", addKey: "addService", simplifiedItem: true },
+  fitness: { kind: "booking", itemsKey: "services", addKey: "addService", simplifiedItem: true },
+  sportsCourts: { kind: "booking", itemsKey: "services", addKey: "addService", simplifiedItem: true },
+  education: { kind: "booking", itemsKey: "services", addKey: "addService", simplifiedItem: true },
 };

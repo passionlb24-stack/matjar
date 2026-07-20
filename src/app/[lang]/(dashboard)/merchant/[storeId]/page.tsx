@@ -633,6 +633,25 @@ export default async function StoreOsHomePage({
       { key: "orders", label: t.quickOrders, path: "orders", perm: "orders" },
       { key: "campaign", label: t.quickCampaign, path: "campaigns", perm: "orders" },
     ],
+    beauty: [
+      { key: "bookings", label: t.quickBookings, path: "bookings", perm: "bookings" },
+      { key: "addItem", label: t.quickAddService, path: "items", perm: "products" },
+      { key: "campaign", label: t.quickCampaign, path: "campaigns", perm: "orders" },
+    ],
+    fitness: [
+      { key: "bookings", label: t.quickBookings, path: "bookings", perm: "bookings" },
+      { key: "addItem", label: t.quickAddService, path: "items", perm: "products" },
+      { key: "campaign", label: t.quickCampaign, path: "campaigns", perm: "orders" },
+    ],
+    sportsCourts: [
+      { key: "bookings", label: t.quickBookings, path: "bookings", perm: "bookings" },
+      { key: "addItem", label: t.quickAddService, path: "items", perm: "products" },
+    ],
+    education: [
+      { key: "bookings", label: t.quickBookings, path: "bookings", perm: "bookings" },
+      { key: "addItem", label: t.quickAddService, path: "items", perm: "products" },
+      { key: "campaign", label: t.quickCampaign, path: "campaigns", perm: "orders" },
+    ],
   };
   const quickActions: QuickAction[] = quickDefs[category]
     .filter((a) => isOwner || (perms[a.perm] ?? false))
