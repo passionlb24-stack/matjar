@@ -36,6 +36,126 @@
     "account": "Account"
   },
   "os": {
+    "automations": {
+      "link": "Automations",
+      "title": "Automations",
+      "subtitle": "Let your store run itself — set up \"when this happens, do that\" and Matjar handles it for you automatically.",
+      "recipesTitle": "Ready-made recipes",
+      "recipesSubtitle": "Turn one on with a single tap — ready to run right away.",
+      "enable": "Enable",
+      "added": "Added ✓",
+      "enabledToast": "Automation enabled ✓",
+      "savedToast": "Automation saved ✓",
+      "customTitle": "Build a custom automation",
+      "customSubtitle": "Pick a trigger, add your conditions, and choose what happens.",
+      "newButton": "New automation",
+      "nameLabel": "Automation name",
+      "nameHint": "e.g. Welcome a new customer",
+      "whenLabel": "When",
+      "ifLabel": "If",
+      "doLabel": "Do",
+      "whenHint": "Choose the event that starts this automation",
+      "ifHint": "Optional conditions — leave empty to always run",
+      "doHint": "Add one or more actions to run in order",
+      "triggers": {
+        "order_created": "New order",
+        "order_completed": "Order completed",
+        "low_stock": "Low stock",
+        "new_review": "New review",
+        "payment_recorded": "Payment recorded"
+      },
+      "actions": {
+        "notify": "Notification + Push",
+        "whatsapp": "WhatsApp message",
+        "loyalty": "Loyalty points",
+        "coupon": "Discount coupon"
+      },
+      "actionHint": {
+        "notify": "You get an in-app notification + push automatically.",
+        "whatsapp": "You get a ready message to send the customer in one tap.",
+        "loyalty": "Loyalty points are added to the customer's balance.",
+        "coupon": "A discount coupon is sent to the customer."
+      },
+      "params": {
+        "notifyTitle": "Notification title",
+        "notifyBody": "Notification text",
+        "whatsappMessage": "WhatsApp message text",
+        "loyaltyPoints": "Points",
+        "couponPercent": "Discount %"
+      },
+      "conditions": {
+        "minTotal": "Order total ≥",
+        "minTotalHint": "Only when the order total is greater than or equal to this",
+        "location": "Branch",
+        "anyLocation": "All branches",
+        "maxRating": "Rating ≤",
+        "maxRatingHint": "Only when the rating is less than or equal to this (low ratings)",
+        "none": "No conditions for this trigger — it will always run."
+      },
+      "addAction": "Add action",
+      "noActions": "Add at least one action to save the automation.",
+      "save": "Save automation",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirmDelete": "Delete this automation?",
+      "listTitle": "Your automations",
+      "listEmpty": "No automations yet — enable a recipe or build a custom one.",
+      "toggleOn": "Enable",
+      "toggleOff": "Pause",
+      "pausedLabel": "Paused",
+      "summaryWhen": "When",
+      "summaryIf": "If",
+      "summaryDo": "Do",
+      "condMinTotal": "Total ≥",
+      "condLocation": "Branch",
+      "condMaxRating": "Rating ≤",
+      "pointsUnit": "pts",
+      "percentOff": "% off",
+      "activityTitle": "Recent activity",
+      "activitySubtitle": "What your automations ran recently.",
+      "activityEmpty": "No activity yet — you'll see runs here once an automation fires.",
+      "status": {
+        "fired": "Fired",
+        "skipped": "Skipped",
+        "error": "Error"
+      },
+      "unknownAutomation": "Deleted automation",
+      "recipes": {
+        "thanks": {
+          "name": "WhatsApp thank-you after order",
+          "desc": "When an order is completed → send a thank-you on WhatsApp",
+          "message": "Hi! Thank you for ordering from {store} 🙏 It's a pleasure to serve you — we're here whenever you need anything."
+        },
+        "reviewReq": {
+          "name": "Review reminder",
+          "desc": "When an order is completed → ask for a review on WhatsApp",
+          "message": "Hi! How was your experience with {store}? We'd love it if you left us a review ⭐ your feedback means a lot."
+        },
+        "lowStock": {
+          "name": "Low-stock alert",
+          "desc": "When stock runs low → instant notification",
+          "notifyTitle": "Low stock ⚠️",
+          "notifyBody": "A product is running low — check your inventory and restock."
+        },
+        "loyalty": {
+          "name": "Automatic loyalty reward",
+          "desc": "When an order over $50 is completed → 10 loyalty points for the customer"
+        },
+        "bigOrder": {
+          "name": "Big-order alert",
+          "desc": "When an order over $100 comes in → instant notification",
+          "notifyTitle": "Big order 🎉",
+          "notifyBody": "A big order just came in — review and prepare it quickly."
+        },
+        "badReview": {
+          "name": "Bad-review follow-up",
+          "desc": "When a review of 2 stars or less comes in → instant notification",
+          "notifyTitle": "Review needs attention ⚠️",
+          "notifyBody": "A low rating just came in — reach out to the customer quickly and try to make it right."
+        }
+      }
+    },
     "branches": {
       "link": "Branches",
       "title": "Store branches",

@@ -26,6 +26,7 @@ export const PRO_MODULES = new Set<string>([
   "pos",
   "inventory",
   "customers",
+  "automations",
   "suppliers",
   "tasks",
   "accounting",

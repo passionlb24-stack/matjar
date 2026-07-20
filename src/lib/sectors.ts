@@ -24,6 +24,7 @@ import {
   ChefHat,
   FileText,
   MapPin,
+  Zap,
 } from "lucide-react";
 import type { CategoryKey } from "./catalog";
 import { categoryModule } from "./modules";
@@ -42,6 +43,7 @@ export type OsModuleKey =
   | "doctors"
   | "customers"
   | "staff"
+  | "automations"
   | "tasks"
   | "inventory"
   | "pos"
@@ -80,6 +82,7 @@ export const OS_MODULE_META: Record<
   doctors: { Icon: Stethoscope, path: "doctors", perm: "bookings", pro: true },
   customers: { Icon: Users, path: "customers", perm: "orders", pro: true },
   staff: { Icon: UserCog, path: "staff", ownerOnly: true, pro: true },
+  automations: { Icon: Zap, path: "automations", perm: "orders", pro: true },
   tasks: { Icon: ListTodo, path: "tasks", pro: true },
   inventory: { Icon: Boxes, path: "inventory", perm: "products", pro: true },
   pos: { Icon: Calculator, path: "pos", perm: "orders", pro: true },
@@ -126,7 +129,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "customers",
     modules: {
       daily: ["orders", "kitchen", "pos", "items", "inventory", "tasks"],
-      people: ["customers", "staff"],
+      people: ["customers", "automations", "staff"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
@@ -138,7 +141,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "customers",
     modules: {
       daily: ["orders", "pos", "items", "inventory", "tasks"],
-      people: ["customers", "staff"],
+      people: ["customers", "automations", "staff"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
@@ -150,7 +153,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "clients",
     modules: {
       daily: ["requests", "bookings", "items", "tasks"],
-      people: ["customers", "staff"],
+      people: ["customers", "automations", "staff"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
@@ -162,7 +165,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "patients",
     modules: {
       daily: ["requests", "bookings", "doctors", "items", "tasks"],
-      people: ["customers", "staff"],
+      people: ["customers", "automations", "staff"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
@@ -174,7 +177,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "leads",
     modules: {
       daily: ["bookings", "items", "tasks"],
-      people: ["customers", "staff"],
+      people: ["customers", "automations", "staff"],
       money: MONEY,
       store: STORE,
     },
@@ -186,7 +189,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "leads",
     modules: {
       daily: ["orders", "items", "tasks"],
-      people: ["customers", "staff"],
+      people: ["customers", "automations", "staff"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
