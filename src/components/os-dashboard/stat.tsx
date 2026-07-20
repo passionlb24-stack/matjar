@@ -12,7 +12,7 @@ export function Delta({ pct }: { pct: number }) {
   return (
     <span
       className={`inline-flex items-center gap-0.5 text-xs font-bold tabular-nums ${
-        up ? "text-emerald-600" : "text-red-600"
+        up ? "text-success" : "text-danger"
       }`}
     >
       {up ? (

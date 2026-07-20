@@ -112,13 +112,13 @@ export function ExpenseManager({
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="font-bold text-red-600">−{money(Number(x.amount))}</span>
+                <span className="font-bold text-danger">−{money(Number(x.amount))}</span>
                 <button
                   type="button"
                   disabled={busy}
                   onClick={() => remove(x.id)}
                   aria-label={t.delete}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-danger transition-colors hover:bg-danger-soft disabled:opacity-60"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>

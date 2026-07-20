@@ -34,7 +34,7 @@ export function RequestProButton({
 
   if (state === "sent") {
     return (
-      <p className="mt-4 flex items-center gap-1.5 text-sm font-bold text-emerald-700">
+      <p className="mt-4 flex items-center gap-1.5 text-sm font-bold text-success">
         <Check className="h-4 w-4" />
         {sentLabel}
       </p>

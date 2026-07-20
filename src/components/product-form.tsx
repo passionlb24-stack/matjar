@@ -364,7 +364,7 @@ export function ProductForm({
                 type="button"
                 onClick={() => setVariants(variants.filter((_, j) => j !== i))}
                 aria-label={p.remove}
-                className="flex w-11 shrink-0 items-center justify-center self-stretch rounded-lg border border-border text-red-600 transition-colors hover:bg-red-50"
+                className="flex w-11 shrink-0 items-center justify-center self-stretch rounded-lg border border-border text-danger transition-colors hover:bg-danger-soft"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -412,7 +412,7 @@ export function ProductForm({
                 type="button"
                 onClick={() => setOptions(options.filter((_, j) => j !== i))}
                 aria-label={p.remove}
-                className="flex w-11 shrink-0 items-center justify-center self-stretch rounded-lg border border-border text-red-600 transition-colors hover:bg-red-50"
+                className="flex w-11 shrink-0 items-center justify-center self-stretch rounded-lg border border-border text-danger transition-colors hover:bg-danger-soft"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -449,7 +449,7 @@ export function ProductForm({
         </div>
       </div>
 
-      {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+      {error && <p className="text-sm font-medium text-danger">{error}</p>}
       <Button
         type="submit"
         full

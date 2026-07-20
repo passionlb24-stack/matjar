@@ -32,12 +32,12 @@ function money(n: number) {
 }
 
 const STATUS_TONE: Record<ServiceRequestRow["status"], string> = {
-  pending: "bg-amber-100 text-amber-700",
-  quoted: "bg-sky-100 text-sky-700",
-  accepted: "bg-emerald-100 text-emerald-700",
-  in_progress: "bg-violet-100 text-violet-700",
-  completed: "bg-emerald-100 text-emerald-700",
-  declined: "bg-red-100 text-red-700",
+  pending: "bg-warning-soft text-warning",
+  quoted: "bg-info-soft text-info",
+  accepted: "bg-success-soft text-success",
+  in_progress: "bg-primary-soft text-primary",
+  completed: "bg-success-soft text-success",
+  declined: "bg-danger-soft text-danger",
   cancelled: "bg-surface-muted text-muted-foreground",
 };
 
@@ -128,8 +128,8 @@ export function ServiceRequestManager({
       </div>
 
       {request.quote_amount != null && (
-        <p className="mt-3 rounded-xl bg-sky-50 px-3 py-2 text-sm">
-          <span className="font-bold text-sky-700">
+        <p className="mt-3 rounded-xl bg-info-soft px-3 py-2 text-sm">
+          <span className="font-bold text-info">
             {t.quotedAt}: {money(Number(request.quote_amount))}
           </span>
           {request.quote_note && (
@@ -194,7 +194,7 @@ export function ServiceRequestManager({
           <button
             onClick={() => act("decline")}
             disabled={busy}
-            className="rounded-lg px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+            className="rounded-lg px-3 py-1.5 text-sm font-semibold text-danger transition-colors hover:bg-danger-soft disabled:opacity-60"
           >
             {t.decline}
           </button>

@@ -388,7 +388,7 @@ export function CrmManager({
                     <button
                       type="button"
                       onClick={() => remove(c.id)}
-                      className="mt-2 flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
+                      className="mt-2 flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-semibold text-danger transition-colors hover:bg-danger-soft"
                     >
                       <Trash2 className="h-4 w-4" />
                       {dict.merchant.products.delete}

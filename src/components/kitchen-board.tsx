@@ -123,9 +123,9 @@ export function KitchenBoard({
                   mins == null
                     ? "bg-surface-muted text-muted-foreground"
                     : mins >= 30
-                      ? "bg-red-100 text-red-700"
+                      ? "bg-danger-soft text-danger"
                       : mins >= 15
-                        ? "bg-amber-100 text-amber-700"
+                        ? "bg-warning-soft text-warning"
                         : "bg-surface-muted text-muted-foreground";
                 return (
                   <article
@@ -168,7 +168,7 @@ export function KitchenBoard({
                     </ul>
 
                     {o.customer_note && (
-                      <p className="mt-2 rounded-lg bg-amber-50 p-2 text-sm font-medium text-amber-800">
+                      <p className="mt-2 rounded-lg bg-warning-soft p-2 text-sm font-medium text-warning">
                         {o.customer_note}
                       </p>
                     )}

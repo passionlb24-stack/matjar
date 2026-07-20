@@ -89,7 +89,7 @@ export function GuestOrderTracker({
             </button>
           </div>
           {notFound && (
-            <p className="mt-3 text-sm font-semibold text-red-600">
+            <p className="mt-3 text-sm font-semibold text-danger">
               {t.notFound}
             </p>
           )}
@@ -121,7 +121,7 @@ export function GuestOrderTracker({
           </div>
 
           {dead ? (
-            <div className="mt-5 rounded-xl bg-red-50 p-4 text-center font-bold text-red-700">
+            <div className="mt-5 rounded-xl bg-danger-soft p-4 text-center font-bold text-danger">
               {dict.orders.status[result.status as keyof typeof dict.orders.status]}
             </div>
           ) : (

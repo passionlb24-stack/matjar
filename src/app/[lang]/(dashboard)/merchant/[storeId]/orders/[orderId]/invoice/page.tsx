@@ -189,7 +189,7 @@ export default async function OrderInvoicePage({
               <span className="tabular-nums">{money(order.subtotal)}</span>
             </div>
             {Number(order.discount) > 0 && (
-              <div className="flex justify-between text-red-600">
+              <div className="flex justify-between text-danger">
                 <span>{t.discount}</span>
                 <span className="tabular-nums">
                   -{money(Number(order.discount))}

@@ -103,7 +103,7 @@ export function GigForm({
         <Textarea id="description" name="description" rows={5} required placeholder={t.descriptionPlaceholder} />
       </Field>
 
-      {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+      {error && <p className="text-sm font-medium text-danger">{error}</p>}
       <Button type="submit" loading={loading}>
         {loading ? dict.account.saving : t.publish}
       </Button>

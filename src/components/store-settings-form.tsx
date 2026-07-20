@@ -161,7 +161,7 @@ export function StoreSettingsForm({
           dir="ltr"
         />
         {initial.commercial_reg_no && !initial.commercial_reg_verified && (
-          <p className="mt-1.5 text-xs font-semibold text-amber-600">
+          <p className="mt-1.5 text-xs font-semibold text-warning">
             {t.regPending}
           </p>
         )}
@@ -197,7 +197,7 @@ export function StoreSettingsForm({
           {locating ? t.locating : t.useMyLocation}
         </button>
         {geoError && (
-          <p className="mt-1 text-sm font-medium text-red-600">{geoError}</p>
+          <p className="mt-1 text-sm font-medium text-danger">{geoError}</p>
         )}
         {lat && lng && !geoError && (
           <p className="mt-1 text-sm font-semibold text-primary">
@@ -238,7 +238,7 @@ export function StoreSettingsForm({
           <span className="text-sm font-semibold text-primary">{dict.account.saved}</span>
         )}
         {error && (
-          <span className="text-sm font-semibold text-red-600">{error}</span>
+          <span className="text-sm font-semibold text-danger">{error}</span>
         )}
       </div>
     </form>

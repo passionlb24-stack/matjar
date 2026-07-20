@@ -273,9 +273,9 @@ export function ProductEditForm({
         {p.dealToday}
       </label>
 
-      <div className="rounded-xl border border-amber-300/60 bg-amber-50/40 p-4">
+      <div className="rounded-xl border border-warning/30 bg-warning-soft p-4">
         <div className="flex items-center gap-2">
-          <Zap className="h-4 w-4 text-amber-600" />
+          <Zap className="h-4 w-4 text-warning" />
           <span className={label}>{dict.flash.merchantTitle}</span>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
@@ -356,7 +356,7 @@ export function ProductEditForm({
                   <input value={v.label} onChange={(e) => setVariants(variants.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))} placeholder={p.variantLabelPlaceholder} className="w-full min-w-0 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary sm:w-auto sm:flex-1" />
                   <input value={v.price} onChange={(e) => setVariants(variants.map((x, j) => (j === i ? { ...x, price: e.target.value } : x)))} type="number" min="0" step="0.01" placeholder={p.variantPrice} className="w-24 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary" />
                   <input value={v.stock} onChange={(e) => setVariants(variants.map((x, j) => (j === i ? { ...x, stock: e.target.value } : x)))} type="number" min="0" step="1" placeholder={p.variantStock} className="w-20 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary" />
-                  <button type="button" onClick={() => setVariants(variants.filter((_, j) => j !== i))} aria-label={p.remove} className="flex w-9 shrink-0 items-center justify-center rounded-lg border border-border text-red-600 transition-colors hover:bg-red-50">
+                  <button type="button" onClick={() => setVariants(variants.filter((_, j) => j !== i))} aria-label={p.remove} className="flex w-9 shrink-0 items-center justify-center rounded-lg border border-border text-danger transition-colors hover:bg-danger-soft">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
@@ -381,7 +381,7 @@ export function ProductEditForm({
                 <div key={i} className="flex flex-wrap items-stretch gap-2">
                   <input value={o.name} onChange={(e) => setOptions(options.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} placeholder={p.addonNamePlaceholder} className="w-full min-w-0 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary sm:w-auto sm:flex-1" />
                   <input value={o.price} onChange={(e) => setOptions(options.map((x, j) => (j === i ? { ...x, price: e.target.value } : x)))} type="number" min="0" step="0.01" placeholder={p.addonPrice} className="w-24 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary" />
-                  <button type="button" onClick={() => setOptions(options.filter((_, j) => j !== i))} aria-label={p.remove} className="flex w-9 shrink-0 items-center justify-center rounded-lg border border-border text-red-600 transition-colors hover:bg-red-50">
+                  <button type="button" onClick={() => setOptions(options.filter((_, j) => j !== i))} aria-label={p.remove} className="flex w-9 shrink-0 items-center justify-center rounded-lg border border-border text-danger transition-colors hover:bg-danger-soft">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
@@ -391,7 +391,7 @@ export function ProductEditForm({
         </>
       )}
 
-      {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+      {error && <p className="text-sm font-medium text-danger">{error}</p>}
       <div className="flex gap-2">
         <Button
           type="submit"

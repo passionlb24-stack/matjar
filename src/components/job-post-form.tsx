@@ -99,7 +99,7 @@ export function JobPostForm({
         <Input id="how_to_apply" name="how_to_apply" type="text" placeholder={t.howToApplyPlaceholder} />
       </Field>
 
-      {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+      {error && <p className="text-sm font-medium text-danger">{error}</p>}
       <Button type="submit" loading={loading}>{t.publish}</Button>
     </form>
   );

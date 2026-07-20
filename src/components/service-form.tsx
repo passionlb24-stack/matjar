@@ -70,10 +70,10 @@ export function ServiceForm({
   return (
     <form
       onSubmit={onSubmit}
-      className="h-fit rounded-2xl border border-violet-200 bg-gradient-to-b from-violet-50/60 to-transparent p-5"
+      className="h-fit rounded-2xl border border-primary/20 bg-gradient-to-b from-primary-soft to-transparent p-5"
     >
       <h2 className="flex items-center gap-2 font-bold">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-100 text-violet-600">
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-soft text-primary">
           <CalendarCheck className="h-5 w-5" />
         </span>
         {t.title}
@@ -141,9 +141,9 @@ export function ServiceForm({
           onChange={setImageUrl}
           label={t.image}
         />
-        {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+        {error && <p className="text-sm font-medium text-danger">{error}</p>}
         {added && (
-          <p className="text-sm font-bold text-violet-700">{t.added}</p>
+          <p className="text-sm font-bold text-primary">{t.added}</p>
         )}
         <button
           type="submit"

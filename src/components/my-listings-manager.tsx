@@ -13,11 +13,11 @@ import type { ListingCard } from "@/lib/data/market";
 const STATUSES = ["all", "active", "pending", "sold", "expired", "rejected", "draft"] as const;
 
 const statusStyle: Record<string, string> = {
-  active: "bg-emerald-100 text-emerald-700",
-  pending: "bg-amber-100 text-amber-700",
+  active: "bg-success-soft text-success",
+  pending: "bg-warning-soft text-warning",
   sold: "bg-zinc-800 text-white",
   expired: "bg-orange-100 text-orange-700",
-  rejected: "bg-red-100 text-red-700",
+  rejected: "bg-danger-soft text-danger",
   draft: "bg-zinc-200 text-zinc-600",
 };
 
@@ -131,7 +131,7 @@ export function MyListingsManager({
                     <RotateCcw className="h-3.5 w-3.5" />
                   </button>
                 )}
-                <button disabled={busy === l.id} onClick={() => remove(l.id)} className="flex h-8 items-center rounded-lg border border-border px-2.5 text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60">
+                <button disabled={busy === l.id} onClick={() => remove(l.id)} className="flex h-8 items-center rounded-lg border border-border px-2.5 text-danger transition-colors hover:bg-danger-soft disabled:opacity-60">
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>

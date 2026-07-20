@@ -120,7 +120,7 @@ export default async function WholesalePage({
                     />
                   ) : (
                     <div className="flex h-36 w-full items-center justify-center bg-surface-muted">
-                      <ImageIcon className="h-9 w-9 text-black/10" />
+                      <ImageIcon className="h-9 w-9 text-foreground/10" />
                     </div>
                   )}
                   {w.moq != null && (

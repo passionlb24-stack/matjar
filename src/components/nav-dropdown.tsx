@@ -51,7 +51,7 @@ export function NavDropdown({
               onClick={() => setOpen(false)}
               className={`block rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-surface-muted ${
                 it.accent
-                  ? "text-amber-600 hover:text-amber-700"
+                  ? "text-warning hover:text-warning"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >

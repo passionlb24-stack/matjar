@@ -227,7 +227,7 @@ export function MarketRegionManager({
                   <button
                     disabled={busy}
                     onClick={() => remove(item.id)}
-                    className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+                    className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-danger transition-colors hover:bg-danger-soft disabled:opacity-60"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

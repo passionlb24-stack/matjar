@@ -5,6 +5,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { LogoutButton } from "@/components/logout-button";
 import { MobileMenu } from "@/components/mobile-menu";
 import { NavDropdown } from "@/components/nav-dropdown";
@@ -89,6 +90,7 @@ export function SiteHeader({
               {lang === "ar" ? "ل.ل." : "LBP"}
             </span>
           )}
+          <ThemeToggle />
           <LanguageSwitcher currentLocale={lang} />
           {user ? (
             <>

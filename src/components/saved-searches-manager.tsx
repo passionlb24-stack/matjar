@@ -87,7 +87,7 @@ export function SavedSearchesManager({
               <button
                 disabled={busy === r.id}
                 onClick={() => remove(r.id)}
-                className="flex shrink-0 items-center rounded-lg border border-border px-2.5 py-1.5 text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+                className="flex shrink-0 items-center rounded-lg border border-border px-2.5 py-1.5 text-danger transition-colors hover:bg-danger-soft disabled:opacity-60"
               >
                 <Trash2 className="h-4 w-4" />
               </button>

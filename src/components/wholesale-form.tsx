@@ -151,7 +151,7 @@ export function WholesaleForm({
                 size="sm"
                 onClick={() => setTiers(tiers.filter((_, j) => j !== i))}
                 aria-label={t.remove}
-                className="w-11 shrink-0 px-0 text-red-600 hover:bg-red-50"
+                className="w-11 shrink-0 px-0 text-danger hover:bg-danger-soft"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -164,7 +164,7 @@ export function WholesaleForm({
         <Textarea id="description" name="description" rows={4} required placeholder={t.descriptionPlaceholder} />
       </Field>
 
-      {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+      {error && <p className="text-sm font-medium text-danger">{error}</p>}
       <Button type="submit" loading={loading}>
         {loading ? dict.account.saving : t.publish}
       </Button>

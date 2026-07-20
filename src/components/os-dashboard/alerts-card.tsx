@@ -26,9 +26,9 @@ const KIND_STYLE: Record<
   AlertRow["kind"],
   { Icon: typeof Boxes; chip: string }
 > = {
-  trial: { Icon: Crown, chip: "bg-amber-100 text-amber-600" },
+  trial: { Icon: Crown, chip: "bg-warning-soft text-warning" },
   orders: { Icon: ClipboardList, chip: "bg-primary-soft text-primary" },
-  stock: { Icon: Boxes, chip: "bg-red-50 text-red-500" },
+  stock: { Icon: Boxes, chip: "bg-danger-soft text-danger" },
 };
 
 export function AlertsCard({
@@ -70,7 +70,7 @@ export function AlertsCard({
           })}
         </ul>
       ) : (
-        <p className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-3 text-sm font-semibold text-emerald-700">
+        <p className="flex items-center gap-2 rounded-xl bg-success-soft px-3 py-3 text-sm font-semibold text-success">
           <CircleCheck className="h-4.5 w-4.5 shrink-0" />
           {empty}
         </p>

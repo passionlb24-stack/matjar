@@ -214,8 +214,8 @@ export function SuppliersManager({
                   <span
                     className={`shrink-0 rounded-full px-3 py-1 text-sm font-extrabold tabular-nums ${
                       bal > 0
-                        ? "bg-amber-100 text-amber-800"
-                        : "bg-emerald-100 text-emerald-700"
+                        ? "bg-warning-soft text-warning"
+                        : "bg-success-soft text-success"
                     }`}
                   >
                     {bal > 0 ? `${t.owed} ${fmt(bal)}` : t.settled}
@@ -241,7 +241,7 @@ export function SuppliersManager({
                     <button
                       type="button"
                       onClick={() => removeSupplier(s.id)}
-                      className="ms-auto flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
+                      className="ms-auto flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-danger transition-colors hover:bg-danger-soft"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       {dict.merchant.products.delete}
@@ -288,8 +288,8 @@ export function SuppliersManager({
                           <span
                             className={`w-20 shrink-0 text-center font-extrabold tabular-nums ${
                               x.kind === "purchase"
-                                ? "text-amber-700"
-                                : "text-emerald-600"
+                                ? "text-warning"
+                                : "text-success"
                             }`}
                             dir="ltr"
                           >

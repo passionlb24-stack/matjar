@@ -24,12 +24,12 @@ type BookingRow = {
 };
 
 const statusStyle: Record<BookingStatus, string> = {
-  pending: "bg-amber-100 text-amber-700",
-  accepted: "bg-sky-100 text-sky-700",
-  scheduled: "bg-sky-100 text-sky-700",
-  completed: "bg-emerald-100 text-emerald-700",
+  pending: "bg-warning-soft text-warning",
+  accepted: "bg-info-soft text-info",
+  scheduled: "bg-info-soft text-info",
+  completed: "bg-success-soft text-success",
   cancelled: "bg-slate-100 text-slate-600",
-  rejected: "bg-red-100 text-red-700",
+  rejected: "bg-danger-soft text-danger",
 };
 
 export default async function BookingsPage({

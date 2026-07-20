@@ -250,7 +250,7 @@ export function ListingForm({
         <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} placeholder={t.descriptionPlaceholder} />
       </Field>
 
-      {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+      {error && <p className="text-sm font-medium text-danger">{error}</p>}
 
       <div className="flex flex-wrap gap-2">
         <Button

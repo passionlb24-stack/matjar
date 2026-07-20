@@ -78,7 +78,7 @@ export function DealOfTheDay({
               />
             ) : (
               <div className="flex h-full min-h-56 items-center justify-center">
-                <ImageIcon className="h-16 w-16 text-black/10" />
+                <ImageIcon className="h-16 w-16 text-foreground/10" />
               </div>
             )}
             {deal.off > 0 && (

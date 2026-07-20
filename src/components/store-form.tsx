@@ -222,7 +222,7 @@ export function StoreForm({
         <textarea id="description" name="description" rows={3} placeholder={dict.merchant.descriptionPlaceholder} className={field} />
       </div>
 
-      {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+      {error && <p className="text-sm font-medium text-danger">{error}</p>}
 
       <Button type="submit" full loading={loading}>
         {loading ? dict.merchant.creating : dict.merchant.create}

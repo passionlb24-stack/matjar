@@ -20,8 +20,8 @@ const KIND_STYLE: Record<
   { Icon: typeof Zap; chip: string }
 > = {
   order: { Icon: ShoppingBag, chip: "bg-primary-soft text-primary" },
-  booking: { Icon: CalendarCheck, chip: "bg-violet-100 text-violet-600" },
-  automation: { Icon: Zap, chip: "bg-amber-100 text-amber-600" },
+  booking: { Icon: CalendarCheck, chip: "bg-primary-soft text-primary" },
+  automation: { Icon: Zap, chip: "bg-warning-soft text-warning" },
 };
 
 function timeAgo(iso: string, lang: Locale) {

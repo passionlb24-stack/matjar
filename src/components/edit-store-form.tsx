@@ -400,7 +400,7 @@ export function EditStoreForm({
         <input id="website" name="website" type="url" defaultValue={initial.website ?? ""} placeholder="https://…" className={fieldClass} />
       </div>
 
-      {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+      {error && <p className="text-sm font-medium text-danger">{error}</p>}
 
       <Button type="submit" full loading={loading}>
         {loading ? dict.merchant.saving : dict.merchant.save}

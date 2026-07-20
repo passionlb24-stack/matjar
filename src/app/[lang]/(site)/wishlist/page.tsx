@@ -83,7 +83,7 @@ export default async function WishlistPage({
                     />
                   ) : (
                     <div className="flex h-36 w-full items-center justify-center bg-surface-muted">
-                      <ImageIcon className="h-10 w-10 text-black/10" />
+                      <ImageIcon className="h-10 w-10 text-foreground/10" />
                     </div>
                   )}
                   <div className="flex flex-1 flex-col p-3">

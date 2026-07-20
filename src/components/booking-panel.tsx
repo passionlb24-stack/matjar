@@ -186,7 +186,7 @@ export function BookingPanel({
 
   if (booked) {
     return (
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 text-center">
+      <div className="rounded-2xl border border-success/30 bg-success-soft p-6 text-center">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white">
           <Check className="h-6 w-6" />
         </div>
@@ -381,8 +381,8 @@ export function BookingPanel({
               </div>
             )}
             {!hours && taken.length > 0 && (
-              <div className="rounded-xl bg-amber-50 p-3">
-                <p className="text-xs font-bold text-amber-800">
+              <div className="rounded-xl bg-warning-soft p-3">
+                <p className="text-xs font-bold text-warning">
                   {dict.booking.takenTimes}
                 </p>
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -393,7 +393,7 @@ export function BookingPanel({
                       className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
                         tt === time
                           ? "bg-red-500 text-white"
-                          : "bg-amber-100 text-amber-800"
+                          : "bg-warning-soft text-warning"
                       }`}
                     >
                       {tt}
@@ -401,7 +401,7 @@ export function BookingPanel({
                   ))}
                 </div>
                 {time && taken.includes(time) && (
-                  <p className="mt-1.5 text-xs font-bold text-red-600">
+                  <p className="mt-1.5 text-xs font-bold text-danger">
                     {dict.booking.slotTaken}
                   </p>
                 )}
@@ -414,7 +414,7 @@ export function BookingPanel({
               <textarea id="notes" name="notes" rows={2} placeholder={dict.booking.notesPlaceholder} className={fieldClass} />
             </div>
             {error && (
-              <p className="text-sm font-medium text-red-600">{error}</p>
+              <p className="text-sm font-medium text-danger">{error}</p>
             )}
             <button
               type="submit"

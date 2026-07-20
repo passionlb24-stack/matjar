@@ -157,8 +157,8 @@ export function InventoryManager({
   return (
     <div>
       {lowOnes.length > 0 && (
-        <section className="rounded-2xl border border-amber-300 bg-amber-50 p-4">
-          <h2 className="font-bold text-amber-800">{t.lowTitle}</h2>
+        <section className="rounded-2xl border border-warning/30 bg-warning-soft p-4">
+          <h2 className="font-bold text-warning">{t.lowTitle}</h2>
           <div className="mt-3 space-y-2">{lowOnes.map(row)}</div>
         </section>
       )}
@@ -186,7 +186,7 @@ export function InventoryManager({
               >
                 <span
                   className={`w-12 shrink-0 text-center font-extrabold tabular-nums ${
-                    m.delta < 0 ? "text-red-600" : "text-emerald-600"
+                    m.delta < 0 ? "text-danger" : "text-success"
                   }`}
                   dir="ltr"
                 >

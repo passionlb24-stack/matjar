@@ -143,10 +143,10 @@ const ACTION_ICON: Record<ActionType, LucideIcon> = {
 // Per-action-type accent (used on chips + node tints). Kept as full class strings
 // so Tailwind's JIT picks them up.
 const ACTION_TINT: Record<ActionType, string> = {
-  notify: "bg-sky-100 text-sky-700",
-  whatsapp: "bg-emerald-100 text-emerald-700",
+  notify: "bg-info-soft text-info",
+  whatsapp: "bg-success-soft text-success",
   loyalty: "bg-primary-soft text-primary",
-  coupon: "bg-amber-100 text-amber-700",
+  coupon: "bg-warning-soft text-warning",
 };
 
 function defaultAction(type: ActionType): Action {
@@ -244,7 +244,7 @@ export function AutomationManager({
       {
         id: "thanks",
         Icon: MessageCircle,
-        tint: "bg-emerald-100 text-emerald-700",
+        tint: "bg-success-soft text-success",
         name: r.thanks.name,
         desc: r.thanks.desc,
         trigger: "order_completed" as TriggerKey,
@@ -256,7 +256,7 @@ export function AutomationManager({
       {
         id: "abandonedCart",
         Icon: ShoppingCart,
-        tint: "bg-rose-100 text-rose-700",
+        tint: "bg-danger-soft text-danger",
         name: r.abandonedCart.name,
         desc: r.abandonedCart.desc,
         trigger: "order_abandoned" as TriggerKey,
@@ -268,7 +268,7 @@ export function AutomationManager({
       {
         id: "reviewReq",
         Icon: Star,
-        tint: "bg-amber-100 text-amber-700",
+        tint: "bg-warning-soft text-warning",
         name: r.reviewReq.name,
         desc: r.reviewReq.desc,
         trigger: "order_completed" as TriggerKey,
@@ -280,7 +280,7 @@ export function AutomationManager({
       {
         id: "lowStock",
         Icon: PackageX,
-        tint: "bg-sky-100 text-sky-700",
+        tint: "bg-info-soft text-info",
         name: r.lowStock.name,
         desc: r.lowStock.desc,
         trigger: "low_stock" as TriggerKey,
@@ -306,7 +306,7 @@ export function AutomationManager({
       {
         id: "bigOrder",
         Icon: BadgeDollarSign,
-        tint: "bg-violet-100 text-violet-700",
+        tint: "bg-primary-soft text-primary",
         name: r.bigOrder.name,
         desc: r.bigOrder.desc,
         trigger: "order_created" as TriggerKey,
@@ -322,7 +322,7 @@ export function AutomationManager({
       {
         id: "badReview",
         Icon: AlertTriangle,
-        tint: "bg-red-100 text-red-600",
+        tint: "bg-danger-soft text-danger",
         name: r.badReview.name,
         desc: r.badReview.desc,
         trigger: "new_review" as TriggerKey,
@@ -338,7 +338,7 @@ export function AutomationManager({
       {
         id: "bookingReminder",
         Icon: Clock,
-        tint: "bg-sky-100 text-sky-700",
+        tint: "bg-info-soft text-info",
         name: r.bookingReminder.name,
         desc: r.bookingReminder.desc,
         trigger: "booking_reminder" as TriggerKey,
@@ -350,7 +350,7 @@ export function AutomationManager({
       {
         id: "winback",
         Icon: Moon,
-        tint: "bg-violet-100 text-violet-700",
+        tint: "bg-primary-soft text-primary",
         name: r.winback.name,
         desc: r.winback.desc,
         trigger: "customer_inactive" as TriggerKey,
@@ -611,7 +611,7 @@ export function AutomationManager({
         {/* IF */}
         <FlowStep
           Icon={Filter}
-          nodeClass="bg-amber-100 text-amber-600"
+          nodeClass="bg-warning-soft text-warning"
           label={t.ifLabel}
           hint={t.ifHint}
         >
@@ -741,7 +741,7 @@ export function AutomationManager({
         {/* DO */}
         <FlowStep
           Icon={Play}
-          nodeClass="bg-emerald-100 text-emerald-600"
+          nodeClass="bg-success-soft text-success"
           label={t.doLabel}
           hint={t.doHint}
           last
@@ -767,7 +767,7 @@ export function AutomationManager({
                       type="button"
                       onClick={() => removeAction(idx)}
                       aria-label={t.delete}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-danger-soft hover:text-danger"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -932,7 +932,7 @@ export function AutomationManager({
                   onClick={() => enableRecipe(r)}
                   className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
                     added
-                      ? "cursor-default bg-emerald-50 text-emerald-700"
+                      ? "cursor-default bg-success-soft text-success"
                       : "bg-primary text-primary-foreground hover:bg-primary-hover disabled:opacity-60"
                   }`}
                 >
@@ -1033,7 +1033,7 @@ export function AutomationManager({
                       {conditionChips(a.conditions).map((c) => (
                         <span
                           key={c}
-                          className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 font-semibold text-amber-700"
+                          className="inline-flex items-center gap-1 rounded-full bg-warning-soft px-2 py-0.5 font-semibold text-warning"
                         >
                           <Filter className="h-3 w-3" />
                           {c}
@@ -1088,7 +1088,7 @@ export function AutomationManager({
                   <button
                     type="button"
                     onClick={() => remove(a)}
-                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
+                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold text-danger transition-colors hover:bg-danger-soft"
                   >
                     <Trash2 className="h-4 w-4" />
                     {t.delete}
@@ -1195,9 +1195,9 @@ function StatusPill({
 }) {
   const t = dict.os.automations.status;
   const map: Record<RunRow["status"], { cls: string; label: string }> = {
-    fired: { cls: "bg-emerald-100 text-emerald-700", label: t.fired },
+    fired: { cls: "bg-success-soft text-success", label: t.fired },
     skipped: { cls: "bg-surface-muted text-muted-foreground", label: t.skipped },
-    error: { cls: "bg-red-100 text-red-700", label: t.error },
+    error: { cls: "bg-danger-soft text-danger", label: t.error },
   };
   const s = map[status];
   return (

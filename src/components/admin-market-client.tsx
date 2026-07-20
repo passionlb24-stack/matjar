@@ -272,7 +272,7 @@ export function AdminMarketClient({
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center">
-                        <ImageIcon className="h-6 w-6 text-black/10" />
+                        <ImageIcon className="h-6 w-6 text-foreground/10" />
                       </div>
                     )}
                   </div>

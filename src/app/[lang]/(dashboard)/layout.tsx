@@ -6,6 +6,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { LogoutButton } from "@/components/logout-button";
 import { DashboardMobileMenu } from "@/components/dashboard-mobile-menu";
 import { HeaderBells } from "@/components/header-bells";
@@ -126,6 +127,7 @@ export default async function DashboardLayout({
               unreadNotifications={unread ?? 0}
               unreadMessages={(msgCount as number | null) ?? 0}
             />
+            <ThemeToggle />
             <LanguageSwitcher currentLocale={lang} />
             <span className="hidden text-sm font-semibold sm:block">{name}</span>
             <LogoutButton label={dict.auth.logout} />

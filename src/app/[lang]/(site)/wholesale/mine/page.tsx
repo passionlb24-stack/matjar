@@ -82,7 +82,7 @@ export default async function MyWholesalePage({
                   />
                 ) : (
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-surface-muted">
-                    <ImageIcon className="h-6 w-6 text-black/10" />
+                    <ImageIcon className="h-6 w-6 text-foreground/10" />
                   </div>
                 )}
                 <div>

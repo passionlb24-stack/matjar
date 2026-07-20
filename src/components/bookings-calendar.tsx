@@ -23,12 +23,12 @@ export type CalendarBooking = {
 // Status → chip tone. Same tone approach used elsewhere (kitchen-board, the
 // customer bookings page): a soft tinted fill + darker ink, one hue per state.
 const TONE: Record<string, string> = {
-  pending: "border-amber-200 bg-amber-50 text-amber-800",
-  accepted: "border-emerald-200 bg-emerald-50 text-emerald-800",
-  scheduled: "border-emerald-200 bg-emerald-50 text-emerald-800",
+  pending: "border-warning/30 bg-warning-soft text-warning",
+  accepted: "border-success/30 bg-success-soft text-success",
+  scheduled: "border-success/30 bg-success-soft text-success",
   completed: "border-border bg-surface-muted text-muted-foreground",
-  cancelled: "border-red-200 bg-red-50 text-red-700",
-  rejected: "border-red-200 bg-red-50 text-red-700",
+  cancelled: "border-danger/30 bg-danger-soft text-danger",
+  rejected: "border-danger/30 bg-danger-soft text-danger",
 };
 const FALLBACK_TONE = "border-border bg-surface-muted text-muted-foreground";
 

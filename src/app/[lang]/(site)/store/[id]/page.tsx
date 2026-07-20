@@ -495,7 +495,7 @@ export default async function StorePage({
                   </span>
                   {store.plan === "pro" && <ProBadge />}
                   {store.registered && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2.5 py-1 text-xs font-bold text-success">
                       <BadgeCheck className="h-3.5 w-3.5" />
                       {dict.featured.registered}
                     </span>
@@ -504,7 +504,7 @@ export default async function StorePage({
                 <p className="mt-1 text-sm font-medium text-muted-foreground">{cat.name}</p>
                 <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
                   {headerRating != null && (
-                    <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1">
+                    <span className="flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1">
                       <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                       <span className="font-bold">{headerRating.toFixed(1)}</span>
                       <span className="text-muted-foreground">
@@ -513,7 +513,7 @@ export default async function StorePage({
                     </span>
                   )}
                   {ordersFulfilled > 0 && (
-                    <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-700">
+                    <span className="flex items-center gap-1 rounded-full bg-success-soft px-2.5 py-1 font-semibold text-success">
                       <BadgeCheck className="h-4 w-4" />
                       {dict.store.ordersFulfilled.replace(
                         "{n}",
@@ -546,8 +546,8 @@ export default async function StorePage({
                           <span
                             className={`rounded-full px-2 py-0.5 text-xs font-bold ${
                               open
-                                ? "bg-emerald-100 text-emerald-700"
-                                : "bg-red-100 text-red-700"
+                                ? "bg-success-soft text-success"
+                                : "bg-danger-soft text-danger"
                             }`}
                           >
                             {open

@@ -43,7 +43,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#fbfbf9",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fbfbf9" },
+    { media: "(prefers-color-scheme: dark)", color: "#0d1117" },
+  ],
   viewportFit: "cover",
 };
 
@@ -67,6 +70,16 @@ export default async function RootLayout({
       dir={localeDirection[lang]}
       className={`${tajawal.variable} h-full`}
     >
+      <head>
+        {/* Apply the saved light/dark choice before paint (no theme flash). With
+            no saved choice the CSS follows the OS preference. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.getItem('matjar-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}",
+          }}
+        />
+      </head>
       <body className="flex min-h-dvh flex-col bg-background font-sans text-foreground antialiased">
         <ConfirmProvider>{children}</ConfirmProvider>
         <NativeBridge />

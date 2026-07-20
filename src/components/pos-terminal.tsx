@@ -222,7 +222,7 @@ export function PosTerminal({
             </h2>
 
             {success && (
-              <div className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-sm font-bold text-emerald-700">
+              <div className="mt-3 flex items-center gap-2 rounded-xl bg-success-soft p-3 text-sm font-bold text-success">
                 <CheckCircle2 className="h-5 w-5" />
                 {t.success}
               </div>
@@ -252,7 +252,7 @@ export function PosTerminal({
                         className="flex h-7 w-7 items-center justify-center rounded-lg border border-border transition-colors hover:bg-surface-muted"
                       >
                         {l.qty === 1 ? (
-                          <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                          <Trash2 className="h-3.5 w-3.5 text-danger" />
                         ) : (
                           <Minus className="h-3.5 w-3.5" />
                         )}
@@ -320,7 +320,7 @@ export function PosTerminal({
                     <span className="tabular-nums">{fmt(subtotal)}</span>
                   </div>
                   {disc > 0 && (
-                    <div className="flex justify-between text-red-600">
+                    <div className="flex justify-between text-danger">
                       <span>{t.discount}</span>
                       <span className="tabular-nums">-{fmt(disc)}</span>
                     </div>

@@ -217,7 +217,7 @@ export function LoyaltyPanel({
                   {reasonLabel(h.reason)}
                 </span>
                 <span
-                  className={`font-bold tabular-nums ${h.delta >= 0 ? "text-primary" : "text-red-600"}`}
+                  className={`font-bold tabular-nums ${h.delta >= 0 ? "text-primary" : "text-danger"}`}
                 >
                   {h.delta >= 0 ? "+" : ""}
                   {h.delta}

@@ -57,7 +57,7 @@ export function JobApplyForm({
 
   if (done) {
     return (
-      <div className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-5 font-bold text-emerald-700">
+      <div className="flex items-center gap-2 rounded-2xl border border-success/30 bg-success-soft p-5 font-bold text-success">
         <Check className="h-5 w-5" />
         {t.applied}
       </div>
@@ -73,7 +73,7 @@ export function JobApplyForm({
       <Input name="phone" type="tel" inputMode="tel" placeholder={t.applyPhone} />
       <Input name="cv_url" type="url" placeholder={t.applyCv} dir="ltr" />
       <Textarea name="cover_note" rows={3} placeholder={t.applyNote} />
-      {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+      {error && <p className="text-sm font-medium text-danger">{error}</p>}
       <Button type="submit" loading={loading}>{t.apply}</Button>
     </form>
   );

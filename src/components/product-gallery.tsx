@@ -16,7 +16,7 @@ export function ProductGallery({
   if (images.length === 0) {
     return (
       <div className="flex aspect-square w-full items-center justify-center rounded-2xl border border-border bg-surface-muted">
-        <ImageIcon className="h-16 w-16 text-black/10" />
+        <ImageIcon className="h-16 w-16 text-foreground/10" />
       </div>
     );
   }

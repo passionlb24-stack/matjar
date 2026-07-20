@@ -170,7 +170,7 @@ export function LoginForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
           </Link>
         </div>
         {error && (
-          <p className="text-sm font-medium text-red-600" role="alert">
+          <p className="text-sm font-medium text-danger" role="alert">
             {error}
           </p>
         )}
@@ -329,7 +329,7 @@ export function SignupForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
           hideLabel={dict.auth.hidePassword}
         />
         {error && (
-          <p className="text-sm font-medium text-red-600" role="alert">
+          <p className="text-sm font-medium text-danger" role="alert">
             {error}
           </p>
         )}
@@ -406,7 +406,7 @@ export function ForgotPasswordForm({
           />
         </Field>
         {error && (
-          <p className="text-sm font-medium text-red-600" role="alert">
+          <p className="text-sm font-medium text-danger" role="alert">
             {error}
           </p>
         )}
@@ -487,7 +487,7 @@ export function ResetPasswordForm({
           hideLabel={dict.auth.hidePassword}
         />
         {error && (
-          <p className="text-sm font-medium text-red-600" role="alert">
+          <p className="text-sm font-medium text-danger" role="alert">
             {error}
           </p>
         )}

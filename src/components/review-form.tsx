@@ -109,7 +109,7 @@ export function ReviewForm({
         className="mt-3 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground"
       />
       {error && (
-        <p className="mt-3 text-sm font-medium text-red-600">{error}</p>
+        <p className="mt-3 text-sm font-medium text-danger">{error}</p>
       )}
       <button
         type="submit"

@@ -89,11 +89,11 @@ export function OrderPayments({
           {t.title}
         </span>
         <span className="flex flex-wrap items-center gap-x-3 gap-y-1 font-semibold">
-          <span className="text-emerald-600">
+          <span className="text-success">
             {t.paid}: {money(paid)}
           </span>
           {refunded > 0 && (
-            <span className="text-red-600">
+            <span className="text-danger">
               {t.refunded}: {money(refunded)}
             </span>
           )}
@@ -112,9 +112,9 @@ export function OrderPayments({
             >
               <span className="flex items-center gap-1.5">
                 {p.kind === "refund" ? (
-                  <ArrowUpRight className="h-3.5 w-3.5 text-red-500" />
+                  <ArrowUpRight className="h-3.5 w-3.5 text-danger" />
                 ) : (
-                  <ArrowDownLeft className="h-3.5 w-3.5 text-emerald-500" />
+                  <ArrowDownLeft className="h-3.5 w-3.5 text-success" />
                 )}
                 <span className="font-semibold text-foreground">
                   {p.kind === "refund" ? t.refund : t.payment}
@@ -125,8 +125,8 @@ export function OrderPayments({
               <span
                 className={
                   p.kind === "refund"
-                    ? "font-bold text-red-600"
-                    : "font-bold text-emerald-600"
+                    ? "font-bold text-danger"
+                    : "font-bold text-success"
                 }
               >
                 {p.kind === "refund" ? "−" : "+"}

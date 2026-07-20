@@ -117,10 +117,10 @@ export default async function AccountingPage({
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="rounded-2xl border border-border bg-surface p-4">
             <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-              <TrendingUp className="h-4 w-4 text-emerald-600" />
+              <TrendingUp className="h-4 w-4 text-success" />
               {t.revenue}
             </p>
-            <p className="mt-1 text-2xl font-extrabold text-emerald-700">
+            <p className="mt-1 text-2xl font-extrabold text-success">
               {money(revenue)}
             </p>
             {posRevenue > 0 && (
@@ -130,17 +130,17 @@ export default async function AccountingPage({
               </p>
             )}
             {onlinePending > 0 && (
-              <p className="mt-1 text-[11px] font-semibold text-amber-600">
+              <p className="mt-1 text-[11px] font-semibold text-warning">
                 {dict.os.finance.pending}: {money(onlinePending)}
               </p>
             )}
           </div>
           <div className="rounded-2xl border border-border bg-surface p-4">
             <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-              <TrendingDown className="h-4 w-4 text-red-600" />
+              <TrendingDown className="h-4 w-4 text-danger" />
               {t.expenses}
             </p>
-            <p className="mt-1 text-2xl font-extrabold text-red-600">
+            <p className="mt-1 text-2xl font-extrabold text-danger">
               {money(totalExpenses)}
             </p>
           </div>

@@ -77,7 +77,7 @@ export function OverflowMenu({
               }}
               className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-start text-sm font-semibold transition-colors hover:bg-surface-muted disabled:opacity-60 ${
                 a.destructive
-                  ? "text-red-600 hover:bg-red-50"
+                  ? "text-danger hover:bg-danger-soft"
                   : a.active
                     ? "text-primary"
                     : "text-foreground"

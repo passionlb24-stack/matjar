@@ -50,7 +50,7 @@ export function ProductMiniCard({
           />
         ) : (
           <div className="flex h-32 w-full items-center justify-center bg-surface-muted">
-            <ImageIcon className="h-9 w-9 text-black/10 transition-transform duration-500 group-hover:scale-110" />
+            <ImageIcon className="h-9 w-9 text-foreground/10 transition-transform duration-500 group-hover:scale-110" />
           </div>
         )}
       </div>

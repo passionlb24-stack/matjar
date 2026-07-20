@@ -22,8 +22,8 @@ export function ProGate({
 }) {
   const t = dict.os.pro;
   const card = (
-    <div className="mx-auto max-w-lg rounded-3xl border border-amber-300 bg-gradient-to-b from-amber-50/70 to-transparent p-7 text-center">
-      <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
+    <div className="mx-auto max-w-lg rounded-3xl border border-accent/40 bg-gradient-to-b from-accent-soft to-transparent p-7 text-center">
+      <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent-foreground">
         {compact ? <Lock className="h-7 w-7" /> : <Crown className="h-7 w-7" />}
       </span>
       <h2 className="mt-4 text-xl font-extrabold tracking-tight">
@@ -36,7 +36,7 @@ export function ProGate({
       <ul className="mx-auto mt-5 max-w-xs space-y-2 text-start">
         {t.benefits.map((b) => (
           <li key={b} className="flex items-start gap-2 text-sm font-medium">
-            <Check className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+            <Check className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
             {b}
           </li>
         ))}
@@ -50,7 +50,7 @@ export function ProGate({
           <Crown className="h-4 w-4" />
           {t.upgrade}
         </Link>
-        <p className="mt-2 text-xs font-bold text-amber-700">
+        <p className="mt-2 text-xs font-bold text-warning">
           {t.perMonth} · {t.perYear}
         </p>
       </div>

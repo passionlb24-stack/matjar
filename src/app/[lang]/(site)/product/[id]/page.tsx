@@ -313,7 +313,7 @@ export default async function ProductPage({
 
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <span
-                className={`text-2xl font-extrabold ${flashEnd != null ? "text-amber-600" : "text-primary"}`}
+                className={`text-2xl font-extrabold ${flashEnd != null ? "text-warning" : "text-primary"}`}
               >
                 {formatPrice(basePrice)}
               </span>
@@ -327,15 +327,15 @@ export default async function ProductPage({
               )}
               {product.stock != null &&
                 (soldOut ? (
-                  <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-700">
+                  <span className="rounded-full bg-danger-soft px-2.5 py-0.5 text-xs font-bold text-danger">
                     {dict.product.outOfStock}
                   </span>
                 ) : product.stock <= 5 ? (
-                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-700">
+                  <span className="rounded-full bg-warning-soft px-2.5 py-0.5 text-xs font-bold text-warning">
                     {dict.product.lowStock.replace("{n}", String(product.stock))}
                   </span>
                 ) : (
-                  <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
+                  <span className="rounded-full bg-success-soft px-2.5 py-0.5 text-xs font-bold text-success">
                     {dict.product.inStock}
                   </span>
                 ))}

@@ -74,7 +74,7 @@ export default async function BestSellersPage({
                     />
                   ) : (
                     <div className="flex h-36 w-full items-center justify-center bg-surface-muted">
-                      <ImageIcon className="h-10 w-10 text-black/10" />
+                      <ImageIcon className="h-10 w-10 text-foreground/10" />
                     </div>
                   )}
                   <span className="absolute start-2 top-2 rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">

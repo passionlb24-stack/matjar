@@ -43,12 +43,12 @@ export function OrderCancelButton({
       <button
         onClick={cancel}
         disabled={busy}
-        className="flex items-center gap-1.5 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-bold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+        className="flex items-center gap-1.5 rounded-xl border border-danger/30 px-4 py-2.5 text-sm font-bold text-danger transition-colors hover:bg-danger-soft disabled:opacity-60"
       >
         <X className="h-4 w-4" />
         {label}
       </button>
-      {error && <p className="mt-1 text-xs font-medium text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-xs font-medium text-danger">{error}</p>}
     </div>
   );
 }

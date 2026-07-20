@@ -71,7 +71,7 @@ export function ProductRowActions({
         disabled={busy}
         aria-label={deleteLabel}
         title={deleteLabel}
-        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-60"
+        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-danger-soft hover:text-danger disabled:opacity-60"
       >
         <Trash2 className="h-4 w-4" />
       </button>

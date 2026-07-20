@@ -206,7 +206,7 @@ export function DoctorManager({
               <button
                 disabled={busy}
                 onClick={() => remove(d.id)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-danger transition-colors hover:bg-danger-soft disabled:opacity-60"
               >
                 <Trash2 className="h-4 w-4" />
               </button>

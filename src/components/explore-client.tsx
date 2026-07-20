@@ -298,7 +298,7 @@ export function ExploreClient({
             })}
           </div>
           {geoError && (
-            <p className="mt-2 text-sm font-medium text-red-600">{geoError}</p>
+            <p className="mt-2 text-sm font-medium text-danger">{geoError}</p>
           )}
         </div>
 

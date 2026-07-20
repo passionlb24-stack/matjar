@@ -128,7 +128,7 @@ function Delta({ pct }: { pct: number }) {
   const up = pct > 0;
   return (
     <span
-      className={`inline-flex items-center gap-0.5 text-xs font-bold ${up ? "text-emerald-600" : "text-red-600"}`}
+      className={`inline-flex items-center gap-0.5 text-xs font-bold ${up ? "text-success" : "text-danger"}`}
     >
       {up ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
       {Math.abs(pct)}%
@@ -274,7 +274,7 @@ export default async function StoreReportsPage({
         </div>
 
         {pendingSales > 0 && (
-          <p className="mt-2 text-xs font-semibold text-amber-600">
+          <p className="mt-2 text-xs font-semibold text-warning">
             {dict.os.finance.pending}: {formatPrice(pendingSales)} —{" "}
             {dict.os.finance.pendingHint}
           </p>

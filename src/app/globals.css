@@ -113,6 +113,74 @@
   animation-delay: 0.24s;
 }
 
+/* ===== Dark theme ===== */
+/* Only the token VALUES change; every component styled through tokens
+   (bg-surface, text-foreground, bg-success-soft, Card, Badge, Button …) adapts
+   automatically. Applies on the OS preference unless the user forced light, and
+   whenever [data-theme="dark"] is set by the toggle. A palette tuned to the
+   brand blue on a slate-black ground. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: #0d1117;
+    --surface: #161b22;
+    --surface-muted: #21262d;
+    --foreground: #e6edf3;
+    --muted-foreground: #9198a1;
+    --primary: #4c8dff;
+    --primary-hover: #6ba1ff;
+    --primary-foreground: #0b1220;
+    --primary-soft: #16233b;
+    --accent: #fbbf24;
+    --accent-foreground: #0b1220;
+    --accent-soft: #2b2410;
+    --border: #2a3038;
+    --ring: #4c8dff;
+    --success: #3fb950;
+    --success-soft: #12261a;
+    --warning: #d29922;
+    --warning-soft: #2a2410;
+    --danger: #f85149;
+    --danger-soft: #2d1719;
+    --info: #58a6ff;
+    --info-soft: #12233a;
+  }
+}
+:root[data-theme="dark"] {
+  --background: #0d1117;
+  --surface: #161b22;
+  --surface-muted: #21262d;
+  --foreground: #e6edf3;
+  --muted-foreground: #9198a1;
+  --primary: #4c8dff;
+  --primary-hover: #6ba1ff;
+  --primary-foreground: #0b1220;
+  --primary-soft: #16233b;
+  --accent: #fbbf24;
+  --accent-foreground: #0b1220;
+  --accent-soft: #2b2410;
+  --border: #2a3038;
+  --ring: #4c8dff;
+  --success: #3fb950;
+  --success-soft: #12261a;
+  --warning: #d29922;
+  --warning-soft: #2a2410;
+  --danger: #f85149;
+  --danger-soft: #2d1719;
+  --info: #58a6ff;
+  --info-soft: #12233a;
+}
+/* The shimmer highlight is white on light; soften it on dark. */
+:root[data-theme="dark"] .shimmer,
+html:has(:root:not([data-theme="light"])) .shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--surface-muted) 25%,
+    #2b323b 50%,
+    var(--surface-muted) 75%
+  );
+  background-size: 200% 100%;
+}
+
 * {
   border-color: var(--border);
 }

@@ -118,7 +118,7 @@ export function ProductReviewForm({
         )}
       </div>
 
-      {error && <p className="mt-2 text-sm font-medium text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-sm font-medium text-danger">{error}</p>}
       <button
         onClick={submit}
         disabled={busy || rating < 1}

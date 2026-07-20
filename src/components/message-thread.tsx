@@ -95,7 +95,7 @@ export function MessageThread({
         <div ref={endRef} />
       </div>
       {sendError && (
-        <p className="border-t border-border px-4 py-2 text-sm font-medium text-red-600">
+        <p className="border-t border-border px-4 py-2 text-sm font-medium text-danger">
           {sendError}
         </p>
       )}

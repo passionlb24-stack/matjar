@@ -305,7 +305,7 @@ export function ProductOrder({
             <textarea id="note" name="note" rows={2} placeholder={dict.store.notePlaceholder} className={fieldClass} />
           </div>
           {orderError && (
-            <p className="text-sm font-medium text-red-600">{orderError}</p>
+            <p className="text-sm font-medium text-danger">{orderError}</p>
           )}
           <div className="flex gap-2">
             <button

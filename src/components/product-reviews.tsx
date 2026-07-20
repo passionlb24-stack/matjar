@@ -91,7 +91,7 @@ export function ProductReviews({
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-bold">{r.customerName ?? "—"}</span>
                 {r.verified && (
-                  <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                  <span className="inline-flex items-center gap-0.5 rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success">
                     <BadgeCheck className="h-3 w-3" />
                     {t.verified}
                   </span>

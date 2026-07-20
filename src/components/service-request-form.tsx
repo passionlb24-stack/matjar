@@ -195,7 +195,7 @@ export function ServiceRequestForm({
                       </span>
                     </div>
                     {r.quote_amount != null && (
-                      <p className="mt-1 font-bold text-sky-700">
+                      <p className="mt-1 font-bold text-info">
                         {rt.quotedAt}: {money(Number(r.quote_amount))}
                         {r.quote_note ? (
                           <span className="font-normal text-muted-foreground">
@@ -219,7 +219,7 @@ export function ServiceRequestForm({
                         )}
                         <button
                           onClick={() => act(r.id, "cancel")}
-                          className="rounded-lg px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
+                          className="rounded-lg px-3 py-1 text-xs font-semibold text-danger hover:bg-danger-soft"
                         >
                           {t.cancel}
                         </button>

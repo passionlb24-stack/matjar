@@ -37,7 +37,7 @@ export function FlashCountdown({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1 text-sm font-bold text-amber-700 ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-sm font-bold text-accent-foreground ${className}`}
     >
       <Zap className="h-4 w-4 fill-amber-500 text-amber-500" />
       {dict.flash.endsIn}{" "}

@@ -111,7 +111,7 @@ export default async function StoreSubscriptionPage({
               {isPro ? t.pro : t.free}
             </span>
             {isPro && (
-              <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
+              <span className="rounded-full bg-success-soft px-2.5 py-0.5 text-xs font-bold text-success">
                 {t.active}
               </span>
             )}

@@ -15,10 +15,10 @@ type StoreRow = {
 };
 
 const statusStyle: Record<StoreRow["status"], string> = {
-  pending: "bg-amber-100 text-amber-700",
-  active: "bg-emerald-100 text-emerald-700",
+  pending: "bg-warning-soft text-warning",
+  active: "bg-success-soft text-success",
   suspended: "bg-slate-100 text-slate-600",
-  rejected: "bg-red-100 text-red-700",
+  rejected: "bg-danger-soft text-danger",
 };
 
 export default async function MerchantPage({

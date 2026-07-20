@@ -137,7 +137,7 @@ export default async function OrderDetailPage({
 
         {/* Status */}
         {cancelled ? (
-          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50/60 p-4 text-center font-bold text-red-700">
+          <div className="mt-6 rounded-2xl border border-red-200 bg-danger-soft p-4 text-center font-bold text-danger">
             {t.status[order.status as "cancelled" | "rejected"]}
           </div>
         ) : (
@@ -202,7 +202,7 @@ export default async function OrderDetailPage({
               <span>{formatUsd(order.subtotal)}</span>
             </div>
             {order.discount ? (
-              <div className="flex justify-between text-emerald-700">
+              <div className="flex justify-between text-success">
                 <span>{t.discount}</span>
                 <span>-{formatUsd(order.discount)}</span>
               </div>

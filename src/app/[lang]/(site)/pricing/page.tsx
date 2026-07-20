@@ -112,7 +112,7 @@ export default async function PricingPage({
                     </span>
                   </p>
                 </div>
-                <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                <span className="shrink-0 rounded-full bg-success-soft px-2.5 py-1 text-xs font-bold text-success">
                   {discountLabel(PRO_MONTHLY_DISCOUNT_PCT)}
                 </span>
               </div>
@@ -134,7 +134,7 @@ export default async function PricingPage({
                     </span>
                   </p>
                 </div>
-                <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                <span className="shrink-0 rounded-full bg-success-soft px-2.5 py-1 text-xs font-bold text-success">
                   {discountLabel(PRO_YEARLY_DISCOUNT_PCT)}
                 </span>
               </div>

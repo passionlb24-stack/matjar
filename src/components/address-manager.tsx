@@ -233,7 +233,7 @@ export function AddressManager({
                   type="button"
                   disabled={busy}
                   onClick={() => remove(a.id)}
-                  className="flex items-center gap-1 text-xs font-semibold text-red-600 hover:underline disabled:opacity-60"
+                  className="flex items-center gap-1 text-xs font-semibold text-danger hover:underline disabled:opacity-60"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   {t.delete}
@@ -386,7 +386,7 @@ function AddressFields({
           {t.cancel}
         </Button>
         {error && (
-          <span className="text-sm font-semibold text-red-600">{error}</span>
+          <span className="text-sm font-semibold text-danger">{error}</span>
         )}
       </div>
     </form>

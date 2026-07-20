@@ -170,7 +170,7 @@ export function MerchantSidebar({
           <span
             className={`rounded-full px-1.5 py-px text-[10px] font-bold ${
               plan === "pro"
-                ? "bg-amber-100 text-amber-600"
+                ? "bg-accent-soft text-accent-foreground"
                 : "bg-surface-muted text-muted-foreground"
             }`}
           >

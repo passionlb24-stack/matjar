@@ -67,7 +67,7 @@ export default async function FlashPage({
     <div className="py-10">
       <Container>
         <div className="flex items-center gap-2">
-          <Zap className="h-7 w-7 fill-amber-500 text-amber-500" />
+          <Zap className="h-7 w-7 fill-accent text-accent" />
           <h1 className="text-3xl font-extrabold tracking-tight">
             {dict.flash.title}
           </h1>
@@ -93,7 +93,7 @@ export default async function FlashPage({
           </div>
         ) : (
           <div className="mt-8 rounded-2xl border border-dashed border-border py-16 text-center">
-            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-600">
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent">
               <Zap className="h-7 w-7" />
             </span>
             <p className="mt-4 text-muted-foreground">{dict.flash.empty}</p>

@@ -38,7 +38,7 @@ function PriceTag({ p }: { p: Product }) {
   const flash = isFlashActive(p);
   return (
     <span className="inline-flex items-center gap-1.5">
-      <span className={`font-bold ${flash ? "text-amber-600" : "text-primary"}`}>
+      <span className={`font-bold ${flash ? "text-warning" : "text-primary"}`}>
         {formatPrice(eff)}
       </span>
       {compare != null && (
@@ -474,7 +474,7 @@ export function StoreProducts({
                     <PriceTag p={p} />
                   </p>
                   {p.stock != null && p.stock > 0 && p.stock <= 5 && (
-                    <p className="mt-1 text-xs font-bold text-amber-600">
+                    <p className="mt-1 text-xs font-bold text-warning">
                       {dict.store.onlyLeft.replace("{n}", String(p.stock))}
                     </p>
                   )}
@@ -521,7 +521,7 @@ export function StoreProducts({
                   <p className="mt-0.5 text-sm">
                     <PriceTag p={p} />
                     {p.stock != null && p.stock > 0 && p.stock <= 5 && (
-                      <span className="ms-2 text-xs font-bold text-amber-600">
+                      <span className="ms-2 text-xs font-bold text-warning">
                         {dict.store.onlyLeft.replace("{n}", String(p.stock))}
                       </span>
                     )}
@@ -572,7 +572,7 @@ export function StoreProducts({
       )}
 
       {orderPlaced ? (
-        <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 text-center">
+        <div className="mt-6 rounded-2xl border border-success/30 bg-success-soft p-6 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white">
             <Check className="h-6 w-6" />
           </div>
@@ -643,7 +643,7 @@ export function StoreProducts({
                 </button>
               </div>
               {couponMsg && (
-                <p className="mt-1 text-sm font-medium text-red-600">{couponMsg}</p>
+                <p className="mt-1 text-sm font-medium text-danger">{couponMsg}</p>
               )}
               {appliedCode && (
                 <p className="mt-1 text-sm font-semibold text-primary">
@@ -711,7 +711,7 @@ export function StoreProducts({
               )}
             </div>
 
-            <p className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700">
+            <p className="inline-flex items-center gap-1.5 rounded-lg bg-success-soft px-3 py-1.5 text-sm font-semibold text-success">
               💵 {dict.store.codNote}
             </p>
             {fulfillmentOptions.length > 1 && (
@@ -770,7 +770,7 @@ export function StoreProducts({
               </div>
             )}
             {belowMin && (
-              <p className="rounded-xl bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-600">
+              <p className="rounded-xl bg-danger-soft px-4 py-2.5 text-sm font-semibold text-danger">
                 {dict.store.belowMin} ({formatPrice(minOrder!)})
               </p>
             )}
@@ -857,7 +857,7 @@ export function StoreProducts({
               </p>
             )}
             {orderError && (
-              <p className="text-sm font-medium text-red-600">{orderError}</p>
+              <p className="text-sm font-medium text-danger">{orderError}</p>
             )}
             <div className="flex gap-2">
               <button

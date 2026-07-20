@@ -290,7 +290,7 @@ export function BranchManager({
                   {b.name?.trim() || regionName(b.region) || t.link}
                 </span>
                 {b.is_primary && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-warning-soft px-2 py-0.5 text-xs font-bold text-warning">
                     <Star className="h-3 w-3" />
                     {t.primary}
                   </span>
@@ -313,7 +313,7 @@ export function BranchManager({
                   onClick={() => makePrimary(b)}
                   aria-label={t.makePrimary}
                   title={t.makePrimary}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-amber-50 hover:text-amber-600"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-warning-soft hover:text-warning"
                 >
                   <Star className="h-4 w-4" />
                 </button>
@@ -330,7 +330,7 @@ export function BranchManager({
                 onClick={() => remove(b)}
                 aria-label={t.delete}
                 title={t.delete}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-danger-soft hover:text-danger"
               >
                 <Trash2 className="h-4 w-4" />
               </button>

@@ -5,6 +5,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default async function AuthLayout({
   children,
@@ -29,6 +30,7 @@ export default async function AuthLayout({
               {dict.common.brand}
             </span>
           </Link>
+          <ThemeToggle />
           <LanguageSwitcher currentLocale={lang} />
         </Container>
       </header>

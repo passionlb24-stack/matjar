@@ -63,7 +63,7 @@ export function ListingReport({
     <div className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-red-600"
+        className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-danger"
       >
         <Flag className="h-4 w-4" />
         {t.report}
@@ -84,7 +84,7 @@ export function ListingReport({
             </button>
           ))}
           {error && (
-            <p className="px-2 py-1 text-xs font-medium text-red-600">{error}</p>
+            <p className="px-2 py-1 text-xs font-medium text-danger">{error}</p>
           )}
         </div>
       )}

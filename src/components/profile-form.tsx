@@ -83,7 +83,7 @@ export function ProfileForm({
           </span>
         )}
         {error && (
-          <span className="text-sm font-semibold text-red-600">{error}</span>
+          <span className="text-sm font-semibold text-danger">{error}</span>
         )}
       </div>
     </form>
