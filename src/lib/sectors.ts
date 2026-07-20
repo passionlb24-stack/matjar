@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import type { CategoryKey } from "./catalog";
 import { categoryModule } from "./modules";
+import { type FeatureModuleKey, withDependencies } from "./modules-catalog";
 
 // ===== Matjar Business OS — Sector Registry =====
 // One core platform, many sectors. Each business type is *configuration*, not
@@ -109,6 +110,9 @@ export type SectorConfig = {
   iconTint: string;
   /** dict.os.nouns.* key — what this sector calls its customers. */
   customersNoun: "customers" | "patients" | "clients" | "leads";
+  /** Default feature-module bundle (see modules-catalog.ts). Drives the public
+   *  profile, create form, and search filters — not just the dashboard. */
+  features: FeatureModuleKey[];
   /** OS modules per group, in display order. */
   modules: Record<OsGroupKey, OsModuleKey[]>;
 };
@@ -127,6 +131,7 @@ const MONEY_WITH_SUPPLIERS: OsModuleKey[] = [
 export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   food: {
     Icon: UtensilsCrossed,
+    features: ["menu", "orders", "delivery", "reservations", "reviews", "location", "media", "messaging"],
     heroTint: "from-orange-500/15 via-amber-400/10 to-transparent",
     iconTint: "bg-orange-100 text-orange-600",
     customersNoun: "customers",
@@ -139,6 +144,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   },
   retail: {
     Icon: ShoppingBag,
+    features: ["catalog", "orders", "inventory", "delivery", "reviews", "location", "marketing", "messaging", "media"],
     heroTint: "from-primary/15 via-sky-400/10 to-transparent",
     iconTint: "bg-primary-soft text-primary",
     customersNoun: "customers",
@@ -151,6 +157,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   },
   services: {
     Icon: Wrench,
+    features: ["requests", "portfolio", "reviews", "verifications", "location", "messaging", "media"],
     heroTint: "from-violet-500/15 via-fuchsia-400/10 to-transparent",
     iconTint: "bg-violet-100 text-violet-600",
     customersNoun: "clients",
@@ -163,6 +170,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   },
   healthcare: {
     Icon: Stethoscope,
+    features: ["appointments", "team", "verifications", "reviews", "location", "messaging", "media"],
     heroTint: "from-emerald-500/15 via-teal-400/10 to-transparent",
     iconTint: "bg-emerald-100 text-emerald-600",
     customersNoun: "patients",
@@ -175,6 +183,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   },
   realEstate: {
     Icon: Building2,
+    features: ["listings", "appointments", "reviews", "location", "media", "messaging"],
     heroTint: "from-amber-500/15 via-yellow-400/10 to-transparent",
     iconTint: "bg-amber-100 text-amber-700",
     customersNoun: "leads",
@@ -187,6 +196,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   },
   automotive: {
     Icon: Car,
+    features: ["listings", "requests", "reviews", "location", "media", "messaging"],
     heroTint: "from-slate-500/15 via-zinc-400/10 to-transparent",
     iconTint: "bg-slate-200 text-slate-700",
     customersNoun: "leads",
@@ -202,4 +212,26 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
 /** Convenience: full sector config + legacy flow config in one lookup. */
 export function getSector(category: CategoryKey) {
   return { ...sectorConfig[category], flow: categoryModule[category] };
+}
+
+/** The sector's default feature bundle. */
+export function sectorDefaultModules(category: CategoryKey): FeatureModuleKey[] {
+  return sectorConfig[category].features;
+}
+
+/** Effective enabled modules for a store: sector defaults + per-store toggles,
+ *  with dependencies pulled in so the set is always internally consistent.
+ *  `overrides` come from the store_modules table (added in a later phase). */
+export function resolveStoreModules(
+  category: CategoryKey,
+  overrides?: Partial<Record<FeatureModuleKey, boolean>>,
+): Set<FeatureModuleKey> {
+  const base = new Set<FeatureModuleKey>(sectorDefaultModules(category));
+  if (overrides) {
+    for (const key of Object.keys(overrides) as FeatureModuleKey[]) {
+      if (overrides[key]) base.add(key);
+      else base.delete(key);
+    }
+  }
+  return withDependencies(base);
 }
