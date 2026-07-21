@@ -767,6 +767,23 @@
     "perHour": "/ hour",
     "booking": "Booking…"
   },
+  "memberships": {
+    "link": "Membership plans",
+    "title": "Membership & subscription plans",
+    "subtitle": "Add your plans — monthly, yearly, or per session.",
+    "add": "Add a plan",
+    "name": "Plan name",
+    "price": "Price",
+    "period": "Period",
+    "periods": { "monthly": "Monthly", "yearly": "Yearly", "session": "Per session" },
+    "description": "Description",
+    "empty": "You haven't added any membership plans yet.",
+    "delete": "Delete",
+    "save": "Save",
+    "publicTitle": "Membership plans",
+    "join": "Join now",
+    "joinMsg": "Hi, I'd like to join the plan"
+  },
   "featured": {
     "title": "Featured stores",
     "subtitle": "The newest and top-rated stores near you.",

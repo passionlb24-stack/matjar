@@ -29,6 +29,7 @@ import {
   BadgeCheck,
   Blocks,
   LandPlot,
+  Gem,
   Scissors,
   Dumbbell,
   Trophy,
@@ -55,6 +56,7 @@ export type OsModuleKey =
   | "orders"
   | "bookings"
   | "resources"
+  | "memberships"
   | "requests"
   | "items"
   | "doctors"
@@ -98,6 +100,7 @@ export const OS_MODULE_META: Record<
   orders: { Icon: ClipboardList, path: "orders", perm: "orders" },
   bookings: { Icon: CalendarCheck, path: "bookings", perm: "bookings" },
   resources: { Icon: LandPlot, path: "resources", perm: "bookings" },
+  memberships: { Icon: Gem, path: "memberships", ownerOnly: true },
   requests: { Icon: FileText, path: "requests", perm: "bookings" },
   items: { Icon: Package, path: "items", perm: "products" },
   doctors: { Icon: Stethoscope, path: "doctors", perm: "bookings", pro: true },
@@ -247,7 +250,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-lime-100 text-lime-700",
     customersNoun: "customers",
     modules: {
-      daily: ["bookings", "items", "tasks"],
+      daily: ["bookings", "memberships", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY,
       store: STORE,
@@ -273,7 +276,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-indigo-100 text-indigo-600",
     customersNoun: "clients",
     modules: {
-      daily: ["bookings", "items", "tasks"],
+      daily: ["bookings", "memberships", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY,
       store: STORE,

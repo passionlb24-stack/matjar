@@ -34,6 +34,10 @@ import {
   TimeslotBooking,
   type Resource,
 } from "@/components/timeslot-booking";
+import {
+  StoreMemberships,
+  type MembershipPlan,
+} from "@/components/store-memberships";
 import { FollowButton } from "@/components/follow-button";
 import { ShareButton } from "@/components/share-button";
 import { MessageStoreButton } from "@/components/message-store-button";
@@ -329,6 +333,18 @@ export default async function StorePage({
       .eq("active", true)
       .order("sort_order", { ascending: true });
     resources = (resData ?? []) as Resource[];
+  }
+
+  // Membership / subscription plans for gym/club/school sectors.
+  let membershipPlans: MembershipPlan[] = [];
+  if (store.isReal && UUID_RE.test(id) && enabledModules.has("memberships")) {
+    const { data: mpData } = await supabase
+      .from("store_membership_plans")
+      .select("id, name, name_en, price, period, description")
+      .eq("store_id", id)
+      .eq("active", true)
+      .order("sort_order", { ascending: true });
+    membershipPlans = (mpData ?? []) as MembershipPlan[];
   }
 
   type DoctorView = {
@@ -803,6 +819,15 @@ export default async function StorePage({
             dict={dict}
             resources={resources}
             customerName={currentUser?.name ?? null}
+          />
+        )}
+
+        {membershipPlans.length > 0 && (
+          <StoreMemberships
+            plans={membershipPlans}
+            dict={dict}
+            lang={lang}
+            whatsapp={store.whatsapp ?? null}
           />
         )}
 
