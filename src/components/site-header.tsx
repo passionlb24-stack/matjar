@@ -37,9 +37,11 @@ export function SiteHeader({
             <Image
               src="/logo.png"
               alt={dict.common.brand}
-              width={48}
-              height={48}
-              className="h-11 w-11 object-contain"
+              width={450}
+              height={182}
+              priority
+              unoptimized
+              className="h-9 w-auto object-contain"
             />
           </Link>
           <nav className="hidden items-center gap-1 md:flex">

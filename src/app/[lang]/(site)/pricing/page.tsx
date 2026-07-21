@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Check, Crown, Sparkles } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
+import { createClient } from "@/lib/supabase/server";
 import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
 import { ButtonLink } from "@/components/ui/button";
@@ -39,6 +40,27 @@ export default async function PricingPage({
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
   const dict = await getDictionary(lang);
+
+  // Pro CTA routing: an existing merchant should REQUEST Pro for their store
+  // (which reaches admins) — never be pushed to re-create a store. New/guest
+  // users still get the open-a-store path.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  let proHref = `/${lang}/signup`;
+  if (user) {
+    const { data: store } = await supabase
+      .from("stores")
+      .select("id")
+      .eq("owner_id", user.id)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    proHref = store
+      ? `/${lang}/merchant/${(store as { id: string }).id}/subscription`
+      : `/${lang}/merchant/new`;
+  }
 
   const freeFeatures = dict.pricing.freeFeatures;
   const proFeatures = dict.pricing.proFeatures;
@@ -155,7 +177,7 @@ export default async function PricingPage({
               ))}
             </ul>
             <ButtonLink
-              href={`/${lang}/merchant/new`}
+              href={proHref}
               variant="primary"
               size="lg"
               full

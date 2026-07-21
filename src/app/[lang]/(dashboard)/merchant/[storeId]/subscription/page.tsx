@@ -172,6 +172,7 @@ export default async function StoreSubscriptionPage({
               storeId={storeId}
               requestLabel={t.requestUpgrade}
               sentLabel={t.requestSent}
+              phonePlaceholder={t.requestPhone}
             />
             <p className="mt-2 text-xs text-warning/70">{t.requestNote}</p>
           </div>

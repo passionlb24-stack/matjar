@@ -24,6 +24,9 @@ type Notif = {
     title?: string;
     body?: string;
     url?: string;
+    name?: string;
+    phone?: string;
+    leader_id?: string;
   } | null;
   is_read: boolean;
 };
@@ -93,7 +96,11 @@ export default async function NotificationsPage({
                       ? dict.notifications.message
                       : t === "store_new"
                         ? dict.notifications.storeNew
-                        : t;
+                        : t === "pro_request"
+                          ? `${dict.notifications.proRequest}${n.data?.store_name ? " · " + n.data.store_name : ""}`
+                          : t === "leader_submission"
+                            ? `${dict.notifications.leaderSubmission}${n.data?.name ? " · " + n.data.name : ""}`
+                            : t;
   };
 
   // Campaigns carry an explicit destination in data.url (the store, an offer,
@@ -117,6 +124,8 @@ export default async function NotificationsPage({
         ? `/${lang}/store/${n.data.store_id}`
         : n.type === "store_new" || n.type === "pro_request"
           ? `/${lang}/admin/stores`
+          : n.type === "leader_submission"
+          ? `/${lang}/admin/leaders`
           : n.type === "message"
           ? n.data?.conversation_id
             ? `/${lang}/messages/${n.data.conversation_id}`
@@ -158,6 +167,11 @@ export default async function NotificationsPage({
                   {n.type === "store_campaign" && n.data?.body?.trim() && (
                     <p className="mt-1 text-sm text-muted-foreground">
                       {n.data.body}
+                    </p>
+                  )}
+                  {n.type === "pro_request" && n.data?.phone && (
+                    <p className="mt-1 text-sm font-semibold text-primary" dir="ltr">
+                      {dict.notifications.phoneLabel}: {n.data.phone}
                     </p>
                   )}
                 </div>
