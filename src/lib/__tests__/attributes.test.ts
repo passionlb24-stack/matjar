@@ -2,18 +2,22 @@ import { describe, it, expect } from "vitest";
 import { attributeSummary } from "@/lib/attributes";
 
 describe("attributeSummary", () => {
-  it("builds a dotted summary in Arabic for real estate", () => {
+  it("builds a dotted summary in Arabic for real estate, in field order with units", () => {
     const s = attributeSummary(
       "realEstate",
       { rooms: "3", area: "140", bathrooms: "2" },
       "ar",
     );
-    expect(s).toBe("3 غرف · 140 المساحة (م²) · 2 حمّامات");
+    expect(s).toBe("3 غرف · 2 حمّام · 140 م²");
   });
 
-  it("uses English labels and skips missing fields", () => {
-    const s = attributeSummary("automotive", { brand: "Kia", year: "2018" }, "en");
-    expect(s).toBe("Kia Brand · 2018 Year");
+  it("translates select values and skips missing fields", () => {
+    const s = attributeSummary(
+      "automotive",
+      { brand: "Kia", year: "2018", fuel: "diesel" },
+      "en",
+    );
+    expect(s).toBe("Kia · 2018 · Diesel");
   });
 
   it("returns empty for a category with no attribute schema", () => {

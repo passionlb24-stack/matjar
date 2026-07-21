@@ -330,7 +330,18 @@ export function ProductEditForm({
               <label className={label} htmlFor={`attr_${f.key}`}>
                 {lang === "ar" ? f.ar : f.en}
               </label>
-              <input id={`attr_${f.key}`} name={`attr_${f.key}`} type={f.type} defaultValue={initial.attributes[f.key] ?? ""} className={field} />
+              {f.type === "select" ? (
+                <select id={`attr_${f.key}`} name={`attr_${f.key}`} className={field} defaultValue={initial.attributes[f.key] ?? ""}>
+                  <option value="">—</option>
+                  {f.options?.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {lang === "ar" ? o.ar : o.en}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input id={`attr_${f.key}`} name={`attr_${f.key}`} type={f.type} defaultValue={initial.attributes[f.key] ?? ""} className={field} />
+              )}
             </div>
           ))}
         </div>

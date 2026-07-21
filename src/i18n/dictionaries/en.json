@@ -946,6 +946,8 @@
     "outOfStock": "Sorry, the requested quantity is no longer available. Adjust your cart and try again.",
     "tooManyOrders": "Too many orders in a short time. Please wait a bit or sign in and try again.",
     "chooseBranch": "Choose branch",
+    "clearFilters": "Clear filters",
+    "noMatches": "No results match the selected filters.",
     "soldOut": "Sold out",
     "otherSection": "Other",
     "onlyLeft": "Only {n} left",

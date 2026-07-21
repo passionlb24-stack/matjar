@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { categoryStyles, type CategoryKey } from "@/lib/catalog";
-import { attributeSummary } from "@/lib/attributes";
+import { attributeSummary, categoryAttributes } from "@/lib/attributes";
 import { effectivePrice, compareAtPrice, isFlashActive } from "@/lib/pricing";
 import { waLink, buildOrderMessage } from "@/lib/whatsapp";
 import { formatLbp } from "@/lib/currency";
@@ -171,6 +171,14 @@ export function StoreProducts({
   // Multi-branch stores: the customer picks a branch before ordering.
   // Defaults to the first entry — the primary (server orders by is_primary desc).
   const [branchId, setBranchId] = useState<string>(branches[0]?.id ?? "");
+
+  // Listing filters (realEstate/automotive): buyers narrow the grid by the
+  // sector's filterable attributes (purpose, rooms, gearbox, fuel…). Only fields
+  // marked filter:true, and only when some product actually carries a value.
+  const [attrFilters, setAttrFilters] = useState<Record<string, string>>({});
+  const filterFields = (categoryAttributes[category] ?? []).filter(
+    (f) => f.filter,
+  );
 
   const Icon = categoryIcons[category];
   const style = categoryStyles[category];
@@ -548,13 +556,72 @@ export function StoreProducts({
       );
   }
 
+  // Per-field selectable values: select fields use their fixed options; text/
+  // number fields (brand, rooms) derive distinct values actually present.
+  function fieldChoices(f: (typeof filterFields)[number]) {
+    if (f.type === "select") return f.options ?? [];
+    const seen = new Map<string, string>();
+    for (const p of products) {
+      const v = p.attributes?.[f.key];
+      if (v && !seen.has(v)) seen.set(v, v);
+    }
+    return [...seen.keys()]
+      .sort((a, b) => (f.type === "number" ? Number(a) - Number(b) : a.localeCompare(b)))
+      .map((v) => ({ value: v, ar: v, en: v }));
+  }
+
+  const activeFilters = Object.entries(attrFilters).filter(([, v]) => v);
+  const filteredProducts = activeFilters.length
+    ? products.filter((p) =>
+        activeFilters.every(([k, v]) => (p.attributes?.[k] ?? "") === v),
+      )
+    : products;
+
+  // Only worth showing when this sector has filterable fields with real values.
+  const shownFilterFields = filterFields.filter((f) => fieldChoices(f).length > 0);
+
   // Group for display when the store defined sections; otherwise one flat list
   // (no headers, no regression). Cart/total logic still uses the full `products`.
-  const groups = groupBySection(products, sections);
+  const groups = groupBySection(filteredProducts, sections);
 
   return (
     <div>
-      {sections.length > 0 ? (
+      {isGrid && shownFilterFields.length > 0 && (
+        <div className="mb-5 flex flex-wrap items-center gap-2">
+          {shownFilterFields.map((f) => (
+            <select
+              key={f.key}
+              value={attrFilters[f.key] ?? ""}
+              onChange={(e) =>
+                setAttrFilters((s) => ({ ...s, [f.key]: e.target.value }))
+              }
+              className="rounded-full border border-border bg-surface px-3.5 py-1.5 text-sm font-semibold outline-none transition-colors focus:border-primary"
+            >
+              <option value="">{lang === "ar" ? f.ar : f.en}</option>
+              {fieldChoices(f).map((o) => (
+                <option key={o.value} value={o.value}>
+                  {lang === "ar" ? o.ar : o.en}
+                </option>
+              ))}
+            </select>
+          ))}
+          {activeFilters.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setAttrFilters({})}
+              className="rounded-full px-3 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {dict.store.clearFilters}
+            </button>
+          )}
+        </div>
+      )}
+
+      {isGrid && shownFilterFields.length > 0 && filteredProducts.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
+          {dict.store.noMatches}
+        </div>
+      ) : sections.length > 0 ? (
         <div className="space-y-8">
           {groups.map((g) => (
             <section key={g.section?.id ?? "__other"}>
@@ -568,7 +635,7 @@ export function StoreProducts({
           ))}
         </div>
       ) : (
-        renderList(products)
+        renderList(filteredProducts)
       )}
 
       {orderPlaced ? (
