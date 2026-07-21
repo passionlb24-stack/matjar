@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { computeProfit } from "@/lib/hub-calc";
 import { trackToolUse } from "@/lib/track-tool";
 
 const field =
@@ -24,18 +25,7 @@ export function ProfitCalculator({ dict }: { dict: Dictionary }) {
   const q = Math.max(1, parseInt(qty || "1", 10) || 1);
   const valid = isFinite(c) && isFinite(p);
 
-  const r = useMemo(() => {
-    if (!valid) return null;
-    const unit = p - c;
-    return {
-      unit,
-      margin: p !== 0 ? (unit / p) * 100 : 0,
-      markup: c !== 0 ? (unit / c) * 100 : 0,
-      revenue: p * q,
-      profit: unit * q,
-      loss: unit < 0,
-    };
-  }, [valid, c, p, q]);
+  const r = useMemo(() => (valid ? computeProfit(c, p, q) : null), [valid, c, p, q]);
 
   useEffect(() => {
     if (valid) trackToolUse("profit");

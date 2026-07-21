@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { computePrice } from "@/lib/hub-calc";
 import { trackToolUse } from "@/lib/track-tool";
 
 const field =
@@ -25,13 +26,7 @@ export function PricingCalculator({ dict }: { dict: Dictionary }) {
   // Margin must be < 100 (a 100% margin implies infinite price).
   const valid = isFinite(c) && c > 0 && isFinite(m) && m >= 0 && m < 100;
 
-  const r = useMemo(() => {
-    if (!valid) return null;
-    const base = c / (1 - m / 100); // price where margin% of price is profit
-    const profit = base - c;
-    const final = base * (1 + e / 100); // add pass-through fees/tax on top
-    return { final, profit };
-  }, [valid, c, m, e]);
+  const r = useMemo(() => (valid ? computePrice(c, m, e) : null), [valid, c, m, e]);
 
   useEffect(() => {
     if (valid) trackToolUse("pricing");
