@@ -16,6 +16,7 @@ import {
   Truck,
   Receipt,
   BadgeCheck,
+  Crown,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -31,6 +32,7 @@ const icons = {
   delivery: Truck,
   reviews: Star,
   verifications: BadgeCheck,
+  leaders: Crown,
   subscriptions: CreditCard,
   reports: BarChart3,
   audit: ScrollText,
@@ -50,6 +52,7 @@ export function AdminNav({ lang, dict }: { lang: Locale; dict: Dictionary }) {
     { key: "delivery", href: `${base}/delivery` },
     { key: "reviews", href: `${base}/reviews` },
     { key: "verifications", href: `${base}/verifications` },
+    { key: "leaders", href: `${base}/leaders` },
     { key: "subscriptions", href: `${base}/subscriptions` },
     { key: "reports", href: `${base}/reports` },
     { key: "audit", href: `${base}/audit` },

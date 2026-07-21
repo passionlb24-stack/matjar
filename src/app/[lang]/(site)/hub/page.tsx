@@ -85,12 +85,12 @@ export default async function HubPage({
           </div>
         </div>
 
-        {/* Coming next */}
+        {/* More hub sections */}
         <div className="mt-14">
           <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">{h.moreSoon}</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <ComingSoon Icon={GraduationCap} title={h.academyTitle} note={h.academyNote} soon={h.soon} />
-            <ComingSoon Icon={Users} title={h.leadersTitle} note={h.leadersNote} soon={h.soon} />
+            <SectionCard lang={lang} href="hub/academy" Icon={GraduationCap} title={h.academyTitle} note={h.academyNote} />
+            <SectionCard lang={lang} href="hub/leaders" Icon={Users} title={h.leadersTitle} note={h.leadersNote} />
           </div>
         </div>
       </Container>
@@ -98,29 +98,34 @@ export default async function HubPage({
   );
 }
 
-function ComingSoon({
+function SectionCard({
+  lang,
+  href,
   Icon,
   title,
   note,
-  soon,
 }: {
+  lang: string;
+  href: string;
   Icon: typeof GraduationCap;
   title: string;
   note: string;
-  soon: string;
 }) {
   return (
-    <div className="relative flex items-start gap-4 rounded-2xl border border-dashed border-border bg-surface-muted/30 p-6">
-      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-surface text-muted-foreground">
+    <Link
+      href={`/${lang}/${href}`}
+      className="group flex items-start gap-4 rounded-2xl border border-border bg-surface p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+    >
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary">
         <Icon className="h-5 w-5" />
       </span>
       <div>
-        <div className="flex items-center gap-2">
-          <h3 className="font-bold">{title}</h3>
-          <span className="rounded-full bg-surface px-2 py-0.5 text-[11px] font-bold text-muted-foreground">{soon}</span>
-        </div>
+        <h3 className="flex items-center gap-1.5 font-bold transition-colors group-hover:text-primary">
+          {title}
+          <ArrowLeft className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100 rtl:rotate-180" />
+        </h3>
         <p className="mt-1 text-sm text-muted-foreground">{note}</p>
       </div>
-    </div>
+    </Link>
   );
 }

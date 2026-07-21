@@ -1408,6 +1408,7 @@
       "delivery": "Delivery",
       "reviews": "Reviews",
       "verifications": "Certificates",
+      "leaders": "Business Leaders",
       "audit": "Audit log"
     },
     "ordersAdmin": {
@@ -1716,7 +1717,7 @@
     "allTools": "All tools",
     "soon": "Soon",
     "backToHub": "Business Hub",
-    "moreSoon": "Coming next",
+    "moreSoon": "Hub sections",
     "academyTitle": "Matjar Academy",
     "academyNote": "Practical lessons and guides to run and grow your store — coming soon.",
     "leadersTitle": "Business Leaders",
@@ -1798,6 +1799,43 @@
         "preview": "Invoice preview",
         "invoiceWord": "Invoice"
       }
+    },
+    "academy": {
+      "title": "Matjar Academy",
+      "subtitle": "Short, practical guides to run and grow your store — in Arabic, for the Lebanese market.",
+      "readMin": "{n} min read",
+      "categories": {
+        "marketing": "Marketing",
+        "ecommerce": "E-commerce",
+        "accounting": "Accounting",
+        "service": "Customer service",
+        "branding": "Branding & photos",
+        "social": "Social media"
+      },
+      "ctaTitle": "Apply what you learned",
+      "ctaNote": "Use Matjar's free tools to turn this advice into real steps for your store.",
+      "ctaButton": "Open the tools center"
+    },
+    "leaders": {
+      "title": "Business Leaders",
+      "subtitle": "A directory of inspiring Lebanese entrepreneurs and companies — stories, achievements, and direct links to their work.",
+      "bio": "About",
+      "companies": "Companies",
+      "achievements": "Achievements",
+      "related": "Other leaders",
+      "website": "Website",
+      "backToLeaders": "All leaders",
+      "emptyTitle": "The directory is being prepared",
+      "emptyNote": "We're carefully curating profiles of Lebanese entrepreneurs. They'll appear soon — or submit your own profile below.",
+      "submitTitle": "Submit your profile",
+      "submitNote": "If you have an entrepreneurial story, submit your profile to be reviewed and published in the directory.",
+      "submitDone": "Your profile was received! We'll review and publish it after approval. Thank you.",
+      "submitLogin": "Log in to submit your profile",
+      "submitButton": "Send for review",
+      "fName": "Full name",
+      "fHeadline": "Headline (e.g. Founder & entrepreneur)",
+      "fBio": "A short bio about you and your journey",
+      "fWebsite": "Website"
     }
   },
   "pricing": {

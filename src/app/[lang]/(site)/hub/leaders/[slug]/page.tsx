@@ -1,0 +1,319 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import {
+  ArrowRight,
+  AtSign,
+  Award,
+  Briefcase,
+  Building2,
+  Camera,
+  ExternalLink,
+  Globe,
+  MapPin,
+  User,
+  Video,
+} from "lucide-react";
+import { isLocale } from "@/i18n/config";
+import { getDictionary } from "@/i18n/get-dictionary";
+import { localeAlternates } from "@/lib/site";
+import { createClient } from "@/lib/supabase/server";
+import { Container } from "@/components/ui/container";
+import {
+  LEADER_CARD_COLUMNS,
+  LEADER_COLUMNS,
+  type Leader,
+  type LeaderCard,
+  type LeaderCompany,
+  type LeaderSocials,
+} from "@/lib/leaders";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string; slug: string }>;
+}): Promise<Metadata> {
+  const { lang, slug } = await params;
+  if (!isLocale(lang)) return {};
+  const dict = await getDictionary(lang);
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("business_leaders")
+    .select(LEADER_COLUMNS)
+    .eq("slug", slug)
+    .eq("published", true)
+    .maybeSingle();
+  if (!data) return {};
+  const leader = data as unknown as Leader;
+  const name =
+    lang === "en" ? leader.name_en || leader.name : leader.name;
+  const fallback = dict.hub?.leaders?.title;
+  const title = fallback ? `${name} · ${fallback}` : name;
+  const description =
+    leader.headline ||
+    (leader.bio ? leader.bio.slice(0, 150) : undefined) ||
+    undefined;
+  return {
+    title,
+    description,
+    alternates: localeAlternates(lang, `/hub/leaders/${slug}`),
+  };
+}
+
+export default async function LeaderProfilePage({
+  params,
+}: {
+  params: Promise<{ lang: string; slug: string }>;
+}) {
+  const { lang, slug } = await params;
+  if (!isLocale(lang)) notFound();
+
+  const dict = await getDictionary(lang);
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("business_leaders")
+    .select(LEADER_COLUMNS)
+    .eq("slug", slug)
+    .eq("published", true)
+    .maybeSingle();
+  if (!data) notFound();
+
+  const leader = data as unknown as Leader;
+  const socials = (leader.socials as LeaderSocials) ?? {};
+  const companies = (leader.companies as LeaderCompany[]) ?? [];
+  const achievements = (leader.achievements as string[]) ?? [];
+
+  const name = lang === "en" ? leader.name_en || leader.name : leader.name;
+  const t = dict.hub.leaders;
+
+  // Related leaders (other published profiles).
+  const { data: relatedData } = await supabase
+    .from("business_leaders")
+    .select(LEADER_CARD_COLUMNS)
+    .eq("published", true)
+    .neq("slug", slug)
+    .limit(6);
+  const related = (relatedData ?? []) as unknown as LeaderCard[];
+
+  const socialLinks: {
+    key: keyof LeaderSocials;
+    href: string | undefined;
+    label: string;
+    Icon: typeof Globe;
+  }[] = [
+    { key: "linkedin", href: socials.linkedin, label: "LinkedIn", Icon: Briefcase },
+    {
+      key: "instagram",
+      href: socials.instagram,
+      label: "Instagram",
+      Icon: Camera,
+    },
+    { key: "x", href: socials.x, label: "X", Icon: AtSign },
+    { key: "facebook", href: socials.facebook, label: "Facebook", Icon: Globe },
+    { key: "youtube", href: socials.youtube, label: "YouTube", Icon: Video },
+  ];
+  const presentSocials = socialLinks.filter((s) => s.href);
+
+  return (
+    <div className="pb-16">
+      {/* Cover banner */}
+      <Container>
+        <div className="mt-6 overflow-hidden rounded-3xl border border-border bg-surface shadow-xs">
+          <div className="relative h-48 sm:h-64">
+            {leader.cover_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={leader.cover_url}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="h-full w-full bg-gradient-to-bl from-primary/15 via-transparent to-primary/5" />
+            )}
+          </div>
+
+          {/* Header */}
+          <div className="px-5 pb-6 sm:px-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-end">
+                <span className="-mt-14 flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-muted ring-4 ring-surface">
+                  {leader.photo_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={leader.photo_url}
+                      alt={name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <User className="h-12 w-12 text-muted-foreground" />
+                  )}
+                </span>
+                <div className="min-w-0">
+                  <h1 className="text-3xl font-extrabold tracking-tight">
+                    {name}
+                  </h1>
+                  {leader.headline && (
+                    <p className="mt-1 text-muted-foreground">
+                      {leader.headline}
+                    </p>
+                  )}
+                  {leader.location && (
+                    <p className="mt-1.5 flex items-center gap-1 text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4 shrink-0" />
+                      {leader.location}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Website + socials */}
+            {(leader.website || presentSocials.length > 0) && (
+              <div className="mt-5 flex flex-wrap items-center gap-2">
+                {leader.website && (
+                  <a
+                    href={leader.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    {t.website}
+                  </a>
+                )}
+                {presentSocials.map(({ key, href, label, Icon }) => (
+                  <a
+                    key={key}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    title={label}
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors hover:bg-surface-muted hover:text-primary"
+                  >
+                    <Icon className="h-5 w-5" />
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Bio */}
+        {leader.bio && (
+          <section className="mt-8">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
+              {t.bio}
+            </h2>
+            <p className="mt-3 max-w-2xl whitespace-pre-line leading-relaxed">
+              {leader.bio}
+            </p>
+          </section>
+        )}
+
+        {/* Companies */}
+        {companies.length > 0 && (
+          <section className="mt-10">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
+              {t.companies}
+            </h2>
+            <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+              {companies.map((c, i) => (
+                <li
+                  key={`${c.name}-${i}`}
+                  className="flex items-start gap-3 rounded-3xl border border-border bg-surface p-4 shadow-xs"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
+                    <Building2 className="h-5 w-5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-bold">{c.name}</p>
+                    {(c.role || c.year) && (
+                      <p className="mt-0.5 text-sm text-muted-foreground">
+                        {[c.role, c.year].filter(Boolean).join(" · ")}
+                      </p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Achievements */}
+        {achievements.length > 0 && (
+          <section className="mt-10">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
+              {t.achievements}
+            </h2>
+            <ul className="mt-4 space-y-2.5">
+              {achievements.map((a, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <Award className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                  <span className="leading-relaxed">{a}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Related */}
+        {related.length > 0 && (
+          <section className="mt-12">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
+              {t.related}
+            </h2>
+            <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+              {related.map((r) => {
+                const rName =
+                  lang === "en" ? r.name_en || r.name : r.name;
+                return (
+                  <Link
+                    key={r.id}
+                    href={`/${lang}/hub/leaders/${r.slug}`}
+                    className="group flex flex-col items-center gap-3 rounded-3xl border border-border bg-surface p-5 text-center shadow-xs transition-colors hover:border-primary/40 hover:bg-surface-muted"
+                  >
+                    <span className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-surface-muted ring-2 ring-surface">
+                      {r.photo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={r.photo_url}
+                          alt={rName}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <User className="h-7 w-7 text-muted-foreground" />
+                      )}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate font-bold group-hover:text-primary">
+                        {rName}
+                      </p>
+                      {r.headline && (
+                        <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                          {r.headline}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Back link */}
+        <div className="mt-12">
+          <Link
+            href={`/${lang}/hub/leaders`}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary"
+          >
+            <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+            {t.backToLeaders}
+          </Link>
+        </div>
+      </Container>
+    </div>
+  );
+}
