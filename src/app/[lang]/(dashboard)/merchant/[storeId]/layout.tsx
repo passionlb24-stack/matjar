@@ -95,6 +95,8 @@ export default async function StoreOsLayout({
     resources: dict.resources.link,
     memberships: dict.memberships.link,
     classes: dict.classes.link,
+    portfolio: dict.portfolio.link,
+    courses: dict.courses.link,
     requests: dict.os.requests.link,
     items: dict.store[sector.flow.itemsKey],
     doctors: dict.merchant.doctorsLink,

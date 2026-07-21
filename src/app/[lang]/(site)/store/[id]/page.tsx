@@ -43,6 +43,8 @@ import {
   type ClassRow,
 } from "@/components/classes-booking";
 import { ReservationForm } from "@/components/reservation-form";
+import { StoreCourses, type CourseRow } from "@/components/store-courses";
+import { StorePortfolio, type PortfolioItem } from "@/components/store-portfolio";
 import { FollowButton } from "@/components/follow-button";
 import { ShareButton } from "@/components/share-button";
 import { MessageStoreButton } from "@/components/message-store-button";
@@ -363,6 +365,30 @@ export default async function StorePage({
       .order("day_of_week", { ascending: true })
       .order("start_time", { ascending: true });
     classes = (clData ?? []) as ClassRow[];
+  }
+
+  // Portfolio gallery (services & contractors).
+  let portfolio: PortfolioItem[] = [];
+  if (store.isReal && UUID_RE.test(id) && enabledModules.has("portfolio")) {
+    const { data: pfData } = await supabase
+      .from("store_portfolio")
+      .select("id, title, title_en, description, image_url, link")
+      .eq("store_id", id)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+    portfolio = (pfData ?? []) as PortfolioItem[];
+  }
+
+  // Courses catalogue (education).
+  let courses: CourseRow[] = [];
+  if (store.isReal && UUID_RE.test(id) && enabledModules.has("courses")) {
+    const { data: coData } = await supabase
+      .from("store_courses")
+      .select("id, name, name_en, description, price, duration, schedule, level")
+      .eq("store_id", id)
+      .eq("active", true)
+      .order("sort_order", { ascending: true });
+    courses = (coData ?? []) as CourseRow[];
   }
 
   type DoctorView = {
@@ -861,6 +887,14 @@ export default async function StorePage({
 
         {store.isReal && enabledModules.has("reservations") && (
           <ReservationForm storeId={id} lang={lang} dict={dict} />
+        )}
+
+        {courses.length > 0 && (
+          <StoreCourses courses={courses} dict={dict} lang={lang} whatsapp={store.whatsapp ?? null} />
+        )}
+
+        {portfolio.length > 0 && (
+          <StorePortfolio items={portfolio} dict={dict} lang={lang} />
         )}
 
         <h2 className="mb-4 mt-10 text-xl font-bold">{sectionTitle}</h2>

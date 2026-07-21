@@ -42,6 +42,8 @@ import {
   Scale,
   HardHat,
   Sprout,
+  Images,
+  BookOpen,
 } from "lucide-react";
 import type { CategoryKey } from "./catalog";
 import { categoryModule } from "./modules";
@@ -59,6 +61,8 @@ export type OsModuleKey =
   | "resources"
   | "memberships"
   | "classes"
+  | "portfolio"
+  | "courses"
   | "requests"
   | "items"
   | "doctors"
@@ -104,6 +108,8 @@ export const OS_MODULE_META: Record<
   resources: { Icon: LandPlot, path: "resources", perm: "bookings" },
   memberships: { Icon: Gem, path: "memberships", ownerOnly: true },
   classes: { Icon: CalendarRange, path: "classes", perm: "bookings" },
+  portfolio: { Icon: Images, path: "portfolio", perm: "products" },
+  courses: { Icon: BookOpen, path: "courses", perm: "products" },
   requests: { Icon: FileText, path: "requests", perm: "bookings" },
   items: { Icon: Package, path: "items", perm: "products" },
   doctors: { Icon: Stethoscope, path: "doctors", perm: "bookings", pro: true },
@@ -188,7 +194,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-violet-100 text-violet-600",
     customersNoun: "clients",
     modules: {
-      daily: ["requests", "bookings", "items", "tasks"],
+      daily: ["requests", "bookings", "portfolio", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
@@ -279,7 +285,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-indigo-100 text-indigo-600",
     customersNoun: "clients",
     modules: {
-      daily: ["bookings", "memberships", "items", "tasks"],
+      daily: ["bookings", "courses", "memberships", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY,
       store: STORE,
@@ -357,7 +363,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-amber-100 text-amber-700",
     customersNoun: "clients",
     modules: {
-      daily: ["requests", "items", "tasks"],
+      daily: ["requests", "portfolio", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
