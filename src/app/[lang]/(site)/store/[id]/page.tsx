@@ -27,6 +27,8 @@ import {
   StoreVerifications,
   type StoreVerification,
 } from "@/components/store-verifications";
+import { StoreMapClient } from "@/components/store-map-client";
+import type { MapStore } from "@/components/store-map";
 import { FollowButton } from "@/components/follow-button";
 import { ShareButton } from "@/components/share-button";
 import { MessageStoreButton } from "@/components/message-store-button";
@@ -75,6 +77,8 @@ type StoreView = {
   registered?: boolean;
   loyaltyRedemptionEnabled?: boolean;
   loyaltyPointsPerUnit?: number | null;
+  lat?: number | null;
+  lng?: number | null;
   isReal: boolean;
   sections: {
     id: string;
@@ -109,7 +113,7 @@ const loadStore = cache(async function loadStore(
     const supabase = await createClient();
     const { data } = await supabase
       .from("stores")
-      .select("name, slug, description, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, hours, booking_slot_minutes, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, loyalty_redemption_enabled, loyalty_points_per_unit, accent_color, storefront_layout, business_types(slug)")
+      .select("name, slug, description, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, hours, booking_slot_minutes, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, loyalty_redemption_enabled, loyalty_points_per_unit, accent_color, storefront_layout, lat, lng, business_types(slug)")
       .eq("id", id)
       .is("deleted_at", null)
       .maybeSingle();
@@ -166,6 +170,8 @@ const loadStore = cache(async function loadStore(
           data.loyalty_points_per_unit != null
             ? Number(data.loyalty_points_per_unit)
             : null,
+        lat: data.lat != null ? Number(data.lat) : null,
+        lng: data.lng != null ? Number(data.lng) : null,
         isReal: true,
         sections: (sects ?? []).map((s) => ({
           id: s.id as string,
@@ -417,6 +423,21 @@ export default async function StorePage({
       .order("is_primary", { ascending: false });
     branches = (locs ?? []) as BranchView[];
   }
+
+  // Map pins: the store's own precise location (set via the pin picker) plus any
+  // branch coordinates. Empty → no map section.
+  const mapPins: MapStore[] = [];
+  if (store.lat != null && store.lng != null)
+    mapPins.push({ id, name: store.name, lat: store.lat, lng: store.lng });
+  for (const b of branches)
+    if (b.lat != null && b.lng != null)
+      mapPins.push({
+        id,
+        name: store.name,
+        branch: b.name || b.area,
+        lat: b.lat,
+        lng: b.lng,
+      });
 
   // Loyalty redemption at checkout: only when the store opted in (0107) and the
   // signed-in customer actually holds points at this store. my_loyalty_by_store
@@ -720,6 +741,16 @@ export default async function StorePage({
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {mapPins.length > 0 && (
+          <div className="mt-6">
+            <h2 className="mb-3 flex items-center gap-2 font-bold">
+              <MapPin className="h-5 w-5 text-primary" />
+              {dict.merchant.mapLocation}
+            </h2>
+            <StoreMapClient stores={mapPins} lang={lang} heightClass="h-72" />
           </div>
         )}
 

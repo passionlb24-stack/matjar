@@ -18,9 +18,11 @@ const StoreMap = dynamic(
 export function StoreMapClient({
   stores,
   lang,
+  heightClass,
 }: {
   stores: MapStore[];
   lang: Locale;
+  heightClass?: string;
 }) {
-  return <StoreMap stores={stores} lang={lang} />;
+  return <StoreMap stores={stores} lang={lang} heightClass={heightClass} />;
 }

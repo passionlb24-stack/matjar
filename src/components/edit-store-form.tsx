@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import {
   Check,
@@ -23,6 +24,17 @@ import { accentStyle } from "@/lib/color";
 
 type Option = { value: string; label: string };
 
+// Leaflet touches `window` at import — load the picker on the client only.
+const LocationPicker = dynamic(
+  () => import("@/components/location-picker").then((m) => m.LocationPicker),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-64 w-full animate-pulse rounded-2xl border border-border bg-surface-muted" />
+    ),
+  },
+);
+
 type Initial = {
   name: string;
   slug: string | null;
@@ -42,6 +54,8 @@ type Initial = {
   website: string | null;
   accent_color: string | null;
   storefront_layout: string | null;
+  lat: number | null;
+  lng: number | null;
 };
 
 // A few tasteful brand presets the merchant can pick with one tap.
@@ -82,6 +96,12 @@ export function EditStoreForm({
   const [accent, setAccent] = useState(initial.accent_color ?? "");
   // Storefront layout template. "" = auto by sector.
   const [layout, setLayout] = useState(initial.storefront_layout ?? "");
+  // Precise coordinates set by dragging the map pin (not just the typed area).
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
+    initial.lat != null && initial.lng != null
+      ? { lat: initial.lat, lng: initial.lng }
+      : null,
+  );
 
   async function copyLink() {
     try {
@@ -124,6 +144,8 @@ export function EditStoreForm({
           layout === "grid" || layout === "menu" || layout === "showcase"
             ? layout
             : null,
+        lat: coords?.lat ?? null,
+        lng: coords?.lng ?? null,
       })
       .eq("id", storeId);
     if (error) {
@@ -341,6 +363,18 @@ export function EditStoreForm({
           {dict.merchant.area}
         </label>
         <input id="area" name="area" type="text" defaultValue={initial.area ?? ""} placeholder={dict.merchant.areaPlaceholder} className={fieldClass} />
+      </div>
+
+      <div>
+        <label className={labelClass}>{dict.merchant.mapLocation}</label>
+        <div className="mt-1.5">
+          <LocationPicker
+            value={coords}
+            onChange={setCoords}
+            hint={dict.merchant.mapHint}
+            locateLabel={dict.merchant.locateMe}
+          />
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

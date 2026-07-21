@@ -20,9 +20,11 @@ export type MapStore = {
 export function StoreMap({
   stores,
   lang,
+  heightClass = "h-[70vh]",
 }: {
   stores: MapStore[];
   lang: Locale;
+  heightClass?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -80,7 +82,7 @@ export function StoreMap({
   return (
     <div
       ref={ref}
-      className="h-[70vh] w-full overflow-hidden rounded-2xl border border-border"
+      className={`${heightClass} w-full overflow-hidden rounded-2xl border border-border`}
     />
   );
 }
