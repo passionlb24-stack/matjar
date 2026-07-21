@@ -4,6 +4,18 @@
 // authoritative resource, distinct from the app's friendly Lebanese UI voice.
 // Adding a guide = one entry here.
 
+import type { LucideIcon } from "lucide-react";
+import {
+  Megaphone,
+  ShoppingBag,
+  Calculator,
+  HeartHandshake,
+  Camera,
+  Share2,
+  ClipboardList,
+  TrendingUp,
+} from "lucide-react";
+
 export type GuideBlock =
   | { t: "p"; text: string }
   | { t: "h"; text: string }
@@ -17,16 +29,33 @@ export type AcademyCategory =
   | "accounting"
   | "service"
   | "branding"
-  | "social";
+  | "social"
+  | "management"
+  | "growth";
 
+// Display order. accounting is kept in the type but not surfaced (no guides yet);
+// management + growth are new "coming soon" categories.
 export const ACADEMY_CATEGORIES: AcademyCategory[] = [
   "marketing",
   "ecommerce",
-  "accounting",
   "service",
   "branding",
   "social",
+  "management",
+  "growth",
 ];
+
+// Line icon per category (lucide — minimal, single-color; no emoji).
+export const CATEGORY_ICON: Record<AcademyCategory, LucideIcon> = {
+  marketing: Megaphone,
+  ecommerce: ShoppingBag,
+  accounting: Calculator,
+  service: HeartHandshake,
+  branding: Camera,
+  social: Share2,
+  management: ClipboardList,
+  growth: TrendingUp,
+};
 
 // Per-category visual identity (literal class strings so Tailwind keeps them).
 // tint = icon badge, text = accent text, bar = solid accent, grad = header wash.
@@ -70,11 +99,26 @@ export const CATEGORY_STYLE: Record<
     bar: "bg-fuchsia-500",
     grad: "from-fuchsia-500/20",
   },
+  management: {
+    tint: "bg-teal-100 text-teal-600 dark:bg-teal-500/15 dark:text-teal-300",
+    text: "text-teal-600 dark:text-teal-300",
+    bar: "bg-teal-500",
+    grad: "from-teal-500/20",
+  },
+  growth: {
+    tint: "bg-primary-soft text-primary",
+    text: "text-primary",
+    bar: "bg-primary",
+    grad: "from-primary/20",
+  },
 };
+
+export type GuideLevel = "beginner" | "intermediate";
 
 export type Guide = {
   slug: string;
   category: AcademyCategory;
+  level: GuideLevel;
   title: string;
   titleEn: string;
   excerpt: string;
@@ -87,6 +131,7 @@ export const GUIDES: Guide[] = [
   {
     slug: "pricing-smart",
     category: "ecommerce",
+    level: "intermediate",
     title: "كيف تُسعّر منتجاتك بذكاء",
     titleEn: "How to price your products smartly",
     excerpt: "التسعير الخاطئ يلتهم أرباحك بصمت. تعلّم كيف تحسب تكلفتك الحقيقيّة وتضع سعراً يحقّق لك ربحاً دون أن يُنفّر عميلك.",
@@ -115,6 +160,7 @@ export const GUIDES: Guide[] = [
   {
     slug: "whatsapp-marketing",
     category: "marketing",
+    level: "beginner",
     title: "التسويق عبر واتساب لتجّار لبنان",
     titleEn: "WhatsApp marketing for Lebanese merchants",
     excerpt: "واتساب هو متجرك الحقيقي في لبنان. تعلّم كيف تستخدمه أداةَ مبيعاتٍ محترمة، لا مصدرَ إزعاج.",
@@ -147,6 +193,7 @@ export const GUIDES: Guide[] = [
   {
     slug: "product-photos-phone",
     category: "branding",
+    level: "beginner",
     title: "صوّر منتجاتك بهاتفك باحترافيّة",
     titleEn: "Shoot pro product photos with your phone",
     excerpt: "لست بحاجةٍ إلى كاميرا باهظة. بضوء الشمس وخلفيّةٍ نظيفة وهاتفك، تحصل على صورٍ تبيع.",
@@ -177,6 +224,7 @@ export const GUIDES: Guide[] = [
   {
     slug: "product-description",
     category: "ecommerce",
+    level: "intermediate",
     title: "اكتب وصف منتجٍ يبيع",
     titleEn: "Write a product description that sells",
     excerpt: "الوصف الجيّد ليس قائمةَ مواصفات، بل إجابةٌ عن سؤال العميل: بماذا سيفيدني هذا المنتج؟",
@@ -206,6 +254,7 @@ export const GUIDES: Guide[] = [
   {
     slug: "customer-service",
     category: "service",
+    level: "beginner",
     title: "خدمة العملاء: من عميلٍ غاضبٍ إلى عميلٍ وفيّ",
     titleEn: "Customer service: from angry to loyal",
     excerpt: "الشكوى فرصةٌ لا تهديد. تعرّف كيف تعالج المشكلات بأسلوبٍ يجعل العميل يعود ويثني عليك.",
@@ -231,6 +280,7 @@ export const GUIDES: Guide[] = [
   {
     slug: "instagram-basics",
     category: "social",
+    level: "beginner",
     title: "ابنِ حضورك على إنستغرام من الصفر",
     titleEn: "Build your Instagram presence from zero",
     excerpt: "لا تحتاج إلى آلاف المتابعين، بل إلى المتابعين المناسبين. تعرّف كيف تبني حساباً يجلب لك عملاء حقيقيّين.",
@@ -262,6 +312,96 @@ export const GUIDES: Guide[] = [
     ],
   },
 ];
+
+// ===== Learning paths (curated sequences) =====
+export type LearningPath = {
+  slug: string;
+  Icon: LucideIcon;
+  category: AcademyCategory;
+  title: string;
+  titleEn: string;
+  lessons: { ar: string; en: string }[];
+};
+
+export const LEARNING_PATHS: LearningPath[] = [
+  {
+    slug: "start",
+    Icon: ShoppingBag,
+    category: "ecommerce",
+    title: "ابدأ متجرك من الصفر",
+    titleEn: "Start your store from scratch",
+    lessons: [
+      { ar: "جهّز فكرتك وهويّتك", en: "Prepare your idea & identity" },
+      { ar: "صوّر منتجاتك", en: "Photograph your products" },
+      { ar: "اكتب أوصافاً تبيع", en: "Write descriptions that sell" },
+      { ar: "سعّر بذكاء", en: "Price smartly" },
+    ],
+  },
+  {
+    slug: "sales",
+    Icon: TrendingUp,
+    category: "growth",
+    title: "حسّن مبيعاتك",
+    titleEn: "Improve your sales",
+    lessons: [
+      { ar: "التسعير الذكيّ", en: "Smart pricing" },
+      { ar: "عروض واتساب الفعّالة", en: "Effective WhatsApp offers" },
+      { ar: "استعادة السلال المتروكة", en: "Recover abandoned carts" },
+    ],
+  },
+  {
+    slug: "social",
+    Icon: Share2,
+    category: "social",
+    title: "ابنِ حضورك على السوشال",
+    titleEn: "Build your social presence",
+    lessons: [
+      { ar: "رتّب ملفّك", en: "Set up your profile" },
+      { ar: "خطّة محتوى بسيطة", en: "A simple content plan" },
+      { ar: "الريلز والقصص", en: "Reels & stories" },
+      { ar: "تفاعلٌ يبني ولاء", en: "Engagement that builds loyalty" },
+    ],
+  },
+  {
+    slug: "service",
+    Icon: HeartHandshake,
+    category: "service",
+    title: "طوّر خدمة الزبائن",
+    titleEn: "Improve customer service",
+    lessons: [
+      { ar: "الردّ السريع والمحترم", en: "Fast, respectful replies" },
+      { ar: "إدارة الشكاوى", en: "Handling complaints" },
+      { ar: "تحويل الغاضب إلى وفيّ", en: "Turn angry into loyal" },
+    ],
+  },
+];
+
+// ===== "What do you want to improve today?" — topic → guide slugs =====
+export type RecommendTopic =
+  | "sales"
+  | "pricing"
+  | "photos"
+  | "whatsapp"
+  | "service"
+  | "instagram";
+
+export const RECOMMEND_TOPICS: RecommendTopic[] = [
+  "sales",
+  "pricing",
+  "photos",
+  "whatsapp",
+  "service",
+  "instagram",
+];
+
+export const RECOMMEND_MAP: Record<RecommendTopic, string[]> = {
+  sales: ["pricing-smart", "whatsapp-marketing", "product-description"],
+  pricing: ["pricing-smart"],
+  photos: ["product-photos-phone"],
+  whatsapp: ["whatsapp-marketing"],
+  service: ["customer-service"],
+  instagram: ["instagram-basics"],
+};
 
 export function guidesByCategory(cat: AcademyCategory): Guide[] {
   return GUIDES.filter((g) => g.category === cat);

@@ -7,7 +7,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
 import { GuideBody } from "@/components/hub/guide-body";
-import { getGuide, CATEGORY_STYLE } from "@/content/academy";
+import { getGuide, CATEGORY_STYLE, CATEGORY_ICON } from "@/content/academy";
 
 export async function generateMetadata({
   params,
@@ -37,6 +37,7 @@ export default async function GuidePage({
   const dict = await getDictionary(lang);
   const a = dict.hub.academy;
   const s = CATEGORY_STYLE[g.category];
+  const Icon = CATEGORY_ICON[g.category];
 
   return (
     <div className="py-10 sm:py-14">
@@ -57,14 +58,16 @@ export default async function GuidePage({
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
               <span className={s.text}>{a.categories[g.category]}</span>
               <span className="text-muted-foreground/50">•</span>
+              <span className="text-muted-foreground">{a.levels[g.level]}</span>
+              <span className="text-muted-foreground/50">•</span>
               <span className="inline-flex items-center gap-1 text-muted-foreground">
                 <Clock className="h-3.5 w-3.5" />
                 {a.readMin.replace("{n}", String(g.readMin))}
               </span>
             </div>
             <div className="mt-5 flex items-start gap-4">
-              <span className={`grid h-16 w-16 shrink-0 place-items-center rounded-2xl text-3xl shadow-sm ${s.tint}`}>
-                {g.emoji}
+              <span className={`grid h-16 w-16 shrink-0 place-items-center rounded-2xl shadow-sm ${s.tint}`}>
+                <Icon className="h-8 w-8" />
               </span>
               <h1 className="pt-1 text-3xl font-extrabold leading-[1.15] tracking-tight sm:text-[2.6rem]">
                 {lang === "en" ? g.titleEn : g.title}
