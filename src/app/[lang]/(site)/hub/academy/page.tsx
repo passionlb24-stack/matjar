@@ -7,14 +7,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
 import { AcademyExplorer, type LightGuide } from "@/components/hub/academy-explorer";
-import {
-  GUIDES,
-  ACADEMY_CATEGORIES,
-  CATEGORY_STYLE,
-  CATEGORY_ICON,
-  LEARNING_PATHS,
-  guidesByCategory,
-} from "@/content/academy";
+import { GUIDES, CATEGORY_STYLE, LEARNING_PATHS } from "@/content/academy";
 
 export async function generateMetadata({
   params,
@@ -100,29 +93,8 @@ export default async function AcademyPage({
           </div>
         </div>
 
-        {/* Categories */}
-        <h2 id="topics" className="mt-16 scroll-mt-24 text-xl font-extrabold tracking-tight">{en ? "Categories" : "التصنيفات"}</h2>
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {ACADEMY_CATEGORIES.map((cat) => {
-            const count = guidesByCategory(cat).length;
-            const s = CATEGORY_STYLE[cat];
-            const Icon = CATEGORY_ICON[cat];
-            const label = count === 0 ? a.soon : count === 1 ? a.oneGuide : a.nGuides.replace("{n}", String(count));
-            return (
-              <div key={cat} className="rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40">
-                <span className={`grid h-11 w-11 place-items-center rounded-xl ${s.tint}`}><Icon className="h-5 w-5" /></span>
-                <h3 className="mt-3 flex items-center gap-1.5 font-bold">
-                  {a.categories[cat]}
-                  {count === 0 && <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-bold text-primary">{a.new}</span>}
-                </h3>
-                <p className={`mt-2 text-xs font-bold ${count === 0 ? "text-muted-foreground" : s.text}`}>{label}</p>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Recommend + article grid (client) */}
-        <AcademyExplorer guides={light} dict={dict} lang={lang} />
+        {/* Categories + recommend + article grid (client, interactive filters) */}
+        <AcademyExplorer guides={light} featuredSlug={featured.slug} dict={dict} lang={lang} />
 
         {/* Learning paths */}
         <div className="mt-16">

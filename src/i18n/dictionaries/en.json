@@ -1906,6 +1906,7 @@
       "submitNote": "If you have an entrepreneurial story, submit your profile to be reviewed and published in the directory.",
       "submitDone": "Your profile was received! We'll review and publish it after approval. Thank you.",
       "submitLogin": "Log in to submit your profile",
+      "submitLimit": "You've reached the pending-submissions limit. Please wait for your current ones to be reviewed.",
       "submitButton": "Send for review",
       "fName": "Full name",
       "fHeadline": "Headline (e.g. Founder & entrepreneur)",

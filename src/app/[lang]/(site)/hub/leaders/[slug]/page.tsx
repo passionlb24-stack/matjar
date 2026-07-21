@@ -3,16 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowRight,
-  AtSign,
   Award,
-  Briefcase,
+  BadgeCheck,
   Building2,
-  Camera,
   ExternalLink,
-  Globe,
+  Link2,
   MapPin,
   User,
-  Video,
 } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -96,22 +93,18 @@ export default async function LeaderProfilePage({
     .limit(6);
   const related = (relatedData ?? []) as unknown as LeaderCard[];
 
+  // Render socials as labelled pills — this lucide version dropped the brand
+  // icons, and a wrong-metaphor icon is worse than an honest text label.
   const socialLinks: {
     key: keyof LeaderSocials;
     href: string | undefined;
     label: string;
-    Icon: typeof Globe;
   }[] = [
-    { key: "linkedin", href: socials.linkedin, label: "LinkedIn", Icon: Briefcase },
-    {
-      key: "instagram",
-      href: socials.instagram,
-      label: "Instagram",
-      Icon: Camera,
-    },
-    { key: "x", href: socials.x, label: "X", Icon: AtSign },
-    { key: "facebook", href: socials.facebook, label: "Facebook", Icon: Globe },
-    { key: "youtube", href: socials.youtube, label: "YouTube", Icon: Video },
+    { key: "linkedin", href: socials.linkedin, label: "LinkedIn" },
+    { key: "instagram", href: socials.instagram, label: "Instagram" },
+    { key: "x", href: socials.x, label: "X" },
+    { key: "facebook", href: socials.facebook, label: "Facebook" },
+    { key: "youtube", href: socials.youtube, label: "YouTube" },
   ];
   const presentSocials = socialLinks.filter((s) => s.href);
 
@@ -129,7 +122,7 @@ export default async function LeaderProfilePage({
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="h-full w-full bg-gradient-to-bl from-primary/15 via-transparent to-primary/5" />
+              <div className="h-full w-full bg-gradient-to-bl from-amber-500/15 via-transparent to-primary/10" />
             )}
           </div>
 
@@ -150,8 +143,9 @@ export default async function LeaderProfilePage({
                   )}
                 </span>
                 <div className="min-w-0">
-                  <h1 className="text-3xl font-extrabold tracking-tight">
+                  <h1 className="flex items-center gap-2 text-3xl font-extrabold tracking-tight">
                     {name}
+                    <BadgeCheck className="h-6 w-6 shrink-0 text-amber-600 dark:text-amber-400" />
                   </h1>
                   {leader.headline && (
                     <p className="mt-1 text-muted-foreground">
@@ -176,23 +170,22 @@ export default async function LeaderProfilePage({
                     href={leader.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-700"
                   >
                     <ExternalLink className="h-4 w-4" />
                     {t.website}
                   </a>
                 )}
-                {presentSocials.map(({ key, href, label, Icon }) => (
+                {presentSocials.map(({ key, href, label }) => (
                   <a
                     key={key}
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={label}
-                    title={label}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors hover:bg-surface-muted hover:text-primary"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-border px-3.5 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
                   >
-                    <Icon className="h-5 w-5" />
+                    <Link2 className="h-4 w-4" />
+                    {label}
                   </a>
                 ))}
               </div>
@@ -250,7 +243,7 @@ export default async function LeaderProfilePage({
             <ul className="mt-4 space-y-2.5">
               {achievements.map((a, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <Award className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                  <Award className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
                   <span className="leading-relaxed">{a}</span>
                 </li>
               ))}

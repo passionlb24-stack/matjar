@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Clock, Sparkles, TrendingUp, Tag, Camera, MessageSquare, HeartHandshake, Share2 } from "lucide-react";
+import { Clock, Sparkles, TrendingUp, Tag, Camera, MessageSquare, HeartHandshake, Share2, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import {
+  ACADEMY_CATEGORIES,
   CATEGORY_STYLE,
   CATEGORY_ICON,
   RECOMMEND_TOPICS,
@@ -35,27 +36,84 @@ const TOPIC_ICON: Record<RecommendTopic, LucideIcon> = {
   instagram: Share2,
 };
 
-// "What do you want to improve today?" — pills filter the guide grid to the
-// recommended set for the chosen topic. Client-side, no network.
+// Unified academy browser: clickable category cards (with live counts) + the
+// "what to improve today?" topic pills. Both filter the same guide grid. The
+// featured guide (shown above the fold) is dropped from the DEFAULT grid to
+// avoid duplication, but reappears when a filter that matches it is active.
 export function AcademyExplorer({
   guides,
+  featuredSlug,
   dict,
   lang,
 }: {
   guides: LightGuide[];
+  featuredSlug: string;
   dict: Dictionary;
   lang: Locale;
 }) {
   const a = dict.hub.academy;
+  const en = lang === "en";
+  const [cat, setCat] = useState<AcademyCategory | null>(null);
   const [topic, setTopic] = useState<RecommendTopic | null>(null);
+
+  const count = (c: AcademyCategory) => guides.filter((g) => g.category === c).length;
 
   const shown = topic
     ? guides.filter((g) => RECOMMEND_MAP[topic].includes(g.slug))
-    : guides;
+    : cat
+      ? guides.filter((g) => g.category === cat)
+      : guides.filter((g) => g.slug !== featuredSlug);
+
+  const active = cat !== null || topic !== null;
+  const reset = () => {
+    setCat(null);
+    setTopic(null);
+  };
 
   return (
-    <section className="mt-16">
-      <div className="rounded-3xl border border-border bg-surface-muted/40 p-5 sm:p-6">
+    <div className="mt-16">
+      {/* Categories */}
+      <h2 id="topics" className="scroll-mt-24 text-xl font-extrabold tracking-tight">
+        {en ? "Categories" : "التصنيفات"}
+      </h2>
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {ACADEMY_CATEGORIES.map((c) => {
+          const n = count(c);
+          const s = CATEGORY_STYLE[c];
+          const Icon = CATEGORY_ICON[c];
+          const on = cat === c;
+          const empty = n === 0;
+          const label = empty ? a.soon : n === 1 ? a.oneGuide : a.nGuides.replace("{n}", String(n));
+          return (
+            <button
+              key={c}
+              type="button"
+              disabled={empty}
+              onClick={() => {
+                setTopic(null);
+                setCat(on ? null : c);
+              }}
+              className={`rounded-2xl border p-4 text-start shadow-sm transition-all duration-200 ${
+                empty
+                  ? "cursor-default border-dashed border-border bg-surface-muted/30"
+                  : on
+                    ? "-translate-y-0.5 border-primary/50 bg-primary-soft/50 shadow-md"
+                    : "border-border bg-surface hover:-translate-y-0.5 hover:border-primary/40"
+              }`}
+            >
+              <span className={`grid h-11 w-11 place-items-center rounded-xl ${s.tint}`}><Icon className="h-5 w-5" /></span>
+              <h3 className="mt-3 flex items-center gap-1.5 font-bold">
+                {a.categories[c]}
+                {empty && <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-bold text-primary">{a.new}</span>}
+              </h3>
+              <p className={`mt-2 text-xs font-bold ${empty ? "text-muted-foreground" : s.text}`}>{label}</p>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Recommend pills */}
+      <div className="mt-8 rounded-3xl border border-border bg-surface-muted/40 p-5 sm:p-6">
         <p className="flex items-center gap-2 font-extrabold">
           <Sparkles className="h-5 w-5 text-primary" />
           {a.recommendTitle}
@@ -68,11 +126,12 @@ export function AcademyExplorer({
               <button
                 key={t}
                 type="button"
-                onClick={() => setTopic(on ? null : t)}
+                onClick={() => {
+                  setCat(null);
+                  setTopic(on ? null : t);
+                }}
                 className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
-                  on
-                    ? "bg-primary text-primary-foreground"
-                    : "border border-border bg-surface text-foreground hover:border-primary/40"
+                  on ? "bg-primary text-primary-foreground" : "border border-border bg-surface text-foreground hover:border-primary/40"
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -83,6 +142,19 @@ export function AcademyExplorer({
         </div>
       </div>
 
+      {/* Active-filter reset */}
+      {active && (
+        <button
+          type="button"
+          onClick={reset}
+          className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <X className="h-4 w-4" />
+          {a.allCategories}
+        </button>
+      )}
+
+      {/* Article grid */}
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {shown.map((g) => {
           const s = CATEGORY_STYLE[g.category];
@@ -105,7 +177,7 @@ export function AcademyExplorer({
                   <span>{a.levels[g.level]}</span>
                 </div>
                 <h3 className="mt-2 font-bold leading-snug transition-colors group-hover:text-primary">
-                  {lang === "en" ? g.titleEn : g.title}
+                  {en ? g.titleEn : g.title}
                 </h3>
                 <p className="mt-1.5 flex-1 text-sm leading-relaxed text-muted-foreground">{g.excerpt}</p>
                 <div className="mt-4 flex items-center justify-between border-t border-border/60 pt-3">
@@ -126,6 +198,6 @@ export function AcademyExplorer({
           {a.noResults}
         </p>
       )}
-    </section>
+    </div>
   );
 }

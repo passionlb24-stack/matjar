@@ -66,7 +66,11 @@ export function LeaderSubmit({ lang, dict }: { lang: Locale; dict: Dictionary })
     });
     setBusy(false);
     if (error) {
-      notifyError(dict.common.actionFailed);
+      notifyError(
+        error.message?.includes("submission_limit_reached")
+          ? l.submitLimit
+          : dict.common.actionFailed,
+      );
       return;
     }
     setDone(true);
