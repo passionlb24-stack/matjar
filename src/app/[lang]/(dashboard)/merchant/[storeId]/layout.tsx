@@ -92,6 +92,7 @@ export default async function StoreOsLayout({
   const moduleLabel: Record<OsModuleKey, string> = {
     orders: dict.merchant.ordersLink,
     bookings: dict.merchant.bookingsLink,
+    resources: dict.resources.link,
     requests: dict.os.requests.link,
     items: dict.store[sector.flow.itemsKey],
     doctors: dict.merchant.doctorsLink,

@@ -30,6 +30,10 @@ import {
 } from "@/components/store-verifications";
 import { StoreMapClient } from "@/components/store-map-client";
 import type { MapStore } from "@/components/store-map";
+import {
+  TimeslotBooking,
+  type Resource,
+} from "@/components/timeslot-booking";
 import { FollowButton } from "@/components/follow-button";
 import { ShareButton } from "@/components/share-button";
 import { MessageStoreButton } from "@/components/message-store-button";
@@ -314,6 +318,18 @@ export default async function StorePage({
     }
   }
   const enabledModules = resolveStoreModules(store.category, modOverrides);
+
+  // Bookable resources (courts/rooms/rental items) for time-slot sectors.
+  let resources: Resource[] = [];
+  if (store.isReal && UUID_RE.test(id) && enabledModules.has("timeslot")) {
+    const { data: resData } = await supabase
+      .from("store_resources")
+      .select("id, name, name_en, price, open_hour, close_hour")
+      .eq("store_id", id)
+      .eq("active", true)
+      .order("sort_order", { ascending: true });
+    resources = (resData ?? []) as Resource[];
+  }
 
   type DoctorView = {
     id: string;
@@ -779,6 +795,16 @@ export default async function StorePage({
               <ServiceRequestForm storeId={id} lang={lang} dict={dict} />
             </div>
           )}
+
+        {resources.length > 0 && (
+          <TimeslotBooking
+            storeId={id}
+            lang={lang}
+            dict={dict}
+            resources={resources}
+            customerName={currentUser?.name ?? null}
+          />
+        )}
 
         <h2 className="mb-4 mt-10 text-xl font-bold">{sectionTitle}</h2>
         {store.isReal ? (

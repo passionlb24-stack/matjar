@@ -742,6 +742,31 @@
     "reviewNote": "Verifying grants the business a \"Verified\" badge.",
     "noneToReview": "No documents pending review."
   },
+  "resources": {
+    "link": "Courts & resources",
+    "title": "Courts & resources",
+    "subtitle": "Add your courts, rooms, or rental items that can be booked by the hour.",
+    "add": "Add a resource",
+    "name": "Name",
+    "price": "Price / hour",
+    "openHour": "Opens at",
+    "closeHour": "Closes at",
+    "empty": "You haven't added any bookable resources yet.",
+    "delete": "Delete",
+    "save": "Save"
+  },
+  "timeslot": {
+    "title": "Book by the hour",
+    "pickResource": "Choose",
+    "pickDate": "Date",
+    "pickSlot": "Pick a time",
+    "book": "Confirm booking",
+    "noSlots": "No available times on this day.",
+    "loginToBook": "Log in to book",
+    "success": "Booked! The business will contact you to confirm.",
+    "perHour": "/ hour",
+    "booking": "Booking…"
+  },
   "featured": {
     "title": "Featured stores",
     "subtitle": "The newest and top-rated stores near you.",

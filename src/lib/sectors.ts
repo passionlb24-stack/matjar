@@ -28,6 +28,7 @@ import {
   Megaphone,
   BadgeCheck,
   Blocks,
+  LandPlot,
   Scissors,
   Dumbbell,
   Trophy,
@@ -53,6 +54,7 @@ import { type FeatureModuleKey, withDependencies } from "./modules-catalog";
 export type OsModuleKey =
   | "orders"
   | "bookings"
+  | "resources"
   | "requests"
   | "items"
   | "doctors"
@@ -95,6 +97,7 @@ export const OS_MODULE_META: Record<
 > = {
   orders: { Icon: ClipboardList, path: "orders", perm: "orders" },
   bookings: { Icon: CalendarCheck, path: "bookings", perm: "bookings" },
+  resources: { Icon: LandPlot, path: "resources", perm: "bookings" },
   requests: { Icon: FileText, path: "requests", perm: "bookings" },
   items: { Icon: Package, path: "items", perm: "products" },
   doctors: { Icon: Stethoscope, path: "doctors", perm: "bookings", pro: true },
@@ -257,7 +260,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-teal-100 text-teal-600",
     customersNoun: "customers",
     modules: {
-      daily: ["bookings", "tasks"],
+      daily: ["bookings", "resources", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY,
       store: STORE,
@@ -283,7 +286,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-fuchsia-100 text-fuchsia-600",
     customersNoun: "clients",
     modules: {
-      daily: ["bookings", "items", "tasks"],
+      daily: ["bookings", "resources", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY,
       store: STORE,
@@ -296,7 +299,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-orange-100 text-orange-600",
     customersNoun: "customers",
     modules: {
-      daily: ["bookings", "items", "tasks"],
+      daily: ["bookings", "resources", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
