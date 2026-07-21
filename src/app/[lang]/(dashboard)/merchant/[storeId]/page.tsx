@@ -652,6 +652,46 @@ export default async function StoreOsHomePage({
       { key: "addItem", label: t.quickAddService, path: "items", perm: "products" },
       { key: "campaign", label: t.quickCampaign, path: "campaigns", perm: "orders" },
     ],
+    events: [
+      { key: "bookings", label: t.quickBookings, path: "bookings", perm: "bookings" },
+      { key: "addItem", label: t.quickAddService, path: "items", perm: "products" },
+      { key: "campaign", label: t.quickCampaign, path: "campaigns", perm: "orders" },
+    ],
+    hospitality: [
+      { key: "bookings", label: t.quickBookings, path: "bookings", perm: "bookings" },
+      { key: "addItem", label: t.quickAddService, path: "items", perm: "products" },
+      { key: "campaign", label: t.quickCampaign, path: "campaigns", perm: "orders" },
+    ],
+    pharmacy: [
+      { key: "addItem", label: t.quickAddProduct, path: "items", perm: "products" },
+      { key: "orders", label: t.quickOrders, path: "orders", perm: "orders" },
+      { key: "pos", label: t.quickPos, path: "pos", perm: "orders" },
+    ],
+    petCare: [
+      { key: "bookings", label: t.quickBookings, path: "bookings", perm: "bookings" },
+      { key: "addItem", label: t.quickAddService, path: "items", perm: "products" },
+      { key: "campaign", label: t.quickCampaign, path: "campaigns", perm: "orders" },
+    ],
+    professional: [
+      { key: "requests", label: t.quickRequests, path: "requests", perm: "bookings" },
+      { key: "bookings", label: t.quickBookings, path: "bookings", perm: "bookings" },
+      { key: "addItem", label: t.quickAddService, path: "items", perm: "products" },
+    ],
+    contractors: [
+      { key: "requests", label: t.quickRequests, path: "requests", perm: "bookings" },
+      { key: "addItem", label: t.quickAddService, path: "items", perm: "products" },
+      { key: "campaign", label: t.quickCampaign, path: "campaigns", perm: "orders" },
+    ],
+    rentals: [
+      { key: "bookings", label: t.quickBookings, path: "bookings", perm: "bookings" },
+      { key: "addItem", label: t.quickAddListing, path: "items", perm: "products" },
+      { key: "campaign", label: t.quickCampaign, path: "campaigns", perm: "orders" },
+    ],
+    farm: [
+      { key: "addItem", label: t.quickAddProduct, path: "items", perm: "products" },
+      { key: "orders", label: t.quickOrders, path: "orders", perm: "orders" },
+      { key: "campaign", label: t.quickCampaign, path: "campaigns", perm: "orders" },
+    ],
   };
   const quickActions: QuickAction[] = quickDefs[category]
     .filter((a) => isOwner || (perms[a.perm] ?? false))

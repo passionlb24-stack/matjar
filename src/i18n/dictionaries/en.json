@@ -659,7 +659,15 @@
     "beauty": { "name": "Beauty & care", "desc": "Salons, spa, barbers and care" },
     "fitness": { "name": "Fitness & clubs", "desc": "Gyms, clubs and trainers" },
     "sportsCourts": { "name": "Sports & courts", "desc": "Courts, padel and time booking" },
-    "education": { "name": "Education & courses", "desc": "Courses, tutors and training" }
+    "education": { "name": "Education & courses", "desc": "Courses, tutors and training" },
+    "events": { "name": "Events & venues", "desc": "Halls, planning and bookings" },
+    "hospitality": { "name": "Hotels & chalets", "desc": "Hotels, chalets and hospitality" },
+    "pharmacy": { "name": "Pharmacies & labs", "desc": "Medicine, tests and supplies" },
+    "petCare": { "name": "Pet care", "desc": "Vet, grooming and supplies" },
+    "professional": { "name": "Professional services", "desc": "Lawyers, accountants, consulting" },
+    "contractors": { "name": "Contractors & trades", "desc": "Building, finishing and repair" },
+    "rentals": { "name": "Rentals", "desc": "Cars, equipment and boats" },
+    "farm": { "name": "Farms & local produce", "desc": "Veggies, fruit and local goods" }
   },
   "featured": {
     "title": "Featured stores",

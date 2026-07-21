@@ -12,6 +12,14 @@ export const categoryKeys = [
   "fitness",
   "sportsCourts",
   "education",
+  "events",
+  "hospitality",
+  "pharmacy",
+  "petCare",
+  "professional",
+  "contractors",
+  "rentals",
+  "farm",
 ] as const;
 
 export type CategoryKey = (typeof categoryKeys)[number];
@@ -33,6 +41,14 @@ export const categoryStyles: Record<
   fitness: { cover: "from-lime-100 to-green-100", iconWrap: "bg-lime-500/10 text-lime-700" },
   sportsCourts: { cover: "from-teal-100 to-cyan-100", iconWrap: "bg-teal-500/10 text-teal-600" },
   education: { cover: "from-indigo-100 to-blue-100", iconWrap: "bg-indigo-500/10 text-indigo-600" },
+  events: { cover: "from-fuchsia-100 to-purple-100", iconWrap: "bg-fuchsia-500/10 text-fuchsia-600" },
+  hospitality: { cover: "from-orange-100 to-amber-100", iconWrap: "bg-orange-500/10 text-orange-600" },
+  pharmacy: { cover: "from-emerald-100 to-teal-100", iconWrap: "bg-emerald-500/10 text-emerald-700" },
+  petCare: { cover: "from-yellow-100 to-amber-100", iconWrap: "bg-yellow-500/10 text-yellow-700" },
+  professional: { cover: "from-slate-100 to-blue-100", iconWrap: "bg-blue-500/10 text-blue-600" },
+  contractors: { cover: "from-amber-100 to-yellow-100", iconWrap: "bg-amber-500/10 text-amber-700" },
+  rentals: { cover: "from-cyan-100 to-sky-100", iconWrap: "bg-cyan-500/10 text-cyan-700" },
+  farm: { cover: "from-lime-100 to-emerald-100", iconWrap: "bg-green-500/10 text-green-700" },
 };
 
 export type RegionKey =
@@ -253,5 +269,41 @@ export const sampleProducts: Record<CategoryKey, Product[]> = {
     { name: { ar: "دورة لغة إنجليزية", en: "English course" }, price: 120 },
     { name: { ar: "درس خصوصي / ساعة", en: "Private lesson / hour" }, price: 15 },
     { name: { ar: "دورة برمجة للمبتدئين", en: "Beginner coding course" }, price: 150 },
+  ],
+  events: [
+    { name: { ar: "حجز قاعة أفراح", en: "Wedding hall booking" }, price: 2000 },
+    { name: { ar: "تنظيم مناسبة", en: "Event planning" }, price: 800 },
+  ],
+  hospitality: [
+    { name: { ar: "ليلة بشاليه", en: "Chalet night" }, price: 120 },
+    { name: { ar: "غرفة فندقية / ليلة", en: "Hotel room / night" }, price: 90 },
+  ],
+  pharmacy: [
+    { name: { ar: "دواء بوصفة", en: "Prescription medicine" }, price: 10 },
+    { name: { ar: "فحص مخبري", en: "Lab test" }, price: 25 },
+    { name: { ar: "فيتامينات ومكمّلات", en: "Vitamins & supplements" }, price: 15 },
+  ],
+  petCare: [
+    { name: { ar: "فحص بيطري", en: "Vet checkup" }, price: 30 },
+    { name: { ar: "تنظيف وقصّ", en: "Grooming" }, price: 25 },
+    { name: { ar: "تطعيم", en: "Vaccination" }, price: 20 },
+  ],
+  professional: [
+    { name: { ar: "استشارة قانونية", en: "Legal consultation" }, price: 50 },
+    { name: { ar: "تدقيق حسابات", en: "Accounting audit" }, price: 150 },
+  ],
+  contractors: [
+    { name: { ar: "تشطيب شقة", en: "Apartment finishing" }, price: 5000 },
+    { name: { ar: "دهان كامل", en: "Full painting" }, price: 400 },
+    { name: { ar: "تركيب سيراميك", en: "Tiling" }, price: 800 },
+  ],
+  rentals: [
+    { name: { ar: "تأجير سيارة / يوم", en: "Car rental / day" }, price: 40 },
+    { name: { ar: "تأجير معدّات", en: "Equipment rental" }, price: 60 },
+  ],
+  farm: [
+    { name: { ar: "صندوق خضار طازة", en: "Fresh veggie box" }, price: 15 },
+    { name: { ar: "عسل طبيعي", en: "Natural honey" }, price: 20 },
+    { name: { ar: "بيض بلدي", en: "Farm eggs" }, price: 6 },
   ],
 };

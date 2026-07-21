@@ -9,6 +9,14 @@ import {
   Dumbbell,
   Trophy,
   GraduationCap,
+  PartyPopper,
+  BedDouble,
+  Pill,
+  PawPrint,
+  Scale,
+  HardHat,
+  KeyRound,
+  Sprout,
   type LucideIcon,
 } from "lucide-react";
 import type { CategoryKey } from "@/lib/catalog";
@@ -24,4 +32,12 @@ export const categoryIcons: Record<CategoryKey, LucideIcon> = {
   fitness: Dumbbell,
   sportsCourts: Trophy,
   education: GraduationCap,
+  events: PartyPopper,
+  hospitality: BedDouble,
+  pharmacy: Pill,
+  petCare: PawPrint,
+  professional: Scale,
+  contractors: HardHat,
+  rentals: KeyRound,
+  farm: Sprout,
 };
