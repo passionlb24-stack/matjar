@@ -23,6 +23,10 @@ import { StoreProducts } from "@/components/store-products";
 import { BookingPanel } from "@/components/booking-panel";
 import { ServiceRequestForm } from "@/components/service-request-form";
 import { StoreReviews, type Review } from "@/components/store-reviews";
+import {
+  StoreVerifications,
+  type StoreVerification,
+} from "@/components/store-verifications";
 import { FollowButton } from "@/components/follow-button";
 import { ShareButton } from "@/components/share-button";
 import { MessageStoreButton } from "@/components/message-store-button";
@@ -271,6 +275,22 @@ export default async function StorePage({
     reviews = (data ?? []) as Review[];
   }
 
+  // Certificates & licenses (public). Rejected ones are excluded; a store shows
+  // the "verified" badge only if it has at least one admin-verified document.
+  let verifications: StoreVerification[] = [];
+  if (store.isReal && UUID_RE.test(id)) {
+    const { data } = await supabase
+      .from("store_verifications")
+      .select(
+        "id, kind, title, issuer, number, issued_on, expires_on, doc_url, verify_url, status",
+      )
+      .eq("store_id", id)
+      .neq("status", "rejected")
+      .order("created_at", { ascending: false });
+    verifications = (data ?? []) as StoreVerification[];
+  }
+  const hasVerified = verifications.some((v) => v.status === "verified");
+
   type DoctorView = {
     id: string;
     name: string;
@@ -498,6 +518,12 @@ export default async function StorePage({
                     <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2.5 py-1 text-xs font-bold text-success">
                       <BadgeCheck className="h-3.5 w-3.5" />
                       {dict.featured.registered}
+                    </span>
+                  )}
+                  {hasVerified && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-2.5 py-1 text-xs font-bold text-primary">
+                      <BadgeCheck className="h-3.5 w-3.5" />
+                      {dict.verifications.verifiedBadge}
                     </span>
                   )}
                 </div>
@@ -877,6 +903,14 @@ export default async function StorePage({
               ))}
             </div>
           </>
+        )}
+
+        {store.isReal && (
+          <StoreVerifications
+            verifications={verifications}
+            dict={dict}
+            lang={lang}
+          />
         )}
 
         {store.isReal && (

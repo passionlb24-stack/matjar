@@ -109,6 +109,7 @@ export default async function StoreOsLayout({
     coupons: dict.merchant.coupons.link,
     subscription: dict.merchant.subscriptionLink,
     branches: dict.os.branches.link,
+    verifications: dict.verifications.link,
     settings: dict.merchant.settingsLink,
     edit: dict.merchant.edit,
   };

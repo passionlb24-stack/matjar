@@ -15,6 +15,7 @@ import {
   ScrollText,
   Truck,
   Receipt,
+  BadgeCheck,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -29,6 +30,7 @@ const icons = {
   market: ShoppingBag,
   delivery: Truck,
   reviews: Star,
+  verifications: BadgeCheck,
   subscriptions: CreditCard,
   reports: BarChart3,
   audit: ScrollText,
@@ -47,6 +49,7 @@ export function AdminNav({ lang, dict }: { lang: Locale; dict: Dictionary }) {
     { key: "market", href: `${base}/market` },
     { key: "delivery", href: `${base}/delivery` },
     { key: "reviews", href: `${base}/reviews` },
+    { key: "verifications", href: `${base}/verifications` },
     { key: "subscriptions", href: `${base}/subscriptions` },
     { key: "reports", href: `${base}/reports` },
     { key: "audit", href: `${base}/audit` },
