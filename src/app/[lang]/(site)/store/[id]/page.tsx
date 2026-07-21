@@ -11,6 +11,7 @@ import {
   sampleProducts,
   type CategoryKey,
 } from "@/lib/catalog";
+import { resolveStoreModules } from "@/lib/sectors";
 import { createClient } from "@/lib/supabase/server";
 import { localeAlternates, SITE_URL } from "@/lib/site";
 import { accentStyle } from "@/lib/color";
@@ -296,6 +297,23 @@ export default async function StorePage({
     verifications = (data ?? []) as StoreVerification[];
   }
   const hasVerified = verifications.some((v) => v.status === "verified");
+
+  // Which feature modules this store has switched on (sector defaults overlaid
+  // with per-store overrides) — public sections render only for enabled ones.
+  const modOverrides: Record<string, boolean> = {};
+  if (store.isReal && UUID_RE.test(id)) {
+    const { data: modRows } = await supabase
+      .from("store_modules")
+      .select("module_key, enabled")
+      .eq("store_id", id);
+    for (const r of (modRows ?? []) as {
+      module_key: string;
+      enabled: boolean;
+    }[]) {
+      modOverrides[r.module_key] = r.enabled;
+    }
+  }
+  const enabledModules = resolveStoreModules(store.category, modOverrides);
 
   type DoctorView = {
     id: string;
@@ -744,7 +762,7 @@ export default async function StorePage({
           </div>
         )}
 
-        {mapPins.length > 0 && (
+        {mapPins.length > 0 && enabledModules.has("location") && (
           <div className="mt-6">
             <h2 className="mb-3 flex items-center gap-2 font-bold">
               <MapPin className="h-5 w-5 text-primary" />
@@ -936,7 +954,7 @@ export default async function StorePage({
           </>
         )}
 
-        {store.isReal && (
+        {store.isReal && enabledModules.has("verifications") && (
           <StoreVerifications
             verifications={verifications}
             dict={dict}

@@ -110,6 +110,7 @@ export default async function StoreOsLayout({
     subscription: dict.merchant.subscriptionLink,
     branches: dict.os.branches.link,
     verifications: dict.verifications.link,
+    modules: dict.os.modules.heading,
     settings: dict.merchant.settingsLink,
     edit: dict.merchant.edit,
   };

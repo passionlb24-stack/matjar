@@ -36,6 +36,38 @@
     "account": "حسابي"
   },
   "os": {
+    "modules": {
+      "heading": "وحدات متجرك",
+      "subheading": "فعّل أو عطّل قدرات نشاطك — كل وحدة بتضيف تجربة لمتجرك.",
+      "active": "مُفعّلة",
+      "available": "متوفّرة للإضافة",
+      "proNote": "تتطلّب باقة Pro",
+      "labels": {
+        "catalog": "المنتجات",
+        "menu": "المنيو",
+        "orders": "الطلبات والسلّة",
+        "inventory": "المخزون",
+        "delivery": "التوصيل",
+        "pos": "نقطة البيع",
+        "appointments": "المواعيد",
+        "timeslot": "الحجز بالوقت",
+        "classes": "الحصص والسيشنات",
+        "reservations": "حجز الطاولات",
+        "memberships": "الاشتراكات",
+        "rentals": "التأجير",
+        "requests": "طلبات الخدمة وعروض الأسعار",
+        "listings": "الإعلانات",
+        "portfolio": "معرض الأعمال",
+        "courses": "الدورات",
+        "team": "الفريق",
+        "reviews": "التقييمات",
+        "verifications": "الشهادات والرخص",
+        "location": "الموقع والفروع",
+        "marketing": "العروض والولاء",
+        "messaging": "المراسلة",
+        "media": "الصور والفيديو"
+      }
+    },
     "dashboard": {
       "revenue": "الإيرادات المحصّلة",
       "revenueHint": "طلبات مكتملة + نقطة البيع",

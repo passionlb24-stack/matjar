@@ -36,6 +36,38 @@
     "account": "Account"
   },
   "os": {
+    "modules": {
+      "heading": "Your store's modules",
+      "subheading": "Turn your business capabilities on or off — each module adds an experience to your store.",
+      "active": "Active",
+      "available": "Available to add",
+      "proNote": "Requires Pro",
+      "labels": {
+        "catalog": "Products",
+        "menu": "Menu",
+        "orders": "Orders & cart",
+        "inventory": "Inventory",
+        "delivery": "Delivery",
+        "pos": "Point of sale",
+        "appointments": "Appointments",
+        "timeslot": "Time-slot booking",
+        "classes": "Classes & sessions",
+        "reservations": "Table reservations",
+        "memberships": "Memberships",
+        "rentals": "Rentals",
+        "requests": "Service requests & quotes",
+        "listings": "Listings",
+        "portfolio": "Portfolio",
+        "courses": "Courses",
+        "team": "Team",
+        "reviews": "Reviews",
+        "verifications": "Certificates & licenses",
+        "location": "Location & branches",
+        "marketing": "Offers & loyalty",
+        "messaging": "Messaging",
+        "media": "Photos & video"
+      }
+    },
     "dashboard": {
       "revenue": "Realized revenue",
       "revenueHint": "Completed orders + POS",
