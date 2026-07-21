@@ -15,9 +15,11 @@ import {
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import {
-  categoryKeys,
+  groupKeys,
+  categoryGroup,
   regions,
   type CategoryKey,
+  type GroupKey,
   type RegionKey,
   type Store,
 } from "@/lib/catalog";
@@ -27,7 +29,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Container } from "@/components/ui/container";
 import { StoreCard } from "@/components/store-card";
 import { ProductMiniCard } from "@/components/product-mini-card";
-import { categoryIcons } from "@/components/category-icon";
+import { groupIcons } from "@/components/category-icon";
 
 // A product hit from the search_products_fuzzy RPC (migration 0114).
 type ProductHit = {
@@ -62,6 +64,7 @@ export function ExploreClient({
   lbpRate,
   initialQuery,
   initialCategory = "all",
+  initialGroup = "all",
   initialRegion = "all",
 }: {
   lang: Locale;
@@ -70,9 +73,11 @@ export function ExploreClient({
   lbpRate: number;
   initialQuery?: string;
   initialCategory?: CategoryKey | "all";
+  initialGroup?: GroupKey | "all";
   initialRegion?: RegionKey | "all";
 }) {
   const [category, setCategory] = useState<CategoryKey | "all">(initialCategory);
+  const [group, setGroup] = useState<GroupKey | "all">(initialGroup);
   const [region, setRegion] = useState<RegionKey | "all">(initialRegion);
   const [query, setQuery] = useState(initialQuery ?? "");
   const [sortMode, setSortMode] = useState<SortMode>("recommended");
@@ -164,6 +169,7 @@ export function ExploreClient({
 
   const filtered = stores.filter((s) => {
     if (category !== "all" && s.category !== category) return false;
+    if (group !== "all" && categoryGroup[s.category] !== group) return false;
     if (region !== "all" && s.region !== region) return false;
     if (query.trim()) {
       const q = query.trim().toLowerCase();
@@ -244,21 +250,27 @@ export function ExploreClient({
       <Container className="py-8">
         <div className="flex flex-wrap gap-2">
           <button
-            onClick={() => setCategory("all")}
-            className={`rounded-full border px-4 py-2 text-sm font-semibold transition-all ${chipClass(category === "all")}`}
+            onClick={() => {
+              setGroup("all");
+              setCategory("all");
+            }}
+            className={`rounded-full border px-4 py-2 text-sm font-semibold transition-all ${chipClass(group === "all" && category === "all")}`}
           >
             {dict.explore.allCategories}
           </button>
-          {categoryKeys.map((k) => {
-            const CatIcon = categoryIcons[k];
+          {groupKeys.map((g) => {
+            const GIcon = groupIcons[g];
             return (
               <button
-                key={k}
-                onClick={() => setCategory(k)}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition-all ${chipClass(category === k)}`}
+                key={g}
+                onClick={() => {
+                  setGroup(g);
+                  setCategory("all");
+                }}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition-all ${chipClass(group === g)}`}
               >
-                <CatIcon className="h-4 w-4" />
-                {dict.catalog[k].name}
+                <GIcon className="h-4 w-4" />
+                {dict.groups[g].name}
               </button>
             );
           })}

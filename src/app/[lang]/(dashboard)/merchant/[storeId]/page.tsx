@@ -682,11 +682,6 @@ export default async function StoreOsHomePage({
       { key: "addItem", label: t.quickAddService, path: "items", perm: "products" },
       { key: "campaign", label: t.quickCampaign, path: "campaigns", perm: "orders" },
     ],
-    rentals: [
-      { key: "bookings", label: t.quickBookings, path: "bookings", perm: "bookings" },
-      { key: "addItem", label: t.quickAddListing, path: "items", perm: "products" },
-      { key: "campaign", label: t.quickCampaign, path: "campaigns", perm: "orders" },
-    ],
     farm: [
       { key: "addItem", label: t.quickAddProduct, path: "items", perm: "products" },
       { key: "orders", label: t.quickOrders, path: "orders", perm: "orders" },

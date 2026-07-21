@@ -36,7 +36,6 @@ import {
   PawPrint,
   Scale,
   HardHat,
-  KeyRound,
   Sprout,
 } from "lucide-react";
 import type { CategoryKey } from "./catalog";
@@ -208,7 +207,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   },
   automotive: {
     Icon: Car,
-    features: ["listings", "requests", "reviews", "location", "media", "messaging"],
+    features: ["listings", "requests", "rentals", "reviews", "location", "media", "messaging"],
     heroTint: "from-slate-500/15 via-zinc-400/10 to-transparent",
     iconTint: "bg-slate-200 text-slate-700",
     customersNoun: "leads",
@@ -286,7 +285,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   },
   hospitality: {
     Icon: BedDouble,
-    features: ["timeslot", "catalog", "media", "reviews", "location", "messaging"],
+    features: ["timeslot", "rentals", "catalog", "media", "reviews", "location", "messaging"],
     heroTint: "from-orange-500/15 via-amber-400/10 to-transparent",
     iconTint: "bg-orange-100 text-orange-600",
     customersNoun: "customers",
@@ -346,19 +345,6 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
       daily: ["requests", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY_WITH_SUPPLIERS,
-      store: STORE,
-    },
-  },
-  rentals: {
-    Icon: KeyRound,
-    features: ["timeslot", "listings", "reviews", "location", "media", "messaging"],
-    heroTint: "from-cyan-500/15 via-sky-400/10 to-transparent",
-    iconTint: "bg-cyan-100 text-cyan-700",
-    customersNoun: "customers",
-    modules: {
-      daily: ["bookings", "items", "tasks"],
-      people: ["customers", "campaigns", "automations", "staff"],
-      money: MONEY,
       store: STORE,
     },
   },

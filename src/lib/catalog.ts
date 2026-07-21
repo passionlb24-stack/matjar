@@ -18,7 +18,6 @@ export const categoryKeys = [
   "petCare",
   "professional",
   "contractors",
-  "rentals",
   "farm",
 ] as const;
 
@@ -47,9 +46,52 @@ export const categoryStyles: Record<
   petCare: { cover: "from-yellow-100 to-amber-100", iconWrap: "bg-yellow-500/10 text-yellow-700" },
   professional: { cover: "from-slate-100 to-blue-100", iconWrap: "bg-blue-500/10 text-blue-600" },
   contractors: { cover: "from-amber-100 to-yellow-100", iconWrap: "bg-amber-500/10 text-amber-700" },
-  rentals: { cover: "from-cyan-100 to-sky-100", iconWrap: "bg-cyan-500/10 text-cyan-700" },
   farm: { cover: "from-lime-100 to-emerald-100", iconWrap: "bg-green-500/10 text-green-700" },
 };
+
+// ===== Top-level groups: what customers browse. A group bundles several
+// business-type sectors (Shopping = retail + farm; Health & beauty = clinics +
+// beauty + pet care + pharmacy). Sectors stay granular (each drives its own
+// tailored experience via its module bundle); groups are the clean navigation
+// layer above them so discovery shows ~9 tabs, not 17.
+export const groupKeys = [
+  "shopping",
+  "food",
+  "services",
+  "health",
+  "sports",
+  "bookings",
+  "realEstate",
+  "automotive",
+  "education",
+] as const;
+
+export type GroupKey = (typeof groupKeys)[number];
+
+export const categoryGroup: Record<CategoryKey, GroupKey> = {
+  food: "food",
+  retail: "shopping",
+  farm: "shopping",
+  services: "services",
+  contractors: "services",
+  professional: "services",
+  healthcare: "health",
+  beauty: "health",
+  petCare: "health",
+  pharmacy: "health",
+  fitness: "sports",
+  sportsCourts: "sports",
+  events: "bookings",
+  hospitality: "bookings",
+  realEstate: "realEstate",
+  automotive: "automotive",
+  education: "education",
+};
+
+/** The sectors that belong to a group, in categoryKeys order. */
+export function groupCategories(group: GroupKey): CategoryKey[] {
+  return categoryKeys.filter((c) => categoryGroup[c] === group);
+}
 
 export type RegionKey =
   | "beirut"
@@ -296,10 +338,6 @@ export const sampleProducts: Record<CategoryKey, Product[]> = {
     { name: { ar: "تشطيب شقة", en: "Apartment finishing" }, price: 5000 },
     { name: { ar: "دهان كامل", en: "Full painting" }, price: 400 },
     { name: { ar: "تركيب سيراميك", en: "Tiling" }, price: 800 },
-  ],
-  rentals: [
-    { name: { ar: "تأجير سيارة / يوم", en: "Car rental / day" }, price: 40 },
-    { name: { ar: "تأجير معدّات", en: "Equipment rental" }, price: 60 },
   ],
   farm: [
     { name: { ar: "صندوق خضار طازة", en: "Fresh veggie box" }, price: 15 },

@@ -12,7 +12,6 @@ import { DealOfTheDay } from "@/components/deal-of-the-day";
 import { Hero } from "@/components/hero";
 import { TrustStrip } from "@/components/trust-strip";
 import { WorldsShowcase } from "@/components/worlds-showcase";
-import { CategoryGrid } from "@/components/category-grid";
 import { ServicesGrid } from "@/components/services-grid";
 import { OffersTeaser } from "@/components/offers-teaser";
 import { BestSellersTeaser } from "@/components/best-sellers-teaser";
@@ -87,7 +86,6 @@ export default async function Home({
           browser after load, so it adds no per-user server read and keeps this
           page cacheable. Renders nothing for anon / no-history users. */}
       <ForYouStrip lang={lang} dict={dict} />
-      <CategoryGrid lang={lang} dict={dict} />
       <Suspense fallback={<SectionSkeleton cards={4} />}>
         <FeaturedStores lang={lang} dict={dict} />
       </Suspense>

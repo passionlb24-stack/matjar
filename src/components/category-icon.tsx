@@ -15,11 +15,12 @@ import {
   PawPrint,
   Scale,
   HardHat,
-  KeyRound,
   Sprout,
+  HeartPulse,
+  CalendarClock,
   type LucideIcon,
 } from "lucide-react";
-import type { CategoryKey } from "@/lib/catalog";
+import type { CategoryKey, GroupKey } from "@/lib/catalog";
 
 export const categoryIcons: Record<CategoryKey, LucideIcon> = {
   food: UtensilsCrossed,
@@ -38,6 +39,18 @@ export const categoryIcons: Record<CategoryKey, LucideIcon> = {
   petCare: PawPrint,
   professional: Scale,
   contractors: HardHat,
-  rentals: KeyRound,
   farm: Sprout,
+};
+
+// Icons for the top-level groups (navigation layer above sectors).
+export const groupIcons: Record<GroupKey, LucideIcon> = {
+  shopping: ShoppingBag,
+  food: UtensilsCrossed,
+  services: Wrench,
+  health: HeartPulse,
+  sports: Dumbbell,
+  bookings: CalendarClock,
+  realEstate: Building2,
+  automotive: Car,
+  education: GraduationCap,
 };

@@ -32,6 +32,5 @@ export const categoryModule: Record<CategoryKey, StoreModule> = {
   petCare: { kind: "booking", itemsKey: "services", addKey: "addService", simplifiedItem: true },
   professional: { kind: "booking", itemsKey: "services", addKey: "addService", simplifiedItem: true },
   contractors: { kind: "booking", itemsKey: "services", addKey: "addService", simplifiedItem: true },
-  rentals: { kind: "booking", itemsKey: "listings", addKey: "addListing", simplifiedItem: true },
   farm: { kind: "commerce", itemsKey: "products", addKey: "add", simplifiedItem: false },
 };

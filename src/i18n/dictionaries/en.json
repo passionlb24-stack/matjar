@@ -597,7 +597,7 @@
   },
   "worlds": {
     "eyebrow": "One platform",
-    "title": "8 worlds in one place",
+    "title": "Your whole world, in one place",
     "subtitle": "You don't need 10 apps — everything in Lebanon is now in one place.",
     "items": {
       "stores": { "title": "Stores", "desc": "Clothing, electronics, accessories" },
@@ -666,8 +666,18 @@
     "petCare": { "name": "Pet care", "desc": "Vet, grooming and supplies" },
     "professional": { "name": "Professional services", "desc": "Lawyers, accountants, consulting" },
     "contractors": { "name": "Contractors & trades", "desc": "Building, finishing and repair" },
-    "rentals": { "name": "Rentals", "desc": "Cars, equipment and boats" },
     "farm": { "name": "Farms & local produce", "desc": "Veggies, fruit and local goods" }
+  },
+  "groups": {
+    "shopping": { "name": "Shopping", "desc": "Clothing, electronics, pharmacies & local goods" },
+    "food": { "name": "Food & dining", "desc": "Restaurants, cafés & sweets" },
+    "services": { "name": "Services", "desc": "Repair, contractors & professionals" },
+    "health": { "name": "Health & beauty", "desc": "Clinics, beauty & pet care" },
+    "sports": { "name": "Sports", "desc": "Gyms, fitness & courts" },
+    "bookings": { "name": "Events & bookings", "desc": "Venues, hotels & rentals" },
+    "realEstate": { "name": "Real estate", "desc": "Buy, sell & rent" },
+    "automotive": { "name": "Automotive", "desc": "Showrooms, parts & rentals" },
+    "education": { "name": "Education", "desc": "Courses & tutors" }
   },
   "featured": {
     "title": "Featured stores",

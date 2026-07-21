@@ -27,6 +27,7 @@ export type FeatureModuleKey =
   | "classes" // scheduled sessions with capacity (gyms/group courses)
   | "reservations" // table reservations (restaurants)
   | "memberships" // recurring subscriptions (gym/club/school)
+  | "rentals" // rent-by-period (cars/equipment/gear) — a business model, not a sector
   // Services & listings
   | "requests" // service requests + quotes
   | "listings" // attribute-rich listings (real-estate/car/rental)
@@ -68,6 +69,7 @@ export const MODULE_CATALOG: Record<FeatureModuleKey, FeatureModuleDef> = {
   classes: { key: "classes", labelKey: "classes", tier: "pro" },
   reservations: { key: "reservations", labelKey: "reservations", tier: "free" },
   memberships: { key: "memberships", labelKey: "memberships", tier: "pro" },
+  rentals: { key: "rentals", labelKey: "rentals", tier: "pro", dependsOn: ["timeslot"] },
 
   requests: { key: "requests", labelKey: "requests", tier: "free" },
   listings: { key: "listings", labelKey: "listings", tier: "free" },
