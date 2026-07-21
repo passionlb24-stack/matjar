@@ -23,6 +23,7 @@ type BookingRow = {
   requested_time: string | null;
   customer_name: string | null;
   notes: string | null;
+  party_size: number | null;
   doctors: { name: string } | null;
 };
 
@@ -57,7 +58,7 @@ export default async function StoreBookingsPage({
   const { data } = await supabase
     .from("bookings")
     .select(
-      "id, status, service_name, requested_date, requested_time, customer_name, notes, doctors(name)",
+      "id, status, service_name, requested_date, requested_time, customer_name, notes, party_size, doctors(name)",
     )
     .eq("store_id", storeId)
     .order("requested_date", { ascending: true, nullsFirst: false })
@@ -121,6 +122,9 @@ export default async function StoreBookingsPage({
                       {b.customer_name}
                       {b.requested_date ? ` · ${b.requested_date}` : ""}
                       {b.requested_time ? ` ${b.requested_time}` : ""}
+                      {b.party_size
+                        ? ` · ${b.party_size} ${dict.reservations.people}`
+                        : ""}
                     </p>
                   </div>
                   <BookingStatusControl

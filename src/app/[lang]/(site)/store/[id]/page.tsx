@@ -42,6 +42,7 @@ import {
   ClassesBooking,
   type ClassRow,
 } from "@/components/classes-booking";
+import { ReservationForm } from "@/components/reservation-form";
 import { FollowButton } from "@/components/follow-button";
 import { ShareButton } from "@/components/share-button";
 import { MessageStoreButton } from "@/components/message-store-button";
@@ -856,6 +857,10 @@ export default async function StorePage({
             classes={classes}
             customerName={currentUser?.name ?? null}
           />
+        )}
+
+        {store.isReal && enabledModules.has("reservations") && (
+          <ReservationForm storeId={id} lang={lang} dict={dict} />
         )}
 
         <h2 className="mb-4 mt-10 text-xl font-bold">{sectionTitle}</h2>

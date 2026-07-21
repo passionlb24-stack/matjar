@@ -807,6 +807,22 @@
     "success": "Your spot is booked!",
     "loginToBook": "Log in to book"
   },
+  "reservations": {
+    "title": "Reserve a table",
+    "subtitle": "Pick a day, time and party size — we'll confirm it for you.",
+    "serviceName": "Table reservation",
+    "date": "Day",
+    "time": "Time",
+    "partySize": "Party size",
+    "fewer": "Fewer",
+    "more": "More",
+    "phone": "Phone number",
+    "notesHint": "Notes (occasion, outdoor table…)",
+    "book": "Reserve table",
+    "sent": "Reservation request sent!",
+    "loginToBook": "Log in to reserve",
+    "people": "people"
+  },
   "featured": {
     "title": "Featured stores",
     "subtitle": "The newest and top-rated stores near you.",

@@ -162,7 +162,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-orange-100 text-orange-600",
     customersNoun: "customers",
     modules: {
-      daily: ["orders", "kitchen", "pos", "items", "inventory", "tasks"],
+      daily: ["orders", "bookings", "kitchen", "pos", "items", "inventory", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
