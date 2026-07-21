@@ -7,8 +7,10 @@ import { fieldClass } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { groupKeys, type GroupKey } from "@/lib/catalog";
 
 type Option = { value: string; label: string };
+type BizOption = { value: string; label: string; group: GroupKey };
 
 // Shared control styling from the UI library, plus the label gap this form uses.
 const field = `${fieldClass} mt-1.5`;
@@ -33,7 +35,7 @@ export function StoreForm({
 }: {
   lang: Locale;
   dict: Dictionary;
-  businessTypes: Option[];
+  businessTypes: BizOption[];
   regions: Option[];
 }) {
   const router = useRouter();
@@ -169,11 +171,19 @@ export function StoreForm({
             <option value="" disabled>
               {dict.merchant.selectType}
             </option>
-            {businessTypes.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
-            ))}
+            {groupKeys.map((g) => {
+              const opts = businessTypes.filter((t) => t.group === g);
+              if (!opts.length) return null;
+              return (
+                <optgroup key={g} label={dict.groups[g].name}>
+                  {opts.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
+                </optgroup>
+              );
+            })}
           </select>
         </div>
         <div>

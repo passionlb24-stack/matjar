@@ -2,12 +2,18 @@ import { notFound, redirect } from "next/navigation";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
-import { regions } from "@/lib/catalog";
+import {
+  regions,
+  categoryGroup,
+  type CategoryKey,
+  type GroupKey,
+} from "@/lib/catalog";
 import { Container } from "@/components/ui/container";
 import { StoreForm } from "@/components/store-form";
 
 type BusinessTypeRow = {
   id: string;
+  slug: string;
   name_ar: string;
   name_en: string;
 };
@@ -29,12 +35,18 @@ export default async function NewStorePage({
 
   const { data: types } = await supabase
     .from("business_types")
-    .select("id, name_ar, name_en")
+    .select("id, slug, name_ar, name_en")
     .order("sort_order");
 
   const businessTypes = ((types ?? []) as BusinessTypeRow[]).map((t) => ({
     value: t.id,
     label: lang === "ar" ? t.name_ar : t.name_en,
+    // Map each granular sector to its top-level group; unknown slugs fall back
+    // to Shopping so the option is never dropped.
+    group:
+      (categoryGroup as Record<string, GroupKey | undefined>)[
+        t.slug as CategoryKey
+      ] ?? "shopping",
   }));
   const regionOptions = regions.map((r) => ({
     value: r.key,
