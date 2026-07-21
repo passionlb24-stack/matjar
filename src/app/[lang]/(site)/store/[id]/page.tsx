@@ -38,6 +38,10 @@ import {
   StoreMemberships,
   type MembershipPlan,
 } from "@/components/store-memberships";
+import {
+  ClassesBooking,
+  type ClassRow,
+} from "@/components/classes-booking";
 import { FollowButton } from "@/components/follow-button";
 import { ShareButton } from "@/components/share-button";
 import { MessageStoreButton } from "@/components/message-store-button";
@@ -345,6 +349,19 @@ export default async function StorePage({
       .eq("active", true)
       .order("sort_order", { ascending: true });
     membershipPlans = (mpData ?? []) as MembershipPlan[];
+  }
+
+  // Weekly group classes (gym sessions, group courses) for capacity booking.
+  let classes: ClassRow[] = [];
+  if (store.isReal && UUID_RE.test(id) && enabledModules.has("classes")) {
+    const { data: clData } = await supabase
+      .from("store_classes")
+      .select("id, name, name_en, description, day_of_week, start_time, capacity, price")
+      .eq("store_id", id)
+      .eq("active", true)
+      .order("day_of_week", { ascending: true })
+      .order("start_time", { ascending: true });
+    classes = (clData ?? []) as ClassRow[];
   }
 
   type DoctorView = {
@@ -828,6 +845,16 @@ export default async function StorePage({
             dict={dict}
             lang={lang}
             whatsapp={store.whatsapp ?? null}
+          />
+        )}
+
+        {classes.length > 0 && (
+          <ClassesBooking
+            storeId={id}
+            lang={lang}
+            dict={dict}
+            classes={classes}
+            customerName={currentUser?.name ?? null}
           />
         )}
 

@@ -30,6 +30,7 @@ import {
   Blocks,
   LandPlot,
   Gem,
+  CalendarRange,
   Scissors,
   Dumbbell,
   Trophy,
@@ -57,6 +58,7 @@ export type OsModuleKey =
   | "bookings"
   | "resources"
   | "memberships"
+  | "classes"
   | "requests"
   | "items"
   | "doctors"
@@ -101,6 +103,7 @@ export const OS_MODULE_META: Record<
   bookings: { Icon: CalendarCheck, path: "bookings", perm: "bookings" },
   resources: { Icon: LandPlot, path: "resources", perm: "bookings" },
   memberships: { Icon: Gem, path: "memberships", ownerOnly: true },
+  classes: { Icon: CalendarRange, path: "classes", perm: "bookings" },
   requests: { Icon: FileText, path: "requests", perm: "bookings" },
   items: { Icon: Package, path: "items", perm: "products" },
   doctors: { Icon: Stethoscope, path: "doctors", perm: "bookings", pro: true },
@@ -250,7 +253,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-lime-100 text-lime-700",
     customersNoun: "customers",
     modules: {
-      daily: ["bookings", "memberships", "items", "tasks"],
+      daily: ["bookings", "memberships", "classes", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY,
       store: STORE,
