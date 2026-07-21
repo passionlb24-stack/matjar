@@ -1801,9 +1801,12 @@
       }
     },
     "academy": {
+      "eyebrow": "Learn · Apply · Grow",
       "title": "Matjar Academy",
-      "subtitle": "Short, practical guides to run and grow your store — in Arabic, for the Lebanese market.",
+      "subtitle": "Short, practical guides to help you run and grow your store — in Arabic, tailored to the Lebanese market.",
       "readMin": "{n} min read",
+      "featured": "Featured",
+      "read": "Read guide",
       "categories": {
         "marketing": "Marketing",
         "ecommerce": "E-commerce",
@@ -1813,7 +1816,7 @@
         "social": "Social media"
       },
       "ctaTitle": "Apply what you learned",
-      "ctaNote": "Use Matjar's free tools to turn this advice into real steps for your store.",
+      "ctaNote": "Use Matjar's free tools to turn this advice into real, concrete steps for your store.",
       "ctaButton": "Open the tools center"
     },
     "leaders": {
