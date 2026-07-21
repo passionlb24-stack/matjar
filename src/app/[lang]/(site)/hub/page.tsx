@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, GraduationCap, Users, Sparkles } from "lucide-react";
+import { ArrowLeft, GraduationCap, Crown, Sparkles } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
-import { HUB_TOOLS } from "@/lib/hub-tools";
+import { GUIDES } from "@/content/academy";
 
 export async function generateMetadata({
   params,
@@ -48,84 +48,64 @@ export default async function HubPage({
           <p className="mt-4 max-w-xl text-muted-foreground sm:text-lg">{h.subtitle}</p>
         </div>
 
-        {/* Tools */}
-        <div className="mt-12">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-extrabold tracking-tight">{h.toolsTitle}</h2>
-              <p className="mt-1 text-sm text-muted-foreground">{h.toolsSubtitle}</p>
+        {/* Two sections: Academy + Leaders */}
+        <div className="mt-8 grid gap-5 lg:grid-cols-2">
+          {/* Academy */}
+          <Link
+            href={`/${lang}/hub/academy`}
+            className="group flex flex-col overflow-hidden rounded-3xl border border-border bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg"
+          >
+            <div className="bg-gradient-to-bl from-emerald-500/15 to-transparent p-8">
+              <span className="grid h-14 w-14 place-items-center rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400">
+                <GraduationCap className="h-7 w-7" />
+              </span>
+              <h2 className="mt-5 text-2xl font-extrabold tracking-tight transition-colors group-hover:text-primary">
+                {h.academyTitle}
+              </h2>
+              <p className="mt-2 text-muted-foreground">{h.academyNote}</p>
             </div>
-            <Link
-              href={`/${lang}/hub/tools`}
-              className="hidden shrink-0 items-center gap-1 text-sm font-bold text-primary hover:underline sm:inline-flex"
-            >
-              {h.allTools}
-              <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
-            </Link>
-          </div>
-
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {HUB_TOOLS.map((tool) => {
-              const td = h.tools[tool.slug as keyof typeof h.tools];
-              const Icon = tool.Icon;
-              return (
-                <Link
-                  key={tool.slug}
-                  href={`/${lang}/hub/tools/${tool.slug}`}
-                  className="group flex flex-col rounded-2xl border border-border bg-surface p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
-                >
-                  <span className={`grid h-12 w-12 place-items-center rounded-xl ${tool.tint}`}>
-                    <Icon className="h-6 w-6" />
+            <div className="flex flex-1 flex-col justify-end p-8 pt-0">
+              <div className="flex flex-wrap gap-2">
+                {GUIDES.slice(0, 3).map((g) => (
+                  <span
+                    key={g.slug}
+                    className="rounded-full border border-border bg-surface-muted/50 px-3 py-1 text-xs font-semibold text-muted-foreground"
+                  >
+                    {g.emoji} {lang === "en" ? g.titleEn : g.title}
                   </span>
-                  <h3 className="mt-4 font-bold transition-colors group-hover:text-primary">{td.name}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{td.desc}</p>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
+                ))}
+              </div>
+              <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-primary">
+                {h.enterAcademy}
+                <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1 rtl:rotate-180" />
+              </span>
+            </div>
+          </Link>
 
-        {/* More hub sections */}
-        <div className="mt-14">
-          <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">{h.moreSoon}</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <SectionCard lang={lang} href="hub/academy" Icon={GraduationCap} title={h.academyTitle} note={h.academyNote} />
-            <SectionCard lang={lang} href="hub/leaders" Icon={Users} title={h.leadersTitle} note={h.leadersNote} />
-          </div>
+          {/* Leaders */}
+          <Link
+            href={`/${lang}/hub/leaders`}
+            className="group flex flex-col overflow-hidden rounded-3xl border border-border bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg"
+          >
+            <div className="bg-gradient-to-bl from-amber-500/15 to-transparent p-8">
+              <span className="grid h-14 w-14 place-items-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400">
+                <Crown className="h-7 w-7" />
+              </span>
+              <h2 className="mt-5 text-2xl font-extrabold tracking-tight transition-colors group-hover:text-primary">
+                {h.leadersTitle}
+              </h2>
+              <p className="mt-2 text-muted-foreground">{h.leadersNote}</p>
+            </div>
+            <div className="flex flex-1 flex-col justify-end p-8 pt-0">
+              <p className="text-sm leading-relaxed text-muted-foreground">{h.leadersTeaser}</p>
+              <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-primary">
+                {h.enterLeaders}
+                <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1 rtl:rotate-180" />
+              </span>
+            </div>
+          </Link>
         </div>
       </Container>
     </div>
-  );
-}
-
-function SectionCard({
-  lang,
-  href,
-  Icon,
-  title,
-  note,
-}: {
-  lang: string;
-  href: string;
-  Icon: typeof GraduationCap;
-  title: string;
-  note: string;
-}) {
-  return (
-    <Link
-      href={`/${lang}/${href}`}
-      className="group flex items-start gap-4 rounded-2xl border border-border bg-surface p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
-    >
-      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary">
-        <Icon className="h-5 w-5" />
-      </span>
-      <div>
-        <h3 className="flex items-center gap-1.5 font-bold transition-colors group-hover:text-primary">
-          {title}
-          <ArrowLeft className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100 rtl:rotate-180" />
-        </h3>
-        <p className="mt-1 text-sm text-muted-foreground">{note}</p>
-      </div>
-    </Link>
   );
 }

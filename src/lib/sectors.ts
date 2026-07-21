@@ -63,6 +63,7 @@ export type OsModuleKey =
   | "classes"
   | "portfolio"
   | "courses"
+  | "tools"
   | "requests"
   | "items"
   | "doctors"
@@ -110,6 +111,7 @@ export const OS_MODULE_META: Record<
   classes: { Icon: CalendarRange, path: "classes", perm: "bookings" },
   portfolio: { Icon: Images, path: "portfolio", perm: "products" },
   courses: { Icon: BookOpen, path: "courses", perm: "products" },
+  tools: { Icon: Wrench, path: "tools", pro: true },
   requests: { Icon: FileText, path: "requests", perm: "bookings" },
   items: { Icon: Package, path: "items", perm: "products" },
   doctors: { Icon: Stethoscope, path: "doctors", perm: "bookings", pro: true },
@@ -150,7 +152,7 @@ export type SectorConfig = {
 };
 
 const MONEY: OsModuleKey[] = ["accounting", "reports", "coupons", "subscription"];
-const STORE: OsModuleKey[] = ["branches", "verifications", "modules", "edit", "settings"];
+const STORE: OsModuleKey[] = ["tools", "branches", "verifications", "modules", "edit", "settings"];
 // Real estate has no goods suppliers; every other sector tracks supplier debts.
 const MONEY_WITH_SUPPLIERS: OsModuleKey[] = [
   "accounting",

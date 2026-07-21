@@ -82,7 +82,7 @@ export default async function GuidePage({
             <p className="text-lg font-extrabold">{a.ctaTitle}</p>
             <p className="max-w-md text-sm text-muted-foreground">{a.ctaNote}</p>
             <Link
-              href={`/${lang}/hub/tools`}
+              href={`/${lang}/merchant`}
               className="mt-3 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
             >
               {a.ctaButton}

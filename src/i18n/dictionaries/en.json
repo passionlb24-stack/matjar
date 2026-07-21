@@ -1709,8 +1709,11 @@
   "hub": {
     "nav": "Business Hub",
     "title": "Business Hub",
-    "subtitle": "Your everyday toolkit to run and grow your business — free, and built for Lebanese merchants.",
+    "subtitle": "Learn from practical guides and draw inspiration from Lebanese entrepreneurs — everything that fuels your growth in one place.",
     "eyebrow": "Business Hub",
+    "enterAcademy": "Enter the Academy",
+    "enterLeaders": "Browse leaders",
+    "leadersTeaser": "The directory is being carefully curated — browse what's published, or submit your profile to join.",
     "toolsTitle": "Business Tools",
     "toolsSubtitle": "Calculate, generate, and design in seconds. All work instantly, no sign-up.",
     "openTool": "Open tool",
@@ -1719,9 +1722,9 @@
     "backToHub": "Business Hub",
     "moreSoon": "Hub sections",
     "academyTitle": "Matjar Academy",
-    "academyNote": "Practical lessons and guides to run and grow your store — coming soon.",
+    "academyNote": "Short, practical guides to run and grow your store.",
     "leadersTitle": "Business Leaders",
-    "leadersNote": "A directory of Lebanese entrepreneurs and companies — coming soon.",
+    "leadersNote": "Stories and achievements of leading Lebanese entrepreneurs and companies.",
     "categories": {
       "calc": "Calculators",
       "generate": "Generators",
@@ -1816,8 +1819,8 @@
         "social": "Social media"
       },
       "ctaTitle": "Apply what you learned",
-      "ctaNote": "Use Matjar's free tools to turn this advice into real, concrete steps for your store.",
-      "ctaButton": "Open the tools center"
+      "ctaNote": "Use Matjar's tools inside your dashboard to turn this advice into real, concrete steps.",
+      "ctaButton": "Open your dashboard"
     },
     "leaders": {
       "title": "Business Leaders",
