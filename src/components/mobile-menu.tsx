@@ -16,6 +16,7 @@ import {
   Truck,
   Map as MapIcon,
   Store,
+  Wrench,
   LayoutDashboard,
   User,
   LogIn,
@@ -66,6 +67,7 @@ export function MobileMenu({
     {
       title: dict.mobileNav.more,
       items: [
+        { href: `/${lang}/hub`, label: dict.common.hub, icon: Wrench, bold: true },
         { href: `/${lang}/map`, label: dict.map.title, icon: MapIcon },
         { href: `/${lang}/pricing`, label: dict.common.forMerchants, icon: Store },
       ],
