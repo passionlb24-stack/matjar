@@ -41,11 +41,9 @@ export function ReservationForm({
       } = await supabase.auth.getUser();
       if (user) {
         setUid(user.id);
-        setName(
-          (user.user_metadata?.full_name as string | undefined) ??
-            user.email ??
-            "",
-        );
+        // Prefill the real name only — never the email, so the reservation is
+        // never recorded under an email address.
+        setName((user.user_metadata?.full_name as string | undefined) ?? "");
       }
       setReady(true);
     })();

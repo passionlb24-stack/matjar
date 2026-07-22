@@ -46,6 +46,9 @@ export function ClassesBooking({
   const t = dict.classes;
   const days = t.days as string[];
   const [supabase] = useState(() => createClient());
+  const prefillName =
+    customerName && !customerName.includes("@") ? customerName : "";
+  const [name, setName] = useState(prefillName);
   const [taken, setTaken] = useState<Record<string, number>>({});
   const [booked, setBooked] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<string | null>(null);
@@ -95,7 +98,7 @@ export function ClassesBooking({
       service_name: c.name,
       requested_date: date,
       requested_time: c.start_time,
-      customer_name: customerName || user.email || "",
+      customer_name: name.trim() || customerName || "",
     });
     setBusy(null);
     if (error) return;
@@ -111,6 +114,14 @@ export function ClassesBooking({
         <CalendarRange className="h-5 w-5 text-primary" />
         {t.publicTitle}
       </h2>
+      <input
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder={dict.booking.yourNamePlaceholder}
+        aria-label={dict.booking.yourName}
+        className="mb-4 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary sm:max-w-xs"
+      />
       <div className="grid gap-3 sm:grid-cols-2">
         {classes.map((c) => {
           const name = lang === "en" ? c.name_en || c.name : c.name;
@@ -151,7 +162,7 @@ export function ClassesBooking({
                   <button
                     type="button"
                     onClick={() => book(c)}
-                    disabled={full || busy === c.id}
+                    disabled={full || busy === c.id || !name.trim()}
                     className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-50"
                   >
                     {busy === c.id && <Loader2 className="h-4 w-4 animate-spin" />}

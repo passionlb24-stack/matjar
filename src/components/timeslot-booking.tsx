@@ -40,6 +40,9 @@ export function TimeslotBooking({
     [],
   );
 
+  const prefillName =
+    customerName && !customerName.includes("@") ? customerName : "";
+  const [name, setName] = useState(prefillName);
   const [resourceId, setResourceId] = useState(resources[0]?.id ?? "");
   const [date, setDate] = useState(today);
   const [taken, setTaken] = useState<Set<string>>(new Set());
@@ -110,11 +113,18 @@ export function TimeslotBooking({
       service_name: resource.name,
       requested_date: date,
       requested_time: slot,
-      customer_name: customerName || user.email || "",
+      customer_name: name.trim() || customerName || "",
     });
     setBooking(false);
     if (err) {
-      setError(dict.auth.errorGeneric);
+      // 23505 = the slot was taken in the race window (DB conflict guard).
+      if (err.code === "23505") {
+        setTaken((prev) => new Set(prev).add(slot));
+        setSlot(null);
+        setError(dict.booking.slotTaken);
+      } else {
+        setError(dict.auth.errorGeneric);
+      }
       return;
     }
     setDone(true);
@@ -155,6 +165,15 @@ export function TimeslotBooking({
               ))}
             </div>
           )}
+
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={dict.booking.yourNamePlaceholder}
+            aria-label={dict.booking.yourName}
+            className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary sm:max-w-xs"
+          />
 
           <div className="flex flex-wrap items-center gap-3">
             <input
@@ -210,7 +229,7 @@ export function TimeslotBooking({
           <button
             type="button"
             onClick={book}
-            disabled={!slot || booking}
+            disabled={!slot || booking || !name.trim()}
             className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary text-[15px] font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60 sm:w-auto sm:px-8"
           >
             {booking && <Loader2 className="h-4 w-4 animate-spin" />}

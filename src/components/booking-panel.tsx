@@ -452,6 +452,9 @@ export function BookingPanel({
             >
               {loading ? dict.booking.submitting : dict.booking.submit}
             </button>
+            <p className="text-xs text-muted-foreground">
+              {dict.booking.payOnArrival}
+            </p>
           </form>
         ) : (
           <Link
