@@ -2043,6 +2043,32 @@
     "ctaTitle": "Ready to start?",
     "ctaBrowse": "Browse stores"
   },
+  "trustPage": {
+    "metaTitle": "Trust & Safety",
+    "metaDesc": "How Matjar protects merchants and customers: cash on delivery, verified stores, a returns policy, and direct support.",
+    "kicker": "Your trust matters",
+    "title": "Trust & Safety on Matjar",
+    "intro": "We work to make every order and every interaction on Matjar safe and clear — for both merchant and customer.",
+    "customerTitle": "For customers",
+    "customer": [
+      { "t": "Cash on delivery", "d": "You pay when you receive your order — no risk." },
+      { "t": "Verified stores", "d": "We're building a store-verification system so you know who you're dealing with." },
+      { "t": "Direct contact", "d": "Call or message the store on WhatsApp before you order." },
+      { "t": "Report a problem", "d": "If something goes wrong, contact us and we'll help." }
+    ],
+    "merchantTitle": "For merchants",
+    "merchant": [
+      { "t": "Your data is safe", "d": "Your and your customers' information is protected and never shared." },
+      { "t": "No commission", "d": "We take no cut of your sales." },
+      { "t": "Direct support", "d": "Our team is with you on WhatsApp anytime." },
+      { "t": "Full control", "d": "Your store, products, and data are yours — export or delete anytime." }
+    ],
+    "returnsTitle": "Returns & complaints",
+    "returnsBody": "Since orders happen directly between you and the store (cash on delivery), returns and exchanges are arranged directly with the store. If you face an issue that isn't resolved, contact us and we'll step in to help both sides reach a fair solution.",
+    "supportTitle": "Support",
+    "supportBody": "Have a question or a problem? Reach out and we'll reply as soon as possible.",
+    "contactCta": "Contact us"
+  },
   "contactPage": {
     "intro": "For inquiries or support, reach out — we reply as soon as possible."
   },
