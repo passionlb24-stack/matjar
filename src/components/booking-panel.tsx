@@ -74,6 +74,9 @@ export function BookingPanel({
   const [taken, setTaken] = useState<string[]>([]);
   const [time, setTime] = useState("");
   const [pickedDate, setPickedDate] = useState("");
+  // Availability is scoped to the chosen service (a different service at the
+  // same time is fine — different provider/room), so we track the selection.
+  const [serviceId, setServiceId] = useState("");
   // Multi-doctor clinics: availability is per doctor, so bookings for different
   // doctors don't block each other. Defaults to the first (server-ordered).
   const [doctorId, setDoctorId] = useState<string>(doctors[0]?.id ?? "");
@@ -92,8 +95,9 @@ export function BookingPanel({
     hours && span ? generateSlots(span, slotMinutes) : null;
   const dayClosed = !!hours && !!pickedDate && !span;
 
-  async function refreshTaken(date: string, doctor: string) {
-    if (!date) {
+  async function refreshTaken(date: string, doctor: string, service: string) {
+    // Nothing to conflict against until a service (or a doctor) is chosen.
+    if (!date || (!doctor && !service)) {
       setTaken([]);
       return;
     }
@@ -101,6 +105,7 @@ export function BookingPanel({
       p_store_id: storeId,
       p_date: date,
       p_doctor_id: doctor || null,
+      p_product_id: service || null,
     });
     setTaken(((data as string[] | null) ?? []).sort());
   }
@@ -109,13 +114,19 @@ export function BookingPanel({
     setError(null);
     setPickedDate(date);
     setTime("");
-    await refreshTaken(date, doctorId);
+    await refreshTaken(date, doctorId, serviceId);
   }
 
   async function onDoctorChange(doctor: string) {
     setDoctorId(doctor);
     setTime("");
-    await refreshTaken(pickedDate, doctor);
+    await refreshTaken(pickedDate, doctor, serviceId);
+  }
+
+  async function onServiceChange(service: string) {
+    setServiceId(service);
+    setTime("");
+    await refreshTaken(pickedDate, doctorId, service);
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -143,6 +154,7 @@ export function BookingPanel({
         p_store_id: storeId,
         p_date: chosenDate,
         p_doctor_id: doctorId || null,
+        p_product_id: serviceId || null,
       });
       if (((freshTaken as string[] | null) ?? []).includes(chosenTime)) {
         setTaken(((freshTaken as string[] | null) ?? []).sort());
@@ -166,7 +178,7 @@ export function BookingPanel({
       // 23505 = the DB slot-conflict unique index fired (someone grabbed the
       // slot in the race window). Show the friendly "slot taken" message.
       if (bookingError.code === "23505") {
-        await refreshTaken(chosenDate, doctorId);
+        await refreshTaken(chosenDate, doctorId, serviceId);
         setError(dict.booking.slotTaken);
       } else {
         setError(dict.auth.errorGeneric);
@@ -308,7 +320,14 @@ export function BookingPanel({
               <label className={labelClass} htmlFor="service_id">
                 {dict.booking.selectService}
               </label>
-              <select id="service_id" name="service_id" required defaultValue="" className={fieldClass}>
+              <select
+                id="service_id"
+                name="service_id"
+                required
+                value={serviceId}
+                onChange={(e) => onServiceChange(e.target.value)}
+                className={fieldClass}
+              >
                 <option value="" disabled>
                   {dict.booking.selectService}
                 </option>
