@@ -29,6 +29,10 @@ export type ListingDetail = ListingCard & {
   savesCount: number;
   sellerId: string;
   isFavorited: boolean;
+  // Merchant-listing contact so the buyer can act without hunting on the store.
+  storeWhatsapp: string | null;
+  storePhone: string | null;
+  storeSlug: string | null;
 };
 
 type Row = {
@@ -45,7 +49,12 @@ type Row = {
   seller_id: string;
   description?: string | null;
   views?: number;
-  stores: { name: string } | null;
+  stores: {
+    name: string;
+    whatsapp?: string | null;
+    phone?: string | null;
+    slug?: string | null;
+  } | null;
   market_categories: { name_ar: string; name_en: string } | null;
 };
 
@@ -212,7 +221,9 @@ export async function getListingById(
   const supabase = await createClient();
   const { data } = await supabase
     .from("listings")
-    .select(`${SELECT}, description, views`)
+    .select(
+      "id, title, price, images, city, region, is_featured, status, created_at, store_id, seller_id, stores(name, whatsapp, phone, slug), market_categories(name_ar, name_en), description, views",
+    )
     .eq("id", id)
     .maybeSingle();
   if (!data) return null;
@@ -241,6 +252,9 @@ export async function getListingById(
     savesCount: count ?? 0,
     sellerId: r.seller_id,
     isFavorited: Boolean((favRes as { data: unknown }).data),
+    storeWhatsapp: r.stores?.whatsapp ?? null,
+    storePhone: r.stores?.phone ?? null,
+    storeSlug: r.stores?.slug ?? null,
   };
 }
 

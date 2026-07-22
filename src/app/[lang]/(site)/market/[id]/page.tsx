@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Eye, MapPin, User, BadgeCheck, Store as StoreIcon } from "lucide-react";
+import {
+  Eye,
+  MapPin,
+  User,
+  BadgeCheck,
+  Store as StoreIcon,
+  MessageCircle,
+  Phone,
+} from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -8,6 +16,7 @@ import { regions as catalogRegions } from "@/lib/catalog";
 import { localeAlternates } from "@/lib/site";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { getListingById, getMarketRegions } from "@/lib/data/market";
+import { waLink } from "@/lib/whatsapp";
 import { Container } from "@/components/ui/container";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -147,28 +156,61 @@ export default async function ListingPage({
               </span>
             </div>
 
-            {/* Seller identity */}
-            <Card className="mt-5 flex flex-wrap items-center gap-3 p-4">
-              {listing.storeId ? (
-                <>
+            {/* Seller + inline actions — the buyer can act right here instead of
+                hunting on the store page. */}
+            <Card className="mt-5 p-4">
+              <div className="flex flex-wrap items-center gap-2">
+                {listing.storeId ? (
                   <span className="flex items-center gap-1.5 font-bold text-primary">
                     <BadgeCheck className="h-5 w-5" />
-                    {dict.market.sellerMerchant}
+                    {listing.storeName || dict.market.sellerMerchant}
                   </span>
+                ) : (
+                  <span className="flex items-center gap-1.5 font-bold">
+                    <User className="h-5 w-5 text-muted-foreground" />
+                    {dict.market.sellerUser}
+                  </span>
+                )}
+              </div>
+
+              {listing.storeId && listing.status === "active" && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {listing.storeWhatsapp && (
+                    <a
+                      href={waLink(
+                        listing.storeWhatsapp,
+                        `${dict.market.contactWaGreeting} "${listing.title}"`,
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-emerald-700"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      {dict.market.contactWhatsapp}
+                    </a>
+                  )}
+                  {listing.storePhone && (
+                    <a
+                      href={`tel:${listing.storePhone}`}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-border px-4 py-2 text-sm font-bold transition-colors hover:border-primary hover:text-primary"
+                    >
+                      <Phone className="h-4 w-4" />
+                      {dict.market.callSeller}
+                    </a>
+                  )}
                   <ButtonLink
-                    href={`/${lang}/store/${listing.storeId}`}
+                    href={
+                      listing.storeSlug
+                        ? `/${lang}/${listing.storeSlug}`
+                        : `/${lang}/store/${listing.storeId}`
+                    }
                     size="sm"
-                    className="ms-auto"
+                    variant="secondary"
                     leftIcon={<StoreIcon className="h-4 w-4" />}
                   >
                     {dict.market.visitStore}
                   </ButtonLink>
-                </>
-              ) : (
-                <span className="flex items-center gap-1.5 font-bold">
-                  <User className="h-5 w-5 text-muted-foreground" />
-                  {dict.market.sellerUser}
-                </span>
+                </div>
               )}
             </Card>
 
