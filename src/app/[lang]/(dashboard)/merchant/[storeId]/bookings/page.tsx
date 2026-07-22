@@ -67,6 +67,8 @@ export default async function StoreBookingsPage({
   // PostgREST types the doctors embed as an array; at runtime a to-one FK
   // returns a single object (or null), which is what BookingRow expects.
   const bookings = (data ?? []) as unknown as BookingRow[];
+  // Pending = new/unhandled requests that still need the merchant's reply.
+  const pendingCount = bookings.filter((b) => b.status === "pending").length;
 
   // Flatten the doctor join for the calendar client component (dated bookings
   // land on the grid; undated ones still show in the chronological list below).
@@ -91,9 +93,20 @@ export default async function StoreBookingsPage({
           {(store as { name: string }).name}
         </Link>
         <AutoRefresh />
-        <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
+        <h1 className="mt-3 flex flex-wrap items-center gap-3 text-3xl font-extrabold tracking-tight">
           {dict.booking.myBookings}
+          {pendingCount > 0 && (
+            <span className="rounded-full bg-primary px-2.5 py-1 text-sm font-bold text-primary-foreground">
+              {pendingCount}
+            </span>
+          )}
         </h1>
+
+        {pendingCount > 0 && (
+          <div className="mt-3 rounded-2xl border border-primary/30 bg-primary-soft px-4 py-3 text-sm font-semibold text-primary">
+            {dict.booking.newBookingsCount.replace("{count}", String(pendingCount))}
+          </div>
+        )}
 
         {bookings.length ? (
           <>
@@ -106,11 +119,20 @@ export default async function StoreBookingsPage({
             {bookings.map((b) => (
               <div
                 key={b.id}
-                className="rounded-2xl border border-border bg-surface p-5"
+                className={`rounded-2xl border bg-surface p-5 ${
+                  b.status === "pending"
+                    ? "border-primary/40 ring-1 ring-primary/20"
+                    : "border-border"
+                }`}
               >
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="font-bold">
+                    <p className="flex flex-wrap items-center gap-2 font-bold">
+                      {b.status === "pending" && (
+                        <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-primary-foreground">
+                          {dict.booking.newBadge}
+                        </span>
+                      )}
                       {b.service_name ?? "—"}
                       {b.doctors?.name && (
                         <span className="ms-2 text-sm font-semibold text-primary">

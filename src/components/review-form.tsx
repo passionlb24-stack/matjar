@@ -50,24 +50,26 @@ export function ReviewForm({
       { onConflict: "store_id,customer_id" },
     );
     if (reviewError) {
-      // The insert policy now also requires a verified purchase and enforces an
-      // hourly cap. Both surface as the same generic RLS denial, so only on the
-      // error path do we look up whether the customer has an order/booking with
+      // The insert policy requires a COMPLETED order/booking and enforces an
+      // hourly cap. Both surface as the same generic RLS denial, so on the error
+      // path we look up whether the customer has a completed order/booking with
       // this store to pick the right message.
       const [orders, bookings] = await Promise.all([
         supabase
           .from("orders")
           .select("id", { count: "exact", head: true })
           .eq("customer_id", user.id)
-          .eq("store_id", storeId),
+          .eq("store_id", storeId)
+          .eq("status", "completed"),
         supabase
           .from("bookings")
           .select("id", { count: "exact", head: true })
           .eq("customer_id", user.id)
-          .eq("store_id", storeId),
+          .eq("store_id", storeId)
+          .eq("status", "completed"),
       ]);
-      const hasPurchase = (orders.count ?? 0) > 0 || (bookings.count ?? 0) > 0;
-      setError(hasPurchase ? dict.common.rateLimited : dict.reviews.needsPurchase);
+      const hasCompleted = (orders.count ?? 0) > 0 || (bookings.count ?? 0) > 0;
+      setError(hasCompleted ? dict.common.rateLimited : dict.reviews.needsPurchase);
       setLoading(false);
       return;
     }

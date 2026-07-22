@@ -1705,7 +1705,7 @@
   },
   "reviews": {
     "title": "Reviews",
-    "needsPurchase": "You can only review a store after you've ordered from it.",
+    "needsPurchase": "You can review a store only after your order or booking with it is completed.",
     "leaveReview": "Rate this store",
     "yourRating": "Your rating",
     "comment": "Your comment",
@@ -2089,6 +2089,8 @@
     "selectService": "Select a service",
     "yourName": "Patient / booking name",
     "yourNamePlaceholder": "Full name",
+    "newBadge": "New",
+    "newBookingsCount": "You have {count} new booking(s) awaiting your reply.",
     "selectDoctor": "Choose a doctor",
     "calendar": "Calendar",
     "prevWeek": "Previous week",

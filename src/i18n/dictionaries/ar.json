@@ -1705,7 +1705,7 @@
   },
   "reviews": {
     "title": "التقييمات",
-    "needsPurchase": "فيك تقيّم المتجر بس بعد ما تطلب منه.",
+    "needsPurchase": "فيك تقيّم المتجر بس بعد ما يكتمل طلبك أو حجزك عنده.",
     "leaveReview": "قيّم هالمتجر",
     "yourRating": "تقييمك",
     "comment": "تعليقك",
@@ -2089,6 +2089,8 @@
     "selectService": "اختر الخدمة",
     "yourName": "اسم المريض / صاحب الحجز",
     "yourNamePlaceholder": "الاسم الكامل",
+    "newBadge": "جديد",
+    "newBookingsCount": "عندك {count} حجز جديد بانتظار ردّك.",
     "selectDoctor": "اختر الطبيب",
     "calendar": "التقويم",
     "prevWeek": "الأسبوع السابق",

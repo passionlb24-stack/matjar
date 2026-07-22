@@ -163,7 +163,14 @@ export function BookingPanel({
       notes: String(form.get("notes")) || null,
     });
     if (bookingError) {
-      setError(dict.auth.errorGeneric);
+      // 23505 = the DB slot-conflict unique index fired (someone grabbed the
+      // slot in the race window). Show the friendly "slot taken" message.
+      if (bookingError.code === "23505") {
+        await refreshTaken(chosenDate, doctorId);
+        setError(dict.booking.slotTaken);
+      } else {
+        setError(dict.auth.errorGeneric);
+      }
       setLoading(false);
       return;
     }
