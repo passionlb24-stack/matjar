@@ -78,6 +78,10 @@ export function BookingPanel({
   // doctors don't block each other. Defaults to the first (server-ordered).
   const [doctorId, setDoctorId] = useState<string>(doctors[0]?.id ?? "");
   const today = new Date().toISOString().slice(0, 10);
+  // Prefill the name only when the account actually has a real name — never the
+  // email, so a booking is never recorded under an email address.
+  const prefillName =
+    customerName && !customerName.includes("@") ? customerName : "";
 
   // Fresha-style slot grid when the merchant configured structured hours;
   // otherwise fall back to a free time input + taken-times chips.
@@ -155,7 +159,7 @@ export function BookingPanel({
       doctor_id: doctorId || null,
       requested_date: String(form.get("date")) || null,
       requested_time: String(form.get("time")) || null,
-      customer_name: customerName,
+      customer_name: String(form.get("customer_name")).trim() || customerName,
       notes: String(form.get("notes")) || null,
     });
     if (bookingError) {
@@ -279,6 +283,20 @@ export function BookingPanel({
         </h3>
         {customerName ? (
           <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-border bg-surface p-5">
+            <div>
+              <label className={labelClass} htmlFor="customer_name">
+                {dict.booking.yourName}
+              </label>
+              <input
+                id="customer_name"
+                name="customer_name"
+                type="text"
+                required
+                defaultValue={prefillName}
+                placeholder={dict.booking.yourNamePlaceholder}
+                className={fieldClass}
+              />
+            </div>
             <div>
               <label className={labelClass} htmlFor="service_id">
                 {dict.booking.selectService}

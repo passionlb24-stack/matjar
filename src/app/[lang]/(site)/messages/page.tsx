@@ -19,9 +19,12 @@ type Convo = {
 };
 
 function shortDate(iso: string, lang: Locale) {
+  // Render in Lebanon time — this runs server-side (UTC on Vercel), so without
+  // an explicit timeZone the date could show the wrong day near midnight.
   return new Date(iso).toLocaleDateString(lang === "ar" ? "ar" : "en", {
     month: "short",
     day: "numeric",
+    timeZone: "Asia/Beirut",
   });
 }
 

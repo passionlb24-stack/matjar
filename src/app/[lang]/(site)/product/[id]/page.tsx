@@ -33,6 +33,7 @@ import { ProductOrder, type Variant, type AddOn } from "@/components/product-ord
 import { WishlistButton } from "@/components/wishlist-button";
 import { ShareButton } from "@/components/share-button";
 import { ProductStoryCard } from "@/components/product-story-card";
+import { BackButton } from "@/components/back-button";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -292,6 +293,9 @@ export default async function ProductPage({
         }}
       />
       <Container>
+        <div className="pt-4">
+          <BackButton label={dict.common.back} fallbackHref={`/${lang}/store/${product.storeId}`} />
+        </div>
         <Breadcrumbs
           items={[
             { label: dict.common.brand, href: `/${lang}` },

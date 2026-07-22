@@ -16,6 +16,7 @@ import { ProductGallery } from "@/components/product-gallery";
 import { ListingFavoriteButton } from "@/components/listing-favorite-button";
 import { ListingReport } from "@/components/listing-report";
 import { ListingViewTracker } from "@/components/listing-view-tracker";
+import { BackButton } from "@/components/back-button";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -81,6 +82,9 @@ export default async function ListingPage({
     <div className="py-8">
       <ListingViewTracker listingId={id} />
       <Container>
+        <div className="pb-1">
+          <BackButton label={dict.common.back} fallbackHref={`/${lang}/market`} />
+        </div>
         <Breadcrumbs
           items={[
             { label: dict.common.brand, href: `/${lang}` },
@@ -102,10 +106,27 @@ export default async function ListingPage({
                   {dict.market.soldBadge}
                 </Badge>
               )}
+              {listing.status === "expired" && (
+                <Badge className="bg-amber-600 text-white">
+                  {dict.market.expiredBadge}
+                </Badge>
+              )}
             </div>
 
+            {/* Unavailable notice — a sold/expired listing shows a clear label
+                instead of silently 404-ing or looking orderable. */}
+            {listing.status !== "active" && (
+              <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm font-semibold text-amber-800 dark:text-amber-300">
+                {listing.status === "sold"
+                  ? dict.market.soldNote
+                  : dict.market.unavailableNote}
+              </div>
+            )}
+
             {listing.price != null && (
-              <p className="mt-3 text-2xl font-extrabold text-primary">
+              <p
+                className={`mt-3 text-2xl font-extrabold ${listing.status === "active" ? "text-primary" : "text-muted-foreground line-through"}`}
+              >
                 {formatPrice(listing.price)}
               </p>
             )}

@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
+import { isActivePath } from "@/components/nav-link";
 
 export function NavDropdown({
   label,
@@ -13,6 +15,9 @@ export function NavDropdown({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  // Highlight the trigger when one of its links is the current page.
+  const hasActiveChild = items.some((it) => isActivePath(pathname, it.href));
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {
@@ -35,7 +40,8 @@ export function NavDropdown({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
+        aria-current={hasActiveChild ? "page" : undefined}
+        className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground aria-[current=page]:bg-surface-muted aria-[current=page]:text-foreground"
       >
         {label}
         <ChevronDown
@@ -49,10 +55,11 @@ export function NavDropdown({
               key={it.href}
               href={it.href}
               onClick={() => setOpen(false)}
-              className={`block rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-surface-muted ${
+              aria-current={isActivePath(pathname, it.href) ? "page" : undefined}
+              className={`block rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-surface-muted aria-[current=page]:bg-surface-muted ${
                 it.accent
                   ? "text-warning hover:text-warning"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground aria-[current=page]:text-foreground"
               }`}
             >
               {it.label}

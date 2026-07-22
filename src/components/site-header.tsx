@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { LogoutButton } from "@/components/logout-button";
 import { MobileMenu } from "@/components/mobile-menu";
 import { NavDropdown } from "@/components/nav-dropdown";
+import { NavLink } from "@/components/nav-link";
 import { HeaderBells } from "@/components/header-bells";
 import { HeaderSearch } from "@/components/header-search";
 
@@ -45,18 +46,18 @@ export function SiteHeader({
             />
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
-            <Link
+            <NavLink
               href={`/${lang}/explore`}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground aria-[current=page]:bg-surface-muted aria-[current=page]:text-foreground"
             >
               {dict.common.explore}
-            </Link>
-            <Link
+            </NavLink>
+            <NavLink
               href={`/${lang}/market`}
-              className="rounded-lg px-3 py-2 text-sm font-bold text-primary transition-colors hover:bg-surface-muted"
+              className="rounded-lg px-3 py-2 text-sm font-bold text-primary transition-colors hover:bg-surface-muted aria-[current=page]:bg-primary-soft"
             >
               {dict.market.nav}
-            </Link>
+            </NavLink>
             <NavDropdown
               label={dict.common.deals}
               items={[
@@ -74,24 +75,24 @@ export function SiteHeader({
                 { href: `/${lang}/delivery`, label: dict.delivery.title },
               ]}
             />
-            <Link
+            <NavLink
               href={`/${lang}/hub`}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground aria-[current=page]:bg-surface-muted aria-[current=page]:text-foreground"
             >
               {dict.common.hub}
-            </Link>
-            <Link
+            </NavLink>
+            <NavLink
               href={`/${lang}/merchants`}
-              className="rounded-lg px-3 py-2 text-sm font-bold text-primary transition-colors hover:bg-surface-muted"
+              className="rounded-lg px-3 py-2 text-sm font-bold text-primary transition-colors hover:bg-surface-muted aria-[current=page]:bg-primary-soft"
             >
               {dict.common.forMerchants}
-            </Link>
-            <Link
+            </NavLink>
+            <NavLink
               href={`/${lang}/map`}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground aria-[current=page]:bg-surface-muted aria-[current=page]:text-foreground"
             >
               {dict.map.title}
-            </Link>
+            </NavLink>
           </nav>
         </div>
         <div className="flex shrink-0 items-center gap-1 sm:gap-3">

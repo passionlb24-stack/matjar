@@ -29,7 +29,29 @@ type Notif = {
     leader_id?: string;
   } | null;
   is_read: boolean;
+  created_at: string;
 };
+
+// Relative time ("5 minutes ago" / "منذ ٥ دقائق"). Timezone-independent since
+// it's a delta, so it's always correct regardless of server/client TZ.
+function timeAgo(iso: string, lang: string): string {
+  const diff = Math.round((Date.now() - new Date(iso).getTime()) / 1000);
+  const rtf = new Intl.RelativeTimeFormat(lang === "ar" ? "ar" : "en", {
+    numeric: "auto",
+  });
+  const units: [Intl.RelativeTimeFormatUnit, number][] = [
+    ["year", 31536000],
+    ["month", 2592000],
+    ["week", 604800],
+    ["day", 86400],
+    ["hour", 3600],
+    ["minute", 60],
+  ];
+  for (const [unit, secs] of units) {
+    if (Math.abs(diff) >= secs) return rtf.format(-Math.round(diff / secs), unit);
+  }
+  return rtf.format(-diff, "second");
+}
 
 export default async function NotificationsPage({
   params,
@@ -46,10 +68,14 @@ export default async function NotificationsPage({
   } = await supabase.auth.getUser();
   if (!user) redirect(`/${lang}/login`);
 
+  // Exclude `message` notifications: chat has its own inbox + unread badge, so
+  // surfacing message events in the bell double-counts them ("notifications
+  // showing up on my messages").
   const { data } = await supabase
     .from("notifications")
-    .select("id, type, data, is_read")
+    .select("id, type, data, is_read, created_at")
     .eq("user_id", user.id)
+    .neq("type", "message")
     .order("created_at", { ascending: false })
     .limit(50);
   const notifs = (data ?? []) as Notif[];
@@ -134,7 +160,9 @@ export default async function NotificationsPage({
             ? `/${lang}/merchant`
             : n.type === "order_status"
               ? `/${lang}/orders`
-              : `/${lang}/bookings`;
+              : n.type === "booking_status"
+                ? `/${lang}/bookings`
+                : `/${lang}`;
 
   return (
     <div className="pb-16">
@@ -164,6 +192,9 @@ export default async function NotificationsPage({
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">{titleFor(n)}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {timeAgo(n.created_at, lang)}
+                  </p>
                   {n.type === "store_campaign" && n.data?.body?.trim() && (
                     <p className="mt-1 text-sm text-muted-foreground">
                       {n.data.body}

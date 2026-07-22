@@ -28,7 +28,8 @@
     "favorite": "Add to favorites",
     "unread": "unread",
     "actionFailed": "Something went wrong. Please try again.",
-    "rateLimited": "Too many attempts in a short time. Please wait a moment and try again."
+    "rateLimited": "Too many attempts in a short time. Please wait a moment and try again.",
+    "back": "Back"
   },
   "tabbar": {
     "home": "Home",
@@ -2086,6 +2087,8 @@
   "booking": {
     "title": "Book an appointment",
     "selectService": "Select a service",
+    "yourName": "Patient / booking name",
+    "yourNamePlaceholder": "Full name",
     "selectDoctor": "Choose a doctor",
     "calendar": "Calendar",
     "prevWeek": "Previous week",
@@ -2498,6 +2501,9 @@
     },
     "pendingNote": "Your listing is under review and will appear once approved.",
     "soldBadge": "Sold",
+    "expiredBadge": "Expired",
+    "soldNote": "This listing is sold and no longer available.",
+    "unavailableNote": "This listing is no longer available.",
     "form": {
       "newTitle": "Post a listing",
       "editTitle": "Edit listing",

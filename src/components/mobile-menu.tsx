@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Menu,
   X,
@@ -27,6 +28,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LogoutButton } from "@/components/logout-button";
+import { isActivePath } from "@/components/nav-link";
 
 type Item = { href: string; label: string; icon: typeof Compass; bold?: boolean };
 
@@ -44,6 +46,7 @@ export function MobileMenu({
   lbpRate?: number;
 }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
   const sections: { title: string; items: Item[] }[] = [
     {
@@ -123,7 +126,8 @@ export function MobileMenu({
                         key={item.href}
                         href={item.href}
                         onClick={() => setOpen(false)}
-                        className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition-colors hover:bg-surface-muted ${
+                        aria-current={isActivePath(pathname, item.href) ? "page" : undefined}
+                        className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition-colors hover:bg-surface-muted aria-[current=page]:bg-surface-muted ${
                           item.bold ? "font-bold text-primary" : "font-medium text-foreground"
                         }`}
                       >
@@ -146,7 +150,8 @@ export function MobileMenu({
                     key={item.href}
                     href={item.href}
                     onClick={() => setOpen(false)}
-                    className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition-colors hover:bg-surface-muted ${
+                    aria-current={isActivePath(pathname, item.href) ? "page" : undefined}
+                    className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition-colors hover:bg-surface-muted aria-[current=page]:bg-surface-muted ${
                       item.bold ? "font-bold text-primary" : "font-medium text-foreground"
                     }`}
                   >
