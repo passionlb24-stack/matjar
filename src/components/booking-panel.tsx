@@ -48,6 +48,7 @@ export function BookingPanel({
   hours = null,
   slotMinutes = 30,
   doctors = [],
+  providerServices = {},
   sections = [],
 }: {
   storeId: string;
@@ -60,7 +61,9 @@ export function BookingPanel({
   storeName?: string;
   hours?: WeekHours | null;
   slotMinutes?: number;
-  doctors?: { id: string; name: string }[];
+  doctors?: { id: string; name: string; specialty?: string | null }[];
+  /** productId -> provider ids that offer it. Absent/empty = any provider. */
+  providerServices?: Record<string, string[]>;
   sections?: SectionInfo[];
 }) {
   const router = useRouter();
@@ -85,6 +88,28 @@ export function BookingPanel({
   // email, so a booking is never recorded under an email address.
   const prefillName =
     customerName && !customerName.includes("@") ? customerName : "";
+
+  // A provider can deliver a service if it's unassigned or explicitly linked.
+  const offeredBy = (svcId: string, doctor: string) => {
+    const assigned = providerServices[svcId];
+    return (
+      !assigned ||
+      assigned.length === 0 ||
+      (!!doctor && assigned.includes(doctor))
+    );
+  };
+  // Services shown in the picker are limited to what the chosen provider offers.
+  const visibleServices = doctorId
+    ? services.filter((s) => offeredBy(s.id, doctorId))
+    : services;
+  // Providers grouped by specialty/department for the picker.
+  const doctorGroups = doctors.reduce<
+    Record<string, typeof doctors>
+  >((acc, d) => {
+    const key = d.specialty?.trim() || "";
+    (acc[key] ??= []).push(d);
+    return acc;
+  }, {});
 
   // Fresha-style slot grid when the merchant configured structured hours;
   // otherwise fall back to a free time input + taken-times chips.
@@ -120,7 +145,13 @@ export function BookingPanel({
   async function onDoctorChange(doctor: string) {
     setDoctorId(doctor);
     setTime("");
-    await refreshTaken(pickedDate, doctor, serviceId);
+    // If the current service isn't offered by the new provider, clear it.
+    let svc = serviceId;
+    if (svc && !offeredBy(svc, doctor)) {
+      svc = "";
+      setServiceId("");
+    }
+    await refreshTaken(pickedDate, doctor, svc);
   }
 
   async function onServiceChange(service: string) {
@@ -331,7 +362,7 @@ export function BookingPanel({
                 <option value="" disabled>
                   {dict.booking.selectService}
                 </option>
-                {services.map((s) => (
+                {visibleServices.map((s) => (
                   <option key={s.id} value={s.id}>
                     {localized(s.name, s.nameEn, lang)}
                   </option>
@@ -349,11 +380,23 @@ export function BookingPanel({
                   onChange={(e) => onDoctorChange(e.target.value)}
                   className={fieldClass}
                 >
-                  {doctors.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name}
-                    </option>
-                  ))}
+                  {Object.entries(doctorGroups).map(([spec, docs]) =>
+                    spec ? (
+                      <optgroup key={spec} label={spec}>
+                        {docs.map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ) : (
+                      docs.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.name}
+                        </option>
+                      ))
+                    ),
+                  )}
                 </select>
               </div>
             )}

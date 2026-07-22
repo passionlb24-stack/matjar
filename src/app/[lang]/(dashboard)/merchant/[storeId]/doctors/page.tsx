@@ -9,6 +9,8 @@ import { getStorePlan } from "@/lib/plan-server";
 import { ProGate } from "@/components/pro-gate";
 import { Container } from "@/components/ui/container";
 import { DoctorManager, type Doctor } from "@/components/doctor-manager";
+import { sectorHasTeam } from "@/lib/sectors";
+import type { CategoryKey } from "@/lib/catalog";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -44,10 +46,11 @@ export default async function StoreDoctorsPage({
   if (!isPro(await getStorePlan(storeId))) {
     return <ProGate lang={lang} dict={dict} storeId={storeId} />;
   }
-  const slug = (store as unknown as { business_types: { slug: string } | null })
-    .business_types?.slug;
-  // Doctors are a healthcare-only feature.
-  if (slug !== "healthcare") redirect(`/${lang}/merchant/${storeId}`);
+  const category =
+    ((store as unknown as { business_types: { slug: string } | null })
+      .business_types?.slug as CategoryKey) ?? "retail";
+  // Providers (team) are available to every sector that has a team roster.
+  if (!sectorHasTeam(category)) redirect(`/${lang}/merchant/${storeId}`);
 
   // Staff need the bookings permission to manage the doctors roster.
   const isOwner =
@@ -71,6 +74,31 @@ export default async function StoreDoctorsPage({
     .order("sort_order", { ascending: true });
   const doctors = (doctorsData ?? []) as Doctor[];
 
+  // The store's bookable services + which provider currently offers each, so a
+  // merchant can assign services to each provider.
+  const { data: servicesData } = await supabase
+    .from("products")
+    .select("id, name, name_en")
+    .eq("store_id", storeId)
+    .order("sort_order", { ascending: true });
+  const services = ((servicesData ?? []) as {
+    id: string;
+    name: string;
+    name_en: string | null;
+  }[]).map((s) => ({ id: s.id, name: s.name, nameEn: s.name_en }));
+
+  const { data: spData } = await supabase
+    .from("service_providers")
+    .select("product_id, doctor_id")
+    .eq("store_id", storeId);
+  const assignments: Record<string, string[]> = {};
+  for (const row of (spData ?? []) as {
+    product_id: string;
+    doctor_id: string;
+  }[]) {
+    (assignments[row.doctor_id] ??= []).push(row.product_id);
+  }
+
   return (
     <div className="py-10">
       <Container className="max-w-2xl">
@@ -85,7 +113,14 @@ export default async function StoreDoctorsPage({
           {dict.merchant.doctors.title}
         </h1>
         <div className="mt-6">
-          <DoctorManager storeId={storeId} dict={dict} doctors={doctors} />
+          <DoctorManager
+            storeId={storeId}
+            dict={dict}
+            doctors={doctors}
+            services={services}
+            assignments={assignments}
+            lang={lang}
+          />
         </div>
       </Container>
     </div>

@@ -248,7 +248,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-pink-100 text-pink-600",
     customersNoun: "clients",
     modules: {
-      daily: ["bookings", "items", "tasks"],
+      daily: ["bookings", "doctors", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
@@ -261,7 +261,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-lime-100 text-lime-700",
     customersNoun: "customers",
     modules: {
-      daily: ["bookings", "memberships", "classes", "items", "tasks"],
+      daily: ["bookings", "doctors", "memberships", "classes", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY,
       store: STORE,
@@ -287,7 +287,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-indigo-100 text-indigo-600",
     customersNoun: "clients",
     modules: {
-      daily: ["bookings", "courses", "memberships", "items", "tasks"],
+      daily: ["bookings", "doctors", "courses", "memberships", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY,
       store: STORE,
@@ -339,7 +339,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-yellow-100 text-yellow-700",
     customersNoun: "clients",
     modules: {
-      daily: ["bookings", "items", "tasks"],
+      daily: ["bookings", "doctors", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
@@ -352,7 +352,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-blue-100 text-blue-600",
     customersNoun: "clients",
     modules: {
-      daily: ["requests", "bookings", "tasks"],
+      daily: ["requests", "bookings", "doctors", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY,
       store: STORE,
@@ -394,6 +394,13 @@ export function getSector(category: CategoryKey) {
 /** The sector's default feature bundle. */
 export function sectorDefaultModules(category: CategoryKey): FeatureModuleKey[] {
   return sectorConfig[category].features;
+}
+
+/** Whether this sector has a roster of service providers (a "team") — clinics,
+ *  salons, gyms, schools, pet care, professional services. Drives the provider
+ *  (team) module + booking provider picker across sectors. */
+export function sectorHasTeam(category: CategoryKey): boolean {
+  return sectorConfig[category]?.features.includes("team") ?? false;
 }
 
 /** Effective enabled modules for a store: sector defaults + per-store toggles,

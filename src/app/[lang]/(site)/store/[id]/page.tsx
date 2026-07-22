@@ -11,7 +11,7 @@ import {
   sampleProducts,
   type CategoryKey,
 } from "@/lib/catalog";
-import { resolveStoreModules } from "@/lib/sectors";
+import { resolveStoreModules, sectorHasTeam } from "@/lib/sectors";
 import { createClient } from "@/lib/supabase/server";
 import { localeAlternates, SITE_URL } from "@/lib/site";
 import { accentStyle } from "@/lib/color";
@@ -400,13 +400,28 @@ export default async function StorePage({
     bio: string | null;
   };
   let doctors: DoctorView[] = [];
-  if (store.isReal && UUID_RE.test(id) && store.category === "healthcare") {
+  // providerServices: productId -> the provider ids that offer that service.
+  // Empty entry (or absent) = any provider can deliver it.
+  const providerServices: Record<string, string[]> = {};
+  if (store.isReal && UUID_RE.test(id) && sectorHasTeam(store.category)) {
     const { data } = await supabase
       .from("doctors")
       .select("id, name, specialty, photo_url, bio")
       .eq("store_id", id)
       .order("sort_order", { ascending: true });
     doctors = (data ?? []) as DoctorView[];
+    if (doctors.length > 0) {
+      const { data: sp } = await supabase
+        .from("service_providers")
+        .select("product_id, doctor_id")
+        .eq("store_id", id);
+      for (const row of (sp ?? []) as {
+        product_id: string;
+        doctor_id: string;
+      }[]) {
+        (providerServices[row.product_id] ??= []).push(row.doctor_id);
+      }
+    }
   }
 
   let isFollowing = false;
@@ -919,7 +934,12 @@ export default async function StorePage({
                 storeName={store.name}
                 hours={parseHours(store.hours)}
                 slotMinutes={store.bookingSlotMinutes ?? 30}
-                doctors={doctors.map((d) => ({ id: d.id, name: d.name }))}
+                doctors={doctors.map((d) => ({
+                  id: d.id,
+                  name: d.name,
+                  specialty: d.specialty,
+                }))}
+                providerServices={providerServices}
                 sections={store.sections}
                 services={store.products
                   .filter((p) => p.id)

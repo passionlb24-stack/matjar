@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2, X, Stethoscope } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Stethoscope, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import type { Locale } from "@/i18n/config";
 import { ImageUpload } from "@/components/image-upload";
 import { fieldClass as uiFieldClass } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,12 @@ export type Doctor = {
   bio: string | null;
 };
 
+export type ProviderService = {
+  id: string;
+  name: string;
+  nameEn: string | null;
+};
+
 type Draft = { name: string; specialty: string; photo_url: string | null; bio: string };
 
 const empty: Draft = { name: "", specialty: "", photo_url: null, bio: "" };
@@ -25,14 +32,117 @@ const empty: Draft = { name: "", specialty: "", photo_url: null, bio: "" };
 const fieldClass = `${uiFieldClass} mt-1`;
 const labelClass = "text-sm font-semibold";
 
+/**
+ * Per-provider "which services this provider offers" toggles.
+ * Backed by the `service_providers` join table. No rows for a service means
+ * any provider can deliver it, so an empty selection here is meaningful.
+ */
+function ProviderServices({
+  storeId,
+  doctorId,
+  services,
+  initialLinked,
+  dict,
+  lang,
+}: {
+  storeId: string;
+  doctorId: string;
+  services: ProviderService[];
+  initialLinked: string[];
+  dict: Dictionary;
+  lang: Locale;
+}) {
+  const router = useRouter();
+  const t = dict.merchant.doctors;
+  const [linked, setLinked] = useState<Set<string>>(() => new Set(initialLinked));
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  async function toggle(serviceId: string) {
+    const turnOn = !linked.has(serviceId);
+    setBusyId(serviceId);
+    // Optimistic local update.
+    setLinked((prev) => {
+      const next = new Set(prev);
+      if (turnOn) next.add(serviceId);
+      else next.delete(serviceId);
+      return next;
+    });
+    const supabase = createClient();
+    const { error } = turnOn
+      ? await supabase
+          .from("service_providers")
+          .insert({ store_id: storeId, product_id: serviceId, doctor_id: doctorId })
+      : await supabase
+          .from("service_providers")
+          .delete()
+          .eq("product_id", serviceId)
+          .eq("doctor_id", doctorId);
+    setBusyId(null);
+    if (error) {
+      // Roll back the optimistic change.
+      setLinked((prev) => {
+        const next = new Set(prev);
+        if (turnOn) next.delete(serviceId);
+        else next.add(serviceId);
+        return next;
+      });
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
+    router.refresh();
+  }
+
+  return (
+    <div className="mt-3 border-t border-border pt-3">
+      <p className="text-sm font-semibold">{t.services}</p>
+      {services.length === 0 ? (
+        <p className="mt-1 text-sm text-muted-foreground">{t.noServices}</p>
+      ) : (
+        <>
+          <p className="mt-0.5 text-xs text-muted-foreground">{t.servicesHint}</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {services.map((s) => {
+              const active = linked.has(s.id);
+              const label = lang === "en" ? s.nameEn || s.name : s.name;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  disabled={busyId === s.id}
+                  onClick={() => toggle(s.id)}
+                  aria-pressed={active}
+                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors disabled:opacity-60 ${
+                    active
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-surface hover:bg-surface-muted"
+                  }`}
+                >
+                  {active && <Check className="h-3.5 w-3.5" />}
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export function DoctorManager({
   storeId,
   dict,
   doctors,
+  services,
+  assignments,
+  lang,
 }: {
   storeId: string;
   dict: Dictionary;
   doctors: Doctor[];
+  services: ProviderService[];
+  assignments: Record<string, string[]>;
+  lang: Locale;
 }) {
   const router = useRouter();
   const t = dict.merchant.doctors;
@@ -175,41 +285,51 @@ export function DoctorManager({
           ) : (
             <div
               key={d.id}
-              className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3"
+              className="rounded-2xl border border-border bg-surface p-3"
             >
-              {d.photo_url ? (
-                <Image
-                  src={d.photo_url}
-                  alt=""
-                  width={48}
-                  height={48}
-                  className="h-12 w-12 shrink-0 rounded-full object-cover"
-                  sizes="48px"
-                />
-              ) : (
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-muted text-muted-foreground">
-                  <Stethoscope className="h-5 w-5" />
-                </span>
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="font-bold">{d.name}</p>
-                {d.specialty && (
-                  <p className="text-sm text-muted-foreground">{d.specialty}</p>
+              <div className="flex items-center gap-3">
+                {d.photo_url ? (
+                  <Image
+                    src={d.photo_url}
+                    alt=""
+                    width={48}
+                    height={48}
+                    className="h-12 w-12 shrink-0 rounded-full object-cover"
+                    sizes="48px"
+                  />
+                ) : (
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-muted text-muted-foreground">
+                    <Stethoscope className="h-5 w-5" />
+                  </span>
                 )}
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold">{d.name}</p>
+                  {d.specialty && (
+                    <p className="text-sm text-muted-foreground">{d.specialty}</p>
+                  )}
+                </div>
+                <button
+                  onClick={() => startEdit(d)}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-border transition-colors hover:bg-surface-muted"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button
+                  disabled={busy}
+                  onClick={() => remove(d.id)}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-danger transition-colors hover:bg-danger-soft disabled:opacity-60"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
-              <button
-                onClick={() => startEdit(d)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border transition-colors hover:bg-surface-muted"
-              >
-                <Pencil className="h-4 w-4" />
-              </button>
-              <button
-                disabled={busy}
-                onClick={() => remove(d.id)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-danger transition-colors hover:bg-danger-soft disabled:opacity-60"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+              <ProviderServices
+                storeId={storeId}
+                doctorId={d.id}
+                services={services}
+                initialLinked={assignments[d.id] ?? []}
+                dict={dict}
+                lang={lang}
+              />
             </div>
           ),
         )}
