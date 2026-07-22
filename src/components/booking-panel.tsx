@@ -80,6 +80,12 @@ export function BookingPanel({
   // Availability is scoped to the chosen service (a different service at the
   // same time is fine — different provider/room), so we track the selection.
   const [serviceId, setServiceId] = useState("");
+  // Coupon (validated against the chosen service price; discount is honored on
+  // arrival — there's no online payment).
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponBusy, setCouponBusy] = useState(false);
   // Multi-doctor clinics: availability is per doctor, so bookings for different
   // doctors don't block each other. Defaults to the first (server-ordered).
   const [doctorId, setDoctorId] = useState<string>(doctors[0]?.id ?? "");
@@ -157,7 +163,33 @@ export function BookingPanel({
   async function onServiceChange(service: string) {
     setServiceId(service);
     setTime("");
+    // The discount is tied to the service price — reset it when the service
+    // changes so a stale discount can't carry over.
+    setCoupon(null);
+    setCouponError(null);
     await refreshTaken(pickedDate, doctorId, service);
+  }
+
+  const selectedPrice = services.find((s) => s.id === serviceId)?.price ?? 0;
+
+  async function applyCoupon() {
+    const code = couponInput.trim();
+    if (!code || !serviceId) return;
+    setCouponBusy(true);
+    setCouponError(null);
+    const { data } = await createClient().rpc("validate_coupon", {
+      p_store_id: storeId,
+      p_code: code,
+      p_subtotal: selectedPrice,
+    });
+    setCouponBusy(false);
+    const row = (data as { valid: boolean; discount: number }[] | null)?.[0];
+    if (row?.valid) {
+      setCoupon({ code, discount: Number(row.discount) || 0 });
+    } else {
+      setCoupon(null);
+      setCouponError(dict.booking.couponInvalid);
+    }
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -204,6 +236,8 @@ export function BookingPanel({
       requested_time: String(form.get("time")) || null,
       customer_name: String(form.get("customer_name")).trim() || customerName,
       notes: String(form.get("notes")) || null,
+      coupon_code: coupon?.code ?? null,
+      discount: coupon?.discount ?? 0,
     });
     if (bookingError) {
       // 23505 = the DB slot-conflict unique index fired (someone grabbed the
@@ -500,6 +534,51 @@ export function BookingPanel({
               </label>
               <textarea id="notes" name="notes" rows={2} placeholder={dict.booking.notesPlaceholder} className={fieldClass} />
             </div>
+
+            {/* Coupon — validated against the selected service price. */}
+            {serviceId && selectedPrice > 0 && (
+              <div>
+                <label className={labelClass}>{dict.booking.couponLabel}</label>
+                <div className="mt-1.5 flex gap-2">
+                  <input
+                    type="text"
+                    value={couponInput}
+                    onChange={(e) => {
+                      setCouponInput(e.target.value);
+                      setCoupon(null);
+                      setCouponError(null);
+                    }}
+                    placeholder={dict.booking.couponPlaceholder}
+                    className={fieldClass.replace("mt-1.5", "mt-0")}
+                  />
+                  <button
+                    type="button"
+                    onClick={applyCoupon}
+                    disabled={couponBusy || !couponInput.trim()}
+                    className="shrink-0 rounded-xl border border-border px-4 text-sm font-bold transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
+                  >
+                    {dict.booking.couponApply}
+                  </button>
+                </div>
+                {couponError && (
+                  <p className="mt-1.5 text-xs font-semibold text-danger">
+                    {couponError}
+                  </p>
+                )}
+                {coupon && (
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-success-soft px-3 py-2 text-sm font-bold text-success">
+                    <span>
+                      {dict.booking.discountLabel}: −{formatPrice(coupon.discount)}
+                    </span>
+                    <span className="text-foreground">
+                      {dict.booking.netLabel}:{" "}
+                      {formatPrice(Math.max(0, selectedPrice - coupon.discount))}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
             {error && (
               <p className="text-sm font-medium text-danger">{error}</p>
             )}
