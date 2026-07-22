@@ -23,6 +23,8 @@ export type Leader = {
   long_bio: string | null;
   long_bio_en: string | null;
   photo_url: string | null;
+  photo_credit: string | null;
+  photo_source_url: string | null;
   cover_url: string | null;
   website: string | null;
   location: string | null;
@@ -36,13 +38,14 @@ export type Leader = {
   socials: LeaderSocials;
   companies: LeaderCompany[];
   achievements: string[];
+  achievements_en: string[];
   source_urls: string[];
   published: boolean;
 };
 
 // Columns to select for a full profile.
 export const LEADER_COLUMNS =
-  "id, slug, name, name_en, headline, headline_en, bio, bio_en, long_bio, long_bio_en, photo_url, cover_url, website, location, sector, country, company, company_en, company_description, company_description_en, profile_type, socials, companies, achievements, source_urls, published";
+  "id, slug, name, name_en, headline, headline_en, bio, bio_en, long_bio, long_bio_en, photo_url, photo_credit, photo_source_url, cover_url, website, location, sector, country, company, company_en, company_description, company_description_en, profile_type, socials, companies, achievements, achievements_en, source_urls, published";
 
 // Columns for a directory/list card (lighter).
 export const LEADER_CARD_COLUMNS =

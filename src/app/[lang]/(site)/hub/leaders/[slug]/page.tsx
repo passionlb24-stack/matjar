@@ -80,7 +80,10 @@ export default async function LeaderProfilePage({
   const leader = data as unknown as Leader;
   const socials = (leader.socials as LeaderSocials) ?? {};
   const companies = (leader.companies as LeaderCompany[]) ?? [];
-  const achievements = (leader.achievements as string[]) ?? [];
+  const achievementsAr = (leader.achievements as string[]) ?? [];
+  const achievementsEn = (leader.achievements_en as string[]) ?? [];
+  const achievements =
+    lang === "en" && achievementsEn.length > 0 ? achievementsEn : achievementsAr;
   const sources = (leader.source_urls as string[]) ?? [];
 
   const name = lang === "en" ? leader.name_en || leader.name : leader.name;
@@ -214,6 +217,24 @@ export default async function LeaderProfilePage({
                   </a>
                 ))}
               </div>
+            )}
+
+            {/* Photo attribution (only for freely-licensed images). */}
+            {leader.photo_url && leader.photo_credit && (
+              <p className="mt-4 text-[11px] text-muted-foreground/70">
+                {leader.photo_source_url ? (
+                  <a
+                    href={leader.photo_source_url}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className="hover:text-muted-foreground hover:underline"
+                  >
+                    {leader.photo_credit}
+                  </a>
+                ) : (
+                  leader.photo_credit
+                )}
+              </p>
             )}
           </div>
         </div>
