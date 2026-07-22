@@ -190,6 +190,50 @@ export default async function PricingPage({
             </p>
           </div>
         </div>
+
+        {/* Trial highlight */}
+        <div className="mx-auto mt-8 flex max-w-4xl items-center justify-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 px-5 py-3.5 text-center text-sm font-bold text-primary">
+          <Sparkles className="h-5 w-5 shrink-0" />
+          {dict.pricing.trialBanner}
+        </div>
+
+        {/* Comparison */}
+        <div className="mx-auto mt-14 max-w-3xl">
+          <h2 className="text-center text-2xl font-extrabold tracking-tight">{dict.pricing.compareTitle}</h2>
+          <div className="mt-6 overflow-hidden rounded-2xl border border-border">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-surface-muted/50">
+                  <th className="p-3 text-start font-bold">{dict.pricing.compareFeature}</th>
+                  <th className="w-24 p-3 text-center font-bold text-muted-foreground">{dict.pricing.free}</th>
+                  <th className="w-24 p-3 text-center font-bold text-primary">{dict.pricing.pro}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dict.pricing.compareRows.map((r, i) => (
+                  <tr key={i} className="border-t border-border">
+                    <td className="p-3 font-medium">{r.f}</td>
+                    <td className="p-3 text-center text-muted-foreground">{r.free}</td>
+                    <td className="p-3 text-center font-bold text-primary">{r.pro}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* FAQ */}
+        <div className="mx-auto mt-14 max-w-2xl">
+          <h2 className="text-center text-2xl font-extrabold tracking-tight">{dict.pricing.faqTitle}</h2>
+          <div className="mt-6 space-y-3">
+            {dict.pricing.faq.map((f, i) => (
+              <div key={i} className="rounded-2xl border border-border bg-surface p-5">
+                <h3 className="font-bold">{f.q}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </Container>
     </div>
   );

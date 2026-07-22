@@ -11,6 +11,7 @@ import { getHomeCounts } from "@/lib/data/home";
 import { DealOfTheDay } from "@/components/deal-of-the-day";
 import { Hero } from "@/components/hero";
 import { TrustStrip } from "@/components/trust-strip";
+import { BusinessOs } from "@/components/business-os";
 import { WorldsShowcase } from "@/components/worlds-showcase";
 import { ServicesGrid } from "@/components/services-grid";
 import { OffersTeaser } from "@/components/offers-teaser";
@@ -78,6 +79,7 @@ export default async function Home({
       />
       <Hero lang={lang} dict={dict} storeCount={counts.stores} />
       <TrustStrip dict={dict} />
+      <BusinessOs lang={lang} dict={dict} />
       <WorldsShowcase lang={lang} dict={dict} />
       <Suspense fallback={null}>
         <DealSection lang={lang} dict={dict} />

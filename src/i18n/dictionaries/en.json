@@ -603,6 +603,50 @@
       "noResults": "No product matches."
     }
   },
+  "businessOs": {
+    "kicker": "For merchants & business owners",
+    "title": "More than a store — an operating system for your business",
+    "subtitle": "Matjar doesn't just give you an online store. It gives you one place to run your whole business.",
+    "soon": "Soon",
+    "ctaPrimary": "Open your store free",
+    "ctaSecondary": "See all features",
+    "cards": [
+      { "t": "Orders", "d": "Receive and organize your orders instead of losing them in WhatsApp." },
+      { "t": "Bookings", "d": "Appointments, tables, and classes — in one calendar." },
+      { "t": "Customers", "d": "Know your customers and reach them smartly." },
+      { "t": "Reports", "d": "Your sales and profit at a glance." },
+      { "t": "Inventory & POS", "d": "Manage your stock and point of sale.", "soon": true },
+      { "t": "Tools & Academy", "d": "Calculators, generators, and guides to grow your business." }
+    ]
+  },
+  "merchantsPage": {
+    "metaTitle": "For merchants — open your store on Matjar",
+    "metaDesc": "An operating system and online store for every Lebanese merchant: orders, bookings, customers, and reports — all in one place. Start free.",
+    "heroKicker": "The Lebanese merchant platform",
+    "heroTitle": "Run your business, and let customers find you",
+    "heroSub": "Your store, orders, bookings, and customers — in one place. Start free in minutes.",
+    "problemTitle": "Selling on WhatsApp and Instagram?",
+    "problemBody": "Orders get lost in chats, there's no organization, and no reports to see how your business is doing. Matjar organizes it all in one place.",
+    "howTitle": "How it works",
+    "steps": [
+      { "t": "Open your store in minutes", "d": "Sign up, pick your business type, and your store is ready." },
+      { "t": "Add your products or services", "d": "Photos, prices, and details — easily." },
+      { "t": "Share the link and receive orders", "d": "Your store link on WhatsApp and Instagram, and orders arrive organized." }
+    ],
+    "sectorsTitle": "Fits every business",
+    "sectorsSub": "Restaurants, clinics, salons, shops, services, and more.",
+    "sectors": ["Restaurants", "Shops", "Salons", "Clinics", "Services", "Small businesses"],
+    "trustTitle": "Why merchants trust Matjar",
+    "trust": [
+      { "t": "Free to start", "d": "Begin at no cost, and upgrade as your business grows." },
+      { "t": "Cash on delivery", "d": "Your customer pays on delivery — more trust." },
+      { "t": "WhatsApp support", "d": "We're by your side anytime." },
+      { "t": "Your data is safe", "d": "Your information and your customers' is protected." }
+    ],
+    "finalTitle": "Ready to start?",
+    "finalSub": "Open your store free in minutes, and see the difference.",
+    "seePricing": "See pricing"
+  },
   "hero": {
     "badge": "Lebanon's local platform · Live now",
     "title": "Every store, restaurant, and service in Lebanon",
@@ -1927,6 +1971,29 @@
     "yearlyNote": "or $150/year — save 2 months",
     "contactNote": "Payment is manual for now — contact us to activate Pro after payment.",
     "freeTrial": "14-day free trial",
+    "trialBanner": "Try all Pro features free for 14 days — no card, no commitment.",
+    "compareTitle": "Detailed comparison",
+    "compareFeature": "Feature",
+    "compareRows": [
+      { "f": "Online store & business page", "free": "✓", "pro": "✓" },
+      { "f": "Receive orders & bookings", "free": "✓", "pro": "✓" },
+      { "f": "Direct WhatsApp contact", "free": "✓", "pro": "✓" },
+      { "f": "Number of products", "free": "Limited", "pro": "Unlimited" },
+      { "f": "Verified Pro badge", "free": "—", "pro": "✓" },
+      { "f": "Reports & analytics", "free": "—", "pro": "✓" },
+      { "f": "Inventory & staff management", "free": "—", "pro": "✓" },
+      { "f": "Business tools (calculators & generators)", "free": "—", "pro": "✓" },
+      { "f": "Multi-branch stores", "free": "—", "pro": "✓" },
+      { "f": "Priority listing & support", "free": "—", "pro": "✓" }
+    ],
+    "faqTitle": "Frequently asked questions",
+    "faq": [
+      { "q": "How do I pay for Pro?", "a": "Payment is manual for now — you request the upgrade from your store dashboard, and we contact you to complete payment and activate Pro. Online payment is coming soon." },
+      { "q": "Is there a free trial?", "a": "Yes — every new store gets a full 14-day Pro trial for free, no card required." },
+      { "q": "Can I go back to the free plan?", "a": "Absolutely. You can stay on Free or return to it anytime — your store and products remain." },
+      { "q": "What happens after the trial ends?", "a": "Your store keeps working on the Free plan, and Pro features lock until you subscribe." },
+      { "q": "Is there a commission on sales?", "a": "No — Matjar takes no commission on your orders. Only the monthly Pro subscription if you want the extra features." }
+    ],
     "discountOff": "{pct}% off",
     "monthly": "Monthly",
     "yearly": "Yearly",
@@ -1948,7 +2015,33 @@
     ]
   },
   "aboutPage": {
-    "body": "Matjar is Lebanon's local commerce platform — one place that brings together stores, products, and services, helping business owners reach their customers with ease. Our goal is to make local shopping and booking faster and simpler, and to give every merchant their own online store in minutes."
+    "body": "Matjar is Lebanon's local commerce platform — one place that brings together stores, products, and services, helping business owners reach their customers with ease. Our goal is to make local shopping and booking faster and simpler, and to give every merchant their own online store in minutes.",
+    "kicker": "Lebanon's local platform",
+    "title": "An operating system for your business, and your store on Lebanon's map",
+    "storyTitle": "Why we started Matjar",
+    "storyBody": "Most merchants in Lebanon sell on WhatsApp and Instagram — with no tools, no organization, and orders lost in chats. We built Matjar to give every Lebanese merchant a simple operating system and a professional digital presence, and to help customers find the nearest store and service in seconds.",
+    "missionTitle": "Our mission",
+    "missionBody": "Give every local business in Lebanon the tools to run and grow — in the simplest way, at the lowest cost.",
+    "visionTitle": "Our vision",
+    "visionBody": "To become the leading operating system for every merchant and business owner in Lebanon and the Arab world.",
+    "offerTitle": "What we offer",
+    "offer": [
+      { "t": "Operating system", "d": "Orders, bookings, customers, and reports in one place." },
+      { "t": "Online store", "d": "Your store ready in minutes, no technical skills needed." },
+      { "t": "Every sector", "d": "Restaurants, clinics, shops, services, and more." },
+      { "t": "All of Lebanon", "d": "Stores and services in every region." },
+      { "t": "Cash on delivery", "d": "More trust for customer and merchant." },
+      { "t": "WhatsApp support", "d": "We're by your side anytime." }
+    ],
+    "valuesTitle": "Our values",
+    "values": [
+      { "t": "Local", "d": "Made for Lebanon and its reality." },
+      { "t": "Simple", "d": "Easy for any merchant." },
+      { "t": "Practical", "d": "Solves daily problems." },
+      { "t": "Beside the merchant", "d": "Your success is ours." }
+    ],
+    "ctaTitle": "Ready to start?",
+    "ctaBrowse": "Browse stores"
   },
   "contactPage": {
     "intro": "For inquiries or support, reach out — we reply as soon as possible."

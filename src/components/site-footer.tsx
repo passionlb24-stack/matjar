@@ -34,6 +34,7 @@ export function SiteFooter({ lang, dict }: { lang: Locale; dict: Dictionary }) {
     {
       title: dict.footer.merchantsTitle,
       links: [
+        { label: dict.common.forMerchants, href: `/${lang}/merchants` },
         { label: L.openStore, href: `/${lang}/merchant/new` },
         { label: dict.common.hub, href: `/${lang}/hub` },
         { label: L.pricing, href: `/${lang}/pricing` },

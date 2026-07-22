@@ -81,6 +81,12 @@ export function SiteHeader({
               {dict.common.hub}
             </Link>
             <Link
+              href={`/${lang}/merchants`}
+              className="rounded-lg px-3 py-2 text-sm font-bold text-primary transition-colors hover:bg-surface-muted"
+            >
+              {dict.common.forMerchants}
+            </Link>
+            <Link
               href={`/${lang}/map`}
               className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
             >

@@ -17,6 +17,7 @@ import {
   Map as MapIcon,
   Store,
   Wrench,
+  Tag,
   LayoutDashboard,
   User,
   LogIn,
@@ -67,9 +68,10 @@ export function MobileMenu({
     {
       title: dict.mobileNav.more,
       items: [
-        { href: `/${lang}/hub`, label: dict.common.hub, icon: Wrench, bold: true },
+        { href: `/${lang}/merchants`, label: dict.common.forMerchants, icon: Store, bold: true },
+        { href: `/${lang}/hub`, label: dict.common.hub, icon: Wrench },
         { href: `/${lang}/map`, label: dict.map.title, icon: MapIcon },
-        { href: `/${lang}/pricing`, label: dict.common.forMerchants, icon: Store },
+        { href: `/${lang}/pricing`, label: dict.pricing.title, icon: Tag },
       ],
     },
   ];
