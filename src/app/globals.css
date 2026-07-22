@@ -63,6 +63,7 @@
   --color-info-soft: var(--info-soft);
 
   --font-sans: var(--font-tajawal);
+  --font-display: var(--font-alexandria);
 
   --radius-xl: 1rem;
   --radius-2xl: 1.25rem;
@@ -198,6 +199,16 @@ body {
   /* No grey flash on tap; no rubber-band overscroll revealing white edges. */
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
+}
+
+/* Headings wear the display face (Alexandria); body stays Tajawal. Gives the
+   brand a recognizable typographic voice without touching readability. */
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display), var(--font-tajawal), system-ui, sans-serif;
+  letter-spacing: -0.01em;
 }
 
 ::selection {

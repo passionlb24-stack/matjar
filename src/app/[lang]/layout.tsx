@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Tajawal } from "next/font/google";
+import { Tajawal, Alexandria } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { notFound } from "next/navigation";
 import "../globals.css";
@@ -13,6 +13,15 @@ const tajawal = Tajawal({
   subsets: ["arabic", "latin"],
   weight: ["400", "500", "700", "800"],
   variable: "--font-tajawal",
+});
+
+// Alexandria — the display face. Geometric and confident in both Arabic and
+// Latin; used for headings only (body stays Tajawal) to give the brand a
+// recognizable typographic voice.
+const alexandria = Alexandria({
+  subsets: ["arabic", "latin"],
+  weight: ["500", "600", "700", "800"],
+  variable: "--font-alexandria",
 });
 
 const SITE_DESCRIPTION =
@@ -68,7 +77,7 @@ export default async function RootLayout({
     <html
       lang={lang}
       dir={localeDirection[lang]}
-      className={`${tajawal.variable} h-full`}
+      className={`${tajawal.variable} ${alexandria.variable} h-full`}
     >
       <head>
         {/* Apply the saved light/dark choice before paint (no theme flash). With
