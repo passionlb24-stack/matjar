@@ -1,0 +1,27 @@
+-- Business Leaders directory: curated seed v1 (125 records).
+--
+-- Data source: matjar_business_leaders_125_draft.csv (Lebanese chamber boards,
+-- Beirut Traders Association, Endeavor/Forbes/Berytech ecosystem founders,
+-- Tripoli & North Lebanon institutions). Public-source records only.
+--
+-- Import policy (enforced at generation time — no fabrication):
+--   * verification_status = 'verified'          -> published = true   (101 rows)
+--   * verification_status = 'partially_verified' -> published = false  (24 draft rows, hidden publicly)
+--   * empty CSV fields are left NULL / default (never invented)
+--   * no official images in the dataset -> every row image_status = 'placeholder'
+--     (the UI renders initials avatars; see src/components/hub/initials-avatar.tsx)
+--   * source_notes / any private columns are NOT imported
+--
+-- The 125 rows were applied to prod via MCP execute_sql in 5 batches using
+-- jsonb_to_recordset + `on conflict (slug) do update`, so the seed is idempotent.
+-- The full batch SQL is retained outside the repo (scratchpad/leaders-batch-{1..5}.sql).
+-- This file is the documentary record; re-running the batches reproduces the seed.
+--
+-- Post-import counts (verified in prod):
+--   total 125 | published 101 | drafts 24 | featured 18
+--   verified 101 | partially_verified 24 | placeholders 125 | North Lebanon 26
+--
+-- NOTE: 0135 defined socials/companies/achievements NOT NULL; 0139 added
+-- achievements_en/source_urls/tags/tags_en NOT NULL. The batches omit empty
+-- jsonb fields, so during import these columns were briefly set nullable, then
+-- backfilled to their defaults ('{}' / '[]') and the NOT NULL constraints restored.

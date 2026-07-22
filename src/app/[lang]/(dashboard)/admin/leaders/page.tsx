@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { AdminLeaderActions } from "@/components/admin-leader-actions";
+import { InitialsAvatar } from "@/components/hub/initials-avatar";
 
 type LeaderRow = {
   id: string;
@@ -17,6 +18,9 @@ type LeaderRow = {
   headline: string | null;
   photo_url: string | null;
   published: boolean;
+  sector: string | null;
+  featured: boolean;
+  verification_status: string | null;
   created_at: string;
 };
 
@@ -34,20 +38,15 @@ export default async function AdminLeadersPage({
   const { data } = await supabase
     .from("business_leaders")
     .select(
-      "id, slug, name, name_en, headline, photo_url, published, created_at",
+      "id, slug, name, name_en, headline, photo_url, published, sector, featured, verification_status, created_at",
     )
     .order("published", { ascending: true })
+    .order("featured", { ascending: false })
     .order("created_at", { ascending: false });
 
   const rows = (data ?? []) as unknown as LeaderRow[];
 
-  const initials = (name: string) =>
-    name
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((w) => w[0] ?? "")
-      .join("");
+  const draftCount = rows.filter((r) => !r.published).length;
 
   return (
     <div className="py-10">
@@ -55,7 +54,7 @@ export default async function AdminLeadersPage({
         <PageHeader
           icon={Crown}
           title="إدارة رجال الأعمال"
-          subtitle="راجِع الملفات المُرسَلة وانشرها أو أخفِها أو احذفها."
+          subtitle={`راجِع الملفات المُرسَلة وانشرها أو أخفِها أو احذفها. ${rows.length} ملف · ${draftCount} بانتظار المراجعة.`}
         />
 
         {rows.length === 0 ? (
@@ -77,9 +76,7 @@ export default async function AdminLeadersPage({
                         className="h-12 w-12 shrink-0 rounded-full object-cover"
                       />
                     ) : (
-                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-soft text-sm font-bold text-primary">
-                        {initials(r.name) || <Crown className="h-5 w-5" />}
-                      </span>
+                      <InitialsAvatar name={r.name} size="sm" />
                     )}
 
                     <div className="min-w-0 space-y-1">
@@ -94,10 +91,25 @@ export default async function AdminLeadersPage({
                             بانتظار المراجعة
                           </Badge>
                         )}
+                        {r.featured && (
+                          <Badge variant="primary" size="sm">
+                            مميّز
+                          </Badge>
+                        )}
+                        {r.verification_status === "partially_verified" && (
+                          <Badge variant="neutral" size="sm">
+                            تحقّق جزئي
+                          </Badge>
+                        )}
                       </div>
                       {r.headline && (
                         <p className="truncate text-sm text-muted-foreground">
                           {r.headline}
+                        </p>
+                      )}
+                      {r.sector && (
+                        <p className="truncate text-xs text-muted-foreground">
+                          {r.sector}
                         </p>
                       )}
                     </div>

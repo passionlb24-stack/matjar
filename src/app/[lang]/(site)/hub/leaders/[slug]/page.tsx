@@ -9,13 +9,14 @@ import {
   ExternalLink,
   Link2,
   MapPin,
-  User,
+  Tag,
 } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { InitialsAvatar } from "@/components/hub/initials-avatar";
 import {
   LEADER_CARD_COLUMNS,
   LEADER_COLUMNS,
@@ -80,8 +81,18 @@ export default async function LeaderProfilePage({
   const socials = (leader.socials as LeaderSocials) ?? {};
   const companies = (leader.companies as LeaderCompany[]) ?? [];
   const achievements = (leader.achievements as string[]) ?? [];
+  const sources = (leader.source_urls as string[]) ?? [];
 
   const name = lang === "en" ? leader.name_en || leader.name : leader.name;
+  const headline =
+    lang === "en" ? leader.headline_en || leader.headline : leader.headline;
+  const company =
+    lang === "en" ? leader.company_en || leader.company : leader.company;
+  // Prefer the long bio, fall back to the short one; prefer the current locale.
+  const bio =
+    lang === "en"
+      ? leader.long_bio_en || leader.bio_en || leader.long_bio || leader.bio
+      : leader.long_bio || leader.bio;
   const t = dict.hub.leaders;
 
   // Related leaders (other published profiles).
@@ -130,34 +141,48 @@ export default async function LeaderProfilePage({
           <div className="px-5 pb-6 sm:px-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-end">
-                <span className="-mt-14 flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-muted ring-4 ring-surface">
-                  {leader.photo_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={leader.photo_url}
-                      alt={name}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <User className="h-12 w-12 text-muted-foreground" />
-                  )}
-                </span>
+                {leader.photo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={leader.photo_url}
+                    alt={name}
+                    className="-mt-14 h-28 w-28 shrink-0 rounded-full object-cover ring-4 ring-surface"
+                  />
+                ) : (
+                  <InitialsAvatar
+                    name={name}
+                    size="xl"
+                    className="-mt-14 ring-4 ring-surface"
+                  />
+                )}
                 <div className="min-w-0">
                   <h1 className="flex items-center gap-2 text-3xl font-extrabold tracking-tight">
                     {name}
                     <BadgeCheck className="h-6 w-6 shrink-0 text-amber-600 dark:text-amber-400" />
                   </h1>
-                  {leader.headline && (
-                    <p className="mt-1 text-muted-foreground">
-                      {leader.headline}
+                  {headline && (
+                    <p className="mt-1 font-semibold text-primary">{headline}</p>
+                  )}
+                  {company && (
+                    <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <Building2 className="h-4 w-4 shrink-0" />
+                      {company}
                     </p>
                   )}
-                  {leader.location && (
-                    <p className="mt-1.5 flex items-center gap-1 text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4 shrink-0" />
-                      {leader.location}
-                    </p>
-                  )}
+                  <div className="mt-2.5 flex flex-wrap gap-2">
+                    {leader.sector && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-surface-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+                        <Tag className="h-3.5 w-3.5" />
+                        {leader.sector}
+                      </span>
+                    )}
+                    {leader.location && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-surface-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5" />
+                        {leader.location}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -194,13 +219,13 @@ export default async function LeaderProfilePage({
         </div>
 
         {/* Bio */}
-        {leader.bio && (
+        {bio && (
           <section className="mt-8">
             <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
               {t.bio}
             </h2>
             <p className="mt-3 max-w-2xl whitespace-pre-line leading-relaxed">
-              {leader.bio}
+              {bio}
             </p>
           </section>
         )}
@@ -251,6 +276,30 @@ export default async function LeaderProfilePage({
           </section>
         )}
 
+        {/* Sources */}
+        {sources.length > 0 && (
+          <section className="mt-10">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
+              {t.sources}
+            </h2>
+            <ul className="mt-4 flex flex-wrap gap-2">
+              {sources.map((src, i) => (
+                <li key={`${src}-${i}`}>
+                  <a
+                    href={src}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-border px-3.5 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                  >
+                    <Link2 className="h-4 w-4" />
+                    {sourceHost(src) || t.sourceLink}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {/* Related */}
         {related.length > 0 && (
           <section className="mt-12">
@@ -267,18 +316,20 @@ export default async function LeaderProfilePage({
                     href={`/${lang}/hub/leaders/${r.slug}`}
                     className="group flex flex-col items-center gap-3 rounded-3xl border border-border bg-surface p-5 text-center shadow-xs transition-colors hover:border-primary/40 hover:bg-surface-muted"
                   >
-                    <span className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-surface-muted ring-2 ring-surface">
-                      {r.photo_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={r.photo_url}
-                          alt={rName}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <User className="h-7 w-7 text-muted-foreground" />
-                      )}
-                    </span>
+                    {r.photo_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={r.photo_url}
+                        alt={rName}
+                        className="h-16 w-16 rounded-full object-cover ring-2 ring-surface"
+                      />
+                    ) : (
+                      <InitialsAvatar
+                        name={rName}
+                        size="md"
+                        className="ring-2 ring-surface"
+                      />
+                    )}
                     <div className="min-w-0">
                       <p className="truncate font-bold group-hover:text-primary">
                         {rName}
@@ -309,4 +360,13 @@ export default async function LeaderProfilePage({
       </Container>
     </div>
   );
+}
+
+// Show a clean host label for a source link (e.g. "forbesmiddleeast.com").
+function sourceHost(url: string): string | null {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return null;
+  }
 }

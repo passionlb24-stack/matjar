@@ -1955,7 +1955,18 @@
       "fName": "Full name",
       "fHeadline": "Headline (e.g. Founder & entrepreneur)",
       "fBio": "A short bio about you and your journey",
-      "fWebsite": "Website"
+      "fWebsite": "Website",
+      "searchPlaceholder": "Search by name, company, or sector",
+      "allSectors": "All sectors",
+      "allRegions": "All regions",
+      "featuredTitle": "Featured figures",
+      "directoryTitle": "Directory",
+      "countSuffix": "people",
+      "noResults": "No matching results. Try another keyword or filter.",
+      "clearFilters": "Clear filters",
+      "featuredBadge": "Featured",
+      "sources": "Sources",
+      "sourceLink": "Source"
     }
   },
   "pricing": {

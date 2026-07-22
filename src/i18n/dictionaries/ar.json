@@ -1955,7 +1955,18 @@
       "fName": "الاسم الكامل",
       "fHeadline": "العنوان (مثال: مؤسّس ورائد أعمال)",
       "fBio": "نبذة مختصرة عنك وعن مسيرتك",
-      "fWebsite": "الموقع الإلكتروني"
+      "fWebsite": "الموقع الإلكتروني",
+      "searchPlaceholder": "ابحث بالاسم أو الشركة أو القطاع",
+      "allSectors": "كل القطاعات",
+      "allRegions": "كل المناطق",
+      "featuredTitle": "أبرز الشخصيات",
+      "directoryTitle": "الدليل",
+      "countSuffix": "شخصية",
+      "noResults": "ما في نتائج مطابقة. جرّب كلمة أو فلتر تاني.",
+      "clearFilters": "مسح الفلاتر",
+      "featuredBadge": "مميّز",
+      "sources": "المصادر",
+      "sourceLink": "مصدر"
     }
   },
   "pricing": {
