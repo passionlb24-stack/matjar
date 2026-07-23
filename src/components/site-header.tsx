@@ -42,7 +42,7 @@ export function SiteHeader({
               height={182}
               priority
               unoptimized
-              className="h-9 w-auto object-contain"
+              className="h-9 w-auto max-w-none object-contain"
             />
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
