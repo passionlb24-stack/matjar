@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import QRCode from "qrcode";
-import { Sparkles, Download, X, Loader2 } from "lucide-react";
+import { Sparkles, Download, X, Loader2, Share2 } from "lucide-react";
 import { formatUsd } from "@/lib/currency";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
@@ -26,6 +26,32 @@ export function ProductStoryCard({
   const t = dict.share;
   const [busy, setBusy] = useState(false);
   const [png, setPng] = useState<string | null>(null);
+
+  // Share the generated PNG itself (not a link) so it lands directly in WhatsApp
+  // Status / Instagram Story via the native share sheet. Falls back to download
+  // where file-sharing isn't supported (most desktops).
+  async function shareStory() {
+    if (!png) return;
+    try {
+      const blob = await (await fetch(png)).blob();
+      const file = new File([blob], `matjar-${productId}.png`, {
+        type: "image/png",
+      });
+      const nav = navigator as Navigator & {
+        canShare?: (data: { files: File[] }) => boolean;
+      };
+      if (nav.canShare?.({ files: [file] }) && navigator.share) {
+        await navigator.share({ files: [file], title: name });
+        return;
+      }
+    } catch {
+      // fall through to download
+    }
+    const a = document.createElement("a");
+    a.href = png;
+    a.download = `matjar-${productId}.png`;
+    a.click();
+  }
 
   function loadImage(src: string): Promise<HTMLImageElement | null> {
     return new Promise((resolve) => {
@@ -154,14 +180,23 @@ export function ProductStoryCard({
             </div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={png} alt="" className="mx-auto max-h-[70vh] rounded-xl" />
-            <a
-              href={png}
-              download={`matjar-${productId}.png`}
-              className="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-            >
-              <Download className="h-4 w-4" />
-              {t.download}
-            </a>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <button
+                onClick={shareStory}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+              >
+                <Share2 className="h-4 w-4" />
+                {t.shareStory}
+              </button>
+              <a
+                href={png}
+                download={`matjar-${productId}.png`}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border px-6 py-3 text-sm font-bold transition-colors hover:border-primary hover:text-primary"
+              >
+                <Download className="h-4 w-4" />
+                {t.download}
+              </a>
+            </div>
           </div>
         </div>
       )}

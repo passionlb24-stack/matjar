@@ -6,6 +6,52 @@ import { ImagePlus, Loader2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { hasNativeCamera, pickNativeImage } from "@/lib/native";
 
+// Downscale + recompress an image before upload so every asset on the site has a
+// sane, consistent weight (phone photos are often 4000px / several MB). Caps the
+// longest side to 1600px; keeps PNG (transparency, e.g. logos), else JPEG.
+async function downscaleImage(file: File, maxDim = 1600, quality = 0.85): Promise<File> {
+  if (
+    !file.type.startsWith("image/") ||
+    file.type === "image/gif" ||
+    file.type === "image/svg+xml"
+  ) {
+    return file;
+  }
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    return file;
+  }
+  const { width, height } = bitmap;
+  const scale = Math.min(1, maxDim / Math.max(width, height));
+  // Already small and light — leave it alone.
+  if (scale === 1 && file.size <= 600_000) {
+    bitmap.close?.();
+    return file;
+  }
+  const w = Math.round(width * scale);
+  const h = Math.round(height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    bitmap.close?.();
+    return file;
+  }
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  bitmap.close?.();
+  const outType = file.type === "image/png" ? "image/png" : "image/jpeg";
+  const blob: Blob | null = await new Promise((res) =>
+    canvas.toBlob(res, outType, quality),
+  );
+  if (!blob || blob.size >= file.size) return file; // no gain — keep original
+  const base = file.name.replace(/\.[^.]+$/, "");
+  const ext = outType === "image/png" ? "png" : "jpg";
+  return new File([blob], `${base}.${ext}`, { type: outType });
+}
+
 export function ImageUpload({
   folder,
   value,
@@ -20,8 +66,9 @@ export function ImageUpload({
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
-  async function uploadFile(file: File) {
+  async function uploadFile(rawFile: File) {
     setUploading(true);
+    const file = await downscaleImage(rawFile);
     const supabase = createClient();
     const ext = file.name.split(".").pop() ?? "jpg";
     const path = `${folder}/${crypto.randomUUID()}.${ext}`;
