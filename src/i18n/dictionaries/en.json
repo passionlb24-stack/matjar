@@ -616,7 +616,7 @@
       { "t": "Bookings", "d": "Appointments, tables, and classes — in one calendar." },
       { "t": "Customers", "d": "Know your customers and reach them smartly." },
       { "t": "Reports", "d": "Your sales and profit at a glance." },
-      { "t": "Inventory & POS", "d": "Manage your stock and point of sale.", "soon": true },
+      { "t": "Inventory & POS", "d": "Manage your stock and point of sale.", "soon": false },
       { "t": "Tools & Academy", "d": "Calculators, generators, and guides to grow your business." }
     ]
   },
