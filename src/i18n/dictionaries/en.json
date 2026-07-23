@@ -1460,7 +1460,48 @@
       "reviews": "Reviews",
       "verifications": "Certificates",
       "leaders": "Business Leaders",
+      "jobs": "Jobs",
+      "freelance": "Freelance",
+      "wholesale": "Wholesale",
       "audit": "Audit log"
+    },
+    "navGroups": {
+      "general": "General",
+      "marketplace": "Marketplace",
+      "community": "Community",
+      "trust": "Quality & Trust",
+      "business": "Business",
+      "system": "System"
+    },
+    "moderation": {
+      "total": "Total",
+      "public": "Public",
+      "hidden": "Hidden",
+      "tabs": {
+        "all": "All",
+        "active": "Public",
+        "hidden": "Hidden"
+      },
+      "hiddenBadge": "Hidden",
+      "search": "Search by title or poster…",
+      "empty": "Nothing here yet.",
+      "view": "View",
+      "approve": "Publish",
+      "hide": "Hide",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this item permanently?"
+    },
+    "jobs": {
+      "title": "Jobs management",
+      "subtitle": "Moderate user-posted job listings — publish, hide, or delete."
+    },
+    "freelance": {
+      "title": "Freelance management",
+      "subtitle": "Moderate freelancer gigs — publish, hide, or delete."
+    },
+    "wholesale": {
+      "title": "Wholesale management",
+      "subtitle": "Moderate wholesale offers — publish, hide, or delete."
     },
     "ordersAdmin": {
       "title": "Orders & reconciliation",
