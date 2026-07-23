@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { PackageOpen } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -62,7 +61,6 @@ export default async function AdminWholesalePage({
       lang={lang}
       dict={dict}
       table="wholesale_products"
-      icon={PackageOpen}
       title={dict.admin.wholesale.title}
       subtitle={dict.admin.wholesale.subtitle}
       viewBase="wholesale"

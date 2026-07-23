@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { Palette } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -56,7 +55,6 @@ export default async function AdminFreelancePage({
       lang={lang}
       dict={dict}
       table="gigs"
-      icon={Palette}
       title={dict.admin.freelance.title}
       subtitle={dict.admin.freelance.subtitle}
       viewBase="freelance"

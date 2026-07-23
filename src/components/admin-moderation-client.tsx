@@ -9,7 +9,9 @@ import {
   Trash2,
   ExternalLink,
   ImageIcon,
-  type LucideIcon,
+  Briefcase,
+  Palette,
+  PackageOpen,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -50,7 +52,6 @@ export function AdminModerationClient({
   lang,
   dict,
   table,
-  icon: Icon,
   title,
   subtitle,
   viewBase,
@@ -59,7 +60,6 @@ export function AdminModerationClient({
   lang: Locale;
   dict: Dictionary;
   table: ModerationTable;
-  icon: LucideIcon;
   title: string;
   subtitle: string;
   viewBase: string; // public route segment, e.g. "jobs" | "freelance" | "wholesale"
@@ -72,6 +72,13 @@ export function AdminModerationClient({
     gigs: "gig",
     wholesale_products: "wholesale",
   }[table] as "job" | "gig" | "wholesale";
+  // Derive the icon from `table` INSIDE the client — a lucide component is a
+  // function and cannot cross the server→client boundary as a prop.
+  const Icon = {
+    job_postings: Briefcase,
+    gigs: Palette,
+    wholesale_products: PackageOpen,
+  }[table];
   const [tab, setTab] = useState<Tab>("all");
   const [q, setQ] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);

@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { Briefcase } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -51,7 +50,6 @@ export default async function AdminJobsPage({
       lang={lang}
       dict={dict}
       table="job_postings"
-      icon={Briefcase}
       title={dict.admin.jobs.title}
       subtitle={dict.admin.jobs.subtitle}
       viewBase="jobs"
