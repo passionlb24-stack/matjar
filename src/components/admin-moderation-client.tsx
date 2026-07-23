@@ -14,6 +14,7 @@ import {
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
+import { logAdminAction } from "@/lib/audit";
 import { notifyError } from "@/lib/notify";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
@@ -66,6 +67,11 @@ export function AdminModerationClient({
 }) {
   const router = useRouter();
   const t = dict.admin.moderation;
+  const entity = {
+    job_postings: "job",
+    gigs: "gig",
+    wholesale_products: "wholesale",
+  }[table] as "job" | "gig" | "wholesale";
   const [tab, setTab] = useState<Tab>("all");
   const [q, setQ] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -108,6 +114,7 @@ export function AdminModerationClient({
       notifyError(dict.common.actionFailed);
       return;
     }
+    void logAdminAction(status === "active" ? "published" : "hidden", entity, id);
     router.refresh();
   }
 
@@ -120,6 +127,7 @@ export function AdminModerationClient({
       notifyError(dict.common.actionFailed);
       return;
     }
+    void logAdminAction("deleted", entity, id);
     router.refresh();
   }
 

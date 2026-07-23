@@ -1599,6 +1599,48 @@
       "entity": "العنصر",
       "when": "الوقت"
     },
+    "auditLabels": {
+      "verbs": {
+        "created": "أنشأ",
+        "updated": "عدّل",
+        "deleted": "حذف",
+        "published": "نشر",
+        "hidden": "أخفى",
+        "approved": "وافق",
+        "rejected": "رفض",
+        "suspended": "عطّل",
+        "reactivated": "فعّل",
+        "featured": "ميّز",
+        "unfeatured": "ألغى التمييز",
+        "verified": "وثّق",
+        "unverified": "ألغى التوثيق",
+        "status_changed": "غيّر الحالة",
+        "plan_changed": "غيّر الخطة",
+        "access_changed": "غيّر الصلاحيات",
+        "activated": "فعّل",
+        "downgraded": "خفّض"
+      },
+      "entities": {
+        "store": "متجر",
+        "listing": "إعلان",
+        "job": "وظيفة",
+        "gig": "خدمة فريلانس",
+        "wholesale": "عرض جملة",
+        "message": "رسالة",
+        "question": "سؤال",
+        "review": "تقييم",
+        "verification": "توثيق",
+        "leader": "رجل أعمال",
+        "user": "مستخدم",
+        "business_type": "نوع نشاط",
+        "market_category": "تصنيف سوق",
+        "market_city": "مدينة",
+        "market_region": "منطقة",
+        "delivery_company": "شركة توصيل",
+        "subscription": "اشتراك",
+        "setting": "إعداد"
+      }
+    },
     "market": {
       "title": "إدارة سوق الأحد",
       "subtitle": "راجع الإعلانات ووافق عليها أو ارفضها.",

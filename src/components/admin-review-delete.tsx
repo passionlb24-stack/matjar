@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { logAdminAction } from "@/lib/audit";
 import { Button } from "@/components/ui/button";
 
 export function AdminReviewDelete({
@@ -32,6 +33,7 @@ export function AdminReviewDelete({
       window.alert(errorLabel);
       return;
     }
+    void logAdminAction("deleted", "review", reviewId);
     router.refresh();
   }
 

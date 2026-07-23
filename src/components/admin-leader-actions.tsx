@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, EyeOff, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { logAdminAction } from "@/lib/audit";
 import { Button } from "@/components/ui/button";
 
 // Admin-only publish/delete island for business_leaders. RLS lets super-admins
@@ -20,16 +21,18 @@ export function AdminLeaderActions({
   const [busy, setBusy] = useState(false);
 
   async function togglePublished() {
+    const nextPublished = !published;
     setBusy(true);
     const { error } = await createClient()
       .from("business_leaders")
-      .update({ published: !published })
+      .update({ published: nextPublished })
       .eq("id", id);
     setBusy(false);
     if (error) {
       window.alert("حدث خطأ. حاوِل مرة أخرى.");
       return;
     }
+    void logAdminAction(nextPublished ? "published" : "hidden", "leader", id);
     router.refresh();
   }
 
@@ -45,6 +48,7 @@ export function AdminLeaderActions({
       window.alert("حدث خطأ. حاوِل مرة أخرى.");
       return;
     }
+    void logAdminAction("deleted", "leader", id);
     router.refresh();
   }
 

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { notifyError } from "@/lib/notify";
+import { logAdminAction } from "@/lib/audit";
 import { revalidateRate } from "@/lib/cache-actions";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Card, CardBody } from "@/components/ui/card";
@@ -28,10 +29,12 @@ export function AdminSettingsForm({
     e.preventDefault();
     setLoading(true);
     setSaved(false);
+    const key = "usd_lbp_rate";
+    const value = String(Number(rate) || 0);
     const { error } = await createClient().from("app_settings").upsert(
       {
-        key: "usd_lbp_rate",
-        value: String(Number(rate) || 0),
+        key,
+        value,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "key" },
@@ -41,6 +44,7 @@ export function AdminSettingsForm({
       notifyError(dict.common.actionFailed);
       return;
     }
+    void logAdminAction("updated", "setting", null, { key, value });
     await revalidateRate();
     setSaved(true);
     router.refresh();

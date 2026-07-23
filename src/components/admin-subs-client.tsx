@@ -6,6 +6,7 @@ import { Search, Crown, RotateCcw, CreditCard } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
+import { logAdminAction } from "@/lib/audit";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardBody } from "@/components/ui/card";
@@ -109,6 +110,7 @@ function Row({
       window.alert(dict.auth.errorGeneric);
       return;
     }
+    void logAdminAction("activated", "subscription", row.id, { period });
     router.refresh();
   }
 
@@ -130,6 +132,7 @@ function Row({
       window.alert(dict.auth.errorGeneric);
       return;
     }
+    void logAdminAction("downgraded", "subscription", row.id);
     router.refresh();
   }
 

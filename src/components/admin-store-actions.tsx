@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { revalidateStores } from "@/lib/cache-actions";
+import { logAdminAction } from "@/lib/audit";
 import { Button } from "@/components/ui/button";
 
 export function AdminStoreActions({
@@ -35,6 +36,12 @@ export function AdminStoreActions({
       window.alert(errorLabel);
       return;
     }
+    void logAdminAction(
+      status === "active" ? "approved" : "rejected",
+      "store",
+      storeId,
+      { to: status },
+    );
     await revalidateStores();
     router.refresh();
   }

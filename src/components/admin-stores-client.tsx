@@ -18,6 +18,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
 import { revalidateStores } from "@/lib/cache-actions";
+import { logAdminAction, type AuditVerb } from "@/lib/audit";
 import { regions } from "@/lib/catalog";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
@@ -85,6 +86,17 @@ export function AdminStoresClient({
       window.alert(dict.auth.errorGeneric);
       return;
     }
+    let verb: AuditVerb;
+    if (patch.status) verb = "status_changed";
+    else if ("plan" in patch) verb = "plan_changed";
+    else if ("is_verified" in patch)
+      verb = patch.is_verified ? "verified" : "unverified";
+    else if ("featured_until" in patch)
+      verb = patch.featured_until ? "featured" : "unfeatured";
+    else if ("commercial_reg_verified" in patch)
+      verb = patch.commercial_reg_verified ? "verified" : "unverified";
+    else verb = "updated";
+    void logAdminAction(verb, "store", id, patch);
     await revalidateStores();
     router.refresh();
   }

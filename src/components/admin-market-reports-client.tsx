@@ -6,6 +6,7 @@ import { Check, ExternalLink, Flag } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
+import { logAdminAction } from "@/lib/audit";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardBody } from "@/components/ui/card";
@@ -36,13 +37,17 @@ export function AdminMarketReportsClient({
   const reasons = dict.market.reasons as Record<string, string>;
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  async function markReviewed(id: string) {
+  async function markReviewed(id: string, listingId?: string) {
     setBusyId(id);
-    await createClient()
+    const { error } = await createClient()
       .from("listing_reports")
       .update({ status: "reviewed" })
       .eq("id", id);
     setBusyId(null);
+    if (!error)
+      void logAdminAction("updated", "listing", listingId ?? id, {
+        reviewed: true,
+      });
     router.refresh();
   }
 
@@ -93,7 +98,7 @@ export function AdminMarketReportsClient({
                       <Button
                         size="sm"
                         disabled={busyId === r.id}
-                        onClick={() => markReviewed(r.id)}
+                        onClick={() => markReviewed(r.id, r.listingId)}
                         leftIcon={<Check className="h-4 w-4" />}
                       >
                         {t.markReviewed}

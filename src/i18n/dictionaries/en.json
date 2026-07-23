@@ -1599,6 +1599,48 @@
       "entity": "Entity",
       "when": "When"
     },
+    "auditLabels": {
+      "verbs": {
+        "created": "Created",
+        "updated": "Updated",
+        "deleted": "Deleted",
+        "published": "Published",
+        "hidden": "Hidden",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "suspended": "Suspended",
+        "reactivated": "Reactivated",
+        "featured": "Featured",
+        "unfeatured": "Unfeatured",
+        "verified": "Verified",
+        "unverified": "Unverified",
+        "status_changed": "Status changed",
+        "plan_changed": "Plan changed",
+        "access_changed": "Access changed",
+        "activated": "Activated",
+        "downgraded": "Downgraded"
+      },
+      "entities": {
+        "store": "Store",
+        "listing": "Listing",
+        "job": "Job",
+        "gig": "Gig",
+        "wholesale": "Wholesale",
+        "message": "Message",
+        "question": "Question",
+        "review": "Review",
+        "verification": "Verification",
+        "leader": "Leader",
+        "user": "User",
+        "business_type": "Business type",
+        "market_category": "Market category",
+        "market_city": "City",
+        "market_region": "Region",
+        "delivery_company": "Delivery company",
+        "subscription": "Subscription",
+        "setting": "Setting"
+      }
+    },
     "market": {
       "title": "Sunday Market moderation",
       "subtitle": "Review, approve or reject listings.",

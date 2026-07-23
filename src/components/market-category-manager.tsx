@@ -6,6 +6,7 @@ import { Plus, Pencil, Trash2, X } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
+import { logAdminAction } from "@/lib/audit";
 import { Container } from "@/components/ui/container";
 
 export type MarketCategoryRow = {
@@ -64,17 +65,25 @@ export function MarketCategoryManager({
   async function save() {
     setBusy(true);
     const supabase = createClient();
-    const { error } =
-      editingId === "new"
-        ? await supabase.from("market_categories").insert(draft)
-        : await supabase
-            .from("market_categories")
-            .update(draft)
-            .eq("id", editingId!);
+    const isNew = editingId === "new";
+    const currentId = editingId;
+    const { error } = isNew
+      ? await supabase.from("market_categories").insert(draft)
+      : await supabase
+          .from("market_categories")
+          .update(draft)
+          .eq("id", editingId!);
     setBusy(false);
     if (error) {
       window.alert(dict.auth.errorGeneric);
       return;
+    }
+    if (isNew) {
+      void logAdminAction("created", "market_category", null, {
+        name: draft.name_en,
+      });
+    } else {
+      void logAdminAction("updated", "market_category", currentId);
     }
     cancel();
     router.refresh();
@@ -92,6 +101,7 @@ export function MarketCategoryManager({
       window.alert(dict.auth.errorGeneric);
       return;
     }
+    void logAdminAction("deleted", "market_category", id);
     router.refresh();
   }
 

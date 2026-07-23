@@ -35,6 +35,8 @@ export default async function AdminAuditPage({
   }[];
 
   const t = dict.admin.audit;
+  const verbs = dict.admin.auditLabels.verbs as Record<string, string>;
+  const entities = dict.admin.auditLabels.entities as Record<string, string>;
   const fmt = (iso: string) =>
     new Date(iso).toLocaleString(lang === "ar" ? "ar" : "en", {
       dateStyle: "short",
@@ -71,11 +73,16 @@ export default async function AdminAuditPage({
                       </td>
                       <td className="p-3.5">
                         <Badge variant="neutral" size="sm">
-                          {r.action}
+                          {verbs[r.action] ?? r.action}
                         </Badge>
                       </td>
                       <td className="p-3.5 text-muted-foreground">
-                        {[r.entity_type, r.entity_id?.slice(0, 8)]
+                        {[
+                          r.entity_type
+                            ? (entities[r.entity_type] ?? r.entity_type)
+                            : null,
+                          r.entity_id?.slice(0, 8),
+                        ]
                           .filter(Boolean)
                           .join(" · ")}
                       </td>

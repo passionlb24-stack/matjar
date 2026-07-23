@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { logAdminAction } from "@/lib/audit";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Button } from "@/components/ui/button";
 
@@ -31,6 +32,12 @@ export function AdminVerificationActions({
       window.alert(dict.auth.errorGeneric);
       return;
     }
+    void logAdminAction(
+      status === "verified" ? "approved" : "rejected",
+      "verification",
+      id,
+      { to: status },
+    );
     router.refresh();
   }
 

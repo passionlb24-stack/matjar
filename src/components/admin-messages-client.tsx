@@ -6,6 +6,7 @@ import { MessageSquare, Trash2 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
+import { logAdminAction } from "@/lib/audit";
 import { notifyError } from "@/lib/notify";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
@@ -62,6 +63,7 @@ export function AdminMessagesClient({
       notifyError(dict.common.actionFailed);
       return;
     }
+    void logAdminAction("deleted", "message", id);
     router.refresh();
   }
 

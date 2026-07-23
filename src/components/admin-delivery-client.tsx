@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, Trash2, Truck, Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { notifyError } from "@/lib/notify";
+import { logAdminAction } from "@/lib/audit";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
@@ -54,6 +55,7 @@ export function AdminDeliveryClient({
       notifyError(dict.common.actionFailed);
       return;
     }
+    void logAdminAction("created", "delivery_company", null, { name });
     el.reset();
     router.refresh();
   }
@@ -69,6 +71,9 @@ export function AdminDeliveryClient({
       notifyError(dict.common.actionFailed);
       return;
     }
+    void logAdminAction("updated", "delivery_company", id, {
+      is_active: p.is_active,
+    });
     router.refresh();
   }
 
@@ -84,6 +89,7 @@ export function AdminDeliveryClient({
       notifyError(dict.common.actionFailed);
       return;
     }
+    void logAdminAction("deleted", "delivery_company", id);
     router.refresh();
   }
 

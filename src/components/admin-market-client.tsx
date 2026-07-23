@@ -19,6 +19,7 @@ import {
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
+import { logAdminAction, type AuditVerb } from "@/lib/audit";
 import { notifyError } from "@/lib/notify";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
@@ -136,6 +137,12 @@ export function AdminMarketClient({
       notifyError(dict.common.actionFailed);
       return;
     }
+    let verb: AuditVerb | null = null;
+    if (values.status === "active") verb = "approved";
+    else if (values.status === "rejected") verb = "rejected";
+    else if ("is_featured" in values)
+      verb = values.is_featured ? "featured" : "unfeatured";
+    if (verb) void logAdminAction(verb, "listing", id, values);
     router.refresh();
   }
 
@@ -151,6 +158,7 @@ export function AdminMarketClient({
       notifyError(dict.common.actionFailed);
       return;
     }
+    void logAdminAction("deleted", "listing", id);
     router.refresh();
   }
 

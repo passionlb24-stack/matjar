@@ -7,6 +7,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
 import { notifyError } from "@/lib/notify";
+import { logAdminAction } from "@/lib/audit";
 import { Container } from "@/components/ui/container";
 
 export type MarketRegionRow = {
@@ -65,19 +66,27 @@ export function MarketRegionManager({
   async function save() {
     setBusy(true);
     const supabase = createClient();
-    const { error } =
-      editingId === "new"
-        ? await supabase.from("market_regions").insert(draft)
-        : editingId
-          ? await supabase
-              .from("market_regions")
-              .update(draft)
-              .eq("id", editingId)
-          : { error: null };
+    const isNew = editingId === "new";
+    const currentId = editingId;
+    const { error } = isNew
+      ? await supabase.from("market_regions").insert(draft)
+      : editingId
+        ? await supabase
+            .from("market_regions")
+            .update(draft)
+            .eq("id", editingId)
+        : { error: null };
     setBusy(false);
     if (error) {
       notifyError(dict.common.actionFailed);
       return;
+    }
+    if (isNew) {
+      void logAdminAction("created", "market_region", null, {
+        name: draft.name_en,
+      });
+    } else if (currentId) {
+      void logAdminAction("updated", "market_region", currentId);
     }
     cancel();
     router.refresh();
@@ -95,6 +104,7 @@ export function MarketRegionManager({
       notifyError(dict.common.actionFailed);
       return;
     }
+    void logAdminAction("deleted", "market_region", id);
     router.refresh();
   }
 

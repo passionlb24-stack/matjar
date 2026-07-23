@@ -6,6 +6,7 @@ import { Search, Ban, Play, Users, ShieldCheck, Check, X } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
+import { logAdminAction } from "@/lib/audit";
 import { ADMIN_SECTIONS } from "@/lib/admin-sections";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
@@ -68,6 +69,7 @@ export function AdminUsersClient({
       window.alert(dict.auth.errorGeneric);
       return;
     }
+    void logAdminAction(next ? "reactivated" : "suspended", "user", id);
     router.refresh();
   }
 
@@ -93,6 +95,7 @@ export function AdminUsersClient({
       window.alert(dict.auth.errorGeneric);
       return;
     }
+    void logAdminAction("access_changed", "user", id, { sections: draft.length });
     setOpenPerms(null);
     router.refresh();
   }

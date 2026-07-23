@@ -6,6 +6,7 @@ import { Plus, Pencil, Trash2, X } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
+import { logAdminAction } from "@/lib/audit";
 import { Container } from "@/components/ui/container";
 
 export type BusinessType = {
@@ -65,17 +66,25 @@ export function BusinessTypeManager({
   async function save() {
     setBusy(true);
     const supabase = createClient();
-    const { error } =
-      editingId === "new"
-        ? await supabase.from("business_types").insert(draft)
-        : await supabase
-            .from("business_types")
-            .update({ ...draft, updated_at: new Date().toISOString() })
-            .eq("id", editingId!);
+    const isNew = editingId === "new";
+    const currentId = editingId;
+    const { error } = isNew
+      ? await supabase.from("business_types").insert(draft)
+      : await supabase
+          .from("business_types")
+          .update({ ...draft, updated_at: new Date().toISOString() })
+          .eq("id", editingId!);
     setBusy(false);
     if (error) {
       window.alert(dict.auth.errorGeneric);
       return;
+    }
+    if (isNew) {
+      void logAdminAction("created", "business_type", null, {
+        name: draft.name_en,
+      });
+    } else {
+      void logAdminAction("updated", "business_type", currentId);
     }
     cancel();
     router.refresh();
@@ -93,6 +102,7 @@ export function BusinessTypeManager({
       window.alert(dict.auth.errorGeneric);
       return;
     }
+    void logAdminAction("deleted", "business_type", id);
     router.refresh();
   }
 
