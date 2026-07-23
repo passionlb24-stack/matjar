@@ -49,6 +49,9 @@ export const metadata: Metadata = {
     images: ["/opengraph-image.png"],
   },
   manifest: "/manifest.webmanifest",
+  verification: {
+    google: "fRJTZiuJNv-lbiuGfanG8FAZFTV85klXdnQLiw1bXmM",
+  },
 };
 
 export const viewport: Viewport = {
