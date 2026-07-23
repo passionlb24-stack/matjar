@@ -24,6 +24,7 @@ import {
   TrendingUp,
   MessageSquare,
   HelpCircle,
+  GraduationCap,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -40,6 +41,7 @@ const icons = {
   freelance: Palette,
   wholesale: PackageOpen,
   leaders: Crown,
+  academy: GraduationCap,
   reviews: Star,
   verifications: BadgeCheck,
   messages: MessageSquare,
@@ -76,6 +78,7 @@ const GROUPS: { key: string; items: { key: NavKey; path: string }[] }[] = [
       { key: "freelance", path: "/freelance" },
       { key: "wholesale", path: "/wholesale" },
       { key: "leaders", path: "/leaders" },
+      { key: "academy", path: "/academy" },
     ],
   },
   {

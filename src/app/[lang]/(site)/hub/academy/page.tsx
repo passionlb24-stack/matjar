@@ -7,7 +7,8 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
 import { AcademyExplorer, type LightGuide } from "@/components/hub/academy-explorer";
-import { GUIDES, CATEGORY_STYLE, LEARNING_PATHS } from "@/content/academy";
+import { CATEGORY_STYLE, LEARNING_PATHS } from "@/content/academy";
+import { getAcademyGuides } from "@/lib/data/academy";
 
 export async function generateMetadata({
   params,
@@ -34,9 +35,10 @@ export default async function AcademyPage({
   const dict = await getDictionary(lang);
   const a = dict.hub.academy;
   const en = lang === "en";
-  const featured = GUIDES[0];
+  const guides = await getAcademyGuides();
+  const featured = guides[0];
   const fs = CATEGORY_STYLE[featured.category];
-  const light: LightGuide[] = GUIDES.map((g) => ({
+  const light: LightGuide[] = guides.map((g) => ({
     slug: g.slug,
     title: g.title,
     titleEn: g.titleEn,

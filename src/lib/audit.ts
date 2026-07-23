@@ -46,7 +46,8 @@ export type AuditEntity =
   | "market_region"
   | "delivery_company"
   | "subscription"
-  | "setting";
+  | "setting"
+  | "academy";
 
 export async function logAdminAction(
   action: AuditVerb | string,

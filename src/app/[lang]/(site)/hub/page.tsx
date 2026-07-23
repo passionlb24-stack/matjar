@@ -31,7 +31,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
-import { GUIDES } from "@/content/academy";
+import { getAcademyGuides } from "@/lib/data/academy";
 
 export async function generateMetadata({
   params,
@@ -65,6 +65,7 @@ export default async function HubPage({
   const h = dict.hub;
   const m = h.home;
   const base = `/${lang}`;
+  const guideCount = (await getAcademyGuides()).length;
 
   return (
     <div className="pb-16">
@@ -115,7 +116,7 @@ export default async function HubPage({
                   <div>
                     <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary-soft text-primary"><GraduationCap className="h-5 w-5" /></span>
                     <h3 className="mt-3 text-sm font-extrabold">{h.academyTitle}</h3>
-                    <p className="text-xs text-muted-foreground">{GUIDES.length} أدلّة عمليّة</p>
+                    <p className="text-xs text-muted-foreground">{guideCount} أدلّة عمليّة</p>
                   </div>
                   <div className="mt-4 flex h-12 items-end gap-1.5">
                     {[40, 62, 50, 86, 70].map((v, i) => (

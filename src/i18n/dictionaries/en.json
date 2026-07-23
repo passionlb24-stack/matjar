@@ -1463,6 +1463,7 @@
       "jobs": "Jobs",
       "freelance": "Freelance",
       "wholesale": "Wholesale",
+      "academy": "Academy",
       "messages": "Messages",
       "questions": "Product Q&A",
       "growth": "Growth",
@@ -1505,6 +1506,46 @@
     "wholesale": {
       "title": "Wholesale management",
       "subtitle": "Moderate wholesale offers — publish, hide, or delete."
+    },
+    "academyAdmin": {
+      "title": "Academy management",
+      "subtitle": "Create, edit and publish Academy guides without a code deploy.",
+      "new": "New guide",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this guide permanently?",
+      "empty": "No guides yet.",
+      "published": "Published",
+      "draft": "Draft",
+      "save": "Save",
+      "cancel": "Cancel",
+      "slug": "Slug",
+      "category": "Category",
+      "level": "Level",
+      "titleAr": "Title (Arabic)",
+      "titleEn": "Title (English)",
+      "excerpt": "Excerpt",
+      "readMin": "Read minutes",
+      "emoji": "Emoji",
+      "sortOrder": "Order",
+      "blocks": "Content",
+      "addBlock": "Add block",
+      "removeBlock": "Remove block",
+      "blockType": "Type",
+      "blockText": "Text",
+      "listHint": "One item per line",
+      "types": {
+        "p": "Paragraph",
+        "h": "Heading",
+        "ul": "Bulleted list",
+        "ol": "Numbered list",
+        "tip": "Tip"
+      },
+      "levels": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate"
+      },
+      "saveFailed": "Couldn't save. Make sure the slug is unique."
     },
     "growth": {
       "title": "Growth visibility",
@@ -1638,7 +1679,8 @@
         "market_region": "Region",
         "delivery_company": "Delivery company",
         "subscription": "Subscription",
-        "setting": "Setting"
+        "setting": "Setting",
+        "academy": "Academy guide"
       }
     },
     "market": {

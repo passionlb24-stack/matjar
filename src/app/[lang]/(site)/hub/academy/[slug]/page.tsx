@@ -7,7 +7,8 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
 import { GuideBody } from "@/components/hub/guide-body";
-import { getGuide, CATEGORY_STYLE, CATEGORY_ICON } from "@/content/academy";
+import { CATEGORY_STYLE, CATEGORY_ICON } from "@/content/academy";
+import { getAcademyGuide } from "@/lib/data/academy";
 
 export async function generateMetadata({
   params,
@@ -16,7 +17,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang, slug } = await params;
   if (!isLocale(lang)) return {};
-  const g = getGuide(slug);
+  const g = await getAcademyGuide(slug);
   if (!g) return {};
   return {
     title: lang === "en" ? g.titleEn : g.title,
@@ -32,7 +33,7 @@ export default async function GuidePage({
 }) {
   const { lang, slug } = await params;
   if (!isLocale(lang)) notFound();
-  const g = getGuide(slug);
+  const g = await getAcademyGuide(slug);
   if (!g) notFound();
   const dict = await getDictionary(lang);
   const a = dict.hub.academy;

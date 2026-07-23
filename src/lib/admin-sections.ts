@@ -12,6 +12,7 @@ export const ADMIN_SECTIONS = [
   "freelance",
   "wholesale",
   "leaders",
+  "academy",
   "reviews",
   "verifications",
   "messages",
