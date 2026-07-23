@@ -1467,6 +1467,8 @@
       "messages": "Messages",
       "questions": "Product Q&A",
       "growth": "Growth",
+      "deals": "Flash & Deals",
+      "pages": "Pages",
       "audit": "Audit log"
     },
     "navGroups": {
@@ -1506,6 +1508,40 @@
     "wholesale": {
       "title": "Wholesale management",
       "subtitle": "Moderate wholesale offers — publish, hide, or delete."
+    },
+    "dealsAdmin": {
+      "title": "Flash & Deals",
+      "subtitle": "Monitor flash sales and clearance across all stores, and end any inappropriate offer.",
+      "flash": "Active flash",
+      "clearance": "Clearance",
+      "product": "Product",
+      "store": "Store",
+      "flashPrice": "Flash price",
+      "endsAt": "Ends",
+      "endFlash": "End flash",
+      "endConfirm": "End the flash sale on this product?",
+      "total": "Total",
+      "empty": "No active offers."
+    },
+    "pagesAdmin": {
+      "title": "Custom pages",
+      "subtitle": "Create content pages served at /p/slug — without a code deploy.",
+      "new": "New page",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this page permanently?",
+      "empty": "No pages yet.",
+      "published": "Published",
+      "draft": "Draft",
+      "save": "Save",
+      "cancel": "Cancel",
+      "slug": "Slug",
+      "titleAr": "Title (Arabic)",
+      "titleEn": "Title (English)",
+      "body": "Content",
+      "bodyHint": "Separate paragraphs with a blank line.",
+      "view": "View",
+      "saveFailed": "Couldn't save. Make sure the slug is unique."
     },
     "academyAdmin": {
       "title": "Academy management",
@@ -1680,7 +1716,9 @@
         "delivery_company": "Delivery company",
         "subscription": "Subscription",
         "setting": "Setting",
-        "academy": "Academy guide"
+        "academy": "Academy guide",
+        "product": "Product",
+        "page": "Page"
       }
     },
     "market": {

@@ -20,8 +20,10 @@ export const ADMIN_SECTIONS = [
   "subscriptions",
   "reports",
   "growth",
+  "deals",
   "users",
   "types",
+  "pages",
   "audit",
   "settings",
 ] as const;

@@ -25,6 +25,8 @@ import {
   MessageSquare,
   HelpCircle,
   GraduationCap,
+  Zap,
+  FileText,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -49,8 +51,10 @@ const icons = {
   subscriptions: CreditCard,
   reports: BarChart3,
   growth: TrendingUp,
+  deals: Zap,
   users: Users,
   types: Tags,
+  pages: FileText,
   audit: ScrollText,
   settings: Settings,
 } as const;
@@ -96,6 +100,7 @@ const GROUPS: { key: string; items: { key: NavKey; path: string }[] }[] = [
       { key: "subscriptions", path: "/subscriptions" },
       { key: "reports", path: "/reports" },
       { key: "growth", path: "/growth" },
+      { key: "deals", path: "/deals" },
     ],
   },
   {
@@ -103,6 +108,7 @@ const GROUPS: { key: string; items: { key: NavKey; path: string }[] }[] = [
     items: [
       { key: "users", path: "/users" },
       { key: "types", path: "/business-types" },
+      { key: "pages", path: "/pages" },
       { key: "audit", path: "/audit" },
       { key: "settings", path: "/settings" },
     ],

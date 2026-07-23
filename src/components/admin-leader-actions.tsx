@@ -2,23 +2,60 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, EyeOff, Trash2 } from "lucide-react";
+import { BadgeCheck, Check, EyeOff, Star, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { logAdminAction } from "@/lib/audit";
 import { Button } from "@/components/ui/button";
 
-// Admin-only publish/delete island for business_leaders. RLS lets super-admins
-// mutate any row, so the calls run straight from the client. Mirrors
-// admin-verification-actions.tsx.
+// Admin-only publish/feature/verify/delete island for business_leaders. RLS
+// lets super-admins mutate any row, so the calls run straight from the client.
+// Mirrors admin-verification-actions.tsx.
 export function AdminLeaderActions({
   id,
   published,
+  featured,
+  verificationStatus,
 }: {
   id: string;
   published: boolean;
+  featured: boolean;
+  verificationStatus: string | null;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  const verified = verificationStatus === "verified";
+
+  async function toggleFeatured() {
+    const next = !featured;
+    setBusy(true);
+    const { error } = await createClient()
+      .from("business_leaders")
+      .update({ featured: next })
+      .eq("id", id);
+    setBusy(false);
+    if (error) {
+      window.alert("حدث خطأ. حاوِل مرة أخرى.");
+      return;
+    }
+    void logAdminAction(next ? "featured" : "unfeatured", "leader", id);
+    router.refresh();
+  }
+
+  async function toggleVerified() {
+    const next = !verified;
+    setBusy(true);
+    const { error } = await createClient()
+      .from("business_leaders")
+      .update({ verification_status: next ? "verified" : "needs_review" })
+      .eq("id", id);
+    setBusy(false);
+    if (error) {
+      window.alert("حدث خطأ. حاوِل مرة أخرى.");
+      return;
+    }
+    void logAdminAction(next ? "verified" : "unverified", "leader", id);
+    router.refresh();
+  }
 
   async function togglePublished() {
     const nextPublished = !published;
@@ -54,6 +91,24 @@ export function AdminLeaderActions({
 
   return (
     <div className="flex shrink-0 items-center gap-2">
+      <Button
+        size="sm"
+        variant={featured ? "primary" : "outline"}
+        onClick={toggleFeatured}
+        disabled={busy}
+        leftIcon={<Star className="h-4 w-4" />}
+      >
+        {featured ? "إلغاء التمييز" : "تمييز"}
+      </Button>
+      <Button
+        size="sm"
+        variant={verified ? "primary" : "outline"}
+        onClick={toggleVerified}
+        disabled={busy}
+        leftIcon={<BadgeCheck className="h-4 w-4" />}
+      >
+        {verified ? "إلغاء التوثيق" : "توثيق"}
+      </Button>
       {published ? (
         <Button
           size="sm"

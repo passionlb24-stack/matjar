@@ -115,7 +115,12 @@ export default async function AdminLeadersPage({
                     </div>
                   </div>
 
-                  <AdminLeaderActions id={r.id} published={r.published} />
+                  <AdminLeaderActions
+                    id={r.id}
+                    published={r.published}
+                    featured={r.featured}
+                    verificationStatus={r.verification_status}
+                  />
                 </div>
               ))}
             </div>
