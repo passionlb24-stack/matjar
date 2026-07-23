@@ -25,6 +25,7 @@ import {
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
+import { canAccess, type AdminAccess } from "@/lib/admin-sections";
 
 const icons = {
   overview: LayoutGrid,
@@ -96,16 +97,33 @@ const GROUPS: { key: string; items: { key: NavKey; path: string }[] }[] = [
   },
 ];
 
-export function AdminNav({ lang, dict }: { lang: Locale; dict: Dictionary }) {
+export function AdminNav({
+  lang,
+  dict,
+  access,
+}: {
+  lang: Locale;
+  dict: Dictionary;
+  access: AdminAccess;
+}) {
   const pathname = usePathname();
   const base = `/${lang}/admin`;
   const groups = dict.admin.navGroups as Record<string, string>;
+
+  // A sub-admin sees only granted sections. 'overview' is always visible; every
+  // other item is gated by its section key. Groups with nothing visible drop.
+  const visibleGroups = GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter(
+      (item) => item.key === "overview" || canAccess(access, item.key),
+    ),
+  })).filter((group) => group.items.length > 0);
 
   return (
     <div className="border-b border-border bg-background">
       <Container>
         <nav className="flex items-stretch gap-2 overflow-x-auto py-2.5">
-          {GROUPS.map((group, gi) => (
+          {visibleGroups.map((group, gi) => (
             <Fragment key={group.key}>
               {gi > 0 && (
                 <div className="w-px shrink-0 self-stretch bg-border" />

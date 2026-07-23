@@ -3,9 +3,12 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { AdminNav } from "@/components/admin-nav";
+import type { AdminAccess } from "@/lib/admin-sections";
 
-// All /admin pages share the super_admin gate + section nav. Individual pages
-// no longer need to re-check the role.
+// All /admin pages share the platform-admin gate + section nav. Access is
+// either "all" (super_admin) or the explicit set of granted sections
+// (sub-admin). Entry requires at least one section; the nav then shows only
+// what the admin may reach. RLS remains the real enforcement on writes.
 export default async function AdminLayout({
   children,
   params,
@@ -25,16 +28,23 @@ export default async function AdminLayout({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, admin_permissions")
     .eq("id", user.id)
     .maybeSingle();
-  if ((profile as { role?: string } | null)?.role !== "super_admin") {
+
+  const p = profile as
+    | { role?: string; admin_permissions?: string[] | null }
+    | null;
+  const isSuper = p?.role === "super_admin";
+  const perms = Array.isArray(p?.admin_permissions) ? p!.admin_permissions! : [];
+  if (!isSuper && perms.length === 0) {
     redirect(`/${lang}`);
   }
+  const access: AdminAccess = isSuper ? "all" : perms;
 
   return (
     <>
-      <AdminNav lang={lang} dict={dict} />
+      <AdminNav lang={lang} dict={dict} access={access} />
       {children}
     </>
   );

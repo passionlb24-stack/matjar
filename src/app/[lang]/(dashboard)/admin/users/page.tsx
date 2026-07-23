@@ -18,11 +18,19 @@ export default async function AdminUsersPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data } = await supabase
-    .from("profiles")
-    .select("id, full_name, phone, role, is_active, created_at")
-    .order("created_at", { ascending: false });
+  const [{ data }, { data: me }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, full_name, phone, role, is_active, created_at, admin_permissions")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user?.id ?? "")
+      .maybeSingle(),
+  ]);
   const users = (data ?? []) as AdminUser[];
+  const viewerIsSuper = (me as { role?: string } | null)?.role === "super_admin";
 
   return (
     <AdminUsersClient
@@ -30,6 +38,7 @@ export default async function AdminUsersPage({
       dict={dict}
       users={users}
       currentUserId={user?.id ?? ""}
+      viewerIsSuper={viewerIsSuper}
     />
   );
 }

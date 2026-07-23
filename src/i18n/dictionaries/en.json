@@ -1627,6 +1627,12 @@
       "reactivate": "Reactivate",
       "empty": "No matching users.",
       "you": "You",
+      "grantAccess": "Access",
+      "manageAccess": "Admin access",
+      "accessHint": "Pick the admin sections this user can reach. No selection = not an admin.",
+      "adminBadge": "Admin",
+      "save": "Save",
+      "cancel": "Cancel",
       "roles": {
         "customer": "Customer",
         "merchant": "Merchant",

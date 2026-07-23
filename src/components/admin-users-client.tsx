@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Ban, Play, Users } from "lucide-react";
+import { Search, Ban, Play, Users, ShieldCheck, Check, X } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
+import { ADMIN_SECTIONS } from "@/lib/admin-sections";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
@@ -21,6 +22,7 @@ export type AdminUser = {
   role: "customer" | "merchant" | "super_admin" | "driver";
   is_active: boolean;
   created_at: string;
+  admin_permissions: string[] | null;
 };
 
 const roleVariant: Record<
@@ -38,16 +40,21 @@ export function AdminUsersClient({
   dict,
   users,
   currentUserId,
+  viewerIsSuper,
 }: {
   lang: Locale;
   dict: Dictionary;
   users: AdminUser[];
   currentUserId: string;
+  viewerIsSuper: boolean;
 }) {
   const router = useRouter();
   const t = dict.admin.usersAdmin;
+  const navLabels = dict.admin.nav as Record<string, string>;
   const [busy, setBusy] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [openPerms, setOpenPerms] = useState<string | null>(null);
+  const [draft, setDraft] = useState<string[]>([]);
 
   async function toggle(id: string, next: boolean) {
     if (!next && !window.confirm(dict.admin.confirmSuspendUser)) return;
@@ -61,6 +68,32 @@ export function AdminUsersClient({
       window.alert(dict.auth.errorGeneric);
       return;
     }
+    router.refresh();
+  }
+
+  function openEditor(u: AdminUser) {
+    setOpenPerms(u.id);
+    setDraft(Array.isArray(u.admin_permissions) ? u.admin_permissions : []);
+  }
+
+  function toggleSection(key: string) {
+    setDraft((d) =>
+      d.includes(key) ? d.filter((k) => k !== key) : [...d, key],
+    );
+  }
+
+  async function savePerms(id: string) {
+    setBusy(id);
+    const { error } = await createClient()
+      .from("profiles")
+      .update({ admin_permissions: draft })
+      .eq("id", id);
+    setBusy(null);
+    if (error) {
+      window.alert(dict.auth.errorGeneric);
+      return;
+    }
+    setOpenPerms(null);
     router.refresh();
   }
 
@@ -103,58 +136,143 @@ export function AdminUsersClient({
             <div data-animate className="divide-y divide-border">
               {filtered.map((u) => {
                 const isSelf = u.id === currentUserId;
+                const permCount = Array.isArray(u.admin_permissions)
+                  ? u.admin_permissions.length
+                  : 0;
+                const canManagePerms =
+                  viewerIsSuper && !isSelf && u.role !== "super_admin";
+                const editing = openPerms === u.id;
                 return (
-                  <div
-                    key={u.id}
-                    className="flex flex-col gap-3 p-4 transition-colors hover:bg-surface-muted sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div className="flex min-w-0 items-center gap-3">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-soft text-sm font-extrabold text-primary">
-                        {initial(u.full_name)}
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-bold">
-                            {u.full_name ?? "—"}
-                            {isSelf && (
-                              <span className="ms-1 text-xs font-normal text-muted-foreground">
-                                ({t.you})
-                              </span>
-                            )}
-                          </span>
-                          <Badge variant={roleVariant[u.role]} size="sm">
-                            {t.roles[u.role]}
-                          </Badge>
-                          {!u.is_active && (
-                            <Badge variant="danger" size="sm">
-                              {t.suspended}
+                  <div key={u.id} className="transition-colors hover:bg-surface-muted">
+                    <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-soft text-sm font-extrabold text-primary">
+                          {initial(u.full_name)}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-bold">
+                              {u.full_name ?? "—"}
+                              {isSelf && (
+                                <span className="ms-1 text-xs font-normal text-muted-foreground">
+                                  ({t.you})
+                                </span>
+                              )}
+                            </span>
+                            <Badge variant={roleVariant[u.role]} size="sm">
+                              {t.roles[u.role]}
                             </Badge>
-                          )}
+                            {u.role !== "super_admin" && permCount > 0 && (
+                              <Badge variant="primary" size="sm">
+                                <ShieldCheck className="h-3 w-3" />
+                                {t.adminBadge} · {permCount}
+                              </Badge>
+                            )}
+                            {!u.is_active && (
+                              <Badge variant="danger" size="sm">
+                                {t.suspended}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="mt-0.5 text-sm text-muted-foreground">
+                            {u.phone ? `${u.phone} · ` : ""}
+                            {t.joined} {fmtDate(u.created_at)}
+                          </p>
                         </div>
-                        <p className="mt-0.5 text-sm text-muted-foreground">
-                          {u.phone ? `${u.phone} · ` : ""}
-                          {t.joined} {fmtDate(u.created_at)}
-                        </p>
+                      </div>
+
+                      <div className="flex shrink-0 flex-wrap items-center gap-2">
+                        {canManagePerms && (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() =>
+                              editing ? setOpenPerms(null) : openEditor(u)
+                            }
+                            leftIcon={<ShieldCheck className="h-4 w-4" />}
+                          >
+                            {t.grantAccess}
+                          </Button>
+                        )}
+                        {!isSelf && u.role !== "super_admin" && (
+                          <Button
+                            size="sm"
+                            variant={u.is_active ? "secondary" : "primary"}
+                            disabled={busy === u.id}
+                            onClick={() => toggle(u.id, !u.is_active)}
+                            leftIcon={
+                              u.is_active ? (
+                                <Ban className="h-4 w-4" />
+                              ) : (
+                                <Play className="h-4 w-4" />
+                              )
+                            }
+                            className={
+                              u.is_active ? "!text-danger" : ""
+                            }
+                          >
+                            {u.is_active ? t.suspend : t.reactivate}
+                          </Button>
+                        )}
                       </div>
                     </div>
 
-                    {!isSelf && u.role !== "super_admin" && (
-                      <Button
-                        size="sm"
-                        variant={u.is_active ? "secondary" : "primary"}
-                        disabled={busy === u.id}
-                        onClick={() => toggle(u.id, !u.is_active)}
-                        leftIcon={
-                          u.is_active ? (
-                            <Ban className="h-4 w-4" />
-                          ) : (
-                            <Play className="h-4 w-4" />
-                          )
-                        }
-                        className={u.is_active ? "shrink-0 !text-danger" : "shrink-0"}
-                      >
-                        {u.is_active ? t.suspend : t.reactivate}
-                      </Button>
+                    {editing && (
+                      <div className="border-t border-border bg-surface-muted/40 p-4">
+                        <div className="mb-2 flex items-center gap-2 text-sm font-bold">
+                          <ShieldCheck className="h-4 w-4 text-primary" />
+                          {t.manageAccess}
+                        </div>
+                        <p className="mb-3 text-xs text-muted-foreground">
+                          {t.accessHint}
+                        </p>
+                        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
+                          {ADMIN_SECTIONS.map((key) => {
+                            const on = draft.includes(key);
+                            return (
+                              <button
+                                key={key}
+                                type="button"
+                                onClick={() => toggleSection(key)}
+                                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-start text-sm font-semibold transition-colors ${
+                                  on
+                                    ? "border-primary bg-primary-soft text-primary"
+                                    : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                                }`}
+                              >
+                                <span
+                                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                                    on
+                                      ? "border-primary bg-primary text-primary-foreground"
+                                      : "border-border"
+                                  }`}
+                                >
+                                  {on && <Check className="h-3 w-3" />}
+                                </span>
+                                {navLabels[key] ?? key}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="mt-3 flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            disabled={busy === u.id}
+                            onClick={() => savePerms(u.id)}
+                            leftIcon={<Check className="h-4 w-4" />}
+                          >
+                            {t.save}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => setOpenPerms(null)}
+                            leftIcon={<X className="h-4 w-4" />}
+                          >
+                            {t.cancel}
+                          </Button>
+                        </div>
+                      </div>
                     )}
                   </div>
                 );
