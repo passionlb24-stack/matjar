@@ -21,6 +21,9 @@ import {
   Briefcase,
   Palette,
   PackageOpen,
+  TrendingUp,
+  MessageSquare,
+  HelpCircle,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -39,8 +42,11 @@ const icons = {
   leaders: Crown,
   reviews: Star,
   verifications: BadgeCheck,
+  messages: MessageSquare,
+  questions: HelpCircle,
   subscriptions: CreditCard,
   reports: BarChart3,
+  growth: TrendingUp,
   users: Users,
   types: Tags,
   audit: ScrollText,
@@ -77,6 +83,8 @@ const GROUPS: { key: string; items: { key: NavKey; path: string }[] }[] = [
     items: [
       { key: "reviews", path: "/reviews" },
       { key: "verifications", path: "/verifications" },
+      { key: "messages", path: "/messages" },
+      { key: "questions", path: "/questions" },
     ],
   },
   {
@@ -84,6 +92,7 @@ const GROUPS: { key: string; items: { key: NavKey; path: string }[] }[] = [
     items: [
       { key: "subscriptions", path: "/subscriptions" },
       { key: "reports", path: "/reports" },
+      { key: "growth", path: "/growth" },
     ],
   },
   {
