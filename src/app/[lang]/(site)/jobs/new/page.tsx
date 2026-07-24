@@ -1,11 +1,13 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight, Briefcase } from "lucide-react";
+import { ChevronRight, Briefcase, Store } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
+import { Card, CardBody } from "@/components/ui/card";
+import { ButtonLink } from "@/components/ui/button";
 import { JobPostForm } from "@/components/job-post-form";
 
 export default async function NewJobPage({
@@ -31,10 +33,7 @@ export default async function NewJobPage({
     .is("deleted_at", null)
     .limit(1)
     .maybeSingle();
-  const defaultCompany =
-    (store as { name: string } | null)?.name ??
-    (user.user_metadata?.full_name as string | undefined) ??
-    "";
+  const defaultCompany = (store as { name: string } | null)?.name ?? "";
 
   return (
     <div className="py-10">
@@ -47,9 +46,35 @@ export default async function NewJobPage({
           {dict.jobs.title}
         </Link>
         <PageHeader className="mt-3" title={dict.jobs.postJob} icon={Briefcase} />
-        <div className="mt-2">
-          <JobPostForm lang={lang} dict={dict} defaultCompany={defaultCompany} />
-        </div>
+
+        {store ? (
+          <div className="mt-2">
+            <JobPostForm lang={lang} dict={dict} defaultCompany={defaultCompany} />
+          </div>
+        ) : (
+          // Job posting is merchants-only: no store → upsell, not the form.
+          // RLS (0157) is the real gate; this is the friendly UI.
+          <Card className="mt-4">
+            <CardBody className="flex flex-col items-center gap-3 py-10 text-center">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-soft text-primary">
+                <Store className="h-7 w-7" />
+              </span>
+              <h2 className="text-lg font-extrabold">
+                {dict.jobs.merchantOnlyTitle}
+              </h2>
+              <p className="max-w-sm text-sm text-muted-foreground">
+                {dict.jobs.merchantOnlyNote}
+              </p>
+              <ButtonLink
+                href={`/${lang}/merchant`}
+                className="mt-2"
+                leftIcon={<Store className="h-4 w-4" />}
+              >
+                {dict.common.openStore}
+              </ButtonLink>
+            </CardBody>
+          </Card>
+        )}
       </Container>
     </div>
   );

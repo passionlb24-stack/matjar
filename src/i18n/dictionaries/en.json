@@ -2434,6 +2434,8 @@
     "title": "Jobs",
     "subtitle": "Job openings across Lebanon — apply or post a job for free.",
     "postJob": "Post a job",
+    "merchantOnlyTitle": "Posting jobs is for merchants only",
+    "merchantOnlyNote": "To post a job you need a store on Matjar. Open your store free in minutes, then you can post your jobs.",
     "empty": "No matching jobs right now.",
     "allTypes": "All types",
     "allRegions": "All regions",
