@@ -3,6 +3,7 @@ import { Settings } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdminSection } from "@/lib/admin-guard";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
 import { AdminSettingsForm } from "@/components/admin-settings-form";
@@ -14,6 +15,7 @@ export default async function AdminSettingsPage({
 }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
+  await requireAdminSection("settings", lang);
   const dict = await getDictionary(lang);
 
   // Role is enforced by the admin layout.

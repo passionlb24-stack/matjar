@@ -85,6 +85,7 @@ export function AdminUsersClient({
   }
 
   async function savePerms(id: string) {
+    if (!window.confirm(dict.admin.confirmSavePerms)) return;
     setBusy(id);
     const { error } = await createClient()
       .from("profiles")

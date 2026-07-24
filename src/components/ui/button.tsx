@@ -17,7 +17,7 @@ type Variant =
 type Size = "sm" | "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-xl font-bold whitespace-nowrap " +
+  "relative inline-flex items-center justify-center gap-2 rounded-xl font-bold whitespace-nowrap " +
   "transition-[transform,box-shadow,background-color,border-color,color] duration-150 " +
   "active:scale-[0.97] disabled:pointer-events-none disabled:opacity-55 select-none";
 
@@ -34,7 +34,10 @@ const variants: Record<Variant, string> = {
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-9 px-3.5 text-sm",
+  // sm is 36px tall; a transparent pseudo extends the *hit area* to 44px
+  // vertically (WCAG 2.5.5) without enlarging the visible button. Icon-only sm
+  // buttons are already ~44px wide from the horizontal padding.
+  sm: "h-9 px-3.5 text-sm before:absolute before:inset-x-0 before:-inset-y-1 before:content-['']",
   md: "h-11 px-5 text-sm",
   lg: "h-12 px-6 text-base",
 };

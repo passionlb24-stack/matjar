@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdminSection } from "@/lib/admin-guard";
 import { AdminStoresClient, type AdminStore } from "@/components/admin-stores-client";
 
 type StoreRow = {
@@ -25,6 +26,7 @@ export default async function AdminStoresPage({
 }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
+  await requireAdminSection("stores", lang);
   const dict = await getDictionary(lang);
 
   const supabase = await createClient();

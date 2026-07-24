@@ -8,6 +8,11 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { localeAlternates, SITE_URL } from "@/lib/site";
 import { productJsonLd, jsonLdScript } from "@/lib/jsonld";
+import {
+  getPublicProductView,
+  getOwnedProductView,
+  type ProductView,
+} from "@/lib/data/product-view";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { regions, type CategoryKey } from "@/lib/catalog";
 import { attributeSummary } from "@/lib/attributes";
@@ -29,7 +34,7 @@ import { localized } from "@/lib/i18n-field";
 import { ProductMiniCard } from "@/components/product-mini-card";
 import { Container } from "@/components/ui/container";
 import { ProductGallery } from "@/components/product-gallery";
-import { ProductOrder, type Variant, type AddOn } from "@/components/product-order";
+import { ProductOrder } from "@/components/product-order";
 import { WishlistButton } from "@/components/wishlist-button";
 import { ShareButton } from "@/components/share-button";
 import { ProductStoryCard } from "@/components/product-story-card";
@@ -47,103 +52,20 @@ function formatPrice(price: number) {
   return price >= 1000 ? `$${Number(price).toLocaleString("en-US")}` : `$${price}`;
 }
 
-type ProductView = {
-  id: string;
-  storeId: string;
-  storeName: string;
-  acceptsDelivery: boolean;
-  acceptsPickup: boolean;
-  category: CategoryKey;
-  name: string;
-  nameEn: string | null;
-  description: string | null;
-  descriptionEn: string | null;
-  price: number;
-  discountPrice: number | null;
-  flashPrice: number | null;
-  flashStart: string | null;
-  flashEnd: string | null;
-  stock: number | null;
-  images: string[];
-  attributes: Record<string, string> | null;
-  variants: Variant[];
-  addons: AddOn[];
-};
-
 // React cache(): generateMetadata and the page both call loadProduct(id) for
-// the same request — this dedupes ~3 queries × 2 into one set per request.
+// the same request — dedupe into one call. The public product view now comes
+// from src/lib/data/product-view.ts (cookie-less + cross-request cached); only
+// the owner/staff draft-preview fallback touches the request-scoped client.
 const loadProduct = cache(async function loadProduct(
   id: string,
 ): Promise<ProductView | null> {
   if (!UUID_RE.test(id)) return null;
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("products")
-    .select(
-      "id, store_id, name, name_en, description, description_en, price, discount_price, flash_price, flash_start, flash_end, image_url, gallery, stock, attributes, stores(name, accepts_delivery, accepts_pickup, business_types(slug))",
-    )
-    .eq("id", id)
-    .is("deleted_at", null)
-    .maybeSingle();
-  if (!data) return null;
-
-  const store = data.stores as unknown as {
-    name: string;
-    accepts_delivery: boolean | null;
-    accepts_pickup: boolean | null;
-    business_types: { slug: string } | null;
-  } | null;
-
-  const [{ data: variants }, { data: addons }] = await Promise.all([
-    supabase
-      .from("product_variants")
-      .select("id, label, price, stock, is_available")
-      .eq("product_id", id)
-      .order("sort_order", { ascending: true }),
-    supabase
-      .from("product_options")
-      .select("id, name, price")
-      .eq("product_id", id)
-      .order("sort_order", { ascending: true }),
-  ]);
-
-  const gallery = Array.isArray(data.gallery) ? (data.gallery as string[]) : [];
-  const images = [data.image_url as string | null, ...gallery].filter(
-    Boolean,
-  ) as string[];
-
-  return {
-    id: data.id as string,
-    storeId: data.store_id as string,
-    storeName: store?.name ?? "",
-    acceptsDelivery: store?.accepts_delivery ?? true,
-    acceptsPickup: store?.accepts_pickup ?? true,
-    category: (store?.business_types?.slug as CategoryKey) ?? "retail",
-    name: data.name as string,
-    nameEn: (data.name_en as string | null) ?? null,
-    description: (data.description as string | null) ?? null,
-    descriptionEn: (data.description_en as string | null) ?? null,
-    price: Number(data.price),
-    discountPrice: data.discount_price != null ? Number(data.discount_price) : null,
-    flashPrice: data.flash_price != null ? Number(data.flash_price) : null,
-    flashStart: (data.flash_start as string | null) ?? null,
-    flashEnd: (data.flash_end as string | null) ?? null,
-    stock: data.stock != null ? Number(data.stock) : null,
-    images,
-    attributes: (data.attributes as Record<string, string> | null) ?? null,
-    variants: (variants ?? []).map((v) => ({
-      id: v.id as string,
-      label: v.label as string,
-      price: v.price != null ? Number(v.price) : null,
-      stock: v.stock != null ? Number(v.stock) : null,
-      is_available: v.is_available as boolean,
-    })),
-    addons: (addons ?? []).map((a) => ({
-      id: a.id as string,
-      name: a.name as string,
-      price: Number(a.price),
-    })),
-  };
+  // Common case: cached, cookie-less anon view (RLS → active products only).
+  const pub = await getPublicProductView(id);
+  if (pub) return pub;
+  // Owner/staff previewing a not-yet-public product: their RLS grant makes it
+  // visible on the request-scoped client. Uncached — visibility is per-user.
+  return getOwnedProductView(await createClient(), id);
 });
 
 export async function generateMetadata({

@@ -3,6 +3,7 @@ import { Receipt, TrendingUp, Undo2, Coins } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdminSection } from "@/lib/admin-guard";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
 import { Stat, StatGrid } from "@/components/ui/stat";
@@ -43,6 +44,7 @@ export default async function AdminOrdersPage({
 }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
+  await requireAdminSection("orders", lang);
   const dict = await getDictionary(lang);
   const t = dict.admin.ordersAdmin;
 

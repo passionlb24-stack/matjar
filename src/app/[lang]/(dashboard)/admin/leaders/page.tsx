@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Crown } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdminSection } from "@/lib/admin-guard";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
@@ -33,6 +34,7 @@ export default async function AdminLeadersPage({
 }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
+  await requireAdminSection("leaders", lang);
 
   const supabase = await createClient();
   const { data } = await supabase

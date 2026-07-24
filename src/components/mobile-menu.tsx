@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -47,6 +47,54 @@ export function MobileMenu({
 }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
+
+  // Modal drawer lifecycle (mirrors the merchant sidebar): while open, lock body
+  // scroll, close on Escape, trap Tab within the panel, and move focus inside on
+  // open. On close the effect cleanup returns focus to the trigger.
+  useEffect(() => {
+    if (!open) return;
+    const panel = panelRef.current;
+    const trigger = triggerRef.current;
+    const focusables = () =>
+      panel
+        ? Array.from(
+            panel.querySelectorAll<HTMLElement>(
+              'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])',
+            ),
+          ).filter((el) => el.offsetParent !== null)
+        : [];
+    focusables()[0]?.focus();
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        return;
+      }
+      if (e.key === "Tab") {
+        const els = focusables();
+        if (els.length === 0) return;
+        const first = els[0];
+        const last = els[els.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+      trigger?.focus();
+    };
+  }, [open]);
 
   const sections: { title: string; items: Item[] }[] = [
     {
@@ -91,11 +139,13 @@ export function MobileMenu({
   return (
     <div className="md:hidden">
       <button
+        ref={triggerRef}
         type="button"
         aria-label={dict.common.menu}
         aria-expanded={open}
+        aria-haspopup="dialog"
         onClick={() => setOpen((v) => !v)}
-        className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-surface-muted"
+        className="relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-surface-muted before:absolute before:-inset-1 before:content-['']"
       >
         {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
@@ -106,7 +156,13 @@ export function MobileMenu({
             className="fixed inset-0 top-16 z-40 bg-black/30"
             onClick={() => setOpen(false)}
           />
-          <nav className="fixed inset-x-0 top-16 z-40 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-border bg-background p-3 shadow-lg">
+          <nav
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={dict.common.menu}
+            className="fixed inset-x-0 top-16 z-40 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-border bg-background p-3 shadow-lg"
+          >
             {lbpRate > 0 && (
               <div className="mb-2 rounded-xl bg-surface-muted px-3 py-2 text-center text-sm font-bold text-muted-foreground">
                 $1 = {lbpRate.toLocaleString("en-US")}{" "}

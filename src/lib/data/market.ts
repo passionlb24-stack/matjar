@@ -1,4 +1,7 @@
+import { unstable_cache } from "next/cache";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public-client";
 import type { Locale } from "@/i18n/config";
 
 export type MarketCategory = {
@@ -213,12 +216,20 @@ export async function getActiveListings(
   return ((data ?? []) as unknown as Row[]).map((r) => toCard(r, lang));
 }
 
-export async function getListingById(
+// The public listing row (the heavy join) minus the two request-scoped counts.
+// savesCount / isFavorited are computed per-request below because
+// listing_favorites is RLS-scoped to the caller's own rows — they can't be
+// shared across visitors, so only the row itself is cached.
+type PublicListing = Omit<ListingDetail, "isFavorited" | "savesCount">;
+
+// Client-agnostic fetch + map for the listing row. `supabase` is the anon
+// public client on the cached path, or the request-scoped client on the seller
+// draft-preview fallback. RLS decides visibility; the query is identical.
+async function fetchListingRow(
+  supabase: SupabaseClient,
   id: string,
   lang: Locale,
-  currentUserId: string | null,
-): Promise<ListingDetail | null> {
-  const supabase = await createClient();
+): Promise<PublicListing | null> {
   const { data } = await supabase
     .from("listings")
     .select(
@@ -228,7 +239,48 @@ export async function getListingById(
     .maybeSingle();
   if (!data) return null;
   const r = data as unknown as Row;
+  return {
+    ...toCard(r, lang),
+    description: r.description ?? null,
+    images: imagesOf(r.images),
+    views: r.views ?? 0,
+    sellerId: r.seller_id,
+    storeWhatsapp: r.stores?.whatsapp ?? null,
+    storePhone: r.stores?.phone ?? null,
+    storeSlug: r.stores?.slug ?? null,
+  };
+}
 
+// Cached public listing row: anon client → RLS returns active/sold/expired
+// listings (the publicly visible set). Tagged listing:<id> for targeted bust.
+function getPublicListingRow(
+  id: string,
+  lang: Locale,
+): Promise<PublicListing | null> {
+  return unstable_cache(
+    () => fetchListingRow(createPublicClient(), id, lang),
+    ["listing-view", id, lang],
+    { revalidate: 120, tags: ["listings", `listing:${id}`] },
+  )();
+}
+
+export async function getListingById(
+  id: string,
+  lang: Locale,
+  currentUserId: string | null,
+): Promise<ListingDetail | null> {
+  // Common case: cached, cookie-less row.
+  let row = await getPublicListingRow(id, lang);
+  if (!row) {
+    // Seller previewing a not-yet-public listing → request-scoped client sees
+    // it via RLS. Uncached (per-user visibility).
+    row = await fetchListingRow(await createClient(), id, lang);
+    if (!row) return null;
+  }
+
+  // Per-request/per-user counts on the request-scoped client — identical to the
+  // original behavior (listing_favorites is RLS-scoped to the caller).
+  const supabase = await createClient();
   const [{ count }, favRes] = await Promise.all([
     supabase
       .from("listing_favorites")
@@ -245,16 +297,9 @@ export async function getListingById(
   ]);
 
   return {
-    ...toCard(r, lang),
-    description: r.description ?? null,
-    images: imagesOf(r.images),
-    views: r.views ?? 0,
+    ...row,
     savesCount: count ?? 0,
-    sellerId: r.seller_id,
     isFavorited: Boolean((favRes as { data: unknown }).data),
-    storeWhatsapp: r.stores?.whatsapp ?? null,
-    storePhone: r.stores?.phone ?? null,
-    storeSlug: r.stores?.slug ?? null,
   };
 }
 

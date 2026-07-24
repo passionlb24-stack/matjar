@@ -22,6 +22,8 @@ export function AdminVerificationActions({
   const t = dict.verifications;
 
   async function setStatus(status: "verified" | "rejected") {
+    if (status === "rejected" && !window.confirm(dict.admin.confirmRejectVerification))
+      return;
     setBusy(true);
     const { error } = await createClient()
       .from("store_verifications")

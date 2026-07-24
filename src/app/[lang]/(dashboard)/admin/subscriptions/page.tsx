@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdminSection } from "@/lib/admin-guard";
 import { AdminSubsClient, type SubRow } from "@/components/admin-subs-client";
 
 export default async function AdminSubscriptionsPage({
@@ -11,6 +12,7 @@ export default async function AdminSubscriptionsPage({
 }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
+  await requireAdminSection("subscriptions", lang);
   const dict = await getDictionary(lang);
 
   const supabase = await createClient();

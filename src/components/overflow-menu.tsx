@@ -100,7 +100,7 @@ export function OverflowMenu({
         aria-label={label}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground disabled:opacity-60"
+        className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground disabled:opacity-60 before:absolute before:-inset-1.5 before:content-['']"
       >
         <MoreHorizontal className="h-4 w-4" />
       </button>

@@ -134,6 +134,64 @@ export function productJsonLd(opts: {
   return data;
 }
 
+// Google Jobs rich result: a JobPosting per /jobs/[id]. Google requires title,
+// description, datePosted and hiringOrganization; jobLocation (or a TELECOMMUTE
+// type for remote roles) is strongly recommended. Our `salary_note` is free text
+// so it's intentionally left out of the structured baseSalary (which needs a
+// numeric value/unit) — a malformed salary hurts eligibility more than omitting
+// it. Maps the app's five job_type values to schema.org employmentType.
+const EMPLOYMENT_TYPES: Record<string, string> = {
+  full_time: "FULL_TIME",
+  part_time: "PART_TIME",
+  contract: "CONTRACTOR",
+  internship: "INTERN",
+};
+
+export function jobPostingJsonLd(opts: {
+  title: string;
+  description: string;
+  datePosted: string;
+  companyName: string;
+  url: string;
+  /** Human-readable region/area name, when known. */
+  region?: Nullable<string>;
+  /** Raw job_type value (full_time | part_time | contract | remote | internship). */
+  jobType?: Nullable<string>;
+}) {
+  const data: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "JobPosting",
+    title: opts.title,
+    description: opts.description,
+    datePosted: opts.datePosted,
+    hiringOrganization: {
+      "@type": "Organization",
+      name: opts.companyName,
+    },
+    url: opts.url,
+    // Country-level location (Lebanon); region fills in as the locality.
+    jobLocation: {
+      "@type": "Place",
+      address: {
+        "@type": "PostalAddress",
+        addressCountry: "LB",
+        ...(opts.region ? { addressLocality: opts.region } : {}),
+      },
+    },
+  };
+  if (opts.jobType === "remote") {
+    // Remote roles: mark the location type and where applicants may be based.
+    data.jobLocationType = "TELECOMMUTE";
+    data.applicantLocationRequirements = {
+      "@type": "Country",
+      name: "Lebanon",
+    };
+  } else if (opts.jobType && EMPLOYMENT_TYPES[opts.jobType]) {
+    data.employmentType = EMPLOYMENT_TYPES[opts.jobType];
+  }
+  return data;
+}
+
 /** Renders a JSON-LD object as the inner text for a <script type="application/ld+json">. */
 // Homepage brand graph: Organization (logo + social profiles) and WebSite with
 // a SearchAction (makes Google eligible to show the sitelinks search box).

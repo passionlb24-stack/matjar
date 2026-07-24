@@ -3,6 +3,7 @@ import { TrendingUp } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdminSection } from "@/lib/admin-guard";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
 import { Stat } from "@/components/ui/stat";
@@ -58,6 +59,7 @@ export default async function AdminGrowthPage({
 }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
+  await requireAdminSection("growth", lang);
   const dict = await getDictionary(lang);
   const t = dict.admin.growth;
 

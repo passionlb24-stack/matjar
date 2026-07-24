@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Tajawal, Alexandria } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { notFound } from "next/navigation";
@@ -91,15 +92,14 @@ export default async function RootLayout({
               "try{var t=localStorage.getItem('matjar-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}",
           }}
         />
-        {/* Google Tag Manager */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html:
-              "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-M89LK69J');",
-          }}
-        />
       </head>
       <body className="flex min-h-dvh flex-col bg-background font-sans text-foreground antialiased">
+        {/* Google Tag Manager — loaded after hydration so the container (and any
+            tags it injects) stays off the critical path / main thread at first
+            paint. next/script afterInteractive keeps the same GTM-M89LK69J id. */}
+        <Script id="gtm-base" strategy="afterInteractive">
+          {"(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-M89LK69J');"}
+        </Script>
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe

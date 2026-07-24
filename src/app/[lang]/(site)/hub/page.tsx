@@ -127,7 +127,7 @@ export default async function HubPage({
                 <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
                   <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary-soft text-primary"><TrendingUp className="h-5 w-5" /></span>
                   <h3 className="mt-3 text-sm font-extrabold">النموّ</h3>
-                  <p className="text-xs text-muted-foreground">+٢٤٪ هذا الشهر</p>
+                  <p className="text-xs text-muted-foreground">تابع أداءك ونموّك</p>
                 </div>
                 <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
                   <span className="grid h-9 w-9 place-items-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400"><Crown className="h-5 w-5" /></span>

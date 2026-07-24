@@ -27,6 +27,7 @@ export function AdminSettingsForm({
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!window.confirm(dict.admin.confirmSaveRate)) return;
     setLoading(true);
     setSaved(false);
     const key = "usd_lbp_rate";

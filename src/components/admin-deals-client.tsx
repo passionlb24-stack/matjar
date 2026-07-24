@@ -67,6 +67,7 @@ export function AdminDealsClient({
   }
 
   async function endClearance(id: string) {
+    if (!window.confirm(t.endConfirm)) return;
     setBusyId(id);
     const { error } = await createClient()
       .from("products")

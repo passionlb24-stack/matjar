@@ -3,6 +3,7 @@ import { BadgeCheck, ExternalLink, FileText } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdminSection } from "@/lib/admin-guard";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
@@ -31,6 +32,7 @@ export default async function AdminVerificationsPage({
 }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
+  await requireAdminSection("verifications", lang);
   const dict = await getDictionary(lang);
   const t = dict.verifications;
 

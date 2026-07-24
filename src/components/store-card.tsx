@@ -46,13 +46,13 @@ export function StoreCard({
         </div>
         <span
           className={`absolute start-3 top-3 rounded-full px-2.5 py-1 text-xs font-bold text-white ${
-            store.isOpen ? "bg-emerald-600" : "bg-slate-500"
+            store.isOpen ? "bg-emerald-700" : "bg-slate-600"
           }`}
         >
           {store.isOpen ? dict.featured.open : dict.featured.closed}
         </span>
         {store.featured && (
-          <span className="absolute bottom-3 start-3 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-xs font-bold text-white shadow-sm">
+          <span className="absolute bottom-3 start-3 inline-flex items-center gap-1 rounded-full bg-amber-700 px-2.5 py-1 text-xs font-bold text-white shadow-sm">
             <Sparkles className="h-3 w-3" />
             {dict.featured.featured}
           </span>

@@ -28,13 +28,13 @@
 
   /* Semantic status colors (badges, stats, progress, toasts). Each has a soft
      tinted background pair for pill/badge fills on the light theme. */
-  --success: #16a34a;
+  --success: #0b7a35; /* darkened for AA text on --success-soft (4.9:1) */
   --success-soft: #e8f7ee;
-  --warning: #d97706;
+  --warning: #a15607; /* darkened for AA text on --warning-soft (4.9:1) */
   --warning-soft: #fdf1e0;
-  --danger: #dc2626;
+  --danger: #b91c1c; /* darkened for AA text on --danger-soft (5.7:1) */
   --danger-soft: #fdecea;
-  --info: #0284c7;
+  --info: #0369a1; /* darkened for AA text on --info-soft (5.2:1) */
   --info-soft: #e3f2fb;
 }
 

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdminSection } from "@/lib/admin-guard";
 import {
   AdminQuestionsClient,
   type QuestionRow,
@@ -14,6 +15,7 @@ export default async function AdminQuestionsPage({
 }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
+  await requireAdminSection("questions", lang);
   const dict = await getDictionary(lang);
 
   const supabase = await createClient();

@@ -9,6 +9,7 @@ import {
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdminSection } from "@/lib/admin-guard";
 import { regions } from "@/lib/catalog";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
@@ -78,6 +79,7 @@ export default async function AdminReportsPage({
 }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
+  await requireAdminSection("reports", lang);
   const dict = await getDictionary(lang);
   const t = dict.admin.reports;
   const l = lang as Locale;

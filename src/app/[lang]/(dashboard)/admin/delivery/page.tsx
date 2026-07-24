@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdminSection } from "@/lib/admin-guard";
 import {
   AdminDeliveryClient,
   type DeliveryCompany,
@@ -14,6 +15,7 @@ export default async function AdminDeliveryPage({
 }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
+  await requireAdminSection("delivery", lang);
   const dict = await getDictionary(lang);
 
   const supabase = await createClient();

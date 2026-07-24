@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdminSection } from "@/lib/admin-guard";
 import { AdminPagesClient, type PageRow } from "@/components/admin-pages-client";
 
 export default async function AdminPagesPage({
@@ -11,6 +12,7 @@ export default async function AdminPagesPage({
 }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
+  await requireAdminSection("pages", lang);
   const dict = await getDictionary(lang);
 
   const supabase = await createClient();

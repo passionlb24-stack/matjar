@@ -58,6 +58,7 @@ function Row({
   }
 
   async function activate() {
+    if (!window.confirm(dict.admin.confirmActivateSub)) return;
     setBusy(true);
     const supabase = createClient();
     const {

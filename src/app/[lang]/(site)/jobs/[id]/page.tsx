@@ -5,7 +5,8 @@ import { Briefcase, MapPin, ChevronRight, Phone, FileText } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
-import { localeAlternates } from "@/lib/site";
+import { localeAlternates, SITE_URL } from "@/lib/site";
+import { jobPostingJsonLd, jsonLdScript } from "@/lib/jsonld";
 import { regions } from "@/lib/catalog";
 import type { JobPosting } from "@/lib/jobs";
 import { Container } from "@/components/ui/container";
@@ -99,6 +100,24 @@ export default async function JobDetailPage({
 
   return (
     <div className="py-10">
+      {job.status === "active" && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: jsonLdScript(
+              jobPostingJsonLd({
+                title: job.title,
+                description: job.description,
+                datePosted: job.created_at,
+                companyName: job.company_name,
+                url: `${SITE_URL}/${lang}/jobs/${id}`,
+                region: regionName,
+                jobType: job.job_type,
+              }),
+            ),
+          }}
+        />
+      )}
       <Container className="max-w-2xl">
         <Link
           href={`/${lang}/jobs`}

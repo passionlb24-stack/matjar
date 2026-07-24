@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdminSection } from "@/lib/admin-guard";
 import { AdminUsersClient, type AdminUser } from "@/components/admin-users-client";
 
 export default async function AdminUsersPage({
@@ -11,6 +12,7 @@ export default async function AdminUsersPage({
 }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
+  await requireAdminSection("users", lang);
   const dict = await getDictionary(lang);
 
   const supabase = await createClient();
