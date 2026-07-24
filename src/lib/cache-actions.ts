@@ -21,3 +21,15 @@ export async function revalidateStores() {
 export async function revalidateRate() {
   bustTag("usd_lbp_rate");
 }
+
+/** Bust a product's cached public view (product created / edited / deleted). */
+export async function revalidateProduct(id?: string) {
+  bustTag("products");
+  if (id) bustTag(`product:${id}`);
+}
+
+/** Bust a Sunday-Market listing's cached public view (created / edited / moderated). */
+export async function revalidateListing(id?: string) {
+  bustTag("listings");
+  if (id) bustTag(`listing:${id}`);
+}

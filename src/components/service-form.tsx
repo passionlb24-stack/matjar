@@ -1,4 +1,5 @@
 "use client";
+import { revalidateProduct } from "@/lib/cache-actions";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -61,6 +62,7 @@ export function ServiceForm({
     setImageUrl(null);
     setSectionId("");
     setAdded(true);
+    await revalidateProduct();
     router.refresh();
   }
 

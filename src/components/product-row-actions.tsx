@@ -1,4 +1,5 @@
 "use client";
+import { revalidateProduct } from "@/lib/cache-actions";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -37,6 +38,7 @@ export function ProductRowActions({
       notifyError(errorLabel);
       return;
     }
+    await revalidateProduct(productId);
     router.refresh();
   }
 
@@ -52,6 +54,7 @@ export function ProductRowActions({
       notifyError(errorLabel);
       return;
     }
+    await revalidateProduct(productId);
     router.refresh();
   }
 

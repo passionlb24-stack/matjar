@@ -1,4 +1,5 @@
 "use client";
+import { revalidateListing } from "@/lib/cache-actions";
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
@@ -143,6 +144,7 @@ export function AdminMarketClient({
     else if ("is_featured" in values)
       verb = values.is_featured ? "featured" : "unfeatured";
     if (verb) void logAdminAction(verb, "listing", id, values);
+    await revalidateListing(id);
     router.refresh();
   }
 
@@ -159,6 +161,7 @@ export function AdminMarketClient({
       return;
     }
     void logAdminAction("deleted", "listing", id);
+    await revalidateListing(id);
     router.refresh();
   }
 

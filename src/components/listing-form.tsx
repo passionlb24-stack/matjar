@@ -1,4 +1,5 @@
 "use client";
+import { revalidateListing } from "@/lib/cache-actions";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -142,6 +143,7 @@ export function ListingForm({
       }
       router.push(`/${lang}/account`);
     }
+    await revalidateListing(listingId ?? undefined);
     router.refresh();
   }
 

@@ -1,4 +1,5 @@
 "use client";
+import { revalidateListing } from "@/lib/cache-actions";
 import { notifyError } from "@/lib/notify";
 
 import { useState } from "react";
@@ -53,6 +54,7 @@ export function MyListingsManager({
       notifyError(dict.auth.errorGeneric);
       return;
     }
+    await revalidateListing(id);
     router.refresh();
   }
   async function remove(id: string) {
@@ -67,6 +69,7 @@ export function MyListingsManager({
       notifyError(dict.auth.errorGeneric);
       return;
     }
+    await revalidateListing(id);
     router.refresh();
   }
 

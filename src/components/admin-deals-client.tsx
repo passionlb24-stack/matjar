@@ -1,4 +1,5 @@
 "use client";
+import { revalidateProduct } from "@/lib/cache-actions";
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -63,6 +64,7 @@ export function AdminDealsClient({
       return;
     }
     void logAdminAction("updated", "product", id, { ended: "flash" });
+    await revalidateProduct(id);
     router.refresh();
   }
 
@@ -79,6 +81,7 @@ export function AdminDealsClient({
       return;
     }
     void logAdminAction("updated", "product", id, { ended: "clearance" });
+    await revalidateProduct(id);
     router.refresh();
   }
 
