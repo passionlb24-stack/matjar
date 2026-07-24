@@ -1,7 +1,6 @@
-import Image from "next/image";
 import { cache } from "react";
 import { notFound } from "next/navigation";
-import { Clock, MapPin, MessageCircle, Phone, Star, Stethoscope, BadgeCheck, Truck } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import {
@@ -20,13 +19,10 @@ import {
 import { localeAlternates, SITE_URL } from "@/lib/site";
 import { accentStyle } from "@/lib/color";
 import { storeJsonLd, jsonLdScript, toOpeningHours } from "@/lib/jsonld";
-import { parseHours, isOpenNow, daySpan } from "@/lib/hours";
+import { parseHours } from "@/lib/hours";
 import { getUsdLbpRate } from "@/lib/data/settings";
 import { categoryIcons } from "@/components/category-icon";
-import { BackButton } from "@/components/back-button";
 import { Container } from "@/components/ui/container";
-import { StoreProducts } from "@/components/store-products";
-import { BookingPanel } from "@/components/booking-panel";
 import { ServiceRequestForm } from "@/components/service-request-form";
 import { StoreReviews, type Review } from "@/components/store-reviews";
 import {
@@ -50,21 +46,18 @@ import {
 import { ReservationForm } from "@/components/reservation-form";
 import { StoreCourses, type CourseRow } from "@/components/store-courses";
 import { StorePortfolio, type PortfolioItem } from "@/components/store-portfolio";
-import { FollowButton } from "@/components/follow-button";
-import { ShareButton } from "@/components/share-button";
-import { MessageStoreButton } from "@/components/message-store-button";
-import { ProBadge } from "@/components/pro-badge";
+import { StoreHero } from "@/components/store/store-hero";
+import { StoreHeader } from "@/components/store/store-header";
+import { StoreBranches } from "@/components/store/store-branches";
+import { StoreDeliveryOptions } from "@/components/store/store-delivery-options";
+import { StoreProductsSection } from "@/components/store/store-products-section";
+import { StoreHealthcareInfo } from "@/components/store/store-healthcare-info";
+import { StoreDoctors, type DoctorView } from "@/components/store/store-doctors";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const bookingCategories = new Set(["services", "healthcare", "realEstate"]);
-
-function formatPrice(price: number) {
-  return price >= 1000
-    ? `$${Number(price).toLocaleString("en-US")}`
-    : `$${price}`;
-}
 
 // React cache(): generateMetadata + the page both call loadStore(id) — dedupe
 // the load into one call per request. The public store view now comes from
@@ -259,13 +252,6 @@ export default async function StorePage({
     courses = (coData ?? []) as CourseRow[];
   }
 
-  type DoctorView = {
-    id: string;
-    name: string;
-    specialty: string | null;
-    photo_url: string | null;
-    bio: string | null;
-  };
   let doctors: DoctorView[] = [];
   // providerServices: productId -> the provider ids that offer that service.
   // Empty entry (or absent) = any provider can deliver it.
@@ -430,7 +416,6 @@ export default async function StorePage({
 
   const Icon = categoryIcons[store.category];
   const style = categoryStyles[store.category];
-  const cat = dict.catalog[store.category];
   const isBooking = bookingCategories.has(store.category);
   const sectionTitle =
     store.category === "food"
@@ -473,259 +458,29 @@ export default async function StorePage({
           }}
         />
       )}
-      <div className="relative h-48 sm:h-60">
-        {store.coverUrl ? (
-          <Image src={store.coverUrl} alt={store.name} fill className="object-cover" sizes="100vw" priority />
-        ) : (
-          <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${style.cover}`}>
-            <Icon className="h-28 w-28 text-black/[0.06]" />
-          </div>
-        )}
-        {store.coverUrl && (
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/5 to-transparent" />
-        )}
-        <Container className="pointer-events-none absolute inset-x-0 top-3 z-20">
-          <BackButton
-            label={dict.common.back}
-            fallbackHref={`/${lang}/explore`}
-            className="pointer-events-auto rounded-full bg-black/40 px-3 py-1.5 !text-white backdrop-blur-sm hover:bg-black/55 hover:!text-white"
-          />
-        </Container>
-      </div>
+      <StoreHero store={store} Icon={Icon} style={style} dict={dict} lang={lang} />
 
       <Container>
-        <div className="relative z-10 -mt-6 rounded-2xl border border-border bg-surface p-5 shadow-md sm:p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex items-start gap-4">
-              <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-surface shadow-md ring-4 ring-surface">
-                {store.logoUrl ? (
-                  <Image src={store.logoUrl} alt={store.name} width={64} height={64} className="h-full w-full object-cover" sizes="64px" />
-                ) : (
-                  <span
-                    className={`flex h-full w-full items-center justify-center rounded-2xl ${style.iconWrap}`}
-                  >
-                    <Icon className="h-7 w-7" />
-                  </span>
-                )}
-              </span>
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-                    {store.name}
-                  </h1>
-                  <span
-                    className={`rounded-full px-2.5 py-0.5 text-xs font-bold text-white ${store.isOpen ? "bg-emerald-600" : "bg-slate-500"}`}
-                  >
-                    {store.isOpen ? dict.store.openNow : dict.store.closed}
-                  </span>
-                  {store.plan === "pro" && <ProBadge />}
-                  {store.registered && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2.5 py-1 text-xs font-bold text-success">
-                      <BadgeCheck className="h-3.5 w-3.5" />
-                      {dict.featured.registered}
-                    </span>
-                  )}
-                  {hasVerified && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-2.5 py-1 text-xs font-bold text-primary">
-                      <BadgeCheck className="h-3.5 w-3.5" />
-                      {dict.verifications.verifiedBadge}
-                    </span>
-                  )}
-                </div>
-                <p className="mt-1 text-sm font-medium text-muted-foreground">{cat.name}</p>
-                <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-                  {headerRating != null && (
-                    <span className="flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1">
-                      <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                      <span className="font-bold">{headerRating.toFixed(1)}</span>
-                      <span className="text-muted-foreground">
-                        ({headerCount} {dict.featured.reviews})
-                      </span>
-                    </span>
-                  )}
-                  {ordersFulfilled > 0 && (
-                    <span className="flex items-center gap-1 rounded-full bg-success-soft px-2.5 py-1 font-semibold text-success">
-                      <BadgeCheck className="h-4 w-4" />
-                      {dict.store.ordersFulfilled.replace(
-                        "{n}",
-                        String(ordersFulfilled),
-                      )}
-                    </span>
-                  )}
-                  {store.prepTime && store.acceptsDelivery && (
-                    <span className="flex items-center gap-1 rounded-full bg-surface-muted px-2.5 py-1 text-muted-foreground">
-                      <Clock className="h-4 w-4" />
-                      {dict.store.deliveryIn.replace("{t}", store.prepTime)}
-                    </span>
-                  )}
-                  {store.area && (
-                    <span className="flex items-center gap-1 rounded-full bg-surface-muted px-2.5 py-1 text-muted-foreground">
-                      <MapPin className="h-4 w-4" />
-                      {store.area}
-                    </span>
-                  )}
-                  {(() => {
-                    // Structured hours win: live open/closed + today's span.
-                    const wh = parseHours(store.hours);
-                    // Server render reads the clock once per request.
-                    const now = new Date();
-                    const open = isOpenNow(wh, now);
-                    const span = daySpan(wh, now);
-                    if (open != null) {
-                      return (
-                        <span className="flex items-center gap-1.5">
-                          <span
-                            className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-                              open
-                                ? "bg-success-soft text-success"
-                                : "bg-danger-soft text-danger"
-                            }`}
-                          >
-                            {open
-                              ? dict.os.hours.openNow
-                              : dict.os.hours.closedNow}
-                          </span>
-                          {span && (
-                            <span
-                              className="text-muted-foreground"
-                              dir="ltr"
-                            >
-                              {span.open}–{span.close}
-                            </span>
-                          )}
-                        </span>
-                      );
-                    }
-                    return store.openingHours ? (
-                      <span className="flex items-center gap-1 rounded-full bg-surface-muted px-2.5 py-1 text-muted-foreground">
-                        <Clock className="h-4 w-4" />
-                        {store.openingHours}
-                      </span>
-                    ) : null;
-                  })()}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {store.isReal && (
-                <FollowButton
-                  storeId={id}
-                  following={isFollowing}
-                  lang={lang}
-                  dict={dict}
-                />
-              )}
-              <ShareButton
-                title={store.name}
-                dict={dict}
-                url={
-                  store.slug
-                    ? `${SITE_URL}/${lang}/${store.slug}`
-                    : `${SITE_URL}/${lang}/store/${id}`
-                }
-              />
-              {store.isReal && (
-                <MessageStoreButton storeId={id} lang={lang} dict={dict} />
-              )}
-              {store.phone && (
-                <a
-                  href={`tel:${store.phone}`}
-                  className="flex items-center gap-1.5 rounded-xl border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted"
-                >
-                  <Phone className="h-4 w-4" />
-                  {dict.store.call}
-                </a>
-              )}
-              {store.whatsapp && (
-                <a
-                  href={`https://wa.me/${store.whatsapp.replace(/[^0-9]/g, "")}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  {dict.store.whatsapp}
-                </a>
-              )}
-              {store.instagram && (
-                <a href={store.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center rounded-xl border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted">
-                  {dict.merchant.instagram}
-                </a>
-              )}
-              {store.facebook && (
-                <a href={store.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center rounded-xl border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted">
-                  {dict.merchant.facebook}
-                </a>
-              )}
-              {store.website && (
-                <a href={store.website} target="_blank" rel="noopener noreferrer" className="flex items-center rounded-xl border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted">
-                  {dict.merchant.website}
-                </a>
-              )}
-            </div>
-          </div>
-
-          {store.description && (
-            <p className="mt-4 border-t border-border pt-4 text-muted-foreground">
-              {store.description}
-            </p>
-          )}
-        </div>
+        <StoreHeader
+          store={store}
+          id={id}
+          Icon={Icon}
+          style={style}
+          dict={dict}
+          lang={lang}
+          hasVerified={hasVerified}
+          headerRating={headerRating}
+          headerCount={headerCount}
+          ordersFulfilled={ordersFulfilled}
+          isFollowing={isFollowing}
+        />
 
         {branches.length > 1 && (
-          <div className="mt-6 rounded-2xl border border-border bg-surface p-5">
-            <h2 className="font-bold">{dict.os.branchesPublic.title}</h2>
-            <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-              {branches.map((b) => (
-                <li
-                  key={b.id}
-                  className="flex items-start gap-2.5 rounded-xl border border-border px-3.5 py-2.5 text-sm"
-                >
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  <div className="min-w-0">
-                    <p className="font-semibold">{b.name || b.area}</p>
-                    {b.address && (
-                      <p className="mt-0.5 text-muted-foreground">{b.address}</p>
-                    )}
-                    {b.phone && (
-                      <a
-                        href={`tel:${b.phone}`}
-                        className="mt-0.5 inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-primary"
-                      >
-                        <Phone className="h-3.5 w-3.5" />
-                        <span dir="ltr">{b.phone}</span>
-                      </a>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <StoreBranches branches={branches} dict={dict} />
         )}
 
         {couriers.length > 0 && (
-          <div className="mt-6 rounded-2xl border border-border bg-surface p-5">
-            <h2 className="flex items-center gap-2 font-bold">
-              <Truck className="h-5 w-5 text-primary" />
-              {dict.store.deliveryOptions}
-            </h2>
-            <ul className="mt-3 flex flex-wrap gap-2">
-              {couriers.map((c, i) => (
-                <li
-                  key={i}
-                  className="flex items-center gap-2 rounded-xl border border-border px-3.5 py-2 text-sm"
-                >
-                  <span className="font-semibold">{c.name}</span>
-                  {c.price != null && (
-                    <span className="font-bold text-primary">
-                      {formatPrice(c.price)}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
+          <StoreDeliveryOptions couriers={couriers} dict={dict} />
         )}
 
         {mapPins.length > 0 && enabledModules.has("location") && (
@@ -787,184 +542,32 @@ export default async function StorePage({
           <StorePortfolio items={portfolio} dict={dict} lang={lang} />
         )}
 
-        <h2 className="mb-4 mt-10 text-xl font-bold">{sectionTitle}</h2>
-        {store.isReal ? (
-          store.products.length ? (
-            isBooking ? (
-              <BookingPanel
-                storeId={id}
-                lang={lang}
-                dict={dict}
-                category={store.category}
-                customerName={currentUser?.name ?? null}
-                whatsapp={store.whatsapp ?? null}
-                storeName={store.name}
-                hours={parseHours(store.hours)}
-                slotMinutes={store.bookingSlotMinutes ?? 30}
-                doctors={doctors.map((d) => ({
-                  id: d.id,
-                  name: d.name,
-                  specialty: d.specialty,
-                }))}
-                providerServices={providerServices}
-                sections={store.sections}
-                services={store.products
-                  .filter((p) => p.id)
-                  .map((p) => ({
-                    id: p.id as string,
-                    name: p.name,
-                    nameEn: p.nameEn,
-                    price: p.price,
-                    imageUrl: p.imageUrl,
-                    attributes: p.attributes,
-                    sectionId: p.sectionId ?? null,
-                  }))}
-              />
-            ) : (
-              <StoreProducts
-                storeId={id}
-                lang={lang}
-                dict={dict}
-                category={store.category}
-                isBooking={isBooking}
-                loggedIn={!!user}
-                defaultAddress={defaultAddress}
-                savedAddresses={savedAddresses}
-                acceptsDelivery={store.acceptsDelivery ?? true}
-                acceptsPickup={store.acceptsPickup ?? true}
-                minOrder={store.minOrder ?? null}
-                paymentNote={store.paymentNote ?? null}
-                prepTime={store.prepTime ?? null}
-                whatsapp={store.whatsapp ?? null}
-                storeName={store.name}
-                layout={store.storefrontLayout}
-                lbpRate={lbpRate}
-                loyaltyPoints={loyaltyPoints}
-                loyaltyPointsPerUnit={store.loyaltyPointsPerUnit ?? 0}
-                branches={branches.map((b) => ({
-                  id: b.id,
-                  name: b.name,
-                  area: b.area,
-                  address: b.address,
-                }))}
-                sections={store.sections}
-                products={store.products
-                  .filter((p) => p.id)
-                  .map((p) => ({
-                    id: p.id as string,
-                    name: p.name,
-                    nameEn: p.nameEn,
-                    price: p.price,
-                    discountPrice: p.discountPrice,
-                    imageUrl: p.imageUrl,
-                    attributes: p.attributes,
-                    stock: p.stock ?? null,
-                    flashPrice: p.flashPrice,
-                    flashStart: p.flashStart,
-                    flashEnd: p.flashEnd,
-                    sectionId: p.sectionId ?? null,
-                  }))}
-              />
-            )
-          ) : (
-            <div className="rounded-2xl border border-dashed border-border py-14 text-center text-muted-foreground">
-              {dict.store.noProducts}
-            </div>
-          )
-        ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {store.products.map((p, i) => (
-              <div
-                key={`${p.name}-${i}`}
-                className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4"
-              >
-                <span
-                  className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${style.cover}`}
-                >
-                  <Icon className="h-7 w-7 text-black/20" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <h3 className="truncate font-bold">{p.name}</h3>
-                  <p className="mt-0.5 text-sm text-muted-foreground">
-                    {dict.store.from}{" "}
-                    <span className="font-bold text-foreground">
-                      {formatPrice(p.price)}
-                    </span>
-                  </p>
-                </div>
-                <button className="shrink-0 rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover">
-                  {isBooking ? dict.store.book : dict.store.order}
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+        <StoreProductsSection
+          sectionTitle={sectionTitle}
+          store={store}
+          id={id}
+          lang={lang}
+          dict={dict}
+          isBooking={isBooking}
+          doctors={doctors}
+          providerServices={providerServices}
+          currentUser={currentUser}
+          loggedIn={!!user}
+          defaultAddress={defaultAddress}
+          savedAddresses={savedAddresses}
+          lbpRate={lbpRate}
+          loyaltyPoints={loyaltyPoints}
+          branches={branches}
+          Icon={Icon}
+          style={style}
+        />
 
         {store.category === "healthcare" &&
           (store.specialties || store.insurance) && (
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              {store.specialties && (
-                <div className="rounded-2xl border border-border bg-surface p-5">
-                  <h3 className="text-sm font-bold text-muted-foreground">
-                    {dict.store.specialtiesTitle}
-                  </h3>
-                  <p className="mt-1 font-medium">{store.specialties}</p>
-                </div>
-              )}
-              {store.insurance && (
-                <div className="rounded-2xl border border-border bg-surface p-5">
-                  <h3 className="text-sm font-bold text-muted-foreground">
-                    {dict.store.insuranceTitle}
-                  </h3>
-                  <p className="mt-1 font-medium">{store.insurance}</p>
-                </div>
-              )}
-            </div>
+            <StoreHealthcareInfo store={store} dict={dict} />
           )}
 
-        {doctors.length > 0 && (
-          <>
-            <h2 className="mb-4 mt-10 text-xl font-bold">
-              {dict.store.doctorsTitle}
-            </h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {doctors.map((d) => (
-                <div
-                  key={d.id}
-                  className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-4"
-                >
-                  {d.photo_url ? (
-                    <Image
-                      src={d.photo_url}
-                      alt=""
-                      width={56}
-                      height={56}
-                      className="h-14 w-14 shrink-0 rounded-full object-cover"
-                      sizes="56px"
-                    />
-                  ) : (
-                    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-surface-muted text-muted-foreground">
-                      <Stethoscope className="h-6 w-6" />
-                    </span>
-                  )}
-                  <div className="min-w-0">
-                    <p className="font-bold">{d.name}</p>
-                    {d.specialty && (
-                      <p className="text-sm font-semibold text-primary">
-                        {d.specialty}
-                      </p>
-                    )}
-                    {d.bio && (
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {d.bio}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
+        {doctors.length > 0 && <StoreDoctors doctors={doctors} dict={dict} />}
 
         {store.isReal && enabledModules.has("verifications") && (
           <StoreVerifications
