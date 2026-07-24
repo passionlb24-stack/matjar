@@ -1,4 +1,5 @@
 "use client";
+import { notifyError } from "@/lib/notify";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -75,7 +76,7 @@ export function MarketCategoryManager({
           .eq("id", editingId!);
     setBusy(false);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     if (isNew) {
@@ -98,7 +99,7 @@ export function MarketCategoryManager({
       .eq("id", id);
     setBusy(false);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     void logAdminAction("deleted", "market_category", id);

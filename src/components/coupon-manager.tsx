@@ -1,4 +1,5 @@
 "use client";
+import { notifyError } from "@/lib/notify";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -85,7 +86,7 @@ export function CouponManager({
     // Percent coupons can't exceed 100% — otherwise the discount RPC
     // (subtotal * value / 100) would refund more than the order total.
     if (draft.type === "percent" && Number(draft.value) > 100) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     setBusy(true);
@@ -109,7 +110,7 @@ export function CouponManager({
             .eq("id", editingId!);
     setBusy(false);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     cancel();
@@ -125,7 +126,7 @@ export function CouponManager({
       .eq("id", id);
     setBusy(false);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     router.refresh();

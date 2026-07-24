@@ -125,7 +125,7 @@ export function CrmManager({
     });
     setBusy(false);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     setName("");
@@ -143,7 +143,7 @@ export function CrmManager({
     });
     setBusy(false);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     router.refresh();
@@ -155,7 +155,7 @@ export function CrmManager({
       .update({ status, updated_at: new Date().toISOString() })
       .eq("id", id);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     router.refresh();
@@ -166,7 +166,7 @@ export function CrmManager({
       .from("store_customers")
       .update({ notes: notes.trim() || null, updated_at: new Date().toISOString() })
       .eq("id", id);
-    if (error) window.alert(dict.auth.errorGeneric);
+    if (error) notifyError(dict.auth.errorGeneric);
   }
 
   async function setFollowUp(id: string, date: string) {
@@ -178,7 +178,7 @@ export function CrmManager({
       })
       .eq("id", id);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     router.refresh();
@@ -191,7 +191,7 @@ export function CrmManager({
       .delete()
       .eq("id", id);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     router.refresh();

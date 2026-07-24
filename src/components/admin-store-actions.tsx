@@ -1,4 +1,5 @@
 "use client";
+import { notifyError } from "@/lib/notify";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -33,7 +34,7 @@ export function AdminStoreActions({
       .eq("id", storeId);
     setBusy(false);
     if (error) {
-      window.alert(errorLabel);
+      notifyError(errorLabel);
       return;
     }
     void logAdminAction(

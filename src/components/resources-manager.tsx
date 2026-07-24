@@ -1,4 +1,5 @@
 "use client";
+import { notifyError } from "@/lib/notify";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -75,7 +76,7 @@ export function ResourcesManager({
     });
     setBusy(false);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     cancel();
@@ -91,7 +92,7 @@ export function ResourcesManager({
       .eq("id", id);
     setBusy(false);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     router.refresh();

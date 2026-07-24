@@ -1,4 +1,5 @@
 "use client";
+import { notifyError } from "@/lib/notify";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -66,7 +67,7 @@ export function AdminUsersClient({
       .eq("id", id);
     setBusy(null);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     void logAdminAction(next ? "reactivated" : "suspended", "user", id);
@@ -93,7 +94,7 @@ export function AdminUsersClient({
       .eq("id", id);
     setBusy(null);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     void logAdminAction("access_changed", "user", id, { sections: draft.length });

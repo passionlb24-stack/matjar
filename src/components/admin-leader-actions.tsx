@@ -1,4 +1,5 @@
 "use client";
+import { notifyError } from "@/lib/notify";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -34,7 +35,7 @@ export function AdminLeaderActions({
       .eq("id", id);
     setBusy(false);
     if (error) {
-      window.alert("حدث خطأ. حاوِل مرة أخرى.");
+      notifyError("حدث خطأ. حاوِل مرة أخرى.");
       return;
     }
     void logAdminAction(next ? "featured" : "unfeatured", "leader", id);
@@ -50,7 +51,7 @@ export function AdminLeaderActions({
       .eq("id", id);
     setBusy(false);
     if (error) {
-      window.alert("حدث خطأ. حاوِل مرة أخرى.");
+      notifyError("حدث خطأ. حاوِل مرة أخرى.");
       return;
     }
     void logAdminAction(next ? "verified" : "unverified", "leader", id);
@@ -66,7 +67,7 @@ export function AdminLeaderActions({
       .eq("id", id);
     setBusy(false);
     if (error) {
-      window.alert("حدث خطأ. حاوِل مرة أخرى.");
+      notifyError("حدث خطأ. حاوِل مرة أخرى.");
       return;
     }
     void logAdminAction(nextPublished ? "published" : "hidden", "leader", id);
@@ -82,7 +83,7 @@ export function AdminLeaderActions({
       .eq("id", id);
     setBusy(false);
     if (error) {
-      window.alert("حدث خطأ. حاوِل مرة أخرى.");
+      notifyError("حدث خطأ. حاوِل مرة أخرى.");
       return;
     }
     void logAdminAction("deleted", "leader", id);

@@ -1,4 +1,5 @@
 "use client";
+import { notifyError } from "@/lib/notify";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -202,7 +203,7 @@ export function AdminAcademyClient({
           .eq("id", currentId!);
     setBusy(false);
     if (error) {
-      window.alert(t.saveFailed);
+      notifyError(t.saveFailed);
       return;
     }
     void logAdminAction(isNew ? "created" : "updated", "academy", currentId ?? undefined, {
@@ -221,7 +222,7 @@ export function AdminAcademyClient({
       .eq("id", id);
     setBusy(false);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     void logAdminAction("deleted", "academy", id);

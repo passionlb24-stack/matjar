@@ -1,4 +1,5 @@
 "use client";
+import { notifyError } from "@/lib/notify";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -94,7 +95,7 @@ export function AdminPagesClient({
       : await supabase.from("site_pages").update(payload).eq("id", currentId!);
     setBusy(false);
     if (error) {
-      window.alert(t.saveFailed);
+      notifyError(t.saveFailed);
       return;
     }
     void logAdminAction(
@@ -116,7 +117,7 @@ export function AdminPagesClient({
       .eq("id", id);
     setBusy(false);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     void logAdminAction("deleted", "page", id);

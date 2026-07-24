@@ -1,4 +1,5 @@
 "use client";
+import { notifyError } from "@/lib/notify";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -86,7 +87,7 @@ export function StaffManager({
       // Revert the optimistic flip — a "revoked" permission must never look
       // revoked while still active in the database.
       setPerms((p) => ({ ...p, [staffId]: current }));
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
     }
   }
 
@@ -99,7 +100,7 @@ export function StaffManager({
       .eq("id", id);
     setBusy(false);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     router.refresh();

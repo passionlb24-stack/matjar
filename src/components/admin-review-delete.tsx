@@ -1,4 +1,5 @@
 "use client";
+import { notifyError } from "@/lib/notify";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -30,7 +31,7 @@ export function AdminReviewDelete({
       .eq("id", reviewId);
     setBusy(false);
     if (error) {
-      window.alert(errorLabel);
+      notifyError(errorLabel);
       return;
     }
     void logAdminAction("deleted", "review", reviewId);

@@ -1,4 +1,5 @@
 "use client";
+import { notifyError } from "@/lib/notify";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -108,7 +109,7 @@ function Row({
       .eq("id", row.id);
     setBusy(false);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     void logAdminAction("activated", "subscription", row.id, { period });
@@ -130,7 +131,7 @@ function Row({
       .eq("id", row.id);
     setBusy(false);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     void logAdminAction("downgraded", "subscription", row.id);

@@ -1,4 +1,5 @@
 "use client";
+import { notifyError } from "@/lib/notify";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -86,7 +87,7 @@ function ProviderServices({
         else next.add(serviceId);
         return next;
       });
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     router.refresh();
@@ -187,7 +188,7 @@ export function DoctorManager({
             .eq("id", editingId!);
     setBusy(false);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     cancel();
@@ -203,7 +204,7 @@ export function DoctorManager({
       .eq("id", id);
     setBusy(false);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     router.refresh();

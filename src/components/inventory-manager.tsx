@@ -1,4 +1,5 @@
 "use client";
+import { notifyError } from "@/lib/notify";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -59,7 +60,7 @@ export function InventoryManager({
     });
     setBusy(null);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     setSavedId(p.id);

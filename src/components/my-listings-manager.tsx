@@ -1,4 +1,5 @@
 "use client";
+import { notifyError } from "@/lib/notify";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -49,7 +50,7 @@ export function MyListingsManager({
       .eq("id", id);
     setBusy(null);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     router.refresh();
@@ -63,7 +64,7 @@ export function MyListingsManager({
       .eq("id", id);
     setBusy(null);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     router.refresh();

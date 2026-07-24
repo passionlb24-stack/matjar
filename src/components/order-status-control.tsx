@@ -1,4 +1,5 @@
 "use client";
+import { notifyError } from "@/lib/notify";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -42,7 +43,7 @@ export function OrderStatusControl({
     setBusy(false);
     if (error) {
       setValue(prev);
-      if (errorLabel) window.alert(errorLabel);
+      if (errorLabel) notifyError(errorLabel);
       return;
     }
     router.refresh();

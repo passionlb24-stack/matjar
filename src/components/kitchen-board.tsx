@@ -1,4 +1,5 @@
 "use client";
+import { notifyError } from "@/lib/notify";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -65,7 +66,7 @@ export function KitchenBoard({
       .eq("id", order.id);
     setBusy(null);
     if (error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     router.refresh();

@@ -1,4 +1,5 @@
 "use client";
+import { notifyError } from "@/lib/notify";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -62,7 +63,7 @@ export function StoreCouriersManager({
       : { error: null };
     setBusy(false);
     if (del.error || ins.error) {
-      window.alert(dict.auth.errorGeneric);
+      notifyError(dict.auth.errorGeneric);
       return;
     }
     setSaved(true);
