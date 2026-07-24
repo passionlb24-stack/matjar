@@ -170,6 +170,16 @@ export function siteJsonLd(opts: {
   ];
 }
 
+// Serialize JSON-LD for injection into a <script> via dangerouslySetInnerHTML.
+// Escapes the characters that could break out of the script element (or the
+// HTML context) — critical because some fields are merchant-controlled
+// (store name/description). The \uXXXX forms stay valid JSON.
 export function jsonLdScript(data: unknown): string {
-  return JSON.stringify(data);
+  // Escape the chars that let a merchant-controlled string break out of the
+  // <script> tag. Backslash built at runtime to avoid source-escaping mistakes.
+  const bs = String.fromCharCode(92);
+  return JSON.stringify(data).replace(
+    /[<>&]/g,
+    (c) => bs + "u" + c.charCodeAt(0).toString(16).padStart(4, "0"),
+  );
 }
