@@ -2516,6 +2516,8 @@
     "title": "Wholesale",
     "subtitle": "Bulk goods with tiered pricing — the more you buy, the less per unit.",
     "listProduct": "List your goods",
+    "merchantOnlyTitle": "Wholesale is for merchants only",
+    "merchantOnlyNote": "To list wholesale goods you need a store on Matjar. Open your store free in minutes, then you can post wholesale offers.",
     "empty": "No matching goods right now.",
     "allCategories": "All categories",
     "moqShort": "Min",
