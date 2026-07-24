@@ -7,6 +7,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { fieldClass } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
 const field = fieldClass;
@@ -33,6 +34,7 @@ export function ExpenseManager({
   expenses: Expense[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.merchant.accounting;
   const [busy, setBusy] = useState(false);
 
@@ -64,7 +66,7 @@ export function ExpenseManager({
   }
 
   async function remove(id: string) {
-    if (!window.confirm(t.confirmDelete)) return;
+    if (!(await confirm({ message: t.confirmDelete, confirmLabel: dict.common.confirm, cancelLabel: dict.common.cancel, danger: true }))) return;
     setBusy(true);
     const { error } = await createClient()
       .from("store_expenses")

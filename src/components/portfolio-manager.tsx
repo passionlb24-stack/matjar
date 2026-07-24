@@ -12,6 +12,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { ImageUpload } from "@/components/image-upload";
 import { Input, Textarea } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type PortfolioItem = {
   id: string;
@@ -48,6 +49,7 @@ export function PortfolioManager(props: {
 }): JSX.Element {
   const { storeId, lang, dict, items } = props;
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.portfolio;
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState<Draft>(empty);
@@ -83,7 +85,7 @@ export function PortfolioManager(props: {
   }
 
   async function remove(id: string) {
-    if (!window.confirm(dict.merchant.products.confirmDelete)) return;
+    if (!(await confirm({ message: dict.merchant.products.confirmDelete, confirmLabel: dict.common.confirm, cancelLabel: dict.common.cancel, danger: true }))) return;
     setBusy(true);
     const { error } = await createClient()
       .from("store_portfolio")

@@ -35,6 +35,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
 import { notifyError, notifySuccess } from "@/lib/notify";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 // ===== Contract (fixed vocabulary — matches migration 0117) =====
 export type TriggerKey =
@@ -218,6 +219,7 @@ export function AutomationManager({
   locations: LocationOption[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.os.automations;
 
   const [editingId, setEditingId] = useState<string | null>(null); // "new" | row id | null
@@ -497,7 +499,7 @@ export function AutomationManager({
   }
 
   async function remove(a: AutomationRow) {
-    if (!window.confirm(t.confirmDelete)) return;
+    if (!(await confirm({ message: t.confirmDelete, confirmLabel: dict.common.confirm, cancelLabel: dict.common.cancel, danger: true }))) return;
     setBusy(true);
     const { error } = await createClient()
       .from("automations")

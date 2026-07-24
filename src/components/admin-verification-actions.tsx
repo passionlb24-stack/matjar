@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { logAdminAction } from "@/lib/audit";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 // Admin-only approve/reject island. RLS lets super-admins update any
 // store_verifications row, so the mutation runs straight from the client.
@@ -19,11 +20,20 @@ export function AdminVerificationActions({
   dict: Dictionary;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [busy, setBusy] = useState(false);
   const t = dict.verifications;
 
   async function setStatus(status: "verified" | "rejected") {
-    if (status === "rejected" && !window.confirm(dict.admin.confirmRejectVerification))
+    if (
+      status === "rejected" &&
+      !(await confirm({
+        message: dict.admin.confirmRejectVerification,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+        danger: true,
+      }))
+    )
       return;
     setBusy(true);
     const { error } = await createClient()

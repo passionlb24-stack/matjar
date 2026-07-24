@@ -9,6 +9,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
 import { logAdminAction } from "@/lib/audit";
 import { Container } from "@/components/ui/container";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type BusinessType = {
   id: string;
@@ -44,6 +45,7 @@ export function BusinessTypeManager({
   types: BusinessType[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.admin.types;
   const [editingId, setEditingId] = useState<string | "new" | null>(null);
   const [draft, setDraft] = useState<Draft>(empty);
@@ -92,7 +94,7 @@ export function BusinessTypeManager({
   }
 
   async function remove(id: string) {
-    if (!window.confirm(t.confirmDelete)) return;
+    if (!(await confirm({ message: t.confirmDelete, confirmLabel: dict.common.confirm, cancelLabel: dict.common.cancel, danger: true }))) return;
     setBusy(true);
     const { error } = await createClient()
       .from("business_types")

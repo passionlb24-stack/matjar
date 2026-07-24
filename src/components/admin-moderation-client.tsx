@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 // One normalized shape for any user-generated listing (job / gig / wholesale).
 // Each admin page maps its own table rows into this and hands them to this
@@ -66,6 +67,7 @@ export function AdminModerationClient({
   items: ModerationItem[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.admin.moderation;
   const entity = {
     job_postings: "job",
@@ -126,7 +128,15 @@ export function AdminModerationClient({
   }
 
   async function remove(id: string) {
-    if (!window.confirm(t.deleteConfirm)) return;
+    if (
+      !(await confirm({
+        message: t.deleteConfirm,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+        danger: true,
+      }))
+    )
+      return;
     setBusyId(id);
     const { error } = await createClient().from(table).delete().eq("id", id);
     setBusyId(null);

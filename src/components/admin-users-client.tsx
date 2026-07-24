@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type AdminUser = {
   id: string;
@@ -51,6 +52,7 @@ export function AdminUsersClient({
   viewerIsSuper: boolean;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.admin.usersAdmin;
   const navLabels = dict.admin.nav as Record<string, string>;
   const [busy, setBusy] = useState<string | null>(null);
@@ -59,7 +61,16 @@ export function AdminUsersClient({
   const [draft, setDraft] = useState<string[]>([]);
 
   async function toggle(id: string, next: boolean) {
-    if (!next && !window.confirm(dict.admin.confirmSuspendUser)) return;
+    if (
+      !next &&
+      !(await confirm({
+        message: dict.admin.confirmSuspendUser,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+        danger: true,
+      }))
+    )
+      return;
     setBusy(id);
     const { error } = await createClient()
       .from("profiles")
@@ -86,7 +97,14 @@ export function AdminUsersClient({
   }
 
   async function savePerms(id: string) {
-    if (!window.confirm(dict.admin.confirmSavePerms)) return;
+    if (
+      !(await confirm({
+        message: dict.admin.confirmSavePerms,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+      }))
+    )
+      return;
     setBusy(id);
     const { error } = await createClient()
       .from("profiles")

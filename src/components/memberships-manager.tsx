@@ -9,6 +9,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Input, Select, Textarea } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type Plan = {
   id: string;
@@ -51,6 +52,7 @@ export function MembershipsManager({
   plans: Plan[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.memberships;
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState<Draft>(empty);
@@ -86,7 +88,7 @@ export function MembershipsManager({
   }
 
   async function remove(id: string) {
-    if (!window.confirm(dict.merchant.products.confirmDelete)) return;
+    if (!(await confirm({ message: dict.merchant.products.confirmDelete, confirmLabel: dict.common.confirm, cancelLabel: dict.common.cancel, danger: true }))) return;
     setBusy(true);
     const { error } = await createClient()
       .from("store_membership_plans")

@@ -11,6 +11,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { Card, CardBody } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export function AdminSettingsForm({
   dict,
@@ -20,6 +21,7 @@ export function AdminSettingsForm({
   initialRate: string;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.admin.platform;
   const [rate, setRate] = useState(initialRate);
   const [loading, setLoading] = useState(false);
@@ -27,7 +29,14 @@ export function AdminSettingsForm({
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!window.confirm(dict.admin.confirmSaveRate)) return;
+    if (
+      !(await confirm({
+        message: dict.admin.confirmSaveRate,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+      }))
+    )
+      return;
     setLoading(true);
     setSaved(false);
     const key = "usd_lbp_rate";

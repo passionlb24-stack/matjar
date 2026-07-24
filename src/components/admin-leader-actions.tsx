@@ -7,6 +7,7 @@ import { BadgeCheck, Check, EyeOff, Star, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { logAdminAction } from "@/lib/audit";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 // Admin-only publish/feature/verify/delete island for business_leaders. RLS
 // lets super-admins mutate any row, so the calls run straight from the client.
@@ -23,6 +24,7 @@ export function AdminLeaderActions({
   verificationStatus: string | null;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [busy, setBusy] = useState(false);
   const verified = verificationStatus === "verified";
 
@@ -75,7 +77,15 @@ export function AdminLeaderActions({
   }
 
   async function remove() {
-    if (!window.confirm("هل أنت متأكد من حذف هذا الملف نهائيًا؟")) return;
+    if (
+      !(await confirm({
+        message: "هل أنت متأكد من حذف هذا الملف نهائيًا؟",
+        confirmLabel: "تأكيد",
+        cancelLabel: "إلغاء",
+        danger: true,
+      }))
+    )
+      return;
     setBusy(true);
     const { error } = await createClient()
       .from("business_leaders")

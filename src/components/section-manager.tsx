@@ -17,6 +17,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { localized } from "@/lib/i18n-field";
 import { notifyError } from "@/lib/notify";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type SectionRow = {
   id: string;
@@ -45,6 +46,7 @@ export function SectionManager({
   initial: SectionRow[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.merchant.sections;
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
@@ -97,7 +99,7 @@ export function SectionManager({
   }
 
   async function remove(s: SectionRow) {
-    if (!window.confirm(t.confirmDelete)) return;
+    if (!(await confirm({ message: t.confirmDelete, confirmLabel: dict.common.confirm, cancelLabel: dict.common.cancel, danger: true }))) return;
     setBusy(true);
     // Products keep existing — the FK is ON DELETE SET NULL, so they fall back
     // to the "Other" group on the storefront.

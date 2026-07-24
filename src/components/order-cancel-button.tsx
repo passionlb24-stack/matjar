@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
 // Customer-facing cancel for a pending order or an open booking. Calls the
@@ -18,6 +19,7 @@ export function OrderCancelButton({
   dict: Dictionary;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const label = kind === "booking" ? dict.booking.cancel : dict.orders.cancel;
@@ -25,7 +27,15 @@ export function OrderCancelButton({
     kind === "booking" ? dict.booking.cancelConfirm : dict.orders.cancelConfirm;
 
   async function cancel() {
-    if (!window.confirm(confirmMsg)) return;
+    if (
+      !(await confirm({
+        message: confirmMsg,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+        danger: true,
+      }))
+    )
+      return;
     setBusy(true);
     setError(null);
     const rpc = kind === "order" ? "cancel_my_order" : "cancel_my_booking";

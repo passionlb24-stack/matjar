@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 // One flattened message ready for the moderation list. The server page joins
 // sender + store names into these so this client stays a pure render surface.
@@ -37,6 +38,7 @@ export function AdminMessagesClient({
   rows: MessageRow[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.admin.messagesAdmin;
   const [q, setQ] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -52,7 +54,15 @@ export function AdminMessagesClient({
   }, [rows, q]);
 
   async function remove(id: string) {
-    if (!window.confirm(t.deleteConfirm)) return;
+    if (
+      !(await confirm({
+        message: t.deleteConfirm,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+        danger: true,
+      }))
+    )
+      return;
     setBusyId(id);
     const { error } = await createClient()
       .from("messages")

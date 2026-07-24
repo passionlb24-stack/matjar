@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/field";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type SubRow = {
   id: string;
@@ -35,6 +36,7 @@ function Row({
   dict: Dictionary;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.admin.subs;
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
   const [amount, setAmount] = useState("12");
@@ -59,7 +61,14 @@ function Row({
   }
 
   async function activate() {
-    if (!window.confirm(dict.admin.confirmActivateSub)) return;
+    if (
+      !(await confirm({
+        message: dict.admin.confirmActivateSub,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+      }))
+    )
+      return;
     setBusy(true);
     const supabase = createClient();
     const {
@@ -117,7 +126,15 @@ function Row({
   }
 
   async function downgrade() {
-    if (!window.confirm(dict.admin.confirmDowngrade)) return;
+    if (
+      !(await confirm({
+        message: dict.admin.confirmDowngrade,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+        danger: true,
+      }))
+    )
+      return;
     setBusy(true);
     const supabase = createClient();
     await supabase

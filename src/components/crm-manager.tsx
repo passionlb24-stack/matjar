@@ -16,6 +16,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { notifyError, notifySuccess } from "@/lib/notify";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
 export type BookCustomer = {
@@ -78,6 +79,7 @@ export function CrmManager({
   balances?: Record<string, number>;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.os.crm;
   const [tab, setTab] = useState<"book" | "orders">("book");
   const [query, setQuery] = useState("");
@@ -185,7 +187,7 @@ export function CrmManager({
   }
 
   async function remove(id: string) {
-    if (!window.confirm(t.confirmDelete)) return;
+    if (!(await confirm({ message: t.confirmDelete, confirmLabel: dict.common.confirm, cancelLabel: dict.common.cancel, danger: true }))) return;
     const { error } = await createClient()
       .from("store_customers")
       .delete()

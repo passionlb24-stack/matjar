@@ -13,6 +13,8 @@
   },
   "common": {
     "brand": "Matjar",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
     "rateTitle": "Platform USD exchange rate",
     "login": "Log in",
     "signup": "Sign up",

@@ -11,6 +11,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { ImageUpload } from "@/components/image-upload";
 import { fieldClass as uiFieldClass, Select } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type Verification = {
   id: string;
@@ -70,6 +71,7 @@ export function VerificationsManager({
   verifications: Verification[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.verifications;
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState<Draft>(empty);
@@ -110,7 +112,7 @@ export function VerificationsManager({
   }
 
   async function remove(id: string) {
-    if (!window.confirm(dict.merchant.products.confirmDelete)) return;
+    if (!(await confirm({ message: dict.merchant.products.confirmDelete, confirmLabel: dict.common.confirm, cancelLabel: dict.common.cancel, danger: true }))) return;
     setBusy(true);
     const { error } = await createClient()
       .from("store_verifications")

@@ -8,6 +8,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ImageIcon, Pencil, Trash2, RefreshCw, CircleCheck, RotateCcw } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { ListingCard } from "@/lib/data/market";
@@ -37,6 +38,7 @@ export function MyListingsManager({
   dict: Dictionary;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.market;
   const [tab, setTab] = useState<(typeof STATUSES)[number]>("all");
   const [busy, setBusy] = useState<string | null>(null);
@@ -58,7 +60,15 @@ export function MyListingsManager({
     router.refresh();
   }
   async function remove(id: string) {
-    if (!window.confirm(t.form.confirmDelete)) return;
+    if (
+      !(await confirm({
+        message: t.form.confirmDelete,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+        danger: true,
+      }))
+    )
+      return;
     setBusy(id);
     const { error } = await createClient()
       .from("listings")

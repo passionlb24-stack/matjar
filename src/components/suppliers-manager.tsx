@@ -11,6 +11,7 @@ import {
   BanknoteArrowDown,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
@@ -55,6 +56,7 @@ export function SuppliersManager({
   transactions: SupplierTx[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.os.suppliers;
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -117,7 +119,7 @@ export function SuppliersManager({
   }
 
   async function removeSupplier(id: string) {
-    if (!window.confirm(t.confirmDelete)) return;
+    if (!(await confirm({ message: t.confirmDelete, confirmLabel: dict.common.confirm, cancelLabel: dict.common.cancel, danger: true }))) return;
     const { error } = await createClient()
       .from("store_suppliers")
       .delete()

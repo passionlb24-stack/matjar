@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { revalidateStores } from "@/lib/cache-actions";
 import { logAdminAction } from "@/lib/audit";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export function AdminStoreActions({
   storeId,
@@ -23,10 +24,20 @@ export function AdminStoreActions({
   errorLabel: string;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [busy, setBusy] = useState(false);
 
   async function setStatus(status: "active" | "rejected") {
-    if (status === "rejected" && !window.confirm(confirmRejectLabel)) return;
+    if (
+      status === "rejected" &&
+      !(await confirm({
+        message: confirmRejectLabel,
+        confirmLabel: "تأكيد",
+        cancelLabel: "إلغاء",
+        danger: true,
+      }))
+    )
+      return;
     setBusy(true);
     const { error } = await createClient()
       .from("stores")

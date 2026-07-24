@@ -30,6 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type AdminListing = {
   id: string;
@@ -85,6 +86,7 @@ export function AdminMarketClient({
   openReports: number;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.admin.market;
   const [tab, setTab] = useState<Tab>("pending");
   const [q, setQ] = useState("");
@@ -149,7 +151,15 @@ export function AdminMarketClient({
   }
 
   async function remove(id: string) {
-    if (!window.confirm(t.delete + "?")) return;
+    if (
+      !(await confirm({
+        message: t.delete + "?",
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+        danger: true,
+      }))
+    )
+      return;
     setBusyId(id);
     const { error } = await createClient()
       .from("listings")

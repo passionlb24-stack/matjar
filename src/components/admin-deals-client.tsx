@@ -16,6 +16,7 @@ import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 // One flash/clearance offer, normalized on the server from the products table.
 export type DealRow = {
@@ -38,6 +39,7 @@ export function AdminDealsClient({
   rows: DealRow[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.admin.dealsAdmin;
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -52,7 +54,15 @@ export function AdminDealsClient({
   }, [rows]);
 
   async function endFlash(id: string) {
-    if (!window.confirm(t.endConfirm)) return;
+    if (
+      !(await confirm({
+        message: t.endConfirm,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+        danger: true,
+      }))
+    )
+      return;
     setBusyId(id);
     const { error } = await createClient()
       .from("products")
@@ -69,7 +79,15 @@ export function AdminDealsClient({
   }
 
   async function endClearance(id: string) {
-    if (!window.confirm(t.endConfirm)) return;
+    if (
+      !(await confirm({
+        message: t.endConfirm,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+        danger: true,
+      }))
+    )
+      return;
     setBusyId(id);
     const { error } = await createClient()
       .from("products")

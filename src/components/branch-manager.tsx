@@ -8,6 +8,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { regions } from "@/lib/catalog";
 import { createClient } from "@/lib/supabase/client";
 import { notifyError } from "@/lib/notify";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type BranchRow = {
   id: string;
@@ -49,6 +50,7 @@ export function BranchManager({
   initial: BranchRow[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.os.branches;
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
@@ -150,7 +152,7 @@ export function BranchManager({
       notifyError(t.cantDeletePrimary);
       return;
     }
-    if (!window.confirm(t.confirmDelete)) return;
+    if (!(await confirm({ message: t.confirmDelete, confirmLabel: dict.common.confirm, cancelLabel: dict.common.cancel, danger: true }))) return;
     setBusy(true);
     const { error } = await createClient()
       .from("store_locations")

@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type QuestionRow = {
   id: string;
@@ -45,6 +46,7 @@ export function AdminQuestionsClient({
   rows: QuestionRow[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.admin.questionsAdmin;
   const [tab, setTab] = useState<Tab>("all");
   const [q, setQ] = useState("");
@@ -79,7 +81,15 @@ export function AdminQuestionsClient({
   }, [rows, tab, q]);
 
   async function remove(id: string) {
-    if (!window.confirm(t.deleteConfirm)) return;
+    if (
+      !(await confirm({
+        message: t.deleteConfirm,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+        danger: true,
+      }))
+    )
+      return;
     setBusyId(id);
     const { error } = await createClient()
       .from("product_questions")

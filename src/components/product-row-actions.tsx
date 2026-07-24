@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { notifyError } from "@/lib/notify";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export function ProductRowActions({
   productId,
@@ -25,6 +26,7 @@ export function ProductRowActions({
   errorLabel: string;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [busy, setBusy] = useState(false);
 
   async function toggle() {
@@ -43,7 +45,15 @@ export function ProductRowActions({
   }
 
   async function remove() {
-    if (!window.confirm(confirmLabel)) return;
+    if (
+      !(await confirm({
+        message: confirmLabel,
+        confirmLabel: "تأكيد",
+        cancelLabel: "إلغاء",
+        danger: true,
+      }))
+    )
+      return;
     setBusy(true);
     const { error } = await createClient()
       .from("products")

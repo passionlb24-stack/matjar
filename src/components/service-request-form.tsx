@@ -8,6 +8,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { notifyError, notifySuccess } from "@/lib/notify";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 type MyRequest = {
   id: string;
@@ -34,6 +35,7 @@ export function ServiceRequestForm({
   dict: Dictionary;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.os.requestForm;
   const rt = dict.os.requests;
   const [ready, setReady] = useState(false);
@@ -111,7 +113,7 @@ export function ServiceRequestForm({
   }
 
   async function act(id: string, action: "accept" | "cancel") {
-    if (action === "cancel" && !window.confirm(t.confirmCancel)) return;
+    if (action === "cancel" && !(await confirm({ message: t.confirmCancel, confirmLabel: dict.common.confirm, cancelLabel: dict.common.cancel, danger: true }))) return;
     const { error } = await createClient().rpc("manage_service_request", {
       p_id: id,
       p_action: action,

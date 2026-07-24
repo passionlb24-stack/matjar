@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/field";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type PageRow = {
   id: string;
@@ -57,6 +58,7 @@ export function AdminPagesClient({
   pages: PageRow[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.admin.pagesAdmin;
 
   const [editingId, setEditingId] = useState<string | "new" | null>(null);
@@ -109,7 +111,15 @@ export function AdminPagesClient({
   }
 
   async function remove(id: string) {
-    if (!window.confirm(t.deleteConfirm)) return;
+    if (
+      !(await confirm({
+        message: t.deleteConfirm,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+        danger: true,
+      }))
+    )
+      return;
     setBusy(true);
     const { error } = await createClient()
       .from("site_pages")

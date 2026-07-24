@@ -7,6 +7,7 @@ import { Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { logAdminAction } from "@/lib/audit";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export function AdminReviewDelete({
   reviewId,
@@ -20,10 +21,19 @@ export function AdminReviewDelete({
   errorLabel: string;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [busy, setBusy] = useState(false);
 
   async function remove() {
-    if (!window.confirm(confirmLabel)) return;
+    if (
+      !(await confirm({
+        message: confirmLabel,
+        confirmLabel: "تأكيد",
+        cancelLabel: "إلغاء",
+        danger: true,
+      }))
+    )
+      return;
     setBusy(true);
     const { error } = await createClient()
       .from("reviews")

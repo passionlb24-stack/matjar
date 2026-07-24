@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { fieldClass as uiFieldClass } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { regions } from "@/lib/catalog";
@@ -47,6 +48,7 @@ export function AddressManager({
   rows: AddressRow[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.account.address;
   // null = form closed; "new" = adding; otherwise the id being edited.
   const [editing, setEditing] = useState<string | null>(null);
@@ -135,7 +137,15 @@ export function AddressManager({
   }
 
   async function remove(id: string) {
-    if (!window.confirm(t.confirmDelete)) return;
+    if (
+      !(await confirm({
+        message: t.confirmDelete,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+        danger: true,
+      }))
+    )
+      return;
     setBusy(true);
     const supabase = createClient();
     await supabase.from("addresses").delete().eq("id", id);

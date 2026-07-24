@@ -7,6 +7,7 @@ import { Plus, Trash2, Check, CircleDashed } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
@@ -38,6 +39,7 @@ export function TasksManager({
   tasks: TaskRow[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.os.tasks;
   const [title, setTitle] = useState("");
   const [dueOn, setDueOn] = useState("");
@@ -85,7 +87,7 @@ export function TasksManager({
   }
 
   async function remove(id: string) {
-    if (!window.confirm(t.confirmDelete)) return;
+    if (!(await confirm({ message: t.confirmDelete, confirmLabel: dict.common.confirm, cancelLabel: dict.common.cancel, danger: true }))) return;
     const { error } = await createClient()
       .from("store_tasks")
       .delete()

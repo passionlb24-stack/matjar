@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { fieldClass as uiFieldClass } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
 export type Coupon = {
@@ -56,6 +57,7 @@ export function CouponManager({
   coupons: Coupon[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.merchant.coupons;
   const [editingId, setEditingId] = useState<string | "new" | null>(null);
   const [draft, setDraft] = useState<Draft>(empty);
@@ -118,7 +120,7 @@ export function CouponManager({
   }
 
   async function remove(id: string) {
-    if (!window.confirm(dict.merchant.products.confirmDelete)) return;
+    if (!(await confirm({ message: dict.merchant.products.confirmDelete, confirmLabel: dict.common.confirm, cancelLabel: dict.common.cancel, danger: true }))) return;
     setBusy(true);
     const { error } = await createClient()
       .from("coupons")

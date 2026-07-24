@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
 import { EmptyState } from "@/components/ui/empty-state";
 import { OverflowMenu, type OverflowAction } from "@/components/overflow-menu";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type AdminStore = {
   id: string;
@@ -70,6 +71,7 @@ export function AdminStoresClient({
   stores: AdminStore[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.admin.storesAdmin;
   const [busy, setBusy] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -236,10 +238,15 @@ export function AdminStoresClient({
                       Icon: Crown,
                       active: s.plan === "pro",
                       disabled: busy === s.id,
-                      onClick: () => {
+                      onClick: async () => {
                         if (
                           s.plan === "pro" &&
-                          !window.confirm(dict.admin.confirmDowngrade)
+                          !(await confirm({
+                            message: dict.admin.confirmDowngrade,
+                            confirmLabel: dict.common.confirm,
+                            cancelLabel: dict.common.cancel,
+                            danger: true,
+                          }))
                         )
                           return;
                         patch(s.id, {
@@ -295,8 +302,15 @@ export function AdminStoresClient({
                             size="sm"
                             variant="secondary"
                             disabled={busy === s.id}
-                            onClick={() => {
-                              if (window.confirm(dict.admin.confirmReject))
+                            onClick={async () => {
+                              if (
+                                await confirm({
+                                  message: dict.admin.confirmReject,
+                                  confirmLabel: dict.common.confirm,
+                                  cancelLabel: dict.common.cancel,
+                                  danger: true,
+                                })
+                              )
                                 patch(s.id, { status: "rejected" });
                             }}
                             leftIcon={<X className="h-4 w-4" />}
@@ -311,8 +325,15 @@ export function AdminStoresClient({
                           size="sm"
                           variant="secondary"
                           disabled={busy === s.id}
-                          onClick={() => {
-                            if (window.confirm(dict.admin.confirmSuspend))
+                          onClick={async () => {
+                            if (
+                              await confirm({
+                                message: dict.admin.confirmSuspend,
+                                confirmLabel: dict.common.confirm,
+                                cancelLabel: dict.common.cancel,
+                                danger: true,
+                              })
+                            )
                               patch(s.id, { status: "suspended" });
                           }}
                           leftIcon={<Ban className="h-4 w-4" />}

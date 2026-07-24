@@ -6,11 +6,13 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { Card, CardBody } from "@/components/ui/card";
 import { Input, Textarea } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 // Admin tool: send a Web Push broadcast to every subscriber (e.g. deal of the
 // day). Posts to the admin-gated /api/push/broadcast route.
 export function AdminBroadcast({ dict }: { dict: Dictionary }) {
   const t = dict.push;
+  const confirm = useConfirm();
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -18,7 +20,14 @@ export function AdminBroadcast({ dict }: { dict: Dictionary }) {
 
   async function send() {
     if (!message.trim()) return;
-    if (!window.confirm(t.adminConfirm)) return;
+    if (
+      !(await confirm({
+        message: t.adminConfirm,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+      }))
+    )
+      return;
     setBusy(true);
     setResult(null);
     try {

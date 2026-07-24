@@ -6,6 +6,7 @@ import { Wallet, Plus, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
 import { notifyError, notifySuccess } from "@/lib/notify";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type OrderPayment = {
   id: string;
@@ -33,6 +34,7 @@ export function OrderPayments({
   dict: Dictionary;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.payments;
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<"payment" | "refund">("payment");
@@ -52,7 +54,16 @@ export function OrderPayments({
   async function submit() {
     const amt = Number(amount);
     if (!amt || amt <= 0 || busy) return;
-    if (kind === "refund" && !window.confirm(t.confirmRefund)) return;
+    if (
+      kind === "refund" &&
+      !(await confirm({
+        message: t.confirmRefund,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+        danger: true,
+      }))
+    )
+      return;
     setBusy(true);
     const { error } = await createClient().rpc("record_order_payment", {
       p_order_id: orderId,

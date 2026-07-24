@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea, Select } from "@/components/ui/field";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type GuideRow = {
   id: string;
@@ -129,6 +130,7 @@ export function AdminAcademyClient({
 }) {
   void lang;
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.admin.academyAdmin;
   const catLabels = dict.hub.academy.categories as Record<string, string>;
 
@@ -214,7 +216,15 @@ export function AdminAcademyClient({
   }
 
   async function remove(id: string) {
-    if (!window.confirm(t.deleteConfirm)) return;
+    if (
+      !(await confirm({
+        message: t.deleteConfirm,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+        danger: true,
+      }))
+    )
+      return;
     setBusy(true);
     const { error } = await createClient()
       .from("academy_guides")

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Truck, Eye, EyeOff, Pencil, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { notifyError } from "@/lib/notify";
 import { logAdminAction } from "@/lib/audit";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -33,6 +34,7 @@ export function AdminDeliveryClient({
   companies: DeliveryCompany[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.admin.delivery;
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<DeliveryCompany | null>(null);
@@ -98,7 +100,15 @@ export function AdminDeliveryClient({
   }
 
   async function remove(id: string) {
-    if (!window.confirm(t.confirmDelete)) return;
+    if (
+      !(await confirm({
+        message: t.confirmDelete,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+        danger: true,
+      }))
+    )
+      return;
     setBusy(true);
     const { error } = await createClient()
       .from("delivery_companies")

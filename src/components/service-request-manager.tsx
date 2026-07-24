@@ -7,6 +7,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
 import { notifyError } from "@/lib/notify";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type ServiceRequestRow = {
   id: string;
@@ -53,6 +54,7 @@ export function ServiceRequestManager({
   dict: Dictionary;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const t = dict.os.requests;
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
@@ -60,7 +62,7 @@ export function ServiceRequestManager({
 
   async function act(action: string, extra?: { amount?: number; note?: string }) {
     if (busy) return;
-    if (action === "decline" && !window.confirm(t.confirmDecline)) return;
+    if (action === "decline" && !(await confirm({ message: t.confirmDecline, confirmLabel: dict.common.confirm, cancelLabel: dict.common.cancel, danger: true }))) return;
     setBusy(true);
     const { error } = await createClient().rpc("manage_service_request", {
       p_id: request.id,
