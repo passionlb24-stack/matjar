@@ -104,6 +104,12 @@ export default async function NotificationsPage({
     if (t === "store_campaign") {
       return n.data?.title?.trim() || dict.notifications.storeCampaign;
     }
+    if (t === "booking_placed") return dict.notifications.bookingPlaced;
+    if (t === "order_placed") return dict.notifications.orderPlaced;
+    if (t === "booking_status_merchant")
+      return dict.notifications.bookingStatusMerchant;
+    if (t === "order_status_merchant")
+      return dict.notifications.orderStatusMerchant;
     return t === "order_new"
       ? dict.notifications.orderNew
       : t === "order_status"
@@ -156,11 +162,14 @@ export default async function NotificationsPage({
           ? n.data?.conversation_id
             ? `/${lang}/messages/${n.data.conversation_id}`
             : `/${lang}/messages`
-          : n.type === "order_new" || n.type === "booking_new"
+          : n.type === "order_new" ||
+              n.type === "booking_new" ||
+              n.type === "order_status_merchant" ||
+              n.type === "booking_status_merchant"
             ? `/${lang}/merchant`
-            : n.type === "order_status"
+            : n.type === "order_status" || n.type === "order_placed"
               ? `/${lang}/orders`
-              : n.type === "booking_status"
+              : n.type === "booking_status" || n.type === "booking_placed"
                 ? `/${lang}/bookings`
                 : `/${lang}`;
 
