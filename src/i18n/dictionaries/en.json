@@ -1273,6 +1273,8 @@
       "addListing": "Add listing",
       "editTitle": "Edit product",
       "editAction": "Edit",
+      "waiting": "waiting",
+      "waitingHint": "Customers who asked to be notified when this product is back in stock",
       "update": "Save changes",
       "showIn": "Show in",
       "channelStore": "Store",

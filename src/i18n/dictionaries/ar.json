@@ -1273,6 +1273,8 @@
       "addListing": "أضف إعلان",
       "editTitle": "تعديل المنتج",
       "editAction": "تعديل",
+      "waiting": "منتظر",
+      "waitingHint": "عدد الزباين يلي طلبوا نتبّههم لمّا يتوفّر هالمنتج",
       "update": "حفظ التعديلات",
       "showIn": "عرض في",
       "channelStore": "المتجر",

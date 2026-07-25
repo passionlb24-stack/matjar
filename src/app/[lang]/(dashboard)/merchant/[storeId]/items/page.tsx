@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight, Package } from "lucide-react";
+import { ChevronRight, Package, BellRing } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -93,6 +93,19 @@ export default async function StoreItemsPage({
     .order("created_at", { ascending: false });
   const products = (data ?? []) as ProductRow[];
 
+  // Back-in-stock demand: how many customers are waiting on each product
+  // (migration 0163). RLS (stock_waitlist_select_store) scopes this to the
+  // store's own rows. Surfaced as a badge so the merchant knows what to restock.
+  const waiting: Record<string, number> = {};
+  const { data: waitData } = await supabase
+    .from("stock_waitlist")
+    .select("product_id")
+    .eq("store_id", storeId)
+    .is("notified_at", null);
+  for (const w of (waitData ?? []) as { product_id: string }[]) {
+    waiting[w.product_id] = (waiting[w.product_id] ?? 0) + 1;
+  }
+
   // Storefront sections (menu groups / collections / service groups). Optional:
   // a store with none renders a flat catalog. Managed here, assigned per product.
   const { data: sectionData } = await supabase
@@ -149,6 +162,15 @@ export default async function StoreItemsPage({
                       </span>
                     )}
                     <span className="flex-1 font-semibold">{p.name}</span>
+                    {(waiting[p.id] ?? 0) > 0 && (
+                      <span
+                        className="inline-flex shrink-0 items-center gap-1 rounded-full bg-warning-soft px-2.5 py-0.5 text-xs font-bold text-warning"
+                        title={dict.merchant.products.waitingHint}
+                      >
+                        <BellRing className="h-3.5 w-3.5" />
+                        {waiting[p.id]} {dict.merchant.products.waiting}
+                      </span>
+                    )}
                     <span className="font-bold text-primary">
                       {formatPrice(p.price)}
                     </span>
