@@ -40,6 +40,7 @@ import { ShareButton } from "@/components/share-button";
 import { ProductStoryCard } from "@/components/product-story-card";
 import { BackButton } from "@/components/back-button";
 import { TrackVisit } from "@/components/track-visit";
+import { RestockButton } from "@/components/restock-button";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -195,6 +196,18 @@ export default async function ProductPage({
   const isBooking = bookingCategories.has(product.category);
   const soldOut = product.stock != null && product.stock <= 0;
 
+  // Back-in-stock: is this signed-in viewer already waiting on this product?
+  let onWaitlist = false;
+  if (user && soldOut) {
+    const { data: wl } = await supabase
+      .from("stock_waitlist")
+      .select("id")
+      .eq("product_id", product.id)
+      .is("notified_at", null)
+      .maybeSingle();
+    onWaitlist = !!wl;
+  }
+
   return (
     <div className="py-8">
       {UUID_RE.test(product.storeId) && UUID_RE.test(product.id) && (
@@ -325,6 +338,24 @@ export default async function ProductPage({
                   acceptsPickup={product.acceptsPickup}
                   lbpRate={lbpRate}
                 />
+              )}
+              {soldOut && !isBooking && (
+                <div className="mt-3 border-t border-border pt-3">
+                  <RestockButton
+                    productId={product.id}
+                    lang={l}
+                    loggedIn={!!user}
+                    subscribed={onWaitlist}
+                    labels={{
+                      notify: dict.product.notifyMe,
+                      login: dict.product.notifyLogin,
+                      on: dict.product.notifyOn,
+                      cancel: dict.product.notifyCancel,
+                      saved: dict.product.notifySaved,
+                      error: dict.common.actionFailed,
+                    }}
+                  />
+                </div>
               )}
             </div>
 

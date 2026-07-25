@@ -104,6 +104,11 @@ export default async function NotificationsPage({
     if (t === "store_campaign") {
       return n.data?.title?.trim() || dict.notifications.storeCampaign;
     }
+    if (t === "restock")
+      return dict.notifications.restock.replace(
+        "{product}",
+        n.data?.product_name ?? "",
+      );
     if (t === "booking_placed") return dict.notifications.bookingPlaced;
     if (t === "order_placed") return dict.notifications.orderPlaced;
     if (t === "booking_status_merchant")
@@ -150,7 +155,8 @@ export default async function NotificationsPage({
       ? n.type === "listing_rejected"
         ? `/${lang}/account`
         : `/${lang}/market/${n.data.listing_id}`
-      : n.type === "price_drop" && n.data?.product_id
+      : (n.type === "price_drop" || n.type === "restock") &&
+          n.data?.product_id
         ? `/${lang}/product/${n.data.product_id}`
         : n.type === "store_product" && n.data?.store_id
         ? `/${lang}/store/${n.data.store_id}`
