@@ -16,6 +16,7 @@ export type StoreView = {
   slug?: string | null;
   accentColor?: string | null;
   storefrontLayout?: "grid" | "menu" | "showcase" | null;
+  storefrontTheme?: string | null;
   category: CategoryKey;
   area: string | null;
   description: string | null;
@@ -81,7 +82,7 @@ async function fetchStoreView(
   const { data } = await supabase
     .from("stores")
     .select(
-      "name, slug, description, announcement, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, hours, booking_slot_minutes, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, loyalty_redemption_enabled, loyalty_points_per_unit, accent_color, storefront_layout, lat, lng, business_types(slug)",
+      "name, slug, description, announcement, storefront_theme, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, hours, booking_slot_minutes, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, loyalty_redemption_enabled, loyalty_points_per_unit, accent_color, storefront_layout, lat, lng, business_types(slug)",
     )
     .eq("id", id)
     .is("deleted_at", null)
@@ -113,6 +114,7 @@ async function fetchStoreView(
     accentColor: (data.accent_color as string | null) ?? null,
     storefrontLayout:
       (data.storefront_layout as "grid" | "menu" | "showcase" | null) ?? null,
+    storefrontTheme: (data.storefront_theme as string | null) ?? null,
     category: (bt?.slug as CategoryKey) ?? "retail",
     area: (data.area as string | null) ?? null,
     description: (data.description as string | null) ?? null,

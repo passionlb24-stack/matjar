@@ -33,6 +33,7 @@ export function StoreProductsSection({
   Icon,
   style,
   initialBrand = null,
+  layout = null,
 }: {
   sectionTitle: string;
   store: StoreView;
@@ -57,6 +58,8 @@ export function StoreProductsSection({
   Icon: LucideIcon;
   style: { cover: string; iconWrap: string };
   initialBrand?: string | null;
+  // Theme-resolved product presentation (merchant's own pick already applied).
+  layout?: "grid" | "menu" | "showcase" | null;
 }) {
   return (
     <>
@@ -110,7 +113,7 @@ export function StoreProductsSection({
               prepTime={store.prepTime ?? null}
               whatsapp={store.whatsapp ?? null}
               storeName={store.name}
-              layout={store.storefrontLayout}
+              layout={layout ?? store.storefrontLayout}
               lbpRate={lbpRate}
               loyaltyPoints={loyaltyPoints}
               loyaltyPointsPerUnit={store.loyaltyPointsPerUnit ?? 0}

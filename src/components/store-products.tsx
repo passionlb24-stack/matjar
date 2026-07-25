@@ -38,7 +38,7 @@ function PriceTag({ p }: { p: Product }) {
   const compare = compareAtPrice(p);
   const flash = isFlashActive(p);
   return (
-    <span className="inline-flex items-center gap-1.5">
+    <span className="sf-price inline-flex items-center gap-1.5">
       <span className={`font-bold ${flash ? "text-warning" : "text-primary"}`}>
         {formatPrice(eff)}
       </span>
@@ -478,7 +478,7 @@ export function StoreProducts({
         {list.map((p) => {
           const qty = cart[p.id] ?? 0;
           return (
-            <div key={p.id} className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+            <div key={p.id} className="sf-card group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                 <Card p={p} />
                 <div className="flex flex-1 flex-col p-4">
                   <Link
@@ -526,7 +526,7 @@ export function StoreProducts({
           {list.map((p) => {
             const qty = cart[p.id] ?? 0;
             return (
-              <div key={p.id} className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+              <div key={p.id} className="sf-card flex items-center gap-4 rounded-2xl border border-border bg-surface p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                 <Card p={p} />
                 <div className="min-w-0 flex-1">
                   <Link
@@ -980,7 +980,7 @@ export function StoreProducts({
               <button
                 type="submit"
                 disabled={placing || belowMin}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+                className="sf-buy flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
               >
                 {placing ? dict.store.placing : dict.store.confirmOrder}
               </button>
@@ -1008,7 +1008,7 @@ export function StoreProducts({
               )}
               <button
                 onClick={() => setCheckingOut(true)}
-                className="flex items-center gap-1.5 rounded-xl bg-primary px-6 py-3 font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                className="sf-buy flex items-center gap-1.5 rounded-xl bg-primary px-6 py-3 font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
               >
                 <ShoppingCart className="h-4 w-4" />
                 {dict.store.checkout}

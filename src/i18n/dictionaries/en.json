@@ -1147,6 +1147,15 @@
     "whatsapp": "WhatsApp",
     "description": "Short description",
     "descriptionPlaceholder": "What is your store about?",
+    "theme": "Store theme",
+    "themeHint": "A complete design system in one tap: hero, cards, type, and palette. Your brand color and layout (below) always override the theme.",
+    "themes": {
+      "classic": { "name": "Classic", "desc": "Trusted market — blue cover, soft cards" },
+      "minimal": { "name": "Minimal", "desc": "Clean editorial — sharp corners, black & white" },
+      "warm": { "name": "Warm", "desc": "Food & crafts — rounded, appetizing coral" },
+      "bold": { "name": "Bold", "desc": "Street — thick borders, hard shadows" },
+      "luxe": { "name": "Luxe", "desc": "Maison — serif type, antique gold" }
+    },
     "announcement": "Announcement bar (optional)",
     "announcementPlaceholder": "e.g. Eid sale! 20% off through the weekend 🎉",
     "create": "Create store",

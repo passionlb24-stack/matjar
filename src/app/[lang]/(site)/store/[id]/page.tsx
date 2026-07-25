@@ -18,6 +18,7 @@ import {
 } from "@/lib/data/store-view";
 import { localeAlternates, SITE_URL } from "@/lib/site";
 import { accentStyle } from "@/lib/color";
+import { resolveTheme } from "@/lib/themes";
 import { storeJsonLd, jsonLdScript, toOpeningHours } from "@/lib/jsonld";
 import { parseHours } from "@/lib/hours";
 import { getUsdLbpRate } from "@/lib/data/settings";
@@ -420,6 +421,8 @@ export default async function StorePage({
 
   const Icon = categoryIcons[store.category];
   const style = categoryStyles[store.category];
+  // Theme = defaults; the merchant's own accent color / layout always win.
+  const sf = resolveTheme(store);
   const isBooking = bookingCategories.has(store.category);
   const sectionTitle =
     store.category === "food"
@@ -433,7 +436,8 @@ export default async function StorePage({
   return (
     <div
       className="pb-16"
-      style={accentStyle(store.accentColor) as React.CSSProperties | undefined}
+      data-sf={sf.key}
+      style={accentStyle(sf.accent) as React.CSSProperties | undefined}
     >
       {store.isReal && UUID_RE.test(id) && (
         <TrackVisit storeId={id} path="store" />
@@ -466,16 +470,23 @@ export default async function StorePage({
         />
       )}
       {store.isReal && store.announcement && (
-        <div className="bg-primary text-primary-foreground">
+        <div className="sf-announce bg-primary text-primary-foreground">
           <Container>
-            <p className="flex items-center justify-center gap-2 py-2.5 text-center text-sm font-bold">
+            <p className="sf-announce-p flex items-center justify-center gap-2 py-2.5 text-center text-sm font-bold">
               <Megaphone className="h-4 w-4 shrink-0" />
               <span>{store.announcement}</span>
             </p>
           </Container>
         </div>
       )}
-      <StoreHero store={store} Icon={Icon} style={style} dict={dict} lang={lang} />
+      <StoreHero
+        store={store}
+        Icon={Icon}
+        style={style}
+        dict={dict}
+        lang={lang}
+        variant={sf.hero}
+      />
 
       <Container>
         <StoreHeader
@@ -578,6 +589,7 @@ export default async function StorePage({
           Icon={Icon}
           style={style}
           initialBrand={initialBrand}
+          layout={sf.layout}
         />
 
         {store.category === "healthcare" &&

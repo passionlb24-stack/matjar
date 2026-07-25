@@ -21,6 +21,7 @@ import { fieldClass as uiFieldClass } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { parseHours } from "@/lib/hours";
 import { accentStyle } from "@/lib/color";
+import { THEME_KEYS, THEMES, isStorefrontTheme } from "@/lib/themes";
 
 type Option = { value: string; label: string };
 
@@ -40,6 +41,7 @@ type Initial = {
   slug: string | null;
   description: string | null;
   announcement: string | null;
+  storefront_theme: string | null;
   business_type_id: string | null;
   region: string | null;
   area: string | null;
@@ -97,6 +99,9 @@ export function EditStoreForm({
   const [accent, setAccent] = useState(initial.accent_color ?? "");
   // Storefront layout template. "" = auto by sector.
   const [layout, setLayout] = useState(initial.storefront_layout ?? "");
+  // Storefront theme (0168): a full design system. "" = classic (default).
+  // The brand color + layout below always OVERRIDE the theme's own defaults.
+  const [theme, setTheme] = useState(initial.storefront_theme ?? "");
   // Precise coordinates set by dragging the map pin (not just the typed area).
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
     initial.lat != null && initial.lng != null
@@ -142,6 +147,7 @@ export function EditStoreForm({
         facebook: String(form.get("facebook")) || null,
         website: String(form.get("website")) || null,
         accent_color: /^#[0-9a-fA-F]{6}$/.test(accent) ? accent : null,
+        storefront_theme: isStorefrontTheme(theme) ? theme : null,
         storefront_layout:
           layout === "grid" || layout === "menu" || layout === "showcase"
             ? layout
@@ -177,6 +183,49 @@ export function EditStoreForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <ImageUpload folder={storeId} value={logo} onChange={setLogo} label={dict.merchant.logo} />
         <ImageUpload folder={storeId} value={cover} onChange={setCover} label={dict.merchant.cover} />
+      </div>
+
+      {/* Storefront theme: a full design system in one tap. The brand color
+          and layout pickers below it OVERRIDE whatever the theme defaults. */}
+      <div>
+        <label className={labelClass}>{dict.merchant.theme}</label>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {dict.merchant.themeHint}
+        </p>
+        <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-5">
+          {THEME_KEYS.map((k) => {
+            const tn = (dict.merchant.themes as Record<string, { name: string; desc: string }>)[k];
+            const on = (theme || "classic") === k;
+            return (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setTheme(k === "classic" ? "" : k)}
+                className={`rounded-xl border p-3 text-start transition-colors ${
+                  on
+                    ? "border-primary bg-primary-soft"
+                    : "border-border hover:border-primary/40"
+                }`}
+              >
+                <span className="flex gap-1">
+                  {THEMES[k].swatches.map((c) => (
+                    <span
+                      key={c}
+                      className="h-3 w-3 rounded-full border border-black/10"
+                      style={{ background: c }}
+                    />
+                  ))}
+                </span>
+                <span className={`mt-2 block text-sm font-bold ${on ? "text-primary" : ""}`}>
+                  {tn?.name ?? k}
+                </span>
+                <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">
+                  {tn?.desc ?? ""}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div>

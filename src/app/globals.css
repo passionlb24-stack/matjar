@@ -290,3 +290,121 @@ select:focus-visible,
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ===== Storefront themes (migration 0168) =====
+   Five design systems applied via [data-sf] on the store page root. Rules are
+   token-driven (var(--foreground) etc.) so every theme adapts to light/dark.
+   Being unlayered, these win over utility classes on the same elements —
+   which is exactly the point: the theme restyles the hooks (.sf-card,
+   .sf-buy, .sf-price, .sf-announce) without touching component markup.
+   The merchant's accent_color still flows through --primary on top. */
+
+/* — minimal: flat editorial. Square corners, hairline cards, monochrome CTA — */
+[data-sf="minimal"] .sf-card {
+  border-radius: 4px;
+  box-shadow: none;
+}
+[data-sf="minimal"] .sf-card:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--foreground);
+}
+[data-sf="minimal"] .sf-buy {
+  border-radius: 4px;
+  background: var(--foreground);
+  color: var(--background);
+  letter-spacing: 0.14em;
+}
+[data-sf="minimal"] .sf-buy:hover {
+  background: var(--foreground);
+  opacity: 0.85;
+}
+[data-sf="minimal"] .sf-announce {
+  background: transparent;
+  color: var(--foreground);
+  border-bottom: 1px solid var(--border);
+}
+[data-sf="minimal"] .sf-announce-p {
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+}
+
+/* — warm: rounded & appetizing. Soft warm shadows, pill CTA — */
+[data-sf="warm"] .sf-card {
+  border-radius: 1.4rem;
+  border-color: transparent;
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 0.04),
+    0 14px 30px -16px color-mix(in srgb, var(--primary) 55%, transparent);
+}
+[data-sf="warm"] .sf-buy {
+  border-radius: 999px;
+  box-shadow: 0 10px 22px -10px color-mix(in srgb, var(--primary) 65%, transparent);
+}
+[data-sf="warm"] .sf-announce {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+[data-sf="warm"] .sf-announce-p {
+  font-weight: 800;
+}
+
+/* — bold: brutalist. Hard borders, offset shadows, mono prices — */
+[data-sf="bold"] .sf-card {
+  border-radius: 6px;
+  border: 2px solid var(--foreground);
+  box-shadow: 4px 4px 0 var(--foreground);
+}
+[data-sf="bold"] .sf-card:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 6px 6px 0 var(--foreground);
+}
+[data-sf="bold"] .sf-buy {
+  border-radius: 6px;
+  border: 2px solid var(--foreground);
+  box-shadow: 3px 3px 0 var(--foreground);
+}
+[data-sf="bold"] .sf-price {
+  font-family: Consolas, "Cascadia Code", ui-monospace, monospace;
+}
+[data-sf="bold"] .sf-announce {
+  background: var(--foreground);
+  color: var(--background);
+}
+[data-sf="bold"] .sf-announce-p {
+  font-family: Consolas, "Cascadia Code", ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+
+/* — luxe: maison. Serif type, gallery hairlines, outlined CTA — */
+[data-sf="luxe"] {
+  font-family: Georgia, "Traditional Arabic", "Times New Roman", serif;
+}
+[data-sf="luxe"] .sf-card {
+  border-radius: 2px;
+  border-color: color-mix(in srgb, var(--primary) 38%, var(--border));
+  box-shadow: none;
+}
+[data-sf="luxe"] .sf-buy {
+  border-radius: 2px;
+  background: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  letter-spacing: 0.12em;
+}
+[data-sf="luxe"] .sf-buy:hover {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+[data-sf="luxe"] .sf-announce {
+  background: transparent;
+  color: var(--primary);
+  border-block: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border));
+}
+[data-sf="luxe"] .sf-announce-p {
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.24em;
+}
