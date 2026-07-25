@@ -8,6 +8,9 @@ import {
   Users,
   Heart,
   UsersRound,
+  Repeat,
+  Crown,
+  Moon,
   Link2,
   Check,
   type LucideIcon,
@@ -19,8 +22,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { notifyError, notifySuccess } from "@/lib/notify";
 
-// ===== Contract (matches migration 0122) =====
-export type Audience = "followers" | "customers" | "all";
+// ===== Contract (matches migrations 0122 + 0164) =====
+export type Audience =
+  | "followers"
+  | "customers"
+  | "all"
+  | "repeat"
+  | "vip"
+  | "inactive";
 
 export type CampaignRow = {
   id: string;
@@ -36,14 +45,27 @@ export type AudienceCounts = {
   followers: number;
   customers: number;
   all: number;
+  repeat: number;
+  vip: number;
+  inactive: number;
 };
 
-const AUDIENCES: Audience[] = ["all", "followers", "customers"];
+const AUDIENCES: Audience[] = [
+  "all",
+  "followers",
+  "customers",
+  "repeat",
+  "vip",
+  "inactive",
+];
 
 const AUDIENCE_ICON: Record<Audience, LucideIcon> = {
   all: UsersRound,
   followers: Heart,
   customers: Users,
+  repeat: Repeat,
+  vip: Crown,
+  inactive: Moon,
 };
 
 function timeAgo(iso: string, lang: Locale) {

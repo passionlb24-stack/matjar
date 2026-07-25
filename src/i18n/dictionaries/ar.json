@@ -138,7 +138,10 @@
       "audiences": {
         "all": "الكل",
         "followers": "المتابعين",
-        "customers": "زباين سابقين"
+        "customers": "زباين سابقين",
+        "repeat": "زباين متكرّرين",
+        "vip": "كبار الزباين",
+        "inactive": "زباين خاملين"
       },
       "recipientsUnit": "شخص",
       "titleLabel": "العنوان",
@@ -396,6 +399,13 @@
     "crm": {
       "book": "دفتر الزبائن",
       "fromOrders": "من الطلبات",
+      "segAll": "الكل",
+      "segments": {
+        "new": "جديد",
+        "repeat": "متكرّر",
+        "vip": "من الكبار",
+        "inactive": "خامل"
+      },
       "points": "نقطة",
       "redeem": "استبدال النقاط",
       "redeemAmount": "النقاط",

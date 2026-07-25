@@ -86,7 +86,7 @@ export default async function StoreCampaignsPage({
         .limit(5000),
       supabase
         .from("orders")
-        .select("customer_id")
+        .select("customer_id, created_at")
         .eq("store_id", storeId)
         .not("customer_id", "is", null)
         .limit(5000),
@@ -97,14 +97,40 @@ export default async function StoreCampaignsPage({
   const followers = new Set(
     ((followData ?? []) as { user_id: string }[]).map((r) => r.user_id),
   );
-  const customers = new Set(
-    ((custData ?? []) as { customer_id: string }[]).map((r) => r.customer_id),
-  );
+
+  // Per-customer order stats → behavioural segment sizes (matches the RPC's
+  // 0164 definitions: repeat 2+, vip 3+, inactive last order > 60 days ago).
+  const stats = new Map<string, { count: number; last: string }>();
+  for (const o of (custData ?? []) as {
+    customer_id: string;
+    created_at: string;
+  }[]) {
+    const s = stats.get(o.customer_id);
+    if (s) {
+      s.count += 1;
+      if (o.created_at > s.last) s.last = o.created_at;
+    } else {
+      stats.set(o.customer_id, { count: 1, last: o.created_at });
+    }
+  }
+  const customers = new Set(stats.keys());
   const all = new Set<string>([...followers, ...customers]);
+  const inactiveBefore = Date.now() - 60 * 24 * 60 * 60 * 1000;
+  let repeat = 0;
+  let vip = 0;
+  let inactive = 0;
+  for (const s of stats.values()) {
+    if (s.count >= 2) repeat += 1;
+    if (s.count >= 3) vip += 1;
+    if (new Date(s.last).getTime() < inactiveBefore) inactive += 1;
+  }
   const counts = {
     followers: followers.size,
     customers: customers.size,
     all: all.size,
+    repeat,
+    vip,
+    inactive,
   };
 
   return (

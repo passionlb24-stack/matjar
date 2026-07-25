@@ -37,6 +37,33 @@ export type DerivedCustomer = {
   // points are tracked per (user, store) since migration 0095, so only these
   // registered customers can have a redeemable balance AT THIS store.
   customerId: string | null;
+  lastOrder: string | null;
+};
+
+// Behavioural segments, computed from order history — the same definitions the
+// campaign sender uses server-side (migration 0164), so what a merchant filters
+// here matches who a segment-targeted campaign reaches.
+type Segment = "new" | "repeat" | "vip" | "inactive";
+
+const SEGMENTS: Segment[] = ["new", "repeat", "vip", "inactive"];
+
+const INACTIVE_MS = 60 * 24 * 60 * 60 * 1000;
+
+function segmentsOf(c: DerivedCustomer): Segment[] {
+  const segs: Segment[] = [];
+  if (c.count === 1) segs.push("new");
+  if (c.count >= 2) segs.push("repeat");
+  if (c.count >= 3) segs.push("vip");
+  if (c.lastOrder && Date.now() - new Date(c.lastOrder).getTime() > INACTIVE_MS)
+    segs.push("inactive");
+  return segs;
+}
+
+const segmentVariant: Record<Segment, "info" | "primary" | "warning" | "neutral"> = {
+  new: "info",
+  repeat: "primary",
+  vip: "warning",
+  inactive: "neutral",
 };
 
 type RedemptionSettingsRow = { enabled: boolean; points_per_unit: number };
@@ -83,6 +110,7 @@ export function CrmManager({
   const t = dict.os.crm;
   const [tab, setTab] = useState<"book" | "orders">("book");
   const [query, setQuery] = useState("");
+  const [seg, setSeg] = useState<Segment | "all">("all");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
@@ -206,15 +234,35 @@ export function CrmManager({
       c.name.toLowerCase().includes(q) ||
       (c.phone ?? "").toLowerCase().includes(q),
   );
-  const filteredDerived = derived.filter(
-    (c) =>
-      !q ||
-      (c.name ?? "").toLowerCase().includes(q) ||
-      (c.phone ?? "").toLowerCase().includes(q),
-  );
+  const filteredDerived = derived.filter((c) => {
+    if (
+      q &&
+      !(c.name ?? "").toLowerCase().includes(q) &&
+      !(c.phone ?? "").toLowerCase().includes(q)
+    )
+      return false;
+    return seg === "all" || segmentsOf(c).includes(seg);
+  });
+
+  // Segment counts for the filter chips (over all derived customers).
+  const segCounts: Record<Segment, number> = {
+    new: 0,
+    repeat: 0,
+    vip: 0,
+    inactive: 0,
+  };
+  for (const c of derived)
+    for (const s of segmentsOf(c)) segCounts[s] += 1;
 
   const tabBtn = (active: boolean) =>
     `flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
+      active
+        ? "border-primary bg-primary text-primary-foreground"
+        : "border-border text-muted-foreground hover:border-primary/40"
+    }`;
+
+  const segChip = (active: boolean) =>
+    `rounded-full border px-3 py-1.5 text-xs font-bold transition-colors ${
       active
         ? "border-primary bg-primary text-primary-foreground"
         : "border-border text-muted-foreground hover:border-primary/40"
@@ -415,6 +463,28 @@ export function CrmManager({
               onSaved={setRedemption}
             />
           )}
+          {/* Behavioural segment filter — the same segments campaigns target. */}
+          {derived.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={() => setSeg("all")}
+                className={segChip(seg === "all")}
+              >
+                {t.segAll} ({derived.length})
+              </button>
+              {SEGMENTS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setSeg(s)}
+                  className={segChip(seg === s)}
+                >
+                  {t.segments[s]} ({segCounts[s]})
+                </button>
+              ))}
+            </div>
+          )}
           {filteredDerived.length ? (
             <div className="mt-4 space-y-2">
               {filteredDerived.map((c, i) => {
@@ -426,8 +496,15 @@ export function CrmManager({
               >
                 <div className="flex items-center gap-3">
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-bold">
-                      {c.name ?? c.phone ?? "—"}
+                    <span className="flex flex-wrap items-center gap-1.5">
+                      <span className="truncate font-bold">
+                        {c.name ?? c.phone ?? "—"}
+                      </span>
+                      {segmentsOf(c).map((s) => (
+                        <Badge key={s} variant={segmentVariant[s]} size="sm">
+                          {t.segments[s]}
+                        </Badge>
+                      ))}
                     </span>
                     <span className="block text-sm text-muted-foreground">
                       {c.phone ? <span dir="ltr">{c.phone}</span> : null}
