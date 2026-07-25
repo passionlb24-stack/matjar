@@ -79,6 +79,8 @@
       "pendingRevenueHint": "Orders still in progress",
       "weekOrders": "Orders this week",
       "monthOrders": "Orders this month",
+      "weekVisits": "Store visits (7 days)",
+      "weekVisitsHint": "{n} unique visitors",
       "chartTitle": "Revenue — last 14 days",
       "chartToday": "Today",
       "chartEmpty": "No sales in the last 14 days — your first sale will show up here.",

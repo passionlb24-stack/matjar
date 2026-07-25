@@ -363,6 +363,19 @@ export default async function StoreOsHomePage({
     href?: string;
     highlight?: boolean;
   };
+
+  // Free storefront-visits pulse (migration 0167) — a reason for every merchant
+  // to check in daily; the full audience breakdown is on the Pro reports page.
+  let visits7d = { visits: 0, uniques: 0 };
+  if (canRevenue) {
+    const { data: vData } = await supabase.rpc("store_visits_summary", {
+      p_store_id: storeId,
+      p_days: 7,
+    });
+    const v = (vData as { visits?: number; uniques?: number } | null) ?? {};
+    visits7d = { visits: v.visits ?? 0, uniques: v.uniques ?? 0 };
+  }
+
   let stats: StatItem[] = [];
   if (canRevenue && report) {
     stats = [
@@ -389,6 +402,15 @@ export default async function StoreOsHomePage({
         label: t.monthOrders,
         value: String(report.month?.count ?? 0),
         pct: report.month?.pct ?? 0,
+        href: `${base}/reports`,
+      },
+      {
+        label: t.weekVisits,
+        value: String(visits7d.visits),
+        hint:
+          visits7d.uniques > 0
+            ? t.weekVisitsHint.replace("{n}", String(visits7d.uniques))
+            : undefined,
         href: `${base}/reports`,
       },
     ];
