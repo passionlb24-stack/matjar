@@ -39,6 +39,7 @@ import { WishlistButton } from "@/components/wishlist-button";
 import { ShareButton } from "@/components/share-button";
 import { ProductStoryCard } from "@/components/product-story-card";
 import { BackButton } from "@/components/back-button";
+import { TrackVisit } from "@/components/track-visit";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -196,6 +197,13 @@ export default async function ProductPage({
 
   return (
     <div className="py-8">
+      {UUID_RE.test(product.storeId) && UUID_RE.test(product.id) && (
+        <TrackVisit
+          storeId={product.storeId}
+          productId={product.id}
+          path="product"
+        />
+      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

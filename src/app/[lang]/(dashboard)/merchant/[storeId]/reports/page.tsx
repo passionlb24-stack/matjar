@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight, TrendingUp, TrendingDown, BarChart3 } from "lucide-react";
+import {
+  ChevronRight,
+  TrendingUp,
+  TrendingDown,
+  BarChart3,
+  Users,
+} from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -245,6 +251,41 @@ export default async function StoreReportsPage({
     },
   ];
 
+  // ===== Audience side (visits / sources / conversion), from migration 0161.
+  const { data: audience } = await supabase.rpc("store_audience", {
+    p_store_id: storeId,
+    p_days: 14,
+  });
+  const a = (audience ?? {}) as {
+    total_visits?: number;
+    unique_visitors?: number;
+    product_views?: number;
+    conversion?: number;
+    per_day?: { day: string; visits: number; uniques: number }[];
+    sources?: { source: string; visits: number }[];
+    top_viewed?: { name: string; views: number }[];
+  };
+  const sourceLabels = t.sources as Record<string, string>;
+  const visitsDays = (a.per_day ?? []).map((d) => ({
+    label: dayLabel(d.day),
+    value: Number(d.visits),
+  }));
+  const sourceRows = (a.sources ?? []).map((s) => ({
+    label: sourceLabels[s.source] ?? s.source,
+    value: Number(s.visits),
+  }));
+  const topViewed = (a.top_viewed ?? []).map((v) => ({
+    label: v.name,
+    value: Number(v.views),
+  }));
+  const audienceKpis = [
+    { label: t.visits, value: String(a.total_visits ?? 0) },
+    { label: t.uniqueVisitors, value: String(a.unique_visitors ?? 0) },
+    { label: t.conversion, value: `${a.conversion ?? 0}%` },
+    { label: t.productViews, value: String(a.product_views ?? 0) },
+  ];
+  const hasVisits = Number(a.total_visits ?? 0) > 0;
+
   return (
     <div className="py-10">
       <Container className="max-w-4xl">
@@ -298,6 +339,69 @@ export default async function StoreReportsPage({
           <Bars title={t.ordersOverTime} rows={perDay} empty={t.noData} />
           <Bars title={t.statusBreakdown} rows={statusRows} empty={t.noData} />
           <Bars title={t.topProducts} rows={topProducts} empty={t.noData} />
+        </div>
+
+        {/* ===== Audience & conversion ===== */}
+        <div className="mt-12 border-t border-border pt-8">
+          <h2 className="flex items-center gap-2 text-xl font-extrabold tracking-tight">
+            <Users className="h-6 w-6 text-primary" />
+            {t.audienceTitle}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t.audienceSubtitle}
+          </p>
+
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {audienceKpis.map((k) => (
+              <div key={k.label} className="rounded-2xl bg-surface-muted/60 p-4">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {k.label}
+                </p>
+                <p className="mt-1 text-2xl font-extrabold">{k.value}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {t.conversionHint}
+          </p>
+
+          {hasVisits ? (
+            <>
+              <div className="mt-6 rounded-2xl border border-border bg-surface p-5">
+                <h3 className="text-sm font-bold text-muted-foreground">
+                  {t.visitsOverTime}
+                </h3>
+                <div className="mt-4">
+                  <RevenueColumns
+                    days={visitsDays.map((d) => ({
+                      label: d.label,
+                      online: d.value,
+                      pos: 0,
+                    }))}
+                    legendOnline={t.visits}
+                    legendPos=""
+                    hasPos={false}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <Bars
+                  title={t.trafficSources}
+                  rows={sourceRows}
+                  empty={t.noData}
+                />
+                <Bars title={t.topViewed} rows={topViewed} empty={t.noData} />
+              </div>
+            </>
+          ) : (
+            <div className="mt-6 rounded-2xl border border-dashed border-border bg-surface-muted/40 p-8 text-center">
+              <p className="text-sm font-semibold">{t.noVisitsTitle}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {t.noVisitsHint}
+              </p>
+            </div>
+          )}
         </div>
       </Container>
     </div>

@@ -1385,7 +1385,7 @@
     "analytics": {
       "link": "Reports",
       "title": "Store reports",
-      "subtitle": "Your sales performance at a glance.",
+      "subtitle": "Your sales and audience at a glance.",
       "totalOrders": "Total orders",
       "sales": "Total sales",
       "thisWeek": "This week",
@@ -1395,7 +1395,30 @@
       "topProducts": "Best sellers",
       "statusBreakdown": "Orders by status",
       "noData": "No data yet.",
-      "orders": "orders"
+      "orders": "orders",
+      "audienceTitle": "Audience & conversion",
+      "audienceSubtitle": "Who visited your store, where they came from, and how many visits became orders — last 14 days.",
+      "visits": "Visits",
+      "uniqueVisitors": "Unique visitors",
+      "conversion": "Conversion rate",
+      "productViews": "Product views",
+      "conversionHint": "Conversion rate = orders ÷ unique visitors.",
+      "visitsOverTime": "Visits (last 14 days)",
+      "trafficSources": "Traffic sources",
+      "topViewed": "Most viewed",
+      "noVisitsTitle": "No visits recorded yet",
+      "noVisitsHint": "Once visitors browse your store, you'll see visits, their sources, and your conversion rate here.",
+      "sources": {
+        "direct": "Direct",
+        "google": "Google",
+        "instagram": "Instagram",
+        "facebook": "Facebook",
+        "whatsapp": "WhatsApp",
+        "tiktok": "TikTok",
+        "twitter": "X (Twitter)",
+        "internal": "Within Matjar",
+        "other": "Other sources"
+      }
     },
     "accounting": {
       "link": "Accounting",

@@ -53,6 +53,7 @@ import { StoreDeliveryOptions } from "@/components/store/store-delivery-options"
 import { StoreProductsSection } from "@/components/store/store-products-section";
 import { StoreHealthcareInfo } from "@/components/store/store-healthcare-info";
 import { StoreDoctors, type DoctorView } from "@/components/store/store-doctors";
+import { TrackVisit } from "@/components/track-visit";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -431,6 +432,9 @@ export default async function StorePage({
       className="pb-16"
       style={accentStyle(store.accentColor) as React.CSSProperties | undefined}
     >
+      {store.isReal && UUID_RE.test(id) && (
+        <TrackVisit storeId={id} path="store" />
+      )}
       {store.isReal && (
         <script
           type="application/ld+json"
