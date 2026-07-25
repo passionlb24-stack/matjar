@@ -1145,6 +1145,8 @@
     "whatsapp": "WhatsApp",
     "description": "Short description",
     "descriptionPlaceholder": "What is your store about?",
+    "announcement": "Announcement bar (optional)",
+    "announcementPlaceholder": "e.g. Eid sale! 20% off through the weekend 🎉",
     "create": "Create store",
     "creating": "Creating…",
     "manage": "Manage",

@@ -19,6 +19,7 @@ export type StoreView = {
   category: CategoryKey;
   area: string | null;
   description: string | null;
+  announcement?: string | null;
   isOpen: boolean;
   plan?: "free" | "pro";
   rating?: number;
@@ -80,7 +81,7 @@ async function fetchStoreView(
   const { data } = await supabase
     .from("stores")
     .select(
-      "name, slug, description, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, hours, booking_slot_minutes, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, loyalty_redemption_enabled, loyalty_points_per_unit, accent_color, storefront_layout, lat, lng, business_types(slug)",
+      "name, slug, description, announcement, area, status, plan, logo_url, cover_url, phone, whatsapp, opening_hours, hours, booking_slot_minutes, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, loyalty_redemption_enabled, loyalty_points_per_unit, accent_color, storefront_layout, lat, lng, business_types(slug)",
     )
     .eq("id", id)
     .is("deleted_at", null)
@@ -115,6 +116,7 @@ async function fetchStoreView(
     category: (bt?.slug as CategoryKey) ?? "retail",
     area: (data.area as string | null) ?? null,
     description: (data.description as string | null) ?? null,
+    announcement: (data.announcement as string | null) ?? null,
     isOpen: data.status === "active",
     plan: (data.plan as "free" | "pro" | null) ?? "free",
     logoUrl: (data.logo_url as string | null) ?? null,

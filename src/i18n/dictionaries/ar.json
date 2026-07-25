@@ -1145,6 +1145,8 @@
     "whatsapp": "واتساب",
     "description": "وصف مختصر",
     "descriptionPlaceholder": "عن شو متجرك؟",
+    "announcement": "شريط إعلان (اختياري)",
+    "announcementPlaceholder": "مثلاً: عروض العيد! خصم ٢٠٪ لآخر الأسبوع 🎉",
     "create": "إنشاء المتجر",
     "creating": "عم ننشئ…",
     "manage": "إدارة",

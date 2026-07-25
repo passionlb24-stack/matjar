@@ -39,6 +39,7 @@ type Initial = {
   name: string;
   slug: string | null;
   description: string | null;
+  announcement: string | null;
   business_type_id: string | null;
   region: string | null;
   area: string | null;
@@ -125,6 +126,7 @@ export function EditStoreForm({
         name: String(form.get("name")),
         slug: slug.trim().toLowerCase() || null,
         description: String(form.get("description")) || null,
+        announcement: String(form.get("announcement") ?? "").trim() || null,
         business_type_id: String(form.get("business_type_id")) || null,
         region: String(form.get("region")) || null,
         area: String(form.get("area")) || null,
@@ -397,6 +399,20 @@ export function EditStoreForm({
           {dict.merchant.description}
         </label>
         <textarea id="description" name="description" rows={3} defaultValue={initial.description ?? ""} placeholder={dict.merchant.descriptionPlaceholder} className={fieldClass} />
+      </div>
+      <div>
+        <label className={labelClass} htmlFor="announcement">
+          {dict.merchant.announcement}
+        </label>
+        <input
+          id="announcement"
+          name="announcement"
+          type="text"
+          maxLength={140}
+          defaultValue={initial.announcement ?? ""}
+          placeholder={dict.merchant.announcementPlaceholder}
+          className={fieldClass}
+        />
       </div>
 
       <HoursEditor

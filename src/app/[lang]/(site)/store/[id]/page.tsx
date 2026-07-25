@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
-import { MapPin } from "lucide-react";
+import { MapPin, Megaphone } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import {
@@ -464,6 +464,16 @@ export default async function StorePage({
             ),
           }}
         />
+      )}
+      {store.isReal && store.announcement && (
+        <div className="bg-primary text-primary-foreground">
+          <Container>
+            <p className="flex items-center justify-center gap-2 py-2.5 text-center text-sm font-bold">
+              <Megaphone className="h-4 w-4 shrink-0" />
+              <span>{store.announcement}</span>
+            </p>
+          </Container>
+        </div>
       )}
       <StoreHero store={store} Icon={Icon} style={style} dict={dict} lang={lang} />
 
