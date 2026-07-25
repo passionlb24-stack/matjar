@@ -1939,6 +1939,13 @@
       "cancel": "Cancel",
       "saved": "Note saved ✓"
     },
+    "assign": {
+      "assignee": "Handled by",
+      "unassigned": "Unassigned",
+      "tags": "Tag",
+      "addTag": "Tag",
+      "tagPlaceholder": "Tag name…"
+    },
     "empty": "You don't have any orders yet.",
     "order": "Order",
     "total": "Total",

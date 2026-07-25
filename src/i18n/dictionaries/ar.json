@@ -1939,6 +1939,13 @@
       "cancel": "إلغاء",
       "saved": "انحفظت الملاحظة ✓"
     },
+    "assign": {
+      "assignee": "المسؤول",
+      "unassigned": "غير معيَّن",
+      "tags": "وسم",
+      "addTag": "وسم",
+      "tagPlaceholder": "اسم الوسم…"
+    },
     "empty": "لسا ما عندك طلبات.",
     "order": "طلب",
     "total": "المجموع",

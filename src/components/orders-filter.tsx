@@ -7,6 +7,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { OrderStatusControl } from "@/components/order-status-control";
 import { OrderPayments, type OrderPayment } from "@/components/order-payments";
 import { OrderNoteEditor } from "@/components/order-note-editor";
+import { OrderAssignTags } from "@/components/order-assign-tags";
 
 type OrderItem = { name: string; quantity: number; unit_price: number };
 
@@ -27,6 +28,8 @@ export type OrderCard = {
   order_items: OrderItem[];
   payments: OrderPayment[];
   branch: { name: string | null; area: string | null } | null;
+  assigned_to: string | null;
+  tags: string[];
 };
 
 // Mirrors the order_status enum, minus the implicit "all" tab rendered first.
@@ -58,11 +61,13 @@ export function OrdersFilter({
   dict,
   lang,
   storeId,
+  team,
 }: {
   orders: OrderCard[];
   dict: Dictionary;
   lang: string;
   storeId: string;
+  team: { id: string; name: string }[];
 }) {
   const [status, setStatus] = useState<string>("all");
   const [query, setQuery] = useState("");
@@ -76,7 +81,11 @@ export function OrdersFilter({
       if (status !== "all" && o.status !== status) return false;
       if (!q) return true;
       const name = (o.customer_name ?? "").toLowerCase();
-      return name.includes(q) || o.id.toLowerCase().includes(q);
+      return (
+        name.includes(q) ||
+        o.id.toLowerCase().includes(q) ||
+        o.tags.some((t) => t.toLowerCase().includes(q))
+      );
     });
   }, [orders, status, query]);
 
@@ -199,6 +208,14 @@ export function OrdersFilter({
                   orderId={order.id}
                   note={order.store_note}
                   labels={dict.orders.storeNote}
+                  errorLabel={dict.common.actionFailed}
+                />
+                <OrderAssignTags
+                  orderId={order.id}
+                  assignedTo={order.assigned_to}
+                  tags={order.tags}
+                  team={team}
+                  labels={dict.orders.assign}
                   errorLabel={dict.common.actionFailed}
                 />
               </div>
