@@ -21,6 +21,7 @@ type Product = {
   id: string;
   name: string;
   nameEn?: string | null;
+  brand?: string | null;
   price: number;
   discountPrice?: number | null;
   imageUrl?: string | null;
@@ -89,6 +90,7 @@ export function StoreProducts({
   branches = [],
   sections = [],
   layout = null,
+  initialBrand = null,
 }: {
   storeId: string;
   lang: Locale;
@@ -97,6 +99,7 @@ export function StoreProducts({
   isBooking: boolean;
   products: Product[];
   layout?: "grid" | "menu" | "showcase" | null;
+  initialBrand?: string | null;
   sections?: SectionInfo[];
   loggedIn?: boolean;
   defaultAddress?: string;
@@ -178,6 +181,17 @@ export function StoreProducts({
   const [attrFilters, setAttrFilters] = useState<Record<string, string>>({});
   const filterFields = (categoryAttributes[category] ?? []).filter(
     (f) => f.filter,
+  );
+
+  // Brand filter (Salla parity): distinct brands present in the catalogue. A
+  // brand link from a product page arrives via ?brand= as initialBrand.
+  const brands = [
+    ...new Set(
+      products.map((p) => p.brand?.trim()).filter((b): b is string => !!b),
+    ),
+  ].sort((a, b) => a.localeCompare(b));
+  const [brand, setBrand] = useState<string | null>(
+    initialBrand && brands.includes(initialBrand) ? initialBrand : null,
   );
 
   const Icon = categoryIcons[category];
@@ -571,11 +585,10 @@ export function StoreProducts({
   }
 
   const activeFilters = Object.entries(attrFilters).filter(([, v]) => v);
-  const filteredProducts = activeFilters.length
-    ? products.filter((p) =>
-        activeFilters.every(([k, v]) => (p.attributes?.[k] ?? "") === v),
-      )
-    : products;
+  const filteredProducts = products.filter((p) => {
+    if (brand && (p.brand?.trim() ?? "") !== brand) return false;
+    return activeFilters.every(([k, v]) => (p.attributes?.[k] ?? "") === v);
+  });
 
   // Only worth showing when this sector has filterable fields with real values.
   const shownFilterFields = filterFields.filter((f) => fieldChoices(f).length > 0);
@@ -586,6 +599,35 @@ export function StoreProducts({
 
   return (
     <div>
+      {brands.length > 1 && (
+        <div className="mb-4 flex flex-wrap items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setBrand(null)}
+            className={`rounded-full border px-3.5 py-1.5 text-sm font-bold transition-colors ${
+              brand === null
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border text-muted-foreground hover:border-primary/40"
+            }`}
+          >
+            {dict.store.allBrands}
+          </button>
+          {brands.map((b) => (
+            <button
+              key={b}
+              type="button"
+              onClick={() => setBrand(b)}
+              className={`rounded-full border px-3.5 py-1.5 text-sm font-bold transition-colors ${
+                brand === b
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border text-muted-foreground hover:border-primary/40"
+              }`}
+            >
+              {b}
+            </button>
+          ))}
+        </div>
+      )}
       {isGrid && shownFilterFields.length > 0 && (
         <div className="mb-5 flex flex-wrap items-center gap-2">
           {shownFilterFields.map((f) => (
@@ -617,7 +659,8 @@ export function StoreProducts({
         </div>
       )}
 
-      {isGrid && shownFilterFields.length > 0 && filteredProducts.length === 0 ? (
+      {(brand || (isGrid && shownFilterFields.length > 0)) &&
+      filteredProducts.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
           {dict.store.noMatches}
         </div>

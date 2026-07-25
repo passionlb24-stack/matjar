@@ -33,6 +33,7 @@ export type SectionOption = { id: string; name: string; name_en: string | null }
 
 export type ProductInitial = {
   name: string;
+  brand: string;
   nameEn: string;
   price: string;
   discountPrice: string;
@@ -111,6 +112,7 @@ export function ProductEditForm({
     const { error: updateError } = await supabase
       .from("products")
       .update({
+        brand: String(form.get("brand") ?? "").trim() || null,
         name: String(form.get("name")),
         name_en: String(form.get("name_en") ?? "").trim() || null,
         price: Number(form.get("price")) || 0,
@@ -230,6 +232,10 @@ export function ProductEditForm({
       <div>
         <label className={label} htmlFor="name">{p.name}</label>
         <input id="name" name="name" type="text" required defaultValue={initial.name} className={field} />
+      </div>
+      <div>
+        <label className={label} htmlFor="brand">{p.brand}</label>
+        <input id="brand" name="brand" type="text" defaultValue={initial.brand} placeholder={p.brandPlaceholder} className={field} />
       </div>
       {sections.length > 0 && (
         <div>

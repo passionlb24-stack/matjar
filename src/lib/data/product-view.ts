@@ -18,6 +18,7 @@ export type ProductView = {
   category: CategoryKey;
   name: string;
   nameEn: string | null;
+  brand: string | null;
   description: string | null;
   descriptionEn: string | null;
   price: number;
@@ -42,7 +43,7 @@ async function fetchProductView(
   const { data } = await supabase
     .from("products")
     .select(
-      "id, store_id, name, name_en, description, description_en, price, discount_price, flash_price, flash_start, flash_end, image_url, gallery, stock, attributes, stores(name, accepts_delivery, accepts_pickup, business_types(slug))",
+      "id, store_id, name, name_en, brand, description, description_en, price, discount_price, flash_price, flash_start, flash_end, image_url, gallery, stock, attributes, stores(name, accepts_delivery, accepts_pickup, business_types(slug))",
     )
     .eq("id", id)
     .is("deleted_at", null)
@@ -83,6 +84,7 @@ async function fetchProductView(
     category: (store?.business_types?.slug as CategoryKey) ?? "retail",
     name: data.name as string,
     nameEn: (data.name_en as string | null) ?? null,
+    brand: (data.brand as string | null) ?? null,
     description: (data.description as string | null) ?? null,
     descriptionEn: (data.description_en as string | null) ?? null,
     price: Number(data.price),

@@ -75,6 +75,7 @@ export function ProductForm({
         store_id: storeId,
         name: String(form.get("name")),
         name_en: String(form.get("name_en") ?? "").trim() || null,
+        brand: String(form.get("brand") ?? "").trim() || null,
         price: Number(form.get("price")) || 0,
         discount_price: Number(form.get("discount_price")) || null,
         description: String(form.get("description")) || null,
@@ -230,6 +231,18 @@ export function ProductForm({
           {p.name}
         </label>
         <input id="name" name="name" type="text" required placeholder={p.namePlaceholder} className={field} />
+      </div>
+      <div>
+        <label className={label} htmlFor="brand">
+          {p.brand}
+        </label>
+        <input
+          id="brand"
+          name="brand"
+          type="text"
+          placeholder={p.brandPlaceholder}
+          className={field}
+        />
       </div>
       {sections.length > 0 && (
         <div>

@@ -254,6 +254,14 @@ export default async function ProductPage({
           <ProductGallery images={product.images} alt={name} />
 
           <div>
+            {product.brand && (
+              <Link
+                href={`/${lang}/store/${product.storeId}?brand=${encodeURIComponent(product.brand)}`}
+                className="inline-block text-sm font-bold uppercase tracking-wide text-primary transition-opacity hover:opacity-80"
+              >
+                {product.brand}
+              </Link>
+            )}
             <h1 className="text-3xl font-extrabold tracking-tight">
               {name}
             </h1>

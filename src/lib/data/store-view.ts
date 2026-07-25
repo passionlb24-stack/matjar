@@ -56,6 +56,7 @@ export type StoreView = {
     id?: string;
     name: string;
     nameEn?: string | null;
+    brand?: string | null;
     descriptionEn?: string | null;
     price: number;
     discountPrice?: number | null;
@@ -90,7 +91,7 @@ async function fetchStoreView(
   const { data: prods } = await supabase
     .from("products")
     .select(
-      "id, name, name_en, description_en, price, discount_price, image_url, attributes, flash_price, flash_start, flash_end, stock, section_id",
+      "id, name, name_en, brand, description_en, price, discount_price, image_url, attributes, flash_price, flash_start, flash_end, stock, section_id",
     )
     .eq("store_id", id)
     .eq("status", "active")
@@ -153,6 +154,7 @@ async function fetchStoreView(
       id: p.id as string,
       name: p.name as string,
       nameEn: (p.name_en as string | null) ?? null,
+      brand: (p.brand as string | null) ?? null,
       descriptionEn: (p.description_en as string | null) ?? null,
       price: Number(p.price),
       discountPrice: p.discount_price != null ? Number(p.discount_price) : null,

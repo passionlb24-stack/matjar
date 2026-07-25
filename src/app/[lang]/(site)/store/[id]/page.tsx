@@ -133,10 +133,13 @@ export async function generateMetadata({
 
 export default async function StorePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string; id: string }>;
+  searchParams?: Promise<{ brand?: string }>;
 }) {
   const { lang, id } = await params;
+  const initialBrand = (await searchParams)?.brand ?? null;
   if (!isLocale(lang)) notFound();
 
   const store = await loadStore(id, lang);
@@ -564,6 +567,7 @@ export default async function StorePage({
           branches={branches}
           Icon={Icon}
           style={style}
+          initialBrand={initialBrand}
         />
 
         {store.category === "healthcare" &&

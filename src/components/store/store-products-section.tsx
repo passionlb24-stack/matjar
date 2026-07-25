@@ -32,6 +32,7 @@ export function StoreProductsSection({
   branches,
   Icon,
   style,
+  initialBrand = null,
 }: {
   sectionTitle: string;
   store: StoreView;
@@ -55,6 +56,7 @@ export function StoreProductsSection({
   }[];
   Icon: LucideIcon;
   style: { cover: string; iconWrap: string };
+  initialBrand?: string | null;
 }) {
   return (
     <>
@@ -125,6 +127,7 @@ export function StoreProductsSection({
                   id: p.id as string,
                   name: p.name,
                   nameEn: p.nameEn,
+                  brand: p.brand ?? null,
                   price: p.price,
                   discountPrice: p.discountPrice,
                   imageUrl: p.imageUrl,
@@ -135,6 +138,7 @@ export function StoreProductsSection({
                   flashEnd: p.flashEnd,
                   sectionId: p.sectionId ?? null,
                 }))}
+              initialBrand={initialBrand}
             />
           )
         ) : (
