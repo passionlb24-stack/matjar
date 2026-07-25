@@ -1147,6 +1147,19 @@
     "whatsapp": "WhatsApp",
     "description": "Short description",
     "descriptionPlaceholder": "What is your store about?",
+    "transfer": {
+      "title": "Transfer store ownership",
+      "hint": "Hands the whole store to another account (products, orders, subscription — everything). They must already have a Matjar account with this email. After the transfer you lose all access.",
+      "emailPlaceholder": "example@email.com",
+      "action": "Transfer ownership",
+      "transferring": "Transferring…",
+      "confirmTitle": "Transfer ownership?",
+      "confirmBody": "“{store}” will be fully transferred to {email}, who becomes its owner and admin. You lose all access to this store immediately. This can only be undone if the new owner transfers it back.",
+      "confirmAction": "Yes, transfer ownership",
+      "notFound": "No account exists with this email. They need to sign up on Matjar first.",
+      "self": "That email is your own account — you already own this store.",
+      "done": "Transferred ✓ The store now belongs to {email}"
+    },
     "theme": "Store theme",
     "themeHint": "A complete design system in one tap: hero, cards, type, and palette. Your brand color and layout (below) always override the theme.",
     "themes": {
@@ -2877,6 +2890,7 @@
     "storeProductNamed": "{store} added a new product",
     "priceDrop": "{product} dropped to ${price}",
     "restock": "{product} is back in stock — grab yours 🔔",
+    "storeTransferred": "You now own “{store}” 🎉 — the whole store is yours",
     "proRequest": "{store} requested a Pro upgrade",
     "listingApproved": "Your Sunday Market listing was approved",
     "listingRejected": "Your Sunday Market listing was rejected",

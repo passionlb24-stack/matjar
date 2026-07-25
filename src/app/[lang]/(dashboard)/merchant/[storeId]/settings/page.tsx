@@ -13,6 +13,7 @@ import {
   StoreCouriersManager,
   type CourierCompany,
 } from "@/components/store-couriers-manager";
+import { TransferOwnership } from "@/components/transfer-ownership";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -117,6 +118,16 @@ export default async function StoreSettingsPage({
             dict={dict}
             companies={(companies ?? []) as CourierCompany[]}
             selected={selectedCouriers}
+          />
+        </div>
+        {/* Danger zone: hand the store to another account. Page is already
+            owner-only (the query above filters on owner_id). */}
+        <div className="mt-10">
+          <TransferOwnership
+            storeId={storeId}
+            storeName={(store as { name: string }).name}
+            lang={lang}
+            dict={dict}
           />
         </div>
       </Container>

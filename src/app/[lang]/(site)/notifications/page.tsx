@@ -109,6 +109,11 @@ export default async function NotificationsPage({
         "{product}",
         n.data?.product_name ?? "",
       );
+    if (t === "store_transferred")
+      return dict.notifications.storeTransferred.replace(
+        "{store}",
+        n.data?.store_name ?? "",
+      );
     if (t === "booking_placed") return dict.notifications.bookingPlaced;
     if (t === "order_placed") return dict.notifications.orderPlaced;
     if (t === "booking_status_merchant")
@@ -171,7 +176,8 @@ export default async function NotificationsPage({
           : n.type === "order_new" ||
               n.type === "booking_new" ||
               n.type === "order_status_merchant" ||
-              n.type === "booking_status_merchant"
+              n.type === "booking_status_merchant" ||
+              n.type === "store_transferred"
             ? `/${lang}/merchant`
             : n.type === "order_status" || n.type === "order_placed"
               ? `/${lang}/orders`
