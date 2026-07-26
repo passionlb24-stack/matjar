@@ -30,6 +30,9 @@ export type OrderCard = {
   branch: { name: string | null; area: string | null } | null;
   assigned_to: string | null;
   tags: string[];
+  delivery_fee: number | null;
+  change_for: number | null;
+  delivery_instructions: string | null;
 };
 
 // Mirrors the order_status enum, minus the implicit "all" tab rendered first.
@@ -193,8 +196,26 @@ export function OrdersFilter({
                       ? dict.store.delivery
                       : dict.store.pickup}
                     {order.phone ? ` · ${order.phone}` : ""}
+                    {order.delivery_fee != null &&
+                      Number(order.delivery_fee) > 0 && (
+                        <span className="ms-2 font-semibold text-foreground">
+                          {dict.orders.deliveryFeeLabel}: $
+                          {Number(order.delivery_fee)}
+                        </span>
+                      )}
                   </p>
                   {order.address && <p>{order.address}</p>}
+                  {order.delivery_instructions && (
+                    <p className="font-semibold text-warning">
+                      📍 {order.delivery_instructions}
+                    </p>
+                  )}
+                  {order.change_for != null && Number(order.change_for) > 0 && (
+                    <p className="font-semibold text-foreground">
+                      💵 {dict.orders.changeForLabel}: $
+                      {Number(order.change_for)}
+                    </p>
+                  )}
                   {order.customer_note && (
                     <p className="italic">“{order.customer_note}”</p>
                   )}

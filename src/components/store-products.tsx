@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,6 +16,19 @@ import { formatLbp } from "@/lib/currency";
 import { localized } from "@/lib/i18n-field";
 import { groupBySection, type SectionInfo } from "@/lib/sections";
 import { categoryIcons } from "@/components/category-icon";
+
+// Delivery zone (migration 0172): the fee/ETA the customer sees is display
+// only — resolve_delivery_fee recomputes everything server-side at placement.
+export type DeliveryZone = {
+  id: string;
+  name: string;
+  nameEn?: string | null;
+  fee: number;
+  minOrder?: number | null;
+  freeOver?: number | null;
+  etaMin?: number | null;
+  etaMax?: number | null;
+};
 
 type Product = {
   id: string;
@@ -91,6 +104,7 @@ export function StoreProducts({
   sections = [],
   layout = null,
   initialBrand = null,
+  zones = [],
 }: {
   storeId: string;
   lang: Locale;
@@ -100,6 +114,7 @@ export function StoreProducts({
   products: Product[];
   layout?: "grid" | "menu" | "showcase" | null;
   initialBrand?: string | null;
+  zones?: DeliveryZone[];
   sections?: SectionInfo[];
   loggedIn?: boolean;
   defaultAddress?: string;
@@ -167,6 +182,13 @@ export function StoreProducts({
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
   const [couponBusy, setCouponBusy] = useState(false);
   const [addressValue, setAddressValue] = useState(defaultAddress);
+  // Delivery zone + cash-change + idempotency (0172).
+  const [zoneId, setZoneId] = useState<string>(zones[0]?.id ?? "");
+  const [changeChoice, setChangeChoice] = useState<string>("none");
+  const [changeCustom, setChangeCustom] = useState("");
+  // One key per checkout attempt: a double-tap or flaky-4G retry returns the
+  // SAME order server-side instead of creating a duplicate.
+  const idemKeyRef = useRef<string>("");
   // Loyalty redemption: opt-in per store (0107). Only offered when the customer
   // actually holds points here and the store set a conversion rate.
   const canRedeem = loyaltyPoints > 0 && loyaltyPointsPerUnit > 0;
@@ -239,6 +261,26 @@ export function StoreProducts({
       : 0;
   const pointsUsed = Math.round(pointsDiscount * loyaltyPointsPerUnit);
   const finalTotal = Math.max(0, total - couponDiscount - pointsDiscount);
+
+  // Delivery fee preview (display only — the RPC recomputes authoritatively).
+  const selectedZone =
+    fulfillment === "delivery" ? (zones.find((z) => z.id === zoneId) ?? null) : null;
+  const deliveryFee = selectedZone
+    ? selectedZone.freeOver != null && finalTotal >= selectedZone.freeOver
+      ? 0
+      : selectedZone.fee
+    : 0;
+  const grandTotal = finalTotal + deliveryFee;
+  const belowZoneMin =
+    selectedZone?.minOrder != null && finalTotal < selectedZone.minOrder;
+  const changeForValue =
+    fulfillment !== "delivery" || changeChoice === "none"
+      ? null
+      : changeChoice === "custom"
+        ? Number(changeCustom) > 0
+          ? Number(changeCustom)
+          : null
+        : Number(changeChoice);
 
   async function applyCoupon() {
     if (!couponInput.trim()) return;
@@ -357,6 +399,13 @@ export function StoreProducts({
             quantity: cart[p.id],
           })),
           p_location_id: locationId,
+          p_zone_id: selectedZone?.id ?? null,
+          p_change_for: changeForValue,
+          p_delivery_instructions:
+            fulfillment === "delivery"
+              ? String(form.get("delivery_instructions") ?? "")
+              : "",
+          p_idempotency_key: idemKeyRef.current || null,
         },
       );
       setPlacing(false);
@@ -367,11 +416,14 @@ export function StoreProducts({
             ? dict.store.outOfStock
             : msg.includes("rate_limited")
               ? dict.store.tooManyOrders
-              : dict.auth.errorGeneric,
+              : msg.includes("below_zone_minimum")
+                ? dict.store.belowZoneMin
+                : dict.auth.errorGeneric,
         );
         router.refresh();
         return;
       }
+      idemKeyRef.current = "";
       setCheckingOut(false);
       setPlacedOrderId(guestOrderId as string);
       setOrderPlaced(true);
@@ -397,10 +449,23 @@ export function StoreProducts({
       // Send the full balance; the server caps it to the order total and consumes
       // only the points that discount is worth. 0 (or opt-out) redeems nothing.
       p_redeem_points: canRedeem && redeemLoyalty ? loyaltyPoints : 0,
+      p_zone_id: selectedZone?.id ?? null,
+      p_change_for: changeForValue,
+      p_delivery_instructions:
+        fulfillment === "delivery"
+          ? String(form.get("delivery_instructions") ?? "")
+          : "",
+      p_idempotency_key: idemKeyRef.current || null,
     });
     if (error) {
-      const outOfStock = error.message?.includes("insufficient_stock");
-      setOrderError(outOfStock ? dict.store.outOfStock : dict.auth.errorGeneric);
+      const msg = error.message ?? "";
+      setOrderError(
+        msg.includes("insufficient_stock")
+          ? dict.store.outOfStock
+          : msg.includes("below_zone_minimum")
+            ? dict.store.belowZoneMin
+            : dict.auth.errorGeneric,
+      );
       setPlacing(false);
       router.refresh();
       return;
@@ -408,6 +473,7 @@ export function StoreProducts({
     // Order recorded. Instead of a silent redirect, show a confirmation that
     // lets the customer ping the merchant on WhatsApp — so a merchant who
     // doesn't watch the dashboard still learns about the order immediately.
+    idemKeyRef.current = "";
     setPlacing(false);
     setCheckingOut(false);
     setOrderPlaced(true);
@@ -787,7 +853,7 @@ export function StoreProducts({
 
             {/* Totals */}
             <div className="space-y-1 border-t border-border pt-3 text-sm">
-              {(couponDiscount > 0 || pointsDiscount > 0) && (
+              {(couponDiscount > 0 || pointsDiscount > 0 || deliveryFee > 0) && (
                 <div className="flex justify-between text-muted-foreground">
                   <span>{dict.store.subtotal}</span>
                   <span>{formatPrice(total)}</span>
@@ -810,13 +876,19 @@ export function StoreProducts({
                   <span>−{formatPrice(pointsDiscount)}</span>
                 </div>
               )}
+              {deliveryFee > 0 && (
+                <div className="flex justify-between text-muted-foreground">
+                  <span>{dict.store.deliveryFeeLabel}</span>
+                  <span>+{formatPrice(deliveryFee)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-lg font-extrabold">
                 <span>{dict.store.total}</span>
-                <span>{formatPrice(finalTotal)}</span>
+                <span>{formatPrice(grandTotal)}</span>
               </div>
               {lbpRate > 0 && (
                 <p className="text-end text-xs font-normal text-muted-foreground">
-                  {formatLbp(finalTotal, lbpRate, lang)}
+                  {formatLbp(grandTotal, lbpRate, lang)}
                 </p>
               )}
             </div>
@@ -884,6 +956,62 @@ export function StoreProducts({
                 {dict.store.belowMin} ({formatPrice(minOrder!)})
               </p>
             )}
+            {fulfillment === "delivery" && zones.length > 0 && (
+              <div>
+                <label className="text-sm font-semibold" htmlFor="dzone">
+                  {dict.store.deliveryZone}
+                </label>
+                <select
+                  id="dzone"
+                  required
+                  value={zoneId}
+                  onChange={(e) => setZoneId(e.target.value)}
+                  className={fieldClass}
+                >
+                  {zones.map((z) => (
+                    <option key={z.id} value={z.id}>
+                      {lang === "en" && z.nameEn?.trim() ? z.nameEn : z.name}
+                      {" — "}
+                      {z.fee > 0 ? formatPrice(z.fee) : dict.store.freeDelivery}
+                    </option>
+                  ))}
+                </select>
+                {selectedZone && (
+                  <div className="mt-1.5 space-y-0.5 text-xs text-muted-foreground">
+                    {selectedZone.etaMin != null && selectedZone.etaMax != null && (
+                      <p>
+                        ⏱️{" "}
+                        {dict.store.zoneEta
+                          .replace("{min}", String(selectedZone.etaMin))
+                          .replace("{max}", String(selectedZone.etaMax))}
+                      </p>
+                    )}
+                    {selectedZone.freeOver != null && deliveryFee > 0 && (
+                      <p>
+                        🚚{" "}
+                        {dict.store.freeOverHint.replace(
+                          "{n}",
+                          formatPrice(selectedZone.freeOver),
+                        )}
+                      </p>
+                    )}
+                    {deliveryFee === 0 && selectedZone.freeOver != null && (
+                      <p className="font-semibold text-success">
+                        ✓ {dict.store.freeDeliveryApplied}
+                      </p>
+                    )}
+                  </div>
+                )}
+                {belowZoneMin && selectedZone?.minOrder != null && (
+                  <p className="mt-1.5 rounded-xl bg-danger-soft px-3 py-2 text-sm font-semibold text-danger">
+                    {dict.store.zoneMinWarn.replace(
+                      "{n}",
+                      formatPrice(selectedZone.minOrder),
+                    )}
+                  </p>
+                )}
+              </div>
+            )}
             {fulfillment === "delivery" && (
               <div>
                 <label className="text-sm font-semibold" htmlFor="address">
@@ -918,6 +1046,64 @@ export function StoreProducts({
                   placeholder={dict.store.addressPlaceholder}
                   className={fieldClass}
                 />
+              </div>
+            )}
+            {fulfillment === "delivery" && (
+              <div>
+                <label
+                  className="text-sm font-semibold"
+                  htmlFor="delivery_instructions"
+                >
+                  {dict.store.deliveryInstructions}
+                </label>
+                <input
+                  id="delivery_instructions"
+                  name="delivery_instructions"
+                  type="text"
+                  placeholder={dict.store.deliveryInstructionsPlaceholder}
+                  className={fieldClass}
+                />
+              </div>
+            )}
+            {fulfillment === "delivery" && (
+              <div>
+                <span className="text-sm font-semibold">
+                  {dict.store.changeFor}
+                </span>
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  {[
+                    { v: "none", label: dict.store.noChange },
+                    { v: "20", label: "$20" },
+                    { v: "50", label: "$50" },
+                    { v: "100", label: "$100" },
+                    { v: "custom", label: dict.store.changeCustom },
+                  ].map((c) => (
+                    <button
+                      key={c.v}
+                      type="button"
+                      onClick={() => setChangeChoice(c.v)}
+                      className={`rounded-full border px-3.5 py-1.5 text-sm font-bold transition-colors ${
+                        changeChoice === c.v
+                          ? "border-primary bg-primary-soft text-primary"
+                          : "border-border text-muted-foreground hover:border-primary/40"
+                      }`}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                  {changeChoice === "custom" && (
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      inputMode="numeric"
+                      value={changeCustom}
+                      onChange={(e) => setChangeCustom(e.target.value)}
+                      placeholder="$"
+                      className="w-24 rounded-full border border-border bg-surface px-3 py-1.5 text-sm outline-none focus:border-primary"
+                    />
+                  )}
+                </div>
               </div>
             )}
             {!loggedIn && (
@@ -979,7 +1165,7 @@ export function StoreProducts({
               </button>
               <button
                 type="submit"
-                disabled={placing || belowMin}
+                disabled={placing || belowMin || belowZoneMin}
                 className="sf-buy flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
               >
                 {placing ? dict.store.placing : dict.store.confirmOrder}
@@ -1007,7 +1193,14 @@ export function StoreProducts({
                 </a>
               )}
               <button
-                onClick={() => setCheckingOut(true)}
+                onClick={() => {
+                  // New attempt → new idempotency key (kept across retries).
+                  idemKeyRef.current =
+                    typeof crypto !== "undefined" && crypto.randomUUID
+                      ? crypto.randomUUID()
+                      : String(Math.random());
+                  setCheckingOut(true);
+                }}
                 className="sf-buy flex items-center gap-1.5 rounded-xl bg-primary px-6 py-3 font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
               >
                 <ShoppingCart className="h-4 w-4" />

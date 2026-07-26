@@ -4,7 +4,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { StoreView } from "@/lib/data/store-view";
 import { parseHours } from "@/lib/hours";
-import { StoreProducts } from "@/components/store-products";
+import { StoreProducts, type DeliveryZone } from "@/components/store-products";
 import { BookingPanel } from "@/components/booking-panel";
 import type { DoctorView } from "@/components/store/store-doctors";
 
@@ -34,6 +34,7 @@ export function StoreProductsSection({
   style,
   initialBrand = null,
   layout = null,
+  zones = [],
 }: {
   sectionTitle: string;
   store: StoreView;
@@ -60,6 +61,7 @@ export function StoreProductsSection({
   initialBrand?: string | null;
   // Theme-resolved product presentation (merchant's own pick already applied).
   layout?: "grid" | "menu" | "showcase" | null;
+  zones?: DeliveryZone[];
 }) {
   return (
     <>
@@ -142,6 +144,7 @@ export function StoreProductsSection({
                   sectionId: p.sectionId ?? null,
                 }))}
               initialBrand={initialBrand}
+              zones={zones}
             />
           )
         ) : (

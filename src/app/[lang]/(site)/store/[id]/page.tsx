@@ -353,6 +353,50 @@ export default async function StorePage({
     }
   }
 
+  // Delivery zones (0172): fee / minimum / free-over / ETA per area. The
+  // checkout requires picking one for delivery orders when any exist.
+  type ZoneRow = {
+    id: string;
+    name: string;
+    name_en: string | null;
+    fee: number;
+    min_order: number | null;
+    free_over: number | null;
+    eta_min_minutes: number | null;
+    eta_max_minutes: number | null;
+  };
+  let zones: {
+    id: string;
+    name: string;
+    nameEn: string | null;
+    fee: number;
+    minOrder: number | null;
+    freeOver: number | null;
+    etaMin: number | null;
+    etaMax: number | null;
+  }[] = [];
+  if (store.isReal && UUID_RE.test(id)) {
+    const { data: zoneRows } = await supabase
+      .from("store_delivery_zones")
+      .select(
+        "id, name, name_en, fee, min_order, free_over, eta_min_minutes, eta_max_minutes",
+      )
+      .eq("store_id", id)
+      .eq("active", true)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+    zones = ((zoneRows ?? []) as ZoneRow[]).map((z) => ({
+      id: z.id,
+      name: z.name,
+      nameEn: z.name_en,
+      fee: Number(z.fee),
+      minOrder: z.min_order != null ? Number(z.min_order) : null,
+      freeOver: z.free_over != null ? Number(z.free_over) : null,
+      etaMin: z.eta_min_minutes,
+      etaMax: z.eta_max_minutes,
+    }));
+  }
+
   // Delivery options this store offers via partner couriers.
   type CourierOption = { price: number | null; name: string };
   let couriers: CourierOption[] = [];
@@ -590,6 +634,7 @@ export default async function StorePage({
           style={style}
           initialBrand={initialBrand}
           layout={sf.layout}
+          zones={zones}
         />
 
         {store.category === "healthcare" &&

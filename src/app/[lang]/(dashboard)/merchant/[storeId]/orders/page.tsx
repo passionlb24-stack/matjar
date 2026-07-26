@@ -28,6 +28,9 @@ type OrderRow = {
   order_items: OrderItem[];
   assigned_to: string | null;
   tags: string[] | null;
+  delivery_fee: number | null;
+  change_for: number | null;
+  delivery_instructions: string | null;
 };
 type StoreLocation = { id: string; name: string | null; area: string | null };
 type TeamMember = { user_id: string; name: string; role: string };
@@ -62,7 +65,7 @@ export default async function StoreOrdersPage({
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, status, total, fulfillment, address, phone, customer_name, customer_note, store_note, created_at, location_id, assigned_to, tags, order_items(name, quantity, unit_price)",
+      "id, status, total, fulfillment, address, phone, customer_name, customer_note, store_note, created_at, location_id, assigned_to, tags, delivery_fee, change_for, delivery_instructions, order_items(name, quantity, unit_price)",
     )
     .eq("store_id", storeId)
     .order("created_at", { ascending: false });

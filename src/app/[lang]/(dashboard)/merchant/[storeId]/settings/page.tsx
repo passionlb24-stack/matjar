@@ -14,6 +14,10 @@ import {
   type CourierCompany,
 } from "@/components/store-couriers-manager";
 import { TransferOwnership } from "@/components/transfer-ownership";
+import {
+  DeliveryZonesManager,
+  type ZoneRowM,
+} from "@/components/delivery-zones-manager";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -45,6 +49,16 @@ export default async function StoreSettingsPage({
   const isHealthcare =
     (store as unknown as { business_types: { slug: string } | null })
       .business_types?.slug === "healthcare";
+
+  const { data: zoneData } = await supabase
+    .from("store_delivery_zones")
+    .select(
+      "id, name, name_en, fee, min_order, free_over, eta_min_minutes, eta_max_minutes, active",
+    )
+    .eq("store_id", storeId)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+  const zones = (zoneData ?? []) as ZoneRowM[];
 
   const [{ data: companies }, { data: couriers }] = await Promise.all([
     supabase
@@ -111,6 +125,9 @@ export default async function StoreSettingsPage({
             initial={initial}
             isHealthcare={isHealthcare}
           />
+        </div>
+        <div className="mt-6">
+          <DeliveryZonesManager storeId={storeId} dict={dict} initial={zones} />
         </div>
         <div className="mt-6">
           <StoreCouriersManager
