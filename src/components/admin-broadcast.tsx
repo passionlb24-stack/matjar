@@ -8,13 +8,19 @@ import { Input, Textarea } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 
-// Admin tool: send a Web Push broadcast to every subscriber (e.g. deal of the
-// day). Posts to the admin-gated /api/push/broadcast route.
+type Audience = "all" | "merchants" | "customers";
+const AUDIENCES: Audience[] = ["all", "merchants", "customers"];
+
+// Admin tool: broadcast a message (e.g. today's exchange rate, an announcement)
+// to a chosen audience. Delivered as an IN-APP notification to every recipient
+// (the guaranteed channel — shows in the bell) + web push for any subscriber,
+// via the admin-gated /api/push/broadcast route.
 export function AdminBroadcast({ dict }: { dict: Dictionary }) {
   const t = dict.push;
   const confirm = useConfirm();
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
+  const [audience, setAudience] = useState<Audience>("all");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
@@ -34,12 +40,11 @@ export function AdminBroadcast({ dict }: { dict: Dictionary }) {
       const res = await fetch("/api/push/broadcast", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, message }),
+        body: JSON.stringify({ title, message, audience }),
       });
       const data = await res.json();
-      if (res.status === 503) setResult(t.adminNotConfigured);
-      else if (res.ok) {
-        setResult(`${t.adminSent} ${data.sent}/${data.total}`);
+      if (res.ok) {
+        setResult(t.adminReached.replace("{n}", String(data.recipients ?? 0)));
         setMessage("");
         setTitle("");
       } else setResult(dict.auth.errorGeneric);
@@ -59,6 +64,25 @@ export function AdminBroadcast({ dict }: { dict: Dictionary }) {
           {t.adminTitle}
         </h2>
         <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-sm font-semibold text-muted-foreground">
+              {t.audLabel}
+            </span>
+            {AUDIENCES.map((a) => (
+              <button
+                key={a}
+                type="button"
+                onClick={() => setAudience(a)}
+                className={`rounded-full border px-3.5 py-1.5 text-sm font-bold transition-colors ${
+                  audience === a
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border text-muted-foreground hover:border-primary/40"
+                }`}
+              >
+                {t.audiences[a]}
+              </button>
+            ))}
+          </div>
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}

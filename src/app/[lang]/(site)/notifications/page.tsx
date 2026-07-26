@@ -104,6 +104,10 @@ export default async function NotificationsPage({
     if (t === "store_campaign") {
       return n.data?.title?.trim() || dict.notifications.storeCampaign;
     }
+    // Platform broadcast (admin-authored title/body, e.g. daily rates).
+    if (t === "admin_broadcast") {
+      return n.data?.title?.trim() || dict.notifications.adminBroadcast;
+    }
     if (t === "restock")
       return dict.notifications.restock.replace(
         "{product}",
@@ -148,7 +152,9 @@ export default async function NotificationsPage({
   // Campaigns carry an explicit destination in data.url (the store, an offer,
   // etc.); fall back to the store page.
   const linkFor = (n: Notif): string =>
-    n.type === "store_campaign"
+    n.type === "admin_broadcast"
+      ? n.data?.url?.trim() || `/${lang}`
+      : n.type === "store_campaign"
       ? n.data?.url?.trim() ||
         (n.data?.store_id
           ? `/${lang}/store/${n.data.store_id}`
@@ -216,11 +222,13 @@ export default async function NotificationsPage({
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {timeAgo(n.created_at, lang)}
                   </p>
-                  {n.type === "store_campaign" && n.data?.body?.trim() && (
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {n.data.body}
-                    </p>
-                  )}
+                  {(n.type === "store_campaign" ||
+                    n.type === "admin_broadcast") &&
+                    n.data?.body?.trim() && (
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {n.data.body}
+                      </p>
+                    )}
                   {n.type === "pro_request" && n.data?.phone && (
                     <p className="mt-1 text-sm font-semibold text-primary" dir="ltr">
                       {dict.notifications.phoneLabel}: {n.data.phone}

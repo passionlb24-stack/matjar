@@ -2756,8 +2756,15 @@
     "adminField": "نص الإشعار",
     "adminHeading": "العنوان (اختياري)",
     "adminSend": "إرسال",
-    "adminConfirm": "إرسال هذا الإشعار لكل المشتركين؟",
+    "adminConfirm": "إرسال هذا الإشعار للجمهور المختار؟ بيوصل بجرس الإشعارات داخل المنصّة.",
     "adminSent": "تمّ الإرسال إلى",
+    "adminReached": "وصل الإشعار لـ {n} مستخدم ✓",
+    "audLabel": "لمين؟",
+    "audiences": {
+      "all": "الكل",
+      "merchants": "التجّار",
+      "customers": "الزبائن"
+    },
     "adminNotConfigured": "الإشعارات غير مفعّلة — أضف مفتاح VAPID_PRIVATE_KEY في إعدادات Vercel."
   },
   "search": {
@@ -2891,6 +2898,7 @@
     "priceDrop": "انخفض سعر {product} إلى {price}$",
     "restock": "{product} رجع متوفّر — احجز نسختك 🔔",
     "storeTransferred": "صرت مالك متجر «{store}» 🎉 — المتجر بالكامل صار باسمك",
+    "adminBroadcast": "إعلان من إدارة متجر 📢",
     "proRequest": "{store} طلب الترقية لـPro",
     "listingApproved": "تمت الموافقة على إعلانك في سوق الأحد",
     "listingRejected": "تم رفض إعلانك في سوق الأحد",

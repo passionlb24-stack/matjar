@@ -1,18 +1,13 @@
-import webpush from "web-push";
 import { createClient } from "@/lib/supabase/server";
-import { VAPID_PUBLIC_KEY, VAPID_SUBJECT } from "@/lib/push";
 
-// Admin-only broadcast to every push subscription. Sending needs the private
-// VAPID key (VAPID_PRIVATE_KEY env var) — returns 503 until it's configured.
+// Admin broadcast. Historically this ONLY sent Web Push to push_subscriptions —
+// a table with zero rows in practice (browser-push permission is rarely
+// granted) — so broadcasts reached nobody. It now delivers through the
+// guaranteed channel: admin_broadcast_notify (0171) writes an IN-APP
+// notification per recipient (all / merchants / customers), and web push rides
+// along automatically for any subscriber via the 0049 bridge
+// (notifications INSERT → push_on_notification → /api/push/hook).
 export async function POST(request: Request) {
-  const privateKey = process.env.VAPID_PRIVATE_KEY;
-  if (!privateKey) {
-    return Response.json(
-      { error: "push_not_configured" },
-      { status: 503 },
-    );
-  }
-
   const supabase = await createClient();
   const {
     data: { user },
@@ -32,32 +27,25 @@ export async function POST(request: Request) {
     title?: string;
     message?: string;
     url?: string;
+    audience?: string;
   };
-  const title = (body.title ?? "").trim() || "متجر";
   const message = (body.message ?? "").trim();
-  const url = body.url ?? "/ar";
   if (!message) return Response.json({ error: "empty" }, { status: 400 });
+  const audience = ["all", "merchants", "customers"].includes(
+    body.audience ?? "",
+  )
+    ? (body.audience as string)
+    : "all";
 
-  const { data: subs } = await supabase.rpc("admin_list_push_subscriptions");
-  const list = (subs ?? []) as { endpoint: string; p256dh: string; auth: string }[];
+  const { data: count, error } = await supabase.rpc("admin_broadcast_notify", {
+    p_title: (body.title ?? "").trim() || null,
+    p_body: message,
+    p_url: (body.url ?? "").trim() || null,
+    p_audience: audience,
+  });
+  if (error) {
+    return Response.json({ error: "broadcast_failed" }, { status: 500 });
+  }
 
-  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, privateKey);
-  const payload = JSON.stringify({ title, body: message, url });
-
-  let sent = 0;
-  await Promise.all(
-    list.map(async (s) => {
-      try {
-        await webpush.sendNotification(
-          { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
-          payload,
-        );
-        sent++;
-      } catch {
-        // Dead subscription — ignored (cleanup can come later).
-      }
-    }),
-  );
-
-  return Response.json({ sent, total: list.length });
+  return Response.json({ recipients: (count as number | null) ?? 0 });
 }

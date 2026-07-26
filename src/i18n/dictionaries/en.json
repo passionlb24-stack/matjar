@@ -2756,8 +2756,15 @@
     "adminField": "Notification text",
     "adminHeading": "Title (optional)",
     "adminSend": "Send",
-    "adminConfirm": "Send this notification to all subscribers?",
+    "adminConfirm": "Send this notification to the selected audience? It arrives in the in-app notification bell.",
     "adminSent": "Sent to",
+    "adminReached": "Reached {n} users ✓",
+    "audLabel": "Who?",
+    "audiences": {
+      "all": "Everyone",
+      "merchants": "Merchants",
+      "customers": "Customers"
+    },
     "adminNotConfigured": "Push isn't configured — add VAPID_PRIVATE_KEY in Vercel settings."
   },
   "search": {
@@ -2891,6 +2898,7 @@
     "priceDrop": "{product} dropped to ${price}",
     "restock": "{product} is back in stock — grab yours 🔔",
     "storeTransferred": "You now own “{store}” 🎉 — the whole store is yours",
+    "adminBroadcast": "Announcement from Matjar 📢",
     "proRequest": "{store} requested a Pro upgrade",
     "listingApproved": "Your Sunday Market listing was approved",
     "listingRejected": "Your Sunday Market listing was rejected",
