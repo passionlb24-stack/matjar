@@ -3,7 +3,24 @@ import { SITE_URL } from "@/lib/site";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: {
+    rules: [
+      // Resource-hungry SEO/AI crawlers hammer the dynamic pages and burn
+      // serverless CPU without sending us a single visitor. Search engines
+      // that actually matter (Google/Bing) stay fully allowed below.
+      {
+        userAgent: [
+          "AhrefsBot",
+          "SemrushBot",
+          "MJ12bot",
+          "DotBot",
+          "PetalBot",
+          "Bytespider",
+          "DataForSeoBot",
+          "BLEXBot",
+        ],
+        disallow: "/",
+      },
+      {
       userAgent: "*",
       allow: "/",
       // Keep private + non-indexable surfaces out of search results.
@@ -21,7 +38,8 @@ export default function robots(): MetadataRoute.Robots {
         "/ar/track", "/en/track",
         "/ar/search", "/en/search",
       ],
-    },
+      },
+    ],
     sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }
