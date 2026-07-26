@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { Check, MapPin, Phone, StickyNote, Store as StoreIcon } from "lucide-react";
+import { MapPin, Phone, StickyNote, Store as StoreIcon } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -12,19 +12,10 @@ import { OrderCancelButton } from "@/components/order-cancel-button";
 import { ReorderButton } from "@/components/reorder-button";
 import { PrintInvoiceButton } from "@/components/print-invoice-button";
 import { ReviewForm } from "@/components/review-form";
+import { OrderTimeline, type OrderEvent } from "@/components/order-timeline";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-// Happy-path progression; cancelled/rejected are shown as a banner instead.
-const FLOW = [
-  "pending",
-  "accepted",
-  "preparing",
-  "ready",
-  "out_for_delivery",
-  "completed",
-] as const;
 
 export default async function OrderDetailPage({
   params,
@@ -45,7 +36,7 @@ export default async function OrderDetailPage({
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, status, subtotal, discount, total, fulfillment, address, phone, customer_note, created_at, customer_id, store_id, stores(name), order_items(name, unit_price, quantity, product_id)",
+      "id, status, subtotal, discount, total, delivery_fee, fulfillment, address, phone, customer_note, created_at, customer_id, store_id, stores(name), order_items(name, unit_price, quantity, product_id)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -55,6 +46,7 @@ export default async function OrderDetailPage({
     status: string;
     subtotal: number;
     discount: number | null;
+    delivery_fee: number | null;
     total: number;
     fulfillment: string;
     address: string | null;
@@ -91,9 +83,15 @@ export default async function OrderDetailPage({
     user.email ??
     "";
 
+  // Real transition timestamps (0173) — RLS lets the order's customer read.
+  const { data: evData } = await supabase
+    .from("order_status_events")
+    .select("to_status, created_at")
+    .eq("order_id", order.id)
+    .order("created_at", { ascending: true });
+  const events = (evData ?? []) as OrderEvent[];
+
   const t = dict.orders;
-  const cancelled = order.status === "cancelled" || order.status === "rejected";
-  const currentIdx = FLOW.indexOf(order.status as (typeof FLOW)[number]);
   const fmtDate = (iso: string) =>
     new Date(iso).toLocaleDateString(lang === "ar" ? "ar" : "en", {
       year: "numeric",
@@ -135,36 +133,16 @@ export default async function OrderDetailPage({
           </div>
         </div>
 
-        {/* Status */}
-        {cancelled ? (
-          <div className="mt-6 rounded-2xl border border-red-200 bg-danger-soft p-4 text-center font-bold text-danger">
-            {t.status[order.status as "cancelled" | "rejected"]}
-          </div>
-        ) : (
-          <ol className="mt-6 space-y-3 rounded-2xl border border-border bg-surface p-5 shadow-xs">
-            {FLOW.map((s, i) => {
-              const done = i <= currentIdx;
-              return (
-                <li key={s} className="flex items-center gap-3">
-                  <span
-                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs ${
-                      done
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-surface-muted text-muted-foreground"
-                    }`}
-                  >
-                    {done ? <Check className="h-3.5 w-3.5" /> : i + 1}
-                  </span>
-                  <span
-                    className={`text-sm ${done ? "font-bold" : "text-muted-foreground"}`}
-                  >
-                    {t.status[s]}
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
-        )}
+        {/* Status timeline with real timestamps */}
+        <div className="mt-6 rounded-2xl border border-border bg-surface p-5 shadow-xs">
+          <OrderTimeline
+            events={events}
+            status={order.status}
+            fulfillment={order.fulfillment}
+            labels={t.status as unknown as Record<string, string>}
+            lang={lang}
+          />
+        </div>
 
         {/* Review prompt (completed + not yet reviewed) */}
         {showReviewPrompt && order.stores && (
@@ -205,6 +183,12 @@ export default async function OrderDetailPage({
               <div className="flex justify-between text-success">
                 <span>{t.discount}</span>
                 <span>-{formatUsd(order.discount)}</span>
+              </div>
+            ) : null}
+            {order.delivery_fee && Number(order.delivery_fee) > 0 ? (
+              <div className="flex justify-between text-muted-foreground">
+                <span>{t.deliveryFeeLabel}</span>
+                <span>+{formatUsd(Number(order.delivery_fee))}</span>
               </div>
             ) : null}
             <div className="flex justify-between text-base font-extrabold">
