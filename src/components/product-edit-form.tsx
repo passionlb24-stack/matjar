@@ -10,6 +10,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { CategoryKey } from "@/lib/catalog";
 import { categoryAttributes } from "@/lib/attributes";
+import { sectorHasTeam } from "@/lib/sectors";
 import { ImageUpload } from "@/components/image-upload";
 import { fieldClass } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,10 @@ export type SectionOption = { id: string; name: string; name_en: string | null }
 export type ProductInitial = {
   name: string;
   brand: string;
+  bookingMode: string;
+  durationMinutes: string;
+  bufferMinutes: string;
+  capacityPerSlot: string;
   nameEn: string;
   price: string;
   discountPrice: string;
@@ -82,7 +87,10 @@ export function ProductEditForm({
   const [options, setOptions] = useState<OptionRow[]>(initial.options);
   const [dealToday, setDealToday] = useState(initial.dealToday);
   const [sectionId, setSectionId] = useState<string>(initial.sectionId);
+  const [bookMode, setBookMode] = useState<string>(initial.bookingMode);
   const attrFields = categoryAttributes[category] ?? [];
+  const bookable =
+    sectorHasTeam(category) || category === "services" || category === "healthcare";
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -113,6 +121,20 @@ export function ProductEditForm({
       .from("products")
       .update({
         brand: String(form.get("brand") ?? "").trim() || null,
+        booking_allocation_mode: bookable ? bookMode || null : null,
+        duration_minutes:
+          bookable && Number(form.get("duration_minutes")) > 0
+            ? Number(form.get("duration_minutes"))
+            : null,
+        buffer_minutes:
+          bookable && Number(form.get("buffer_minutes")) > 0
+            ? Number(form.get("buffer_minutes"))
+            : 0,
+        capacity_per_slot:
+          bookable && bookMode === "capacity_based" &&
+          Number(form.get("capacity_per_slot")) > 0
+            ? Number(form.get("capacity_per_slot"))
+            : null,
         name: String(form.get("name")),
         name_en: String(form.get("name_en") ?? "").trim() || null,
         price: Number(form.get("price")) || 0,
@@ -311,6 +333,37 @@ export function ProductEditForm({
         </div>
       </div>
 
+      {bookable && (
+        <div className="space-y-3 rounded-xl border border-border bg-surface-muted/40 p-4">
+          <div>
+            <label className={label} htmlFor="book_mode">{p.bookMode}</label>
+            <select id="book_mode" value={bookMode} onChange={(e) => setBookMode(e.target.value)} className={field}>
+              <option value="">{p.bookModeDefault}</option>
+              <option value="provider_exclusive">{p.bookModeExclusive}</option>
+              <option value="pooled_providers">{p.bookModePooled}</option>
+              <option value="capacity_based">{p.bookModeCapacity}</option>
+              <option value="request_based">{p.bookModeRequest}</option>
+            </select>
+            <p className="mt-1 text-xs text-muted-foreground">{p.bookModeHint}</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div>
+              <label className={label} htmlFor="duration_minutes">{p.bookDuration}</label>
+              <input id="duration_minutes" name="duration_minutes" type="number" min="5" max="480" step="5" defaultValue={initial.durationMinutes} placeholder="30" className={field} />
+            </div>
+            <div>
+              <label className={label} htmlFor="buffer_minutes">{p.bookBuffer}</label>
+              <input id="buffer_minutes" name="buffer_minutes" type="number" min="0" max="120" step="5" defaultValue={initial.bufferMinutes} placeholder="0" className={field} />
+            </div>
+            {bookMode === "capacity_based" && (
+              <div>
+                <label className={label} htmlFor="capacity_per_slot">{p.bookCapacity}</label>
+                <input id="capacity_per_slot" name="capacity_per_slot" type="number" min="1" step="1" defaultValue={initial.capacityPerSlot} placeholder="1" className={field} />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       <div>
         <label className={label} htmlFor="description">{p.description}</label>
         <textarea id="description" name="description" rows={2} defaultValue={initial.description} className={field} />

@@ -96,6 +96,10 @@ export function StoreProductsSection({
                   imageUrl: p.imageUrl,
                   attributes: p.attributes,
                   sectionId: p.sectionId ?? null,
+                  allocationMode: p.allocationMode ?? null,
+                  durationMinutes: p.durationMinutes ?? null,
+                  bufferMinutes: p.bufferMinutes ?? 0,
+                  capacityPerSlot: p.capacityPerSlot ?? null,
                 }))}
             />
           ) : (

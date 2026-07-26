@@ -68,6 +68,10 @@ export type StoreView = {
     flashStart?: string | null;
     flashEnd?: string | null;
     stock?: number | null;
+    allocationMode?: string | null;
+    durationMinutes?: number | null;
+    bufferMinutes?: number | null;
+    capacityPerSlot?: number | null;
     sectionId?: string | null;
   }[];
 };
@@ -93,7 +97,7 @@ async function fetchStoreView(
   const { data: prods } = await supabase
     .from("products")
     .select(
-      "id, name, name_en, brand, description_en, price, discount_price, image_url, attributes, flash_price, flash_start, flash_end, stock, section_id",
+      "id, name, name_en, brand, description_en, price, discount_price, image_url, attributes, flash_price, flash_start, flash_end, stock, section_id, booking_allocation_mode, duration_minutes, buffer_minutes, capacity_per_slot",
     )
     .eq("store_id", id)
     .eq("status", "active")
@@ -168,6 +172,10 @@ async function fetchStoreView(
       flashStart: (p.flash_start as string | null) ?? null,
       flashEnd: (p.flash_end as string | null) ?? null,
       stock: p.stock != null ? Number(p.stock) : null,
+      allocationMode: (p.booking_allocation_mode as string | null) ?? null,
+      durationMinutes: p.duration_minutes != null ? Number(p.duration_minutes) : null,
+      bufferMinutes: p.buffer_minutes != null ? Number(p.buffer_minutes) : 0,
+      capacityPerSlot: p.capacity_per_slot != null ? Number(p.capacity_per_slot) : null,
       sectionId: (p.section_id as string | null) ?? null,
     })),
   };

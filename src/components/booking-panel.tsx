@@ -24,6 +24,23 @@ type Service = {
   imageUrl?: string | null;
   attributes?: Record<string, string> | null;
   sectionId?: string | null;
+  // Booking engine v2 (0174): how this service is delivered.
+  allocationMode?: string | null;
+  durationMinutes?: number | null;
+  bufferMinutes?: number | null;
+  capacityPerSlot?: number | null;
+};
+
+type BusyRange = { s: string; e: string };
+type Avail = {
+  mode: string | null;
+  duration: number;
+  buffer: number;
+  capacity: number | null;
+  busy: BusyRange[];
+  busy_by_provider: Record<string, BusyRange[]>;
+  windows: { s: string; e: string }[] | null;
+  blocked: boolean;
 };
 
 const fieldClass =
@@ -73,8 +90,10 @@ export function BookingPanel({
   const [error, setError] = useState<string | null>(null);
   const [bookedWaUrl, setBookedWaUrl] = useState<string | null>(null);
   const [booked, setBooked] = useState(false);
-  // Conflict awareness: taken time strings for the picked date.
+  // Conflict awareness: taken time strings for the picked date (legacy path).
   const [taken, setTaken] = useState<string[]>([]);
+  // New-engine availability (mode/duration/busy ranges/windows) — 0174.
+  const [avail, setAvail] = useState<Avail | null>(null);
   const [time, setTime] = useState("");
   const [pickedDate, setPickedDate] = useState("");
   // Availability is scoped to the chosen service (a different service at the
@@ -104,10 +123,15 @@ export function BookingPanel({
       (!!doctor && assigned.includes(doctor))
     );
   };
-  // Services shown in the picker are limited to what the chosen provider offers.
-  const visibleServices = doctorId
-    ? services.filter((s) => offeredBy(s.id, doctorId))
-    : services;
+  // Services shown in the picker are limited to what the chosen provider offers
+  // ("any available" imposes no filter — the engine assigns at placement).
+  const visibleServices =
+    doctorId && doctorId !== "any"
+      ? services.filter((s) => offeredBy(s.id, doctorId))
+      : services;
+
+  const selectedService = services.find((s) => s.id === serviceId) ?? null;
+  const engineMode = selectedService?.allocationMode ?? null;
   // Providers grouped by specialty/department for the picker.
   const doctorGroups = doctors.reduce<
     Record<string, typeof doctors>
@@ -118,24 +142,84 @@ export function BookingPanel({
   }, {});
 
   // Fresha-style slot grid when the merchant configured structured hours;
-  // otherwise fall back to a free time input + taken-times chips.
+  // otherwise fall back to a free time input + taken-times chips. The step is
+  // the SERVICE's real duration (+buffer) on the new engine.
   const span = pickedDate
     ? daySpan(hours, new Date(`${pickedDate}T00:00:00`))
     : null;
-  const slots =
-    hours && span ? generateSlots(span, slotMinutes) : null;
-  const dayClosed = !!hours && !!pickedDate && !span;
+  const engineStep =
+    avail && avail.mode ? avail.duration + avail.buffer : slotMinutes;
+  const slots = hours && span ? generateSlots(span, engineStep) : null;
+  const dayClosed = (!!hours && !!pickedDate && !span) || !!avail?.blocked;
+
+  function addMinutes(hhmm: string, mins: number) {
+    const [h, m] = hhmm.split(":").map(Number);
+    const t = h * 60 + m + mins;
+    return `${String(Math.floor(t / 60) % 24).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
+  }
+  function rangesOverlap(r: BusyRange, a: number, b: number) {
+    const s = new Date(r.s).getTime();
+    const e = new Date(r.e).getTime();
+    return s < b && e > a;
+  }
+  // Per-slot verdict under the selected service's allocation mode.
+  function slotState(slot: string): { blocked: boolean; remaining?: number } {
+    if (!engineMode || !avail) return { blocked: taken.includes(slot) };
+    if (avail.blocked) return { blocked: true };
+    const a = new Date(`${pickedDate}T${slot}:00`).getTime();
+    const b = a + (avail.duration + avail.buffer) * 60000;
+    if (avail.windows) {
+      const end = addMinutes(slot, avail.duration);
+      const fits = avail.windows.some(
+        (w) => slot >= w.s.slice(0, 5) && end <= w.e.slice(0, 5),
+      );
+      if (!fits) return { blocked: true };
+    }
+    if (engineMode === "request_based") return { blocked: false };
+    if (engineMode === "capacity_based") {
+      const used = avail.busy.filter((r) => rangesOverlap(r, a, b)).length;
+      const cap = avail.capacity ?? 1;
+      return { blocked: used >= cap, remaining: Math.max(0, cap - used) };
+    }
+    if (engineMode === "pooled_providers" && doctorId === "any") {
+      const lists = Object.values(avail.busy_by_provider ?? {});
+      if (lists.length === 0) return { blocked: true };
+      const someoneFree = lists.some(
+        (rs) => !rs.some((r) => rangesOverlap(r, a, b)),
+      );
+      return { blocked: !someoneFree };
+    }
+    return { blocked: avail.busy.some((r) => rangesOverlap(r, a, b)) };
+  }
 
   async function refreshTaken(date: string, doctor: string, service: string) {
     // Nothing to conflict against until a service (or a doctor) is chosen.
     if (!date || (!doctor && !service)) {
       setTaken([]);
+      setAvail(null);
       return;
     }
+    // New engine (service declares an allocation mode): one RPC returns mode,
+    // real duration, blocking ranges and provider windows.
+    const svcMode =
+      services.find((s) => s.id === service)?.allocationMode ?? null;
+    if (service && svcMode) {
+      const { data } = await createClient().rpc("get_booking_busy", {
+        p_store_id: storeId,
+        p_product_id: service,
+        p_date: date,
+        p_doctor_id: doctor && doctor !== "any" ? doctor : null,
+        p_any: doctor === "any",
+      });
+      setAvail((data as Avail | null) ?? null);
+      setTaken([]);
+      return;
+    }
+    setAvail(null);
     const { data } = await createClient().rpc("booked_times", {
       p_store_id: storeId,
       p_date: date,
-      p_doctor_id: doctor || null,
+      p_doctor_id: doctor && doctor !== "any" ? doctor : null,
       p_product_id: service || null,
     });
     setTaken(((data as string[] | null) ?? []).sort());
@@ -151,9 +235,10 @@ export function BookingPanel({
   async function onDoctorChange(doctor: string) {
     setDoctorId(doctor);
     setTime("");
-    // If the current service isn't offered by the new provider, clear it.
+    // If the current service isn't offered by the new provider, clear it
+    // ("any available" imposes no filter).
     let svc = serviceId;
-    if (svc && !offeredBy(svc, doctor)) {
+    if (doctor !== "any" && svc && !offeredBy(svc, doctor)) {
       svc = "";
       setServiceId("");
     }
@@ -167,7 +252,17 @@ export function BookingPanel({
     // changes so a stale discount can't carry over.
     setCoupon(null);
     setCouponError(null);
-    await refreshTaken(pickedDate, doctorId, service);
+    // Pooled team services default to "any available" — the engine assigns.
+    let doctor = doctorId;
+    const mode = services.find((s) => s.id === service)?.allocationMode ?? null;
+    if (mode === "pooled_providers" && doctors.length > 0) {
+      doctor = "any";
+      setDoctorId("any");
+    } else if (doctorId === "any") {
+      doctor = doctors[0]?.id ?? "";
+      setDoctorId(doctor);
+    }
+    await refreshTaken(pickedDate, doctor, service);
   }
 
   const selectedPrice = services.find((s) => s.id === serviceId)?.price ?? 0;
@@ -208,10 +303,48 @@ export function BookingPanel({
     }
     const serviceId = String(form.get("service_id"));
     const service = services.find((s) => s.id === serviceId);
-    // Re-check the slot right before inserting (someone may have taken it
-    // while the form was open).
     const chosenDate = String(form.get("date")) || "";
     const chosenTime = String(form.get("time")) || "";
+
+    // New engine: one atomic RPC computes the real range, assigns pooled
+    // providers, checks hours/capacity, and the DB constraints win any race.
+    if (service?.allocationMode) {
+      const { data: res, error: rpcErr } = await supabase.rpc("place_booking", {
+        p_store_id: storeId,
+        p_product_id: serviceId,
+        p_date: chosenDate,
+        p_time: chosenTime,
+        p_doctor_id: doctorId && doctorId !== "any" ? doctorId : null,
+        p_any: doctorId === "any",
+        p_customer_name:
+          String(form.get("customer_name")).trim() || customerName,
+        p_phone: null,
+        p_notes: String(form.get("notes")) || null,
+        p_coupon: coupon?.code ?? null,
+      });
+      const r = res as { ok?: boolean; code?: string } | null;
+      if (rpcErr || !r?.ok) {
+        const code = r?.code ?? "";
+        setError(
+          code === "slot_taken"
+            ? dict.booking.slotTaken
+            : code === "capacity_full"
+              ? dict.booking.capacityFull
+              : code === "no_provider_free"
+                ? dict.booking.noProviderFree
+                : code === "outside_hours"
+                  ? dict.booking.outsideHours
+                  : dict.auth.errorGeneric,
+        );
+        if (code === "slot_taken" || code === "capacity_full") {
+          await refreshTaken(chosenDate, doctorId, serviceId);
+        }
+        setLoading(false);
+        return;
+      }
+    } else {
+    // Legacy path — re-check the slot right before inserting (someone may
+    // have taken it while the form was open).
     if (chosenDate && chosenTime) {
       const { data: freshTaken } = await supabase.rpc("booked_times", {
         p_store_id: storeId,
@@ -250,6 +383,7 @@ export function BookingPanel({
       }
       setLoading(false);
       return;
+    }
     }
     // Pre-build a WhatsApp message so the customer can notify the clinic
     // instantly instead of relying on the merchant checking the dashboard.
@@ -414,6 +548,9 @@ export function BookingPanel({
                   onChange={(e) => onDoctorChange(e.target.value)}
                   className={fieldClass}
                 >
+                  {engineMode === "pooled_providers" && (
+                    <option value="any">{dict.booking.anyProvider}</option>
+                  )}
                   {Object.entries(doctorGroups).map(([spec, docs]) =>
                     spec ? (
                       <optgroup key={spec} label={spec}>
@@ -466,6 +603,16 @@ export function BookingPanel({
                 </div>
               )}
             </div>
+            {engineMode && avail && (
+              <p className="text-xs font-semibold text-muted-foreground">
+                ⏱️ {dict.booking.durationLabel.replace("{n}", String(avail.duration))}
+              </p>
+            )}
+            {engineMode === "request_based" && (
+              <p className="rounded-xl bg-info-soft px-3 py-2 text-sm font-semibold text-info">
+                {dict.booking.requestNote}
+              </p>
+            )}
             {hours && <input type="hidden" name="time" value={time} />}
             {hours && pickedDate && (
               <div>
@@ -477,7 +624,8 @@ export function BookingPanel({
                 ) : (
                   <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
                     {(slots ?? []).map((s) => {
-                      const isTaken = taken.includes(s);
+                      const st = slotState(s);
+                      const isTaken = st.blocked;
                       return (
                         <button
                           key={s}
@@ -494,6 +642,17 @@ export function BookingPanel({
                           }`}
                         >
                           {s}
+                          {st.remaining != null &&
+                            st.remaining > 0 &&
+                            avail?.capacity != null &&
+                            st.remaining < avail.capacity && (
+                              <span className="block text-[10px] font-semibold opacity-80">
+                                {dict.booking.spotsLeft.replace(
+                                  "{n}",
+                                  String(st.remaining),
+                                )}
+                              </span>
+                            )}
                         </button>
                       );
                     })}
@@ -586,7 +745,7 @@ export function BookingPanel({
               type="submit"
               disabled={
                 loading ||
-                (!!time && taken.includes(time)) ||
+                (!!time && slotState(time).blocked) ||
                 (!!hours && !time)
               }
               className="rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
