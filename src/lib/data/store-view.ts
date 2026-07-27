@@ -76,6 +76,14 @@ export type StoreView = {
     isBundle?: boolean;
     includes?: { name: string; nameEn: string | null; quantity: number }[];
   }[];
+  checkoutFields: {
+    id: string;
+    label: string;
+    labelEn: string | null;
+    fieldType: "text" | "textarea" | "select";
+    options: string[];
+    required: boolean;
+  }[];
 };
 
 // Client-agnostic fetch + map. `supabase` may be the anon public client (for the
@@ -141,6 +149,13 @@ async function fetchStoreView(
     .select("id, name, name_en, sort_order")
     .eq("store_id", id)
     .order("sort_order", { ascending: true });
+  // Merchant-defined custom checkout fields (active only), shown at checkout.
+  const { data: cfields } = await supabase
+    .from("store_checkout_fields")
+    .select("id, label, label_en, field_type, options, required")
+    .eq("store_id", id)
+    .eq("active", true)
+    .order("sort_order", { ascending: true });
 
   return {
     name: data.name as string,
@@ -187,6 +202,21 @@ async function fetchStoreView(
       name: s.name as string,
       nameEn: (s.name_en as string | null) ?? null,
       sortOrder: (s.sort_order as number | null) ?? 0,
+    })),
+    checkoutFields: ((cfields ?? []) as unknown as {
+      id: string;
+      label: string;
+      label_en: string | null;
+      field_type: "text" | "textarea" | "select";
+      options: string[] | null;
+      required: boolean;
+    }[]).map((f) => ({
+      id: f.id,
+      label: f.label,
+      labelEn: f.label_en,
+      fieldType: f.field_type,
+      options: Array.isArray(f.options) ? f.options : [],
+      required: f.required,
     })),
     products: (prods ?? []).map((p) => ({
       id: p.id as string,

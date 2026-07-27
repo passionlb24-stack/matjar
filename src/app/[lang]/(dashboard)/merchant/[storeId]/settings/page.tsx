@@ -15,6 +15,10 @@ import {
 } from "@/components/store-couriers-manager";
 import { TransferOwnership } from "@/components/transfer-ownership";
 import {
+  CheckoutFieldsManager,
+  type CheckoutFieldRow,
+} from "@/components/checkout-fields-manager";
+import {
   DeliveryZonesManager,
   type ZoneRowM,
 } from "@/components/delivery-zones-manager";
@@ -76,6 +80,14 @@ export default async function StoreSettingsPage({
     selectedCouriers[c.company_id] = { price: c.price != null ? String(c.price) : "" };
   }
 
+  const { data: cfData } = await supabase
+    .from("store_checkout_fields")
+    .select("id, label, label_en, field_type, options, required, active")
+    .eq("store_id", storeId)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+  const checkoutFields = (cfData ?? []) as unknown as CheckoutFieldRow[];
+
   const initial: StoreSettings = {
     accepts_delivery: (store as { accepts_delivery: boolean }).accepts_delivery,
     accepts_pickup: (store as { accepts_pickup: boolean }).accepts_pickup,
@@ -135,6 +147,13 @@ export default async function StoreSettingsPage({
             dict={dict}
             companies={(companies ?? []) as CourierCompany[]}
             selected={selectedCouriers}
+          />
+        </div>
+        <div className="mt-6">
+          <CheckoutFieldsManager
+            storeId={storeId}
+            dict={dict}
+            initial={checkoutFields}
           />
         </div>
         {/* Danger zone: hand the store to another account. Page is already

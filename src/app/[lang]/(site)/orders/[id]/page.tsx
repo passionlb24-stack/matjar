@@ -36,7 +36,7 @@ export default async function OrderDetailPage({
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, status, subtotal, discount, total, delivery_fee, fulfillment, address, phone, customer_note, created_at, customer_id, store_id, stores(name), order_items(name, unit_price, quantity, product_id)",
+      "id, status, subtotal, discount, total, delivery_fee, fulfillment, address, phone, customer_note, custom_fields, created_at, customer_id, store_id, stores(name), order_items(name, unit_price, quantity, product_id)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -52,6 +52,7 @@ export default async function OrderDetailPage({
     address: string | null;
     phone: string | null;
     customer_note: string | null;
+    custom_fields: Record<string, string> | null;
     created_at: string;
     customer_id: string;
     store_id: string;
@@ -218,6 +219,13 @@ export default async function OrderDetailPage({
               {order.customer_note}
             </p>
           )}
+          {order.custom_fields &&
+            Object.entries(order.custom_fields).map(([k, v]) => (
+              <p key={k} className="flex items-start gap-2">
+                <span className="font-semibold text-muted-foreground">{k}:</span>
+                {v}
+              </p>
+            ))}
         </Card>
 
         <Link

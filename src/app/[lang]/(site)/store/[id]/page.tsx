@@ -91,6 +91,7 @@ const loadStore = cache(async function loadStore(
       reviews: mock.reviews,
       isReal: false,
       sections: [],
+      checkoutFields: [],
       products: sampleProducts[mock.category].map((p) => ({
         name: p.name[lang],
         price: p.price,

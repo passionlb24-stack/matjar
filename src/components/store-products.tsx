@@ -48,6 +48,15 @@ type Product = {
   includes?: { name: string; nameEn: string | null; quantity: number }[];
 };
 
+type CheckoutField = {
+  id: string;
+  label: string;
+  labelEn: string | null;
+  fieldType: "text" | "textarea" | "select";
+  options: string[];
+  required: boolean;
+};
+
 function PriceTag({ p }: { p: Product }) {
   const eff = effectivePrice(p);
   const compare = compareAtPrice(p);
@@ -128,6 +137,7 @@ export function StoreProducts({
   layout = null,
   initialBrand = null,
   zones = [],
+  checkoutFields = [],
 }: {
   storeId: string;
   lang: Locale;
@@ -158,6 +168,7 @@ export function StoreProducts({
     area: string | null;
     address: string | null;
   }[];
+  checkoutFields?: CheckoutField[];
 }) {
   const router = useRouter();
   const [cart, setCart] = useState<Record<string, number>>({});
@@ -191,6 +202,8 @@ export function StoreProducts({
   const [placing, setPlacing] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
+  // Answers to the merchant's custom checkout fields, keyed by field id.
+  const [cfAnswers, setCfAnswers] = useState<Record<string, string>>({});
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
   const fulfillmentOptions = (["delivery", "pickup"] as const).filter((o) =>
@@ -391,11 +404,35 @@ export function StoreProducts({
         )
       : null;
 
+  // Build {label: answer} from the merchant's custom fields, keyed by the
+  // customer-facing label so the order stores something human-readable.
+  function buildCustomFields(): Record<string, string> {
+    const out: Record<string, string> = {};
+    for (const f of checkoutFields) {
+      const v = (cfAnswers[f.id] ?? "").trim();
+      if (v) out[localized(f.label, f.labelEn, lang)] = v;
+    }
+    return out;
+  }
+  function firstMissingRequiredField(): string | null {
+    for (const f of checkoutFields) {
+      if (f.required && !(cfAnswers[f.id] ?? "").trim())
+        return localized(f.label, f.labelEn, lang);
+    }
+    return null;
+  }
+
   async function confirmOrder(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const missing = firstMissingRequiredField();
+    if (missing) {
+      setOrderError(dict.store.fieldRequired.replace("{field}", missing));
+      return;
+    }
     setPlacing(true);
     setOrderError(null);
     const form = new FormData(e.currentTarget);
+    const customFields = buildCustomFields();
     const supabase = createClient();
     const {
       data: { user },
@@ -429,6 +466,7 @@ export function StoreProducts({
               ? String(form.get("delivery_instructions") ?? "")
               : "",
           p_idempotency_key: idemKeyRef.current || null,
+          p_custom_fields: customFields,
         },
       );
       setPlacing(false);
@@ -479,6 +517,7 @@ export function StoreProducts({
           ? String(form.get("delivery_instructions") ?? "")
           : "",
       p_idempotency_key: idemKeyRef.current || null,
+      p_custom_fields: customFields,
     });
     if (error) {
       const msg = error.message ?? "";
@@ -1166,6 +1205,52 @@ export function StoreProducts({
               </label>
               <textarea id="note" name="note" rows={2} placeholder={dict.store.notePlaceholder} className={fieldClass} />
             </div>
+            {/* Merchant-defined custom fields (gift note, floor number, …). */}
+            {checkoutFields.map((f) => {
+              const val = cfAnswers[f.id] ?? "";
+              const set = (v: string) =>
+                setCfAnswers((a) => ({ ...a, [f.id]: v }));
+              const lbl = localized(f.label, f.labelEn, lang);
+              return (
+                <div key={f.id}>
+                  <label className="text-sm font-semibold" htmlFor={`cf_${f.id}`}>
+                    {lbl}
+                    {f.required && <span className="ms-1 text-danger">*</span>}
+                  </label>
+                  {f.fieldType === "textarea" ? (
+                    <textarea
+                      id={`cf_${f.id}`}
+                      rows={2}
+                      value={val}
+                      onChange={(e) => set(e.target.value)}
+                      className={fieldClass}
+                    />
+                  ) : f.fieldType === "select" ? (
+                    <select
+                      id={`cf_${f.id}`}
+                      value={val}
+                      onChange={(e) => set(e.target.value)}
+                      className={fieldClass}
+                    >
+                      <option value="">—</option>
+                      {f.options.map((o) => (
+                        <option key={o} value={o}>
+                          {o}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      id={`cf_${f.id}`}
+                      type="text"
+                      value={val}
+                      onChange={(e) => set(e.target.value)}
+                      className={fieldClass}
+                    />
+                  )}
+                </div>
+              );
+            })}
             {!loggedIn && (
               <p className="text-xs text-muted-foreground">
                 {dict.store.guestHint}{" "}

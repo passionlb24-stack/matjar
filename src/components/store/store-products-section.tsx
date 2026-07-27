@@ -146,9 +146,12 @@ export function StoreProductsSection({
                   flashStart: p.flashStart,
                   flashEnd: p.flashEnd,
                   sectionId: p.sectionId ?? null,
+                  isBundle: p.isBundle ?? false,
+                  includes: p.includes,
                 }))}
               initialBrand={initialBrand}
               zones={zones}
+              checkoutFields={store.checkoutFields}
             />
           )
         ) : (

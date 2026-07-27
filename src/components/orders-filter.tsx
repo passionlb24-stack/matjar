@@ -33,6 +33,7 @@ export type OrderCard = {
   delivery_fee: number | null;
   change_for: number | null;
   delivery_instructions: string | null;
+  custom_fields: Record<string, string> | null;
 };
 
 // Mirrors the order_status enum, minus the implicit "all" tab rendered first.
@@ -219,6 +220,12 @@ export function OrdersFilter({
                   {order.customer_note && (
                     <p className="italic">“{order.customer_note}”</p>
                   )}
+                  {order.custom_fields &&
+                    Object.entries(order.custom_fields).map(([k, v]) => (
+                      <p key={k} className="font-semibold text-foreground">
+                        <span className="text-muted-foreground">{k}:</span> {v}
+                      </p>
+                    ))}
                 </div>
                 <OrderPayments
                   orderId={order.id}
