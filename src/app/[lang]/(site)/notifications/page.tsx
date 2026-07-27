@@ -29,6 +29,7 @@ type Notif = {
     leader_id?: string;
     date?: string;
     time?: string;
+    service_name?: string;
   } | null;
   is_read: boolean;
   created_at: string;
@@ -146,6 +147,16 @@ export default async function NotificationsPage({
       return dict.notifications.bookingStatusMerchant;
     if (t === "order_status_merchant")
       return dict.notifications.orderStatusMerchant;
+    // New booking/order for a merchant: name the store (they may own several)
+    // and, for bookings, the service.
+    if (t === "booking_new")
+      return `${dict.notifications.bookingNew}${
+        n.data?.store_name ? ` · ${n.data.store_name}` : ""
+      }${n.data?.service_name ? ` — ${n.data.service_name}` : ""}`;
+    if (t === "order_new")
+      return `${dict.notifications.orderNew}${
+        n.data?.store_name ? ` · ${n.data.store_name}` : ""
+      }`;
     return t === "order_new"
       ? dict.notifications.orderNew
       : t === "order_status"
@@ -203,6 +214,10 @@ export default async function NotificationsPage({
           ? n.data?.conversation_id
             ? `/${lang}/messages/${n.data.conversation_id}`
             : `/${lang}/messages`
+          : n.type === "booking_new" && n.data?.store_id
+            ? `/${lang}/merchant/${n.data.store_id}/bookings`
+          : n.type === "order_new" && n.data?.store_id
+            ? `/${lang}/merchant/${n.data.store_id}/orders`
           : n.type === "order_new" ||
               n.type === "booking_new" ||
               n.type === "order_status_merchant" ||
