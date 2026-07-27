@@ -14,6 +14,12 @@ import { sectorHasTeam } from "@/lib/sectors";
 import { ImageUpload } from "@/components/image-upload";
 import { fieldClass } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import {
+  VariantMatrix,
+  groupsFromVariants,
+  variantsFromGroups,
+  type ColorGroup,
+} from "@/components/variant-matrix";
 
 // Shared control styling from the UI library, plus the label gap this form uses.
 const field = `${fieldClass} mt-1.5`;
@@ -28,7 +34,13 @@ function toLocalInput(iso: string): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-type VariantRow = { label: string; price: string; stock: string };
+type VariantRow = {
+  label: string;
+  price: string;
+  stock: string;
+  color?: string | null;
+  size?: string | null;
+};
 type OptionRow = { name: string; price: string };
 export type SectionOption = { id: string; name: string; name_en: string | null };
 
@@ -84,6 +96,20 @@ export function ProductEditForm({
   const [gallery, setGallery] = useState<string[]>(initial.gallery);
   const [adderKey, setAdderKey] = useState(0);
   const [variants, setVariants] = useState<VariantRow[]>(initial.variants);
+  // Apparel (retail) uses the color→size builder; reconstruct its grid from the
+  // stored variant rows so an existing product edits cleanly.
+  const useMatrix = category === "retail";
+  const [colorGroups, setColorGroups] = useState<ColorGroup[]>(() =>
+    groupsFromVariants(
+      initial.variants.map((v) => ({
+        color: v.color ?? null,
+        size: v.size ?? null,
+        label: v.label,
+        price: v.price,
+        stock: v.stock,
+      })),
+    ),
+  );
   const [options, setOptions] = useState<OptionRow[]>(initial.options);
   const [dealToday, setDealToday] = useState(initial.dealToday);
   const [sectionId, setSectionId] = useState<string>(initial.sectionId);
@@ -164,11 +190,16 @@ export function ProductEditForm({
       // Replace variants + options wholesale (order_items snapshot name/price,
       // so they don't reference these rows).
       await supabase.from("product_variants").delete().eq("product_id", productId);
-      const cleanVariants = variants
+      const sourceVariants = useMatrix
+        ? variantsFromGroups(colorGroups)
+        : variants;
+      const cleanVariants = sourceVariants
         .filter((v) => v.label.trim())
         .map((v, i) => ({
           product_id: productId,
           label: v.label.trim(),
+          color: v.color ?? null,
+          size: v.size ?? null,
           price: v.price.trim() === "" ? null : Number(v.price),
           stock: v.stock.trim() === "" ? null : Number(v.stock),
           sort_order: i,
@@ -408,8 +439,15 @@ export function ProductEditForm({
         </div>
       )}
 
+      {!simplified && useMatrix && (
+        <div className="rounded-xl border border-border/70 p-4">
+          <VariantMatrix dict={dict} groups={colorGroups} onChange={setColorGroups} />
+        </div>
+      )}
+
       {!simplified && (
         <>
+          {!useMatrix && (
           <div className="rounded-xl border border-border/70 p-4">
             <div className="flex items-center justify-between">
               <span className={label}>{p.variantsTitle}</span>
@@ -435,6 +473,7 @@ export function ProductEditForm({
               ))}
             </div>
           </div>
+          )}
 
           <div className="rounded-xl border border-border/70 p-4">
             <div className="flex items-center justify-between">

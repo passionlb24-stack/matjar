@@ -14,6 +14,8 @@ export type Variant = {
   price: number | null;
   stock: number | null;
   is_available: boolean;
+  color: string | null;
+  size: string | null;
 };
 export type AddOn = { id: string; name: string; price: number };
 
@@ -52,8 +54,17 @@ export function ProductOrder({
   lbpRate?: number;
 }) {
   const router = useRouter();
+  // Apparel variants carry color/size → render a 2-step picker; legacy flat
+  // variants (no color/size) keep the single pill row.
+  const structured = variants.length > 0 && variants.some((v) => v.color || v.size);
+  const colors = structured
+    ? [...new Set(variants.filter((v) => v.color).map((v) => v.color as string))]
+    : [];
   const [variantId, setVariantId] = useState<string | null>(
-    variants[0]?.id ?? null,
+    structured ? null : (variants[0]?.id ?? null),
+  );
+  const [selectedColor, setSelectedColor] = useState<string | null>(
+    colors[0] ?? null,
   );
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [qty, setQty] = useState(1);
@@ -68,8 +79,17 @@ export function ProductOrder({
   );
 
   const variant = variants.find((v) => v.id === variantId) ?? null;
+  // Sizes offered for the chosen color (or all variants when there's no color
+  // axis, i.e. size-only products).
+  const sizesForColor = colors.length
+    ? variants.filter((v) => v.color === selectedColor)
+    : variants;
+  const hasSizeAxis = sizesForColor.some((v) => v.size);
+  // A structured product needs an explicit final pick before it can be ordered.
+  const mustPick = structured && variantId === null;
   const variantStock = variant ? variant.stock : stock;
   const soldOut =
+    mustPick ||
     (variant ? !variant.is_available : false) ||
     (variantStock != null && variantStock <= 0);
   const maxQty = variantStock ?? Infinity;
@@ -133,41 +153,116 @@ export function ProductOrder({
 
   return (
     <div className="space-y-5">
-      {/* Variants */}
-      {variants.length > 0 && (
-        <div>
-          <span className="text-sm font-semibold">{dict.product.selectVariant}</span>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {variants.map((v) => {
-              const vOut = !v.is_available || (v.stock != null && v.stock <= 0);
-              return (
-                <button
-                  key={v.id}
-                  type="button"
-                  disabled={vOut}
-                  onClick={() => {
-                    setVariantId(v.id);
-                    // Clamp qty to the newly-selected variant's stock so a
-                    // 10-qty cart can't ride onto a 2-stock variant.
-                    if (v.stock != null) setQty((q) => Math.min(q, Math.max(1, v.stock!)));
-                  }}
-                  className={`rounded-xl border px-4 py-2 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-                    variantId === v.id
-                      ? "border-primary bg-primary-soft text-primary"
-                      : "border-border hover:border-primary/40"
-                  }`}
-                >
-                  {v.label}
-                  {v.price != null && (
-                    <span className="ms-1 text-xs font-normal text-muted-foreground">
-                      {formatPrice(v.price)}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+      {/* Variants — apparel: color → size; legacy: single pill row */}
+      {structured ? (
+        <div className="space-y-4">
+          {colors.length > 0 && (
+            <div>
+              <span className="text-sm font-semibold">{dict.product.selectColor}</span>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {colors.map((c) => {
+                  const vs = variants.filter((v) => v.color === c);
+                  const cOut = vs.every(
+                    (v) => !v.is_available || (v.stock != null && v.stock <= 0),
+                  );
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      disabled={cOut}
+                      onClick={() => {
+                        setSelectedColor(c);
+                        // Color-only (single variant) selects it directly;
+                        // otherwise wait for a size pick.
+                        setVariantId(vs.length === 1 ? vs[0].id : null);
+                      }}
+                      className={`rounded-xl border px-4 py-2 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:line-through disabled:opacity-40 ${
+                        selectedColor === c
+                          ? "border-primary bg-primary-soft text-primary"
+                          : "border-border hover:border-primary/40"
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {hasSizeAxis && (
+            <div>
+              <span className="text-sm font-semibold">{dict.product.selectSize}</span>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {sizesForColor.map((v) => {
+                  const vOut = !v.is_available || (v.stock != null && v.stock <= 0);
+                  return (
+                    <button
+                      key={v.id}
+                      type="button"
+                      disabled={vOut}
+                      onClick={() => {
+                        setVariantId(v.id);
+                        if (v.stock != null)
+                          setQty((q) => Math.min(q, Math.max(1, v.stock!)));
+                      }}
+                      className={`rounded-xl border px-4 py-2 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:line-through disabled:opacity-40 ${
+                        variantId === v.id
+                          ? "border-primary bg-primary-soft text-primary"
+                          : "border-border hover:border-primary/40"
+                      }`}
+                    >
+                      {v.size ?? v.label}
+                      {v.price != null && (
+                        <span className="ms-1 text-xs font-normal text-muted-foreground">
+                          {formatPrice(v.price)}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {mustPick && (
+            <p className="text-xs font-semibold text-muted-foreground">
+              {hasSizeAxis ? dict.product.pickSizeHint : dict.product.pickColorHint}
+            </p>
+          )}
         </div>
+      ) : (
+        variants.length > 0 && (
+          <div>
+            <span className="text-sm font-semibold">{dict.product.selectVariant}</span>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {variants.map((v) => {
+                const vOut = !v.is_available || (v.stock != null && v.stock <= 0);
+                return (
+                  <button
+                    key={v.id}
+                    type="button"
+                    disabled={vOut}
+                    onClick={() => {
+                      setVariantId(v.id);
+                      if (v.stock != null) setQty((q) => Math.min(q, Math.max(1, v.stock!)));
+                    }}
+                    className={`rounded-xl border px-4 py-2 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                      variantId === v.id
+                        ? "border-primary bg-primary-soft text-primary"
+                        : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    {v.label}
+                    {v.price != null && (
+                      <span className="ms-1 text-xs font-normal text-muted-foreground">
+                        {formatPrice(v.price)}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )
       )}
 
       {/* Add-ons */}

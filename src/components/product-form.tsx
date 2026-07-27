@@ -14,6 +14,11 @@ import { sectorHasTeam } from "@/lib/sectors";
 import { ImageUpload } from "@/components/image-upload";
 import { fieldClass } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import {
+  VariantMatrix,
+  variantsFromGroups,
+  type ColorGroup,
+} from "@/components/variant-matrix";
 
 // Shared control styling from the UI library, plus the label gap this form uses.
 const field = `${fieldClass} mt-1.5`;
@@ -49,6 +54,10 @@ export function ProductForm({
   const [gallery, setGallery] = useState<string[]>([]);
   const [adderKey, setAdderKey] = useState(0);
   const [variants, setVariants] = useState<VariantRow[]>([]);
+  // Apparel (retail) gets the color→size builder; other sectors keep the flat
+  // variant list. Both persist to product_variants.
+  const useMatrix = category === "retail";
+  const [colorGroups, setColorGroups] = useState<ColorGroup[]>([]);
   const [options, setOptions] = useState<OptionRow[]>([]);
   const [sectionId, setSectionId] = useState<string>("");
   // Booking engine v2 (0174): how this service is delivered.
@@ -121,11 +130,16 @@ export function ProductForm({
       return;
     }
 
-    const cleanVariants = variants
+    const sourceVariants = useMatrix
+      ? variantsFromGroups(colorGroups)
+      : variants;
+    const cleanVariants = sourceVariants
       .filter((v) => v.label.trim())
       .map((v, i) => ({
         product_id: product.id,
         label: v.label.trim(),
+        color: "color" in v ? (v.color ?? null) : null,
+        size: "size" in v ? (v.size ?? null) : null,
         price: v.price.trim() === "" ? null : Number(v.price),
         stock: v.stock.trim() === "" ? null : Number(v.stock),
         sort_order: i,
@@ -358,6 +372,15 @@ export function ProductForm({
       {!simplified && (
       <>
       {/* Variants */}
+      {useMatrix ? (
+        <div className="rounded-xl border border-border/70 p-4">
+          <VariantMatrix
+            dict={dict}
+            groups={colorGroups}
+            onChange={setColorGroups}
+          />
+        </div>
+      ) : (
       <div className="rounded-xl border border-border/70 p-4">
         <div className="flex items-center justify-between">
           <span className={label}>{p.variantsTitle}</span>
@@ -417,6 +440,7 @@ export function ProductForm({
           ))}
         </div>
       </div>
+      )}
 
       {/* Add-ons */}
       <div className="rounded-xl border border-border/70 p-4">

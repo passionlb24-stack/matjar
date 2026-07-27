@@ -71,7 +71,7 @@ export default async function EditProductPage({
   const [{ data: variants }, { data: options }] = await Promise.all([
     supabase
       .from("product_variants")
-      .select("label, price, stock")
+      .select("label, price, stock, color, size")
       .eq("product_id", productId)
       .order("sort_order", { ascending: true }),
     supabase
@@ -119,6 +119,8 @@ export default async function EditProductPage({
       label: (v.label as string) ?? "",
       price: v.price != null ? String(v.price) : "",
       stock: v.stock != null ? String(v.stock) : "",
+      color: (v.color as string | null) ?? null,
+      size: (v.size as string | null) ?? null,
     })),
     options: (options ?? []).map((o) => ({
       name: (o.name as string) ?? "",

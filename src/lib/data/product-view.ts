@@ -62,7 +62,7 @@ async function fetchProductView(
   const [{ data: variants }, { data: addons }] = await Promise.all([
     supabase
       .from("product_variants")
-      .select("id, label, price, stock, is_available")
+      .select("id, label, price, stock, is_available, color, size")
       .eq("product_id", id)
       .order("sort_order", { ascending: true }),
     supabase
@@ -125,6 +125,8 @@ async function fetchProductView(
       price: v.price != null ? Number(v.price) : null,
       stock: v.stock != null ? Number(v.stock) : null,
       is_available: v.is_available as boolean,
+      color: (v.color as string | null) ?? null,
+      size: (v.size as string | null) ?? null,
     })),
     addons: (addons ?? []).map((a) => ({
       id: a.id as string,
