@@ -5,6 +5,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { OrderCancelButton } from "@/components/order-cancel-button";
+import { BookingReschedule } from "@/components/booking-reschedule";
 
 type BookingStatus =
   | "pending"
@@ -86,6 +87,14 @@ export default async function BookingsPage({
                     b.status === "accepted" ||
                     b.status === "scheduled") && (
                     <OrderCancelButton id={b.id} kind="booking" dict={dict} />
+                  )}
+                  {b.status === "pending" && (
+                    <BookingReschedule
+                      bookingId={b.id}
+                      dict={dict}
+                      initialDate={b.requested_date}
+                      initialTime={b.requested_time}
+                    />
                   )}
                 </div>
               </div>

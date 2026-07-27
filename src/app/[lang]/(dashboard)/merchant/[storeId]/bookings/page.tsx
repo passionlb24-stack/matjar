@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { BookingStatusControl } from "@/components/booking-status-control";
+import { BookingReschedule } from "@/components/booking-reschedule";
 import {
   BookingsCalendar,
   type CalendarBooking,
@@ -156,6 +157,16 @@ export default async function StoreBookingsPage({
                     errorLabel={dict.auth.errorGeneric}
                   />
                 </div>
+                {["pending", "accepted", "scheduled"].includes(b.status) && (
+                  <div className="mt-3">
+                    <BookingReschedule
+                      bookingId={b.id}
+                      dict={dict}
+                      initialDate={b.requested_date}
+                      initialTime={b.requested_time}
+                    />
+                  </div>
+                )}
                 {b.notes && (
                   <p className="mt-3 border-t border-border pt-3 text-sm text-muted-foreground">
                     {b.notes}

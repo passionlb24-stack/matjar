@@ -9,6 +9,11 @@ import { getStorePlan } from "@/lib/plan-server";
 import { ProGate } from "@/components/pro-gate";
 import { Container } from "@/components/ui/container";
 import { DoctorManager, type Doctor } from "@/components/doctor-manager";
+import {
+  ProviderHours,
+  type HourRule,
+  type HourException,
+} from "@/components/provider-hours";
 import { sectorHasTeam } from "@/lib/sectors";
 import type { CategoryKey } from "@/lib/catalog";
 
@@ -87,6 +92,24 @@ export default async function StoreDoctorsPage({
     name_en: string | null;
   }[]).map((s) => ({ id: s.id, name: s.name, nameEn: s.name_en }));
 
+  // Per-provider weekly hours + day-off blocks (booking engine v2).
+  const today = new Date().toISOString().slice(0, 10);
+  const [{ data: rulesData }, { data: exceptionsData }] = await Promise.all([
+    supabase
+      .from("provider_availability_rules")
+      .select("id, doctor_id, weekday, start_time, end_time")
+      .eq("store_id", storeId)
+      .eq("active", true),
+    supabase
+      .from("provider_availability_exceptions")
+      .select("id, doctor_id, on_date, reason")
+      .eq("store_id", storeId)
+      .gte("on_date", today)
+      .order("on_date", { ascending: true }),
+  ]);
+  const hourRules = (rulesData ?? []) as HourRule[];
+  const hourExceptions = (exceptionsData ?? []) as HourException[];
+
   const { data: spData } = await supabase
     .from("service_providers")
     .select("product_id, doctor_id")
@@ -120,6 +143,13 @@ export default async function StoreDoctorsPage({
             services={services}
             assignments={assignments}
             lang={lang}
+          />
+          <ProviderHours
+            storeId={storeId}
+            dict={dict}
+            doctors={doctors.map((d) => ({ id: d.id, name: d.name }))}
+            initialRules={hourRules}
+            initialExceptions={hourExceptions}
           />
         </div>
       </Container>

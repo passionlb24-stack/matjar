@@ -1426,6 +1426,20 @@
       "servicesHint": "If none are selected, they can offer all services.",
       "noServices": "Add services first to link them to a provider."
     },
+    "providerHours": {
+      "title": "Provider working hours",
+      "subtitle": "Set working days and hours per provider. If none are set, the store's hours apply.",
+      "days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+      "dayOff": "Day off",
+      "save": "Save hours",
+      "saved": "Hours saved ✓",
+      "hint": "Bookings are only offered within these hours, and the system refuses anything outside them.",
+      "blocksTitle": "Days off / temporary closure",
+      "blockReason": "Reason (optional)",
+      "blockAdd": "Add",
+      "blockAdded": "Day off added ✓",
+      "blockRemove": "Remove"
+    },
     "checklist": {
       "title": "Complete your store",
       "subtitle": "A complete store means more trust and more orders.",
@@ -2483,6 +2497,13 @@
     "notifyMerchantWa": "Notify on WhatsApp",
     "viewMyBookings": "Track my bookings",
     "myBookings": "My bookings",
+    "reschedule": {
+      "action": "Change time",
+      "confirm": "Confirm new time",
+      "done": "Time changed ✓",
+      "slotTaken": "That slot is taken — try another time.",
+      "outsideHours": "That time is outside the provider's hours."
+    },
     "noBookings": "You don't have any bookings yet.",
     "booking": "Booking",
     "status": {
@@ -2945,6 +2966,8 @@
     "bookingNew": "New booking on your store",
     "bookingStatus": "Your booking status changed",
     "bookingPlaced": "Your booking was received — awaiting merchant confirmation",
+    "bookingRescheduled": "Your booking time changed",
+    "bookingRescheduledMerchant": "A customer changed their booking time",
     "bookingStatusMerchant": "A booking on your store changed status",
     "storeProduct": "New product from a store you follow",
     "storeProductNamed": "{store} added a new product",

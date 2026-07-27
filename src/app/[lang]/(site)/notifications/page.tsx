@@ -27,6 +27,8 @@ type Notif = {
     name?: string;
     phone?: string;
     leader_id?: string;
+    date?: string;
+    time?: string;
   } | null;
   is_read: boolean;
   created_at: string;
@@ -119,6 +121,14 @@ export default async function NotificationsPage({
         n.data?.store_name ?? "",
       );
     if (t === "booking_placed") return dict.notifications.bookingPlaced;
+    if (t === "booking_rescheduled")
+      return `${dict.notifications.bookingRescheduled}${
+        n.data?.date ? ` · ${n.data.date} ${n.data?.time ?? ""}` : ""
+      }`;
+    if (t === "booking_rescheduled_merchant")
+      return `${dict.notifications.bookingRescheduledMerchant}${
+        n.data?.date ? ` · ${n.data.date} ${n.data?.time ?? ""}` : ""
+      }`;
     if (t === "order_placed") return dict.notifications.orderPlaced;
     if (t === "booking_status_merchant")
       return dict.notifications.bookingStatusMerchant;
@@ -183,11 +193,14 @@ export default async function NotificationsPage({
               n.type === "booking_new" ||
               n.type === "order_status_merchant" ||
               n.type === "booking_status_merchant" ||
+              n.type === "booking_rescheduled_merchant" ||
               n.type === "store_transferred"
             ? `/${lang}/merchant`
             : n.type === "order_status" || n.type === "order_placed"
               ? `/${lang}/orders`
-              : n.type === "booking_status" || n.type === "booking_placed"
+              : n.type === "booking_status" ||
+                  n.type === "booking_placed" ||
+                  n.type === "booking_rescheduled"
                 ? `/${lang}/bookings`
                 : `/${lang}`;
 
