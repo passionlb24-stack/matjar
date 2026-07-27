@@ -40,6 +40,7 @@ export type SidebarNav = {
   viewStoreLabel: string;
   proBadge: string;
   freeBadge: string;
+  trialBadge: string;
 };
 
 function ItemIcon({
@@ -97,6 +98,7 @@ export function MerchantSidebar({
   storeName,
   logoUrl,
   plan,
+  trialDaysLeft = 0,
   slug,
   nav,
 }: {
@@ -105,9 +107,13 @@ export function MerchantSidebar({
   storeName: string;
   logoUrl: string | null;
   plan: "free" | "pro";
+  trialDaysLeft?: number;
   slug: string | null;
   nav: SidebarNav;
 }) {
+  // During an active trial the plan is "pro" (unlocked), but say so explicitly
+  // so the merchant knows it's temporary and counting down.
+  const onTrial = trialDaysLeft > 0;
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -169,12 +175,18 @@ export function MerchantSidebar({
         <div className="mt-0.5 flex items-center gap-1.5">
           <span
             className={`rounded-full px-1.5 py-px text-[10px] font-bold ${
-              plan === "pro"
-                ? "bg-accent-soft text-accent-foreground"
-                : "bg-surface-muted text-muted-foreground"
+              onTrial
+                ? "bg-warning-soft text-warning"
+                : plan === "pro"
+                  ? "bg-accent-soft text-accent-foreground"
+                  : "bg-surface-muted text-muted-foreground"
             }`}
           >
-            {plan === "pro" ? nav.proBadge : nav.freeBadge}
+            {onTrial
+              ? nav.trialBadge
+              : plan === "pro"
+                ? nav.proBadge
+                : nav.freeBadge}
           </span>
           <Link
             href={viewHref}

@@ -51,7 +51,9 @@ export default async function StoreOsLayout({
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, slug, owner_id, plan, logo_url, business_types(slug)")
+    .select(
+      "id, name, slug, owner_id, plan, trial_ends_at, logo_url, business_types(slug)",
+    )
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
@@ -62,10 +64,21 @@ export default async function StoreOsLayout({
     slug: string | null;
     owner_id: string;
     plan: "free" | "pro" | null;
+    trial_ends_at: string | null;
     logo_url: string | null;
     business_types: { slug: string } | null;
   };
-  const storeIsPro = s.plan === "pro";
+  // Effective plan mirrors getStorePlan: an active 14-day trial counts as Pro,
+  // so the sidebar never shows a lock on a module the page will actually open.
+  const trialEnds = s.trial_ends_at ? new Date(s.trial_ends_at) : null;
+  const onTrial = trialEnds != null && trialEnds > new Date();
+  const trialDaysLeft = onTrial
+    ? Math.max(
+        1,
+        Math.ceil((trialEnds!.getTime() - Date.now()) / 86_400_000),
+      )
+    : 0;
+  const storeIsPro = s.plan === "pro" || onTrial;
   const category = (s.business_types?.slug as CategoryKey) ?? "retail";
   const sector = getSector(category);
 
@@ -147,6 +160,7 @@ export default async function StoreOsLayout({
     viewStoreLabel: dict.os.viewPublic,
     proBadge: dict.os.pro.badge,
     freeBadge: dict.merchant.subscription.free,
+    trialBadge: dict.os.pro.trialBadge.replace("{days}", String(trialDaysLeft)),
   };
 
   return (
@@ -157,6 +171,7 @@ export default async function StoreOsLayout({
         storeName={s.name}
         logoUrl={s.logo_url}
         plan={storeIsPro ? "pro" : "free"}
+        trialDaysLeft={trialDaysLeft}
         slug={s.slug}
         nav={nav}
       />

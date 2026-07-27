@@ -527,6 +527,7 @@
     },
     "pro": {
       "badge": "Pro",
+      "trialBadge": "Pro trial · {days} days left",
       "lockedTitle": "This feature is for Pro members",
       "lockedBody": "Upgrade to Matjar Pro to unlock the full management system: POS, inventory, customers, suppliers, accounting, reports, staff and more.",
       "upgrade": "Upgrade to Pro",
