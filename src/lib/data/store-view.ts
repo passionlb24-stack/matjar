@@ -73,6 +73,8 @@ export type StoreView = {
     bufferMinutes?: number | null;
     capacityPerSlot?: number | null;
     sectionId?: string | null;
+    isBundle?: boolean;
+    includes?: { name: string; nameEn: string | null; quantity: number }[];
   }[];
 };
 
@@ -97,13 +99,41 @@ async function fetchStoreView(
   const { data: prods } = await supabase
     .from("products")
     .select(
-      "id, name, name_en, brand, description_en, price, discount_price, image_url, attributes, flash_price, flash_start, flash_end, stock, section_id, booking_allocation_mode, duration_minutes, buffer_minutes, capacity_per_slot",
+      "id, name, name_en, brand, description_en, price, discount_price, image_url, attributes, flash_price, flash_start, flash_end, stock, section_id, booking_allocation_mode, duration_minutes, buffer_minutes, capacity_per_slot, is_bundle",
     )
     .eq("store_id", id)
     .eq("status", "active")
     .eq("is_available", true)
     .is("deleted_at", null)
     .order("sort_order", { ascending: true });
+  // Bundle contents ("includes: 2× X, 1× Y") for any bundle products, with the
+  // component name pulled through the FK so hidden components still show.
+  const bundleIds = (prods ?? [])
+    .filter((p) => p.is_bundle)
+    .map((p) => p.id as string);
+  const includesByBundle: Record<
+    string,
+    { name: string; nameEn: string | null; quantity: number }[]
+  > = {};
+  if (bundleIds.length) {
+    const { data: bItems } = await supabase
+      .from("bundle_items")
+      .select("bundle_id, quantity, sort_order, products(name, name_en)")
+      .in("bundle_id", bundleIds)
+      .order("sort_order", { ascending: true });
+    for (const it of (bItems ?? []) as unknown as {
+      bundle_id: string;
+      quantity: number;
+      products: { name: string; name_en: string | null } | null;
+    }[]) {
+      if (!it.products) continue;
+      (includesByBundle[it.bundle_id] ??= []).push({
+        name: it.products.name,
+        nameEn: it.products.name_en,
+        quantity: it.quantity,
+      });
+    }
+  }
   // Storefront sections: the store groups its catalog into named sections
   // (menu groups / collections / service groups). None → flat list.
   const { data: sects } = await supabase
@@ -177,6 +207,8 @@ async function fetchStoreView(
       bufferMinutes: p.buffer_minutes != null ? Number(p.buffer_minutes) : 0,
       capacityPerSlot: p.capacity_per_slot != null ? Number(p.capacity_per_slot) : null,
       sectionId: (p.section_id as string | null) ?? null,
+      isBundle: (p.is_bundle as boolean | null) ?? false,
+      includes: includesByBundle[p.id as string] ?? undefined,
     })),
   };
 }

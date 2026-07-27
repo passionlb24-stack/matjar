@@ -31,6 +31,8 @@ export type ProductView = {
   attributes: Record<string, string> | null;
   variants: Variant[];
   addons: AddOn[];
+  isBundle: boolean;
+  includes: { name: string; nameEn: string | null; quantity: number }[];
 };
 
 // Client-agnostic fetch + map. `supabase` is the anon public client on the
@@ -43,7 +45,7 @@ async function fetchProductView(
   const { data } = await supabase
     .from("products")
     .select(
-      "id, store_id, name, name_en, brand, description, description_en, price, discount_price, flash_price, flash_start, flash_end, image_url, gallery, stock, attributes, stores(name, accepts_delivery, accepts_pickup, business_types(slug))",
+      "id, store_id, name, name_en, brand, description, description_en, price, discount_price, flash_price, flash_start, flash_end, image_url, gallery, stock, attributes, is_bundle, stores(name, accepts_delivery, accepts_pickup, business_types(slug))",
     )
     .eq("id", id)
     .is("deleted_at", null)
@@ -69,6 +71,27 @@ async function fetchProductView(
       .eq("product_id", id)
       .order("sort_order", { ascending: true }),
   ]);
+
+  // Bundle contents for the "what's inside" list on the detail page.
+  const isBundle = (data.is_bundle as boolean | null) ?? false;
+  let includes: { name: string; nameEn: string | null; quantity: number }[] = [];
+  if (isBundle) {
+    const { data: bItems } = await supabase
+      .from("bundle_items")
+      .select("quantity, sort_order, products(name, name_en)")
+      .eq("bundle_id", id)
+      .order("sort_order", { ascending: true });
+    includes = ((bItems ?? []) as unknown as {
+      quantity: number;
+      products: { name: string; name_en: string | null } | null;
+    }[])
+      .filter((it) => it.products)
+      .map((it) => ({
+        name: it.products!.name,
+        nameEn: it.products!.name_en,
+        quantity: it.quantity,
+      }));
+  }
 
   const gallery = Array.isArray(data.gallery) ? (data.gallery as string[]) : [];
   const images = [data.image_url as string | null, ...gallery].filter(
@@ -108,6 +131,8 @@ async function fetchProductView(
       name: a.name as string,
       price: Number(a.price),
     })),
+    isBundle,
+    includes,
   };
 }
 

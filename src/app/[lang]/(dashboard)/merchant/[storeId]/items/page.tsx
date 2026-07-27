@@ -125,9 +125,18 @@ export default async function StoreItemsPage({
           <ChevronRight className="h-4 w-4 rtl:rotate-180" />
           {(store as { name: string }).name}
         </Link>
-        <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
-          {itemsLabel}
-        </h1>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-3xl font-extrabold tracking-tight">
+            {itemsLabel}
+          </h1>
+          <Link
+            href={`/${lang}/merchant/${storeId}/bundles`}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+          >
+            <Package className="h-4 w-4" />
+            {dict.merchant.bundles.title}
+          </Link>
+        </div>
 
         <div className="mt-8">
           <SectionManager

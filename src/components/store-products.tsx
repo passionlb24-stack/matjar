@@ -44,6 +44,8 @@ type Product = {
   flashEnd?: string | null;
   stock?: number | null;
   sectionId?: string | null;
+  isBundle?: boolean;
+  includes?: { name: string; nameEn: string | null; quantity: number }[];
 };
 
 function PriceTag({ p }: { p: Product }) {
@@ -62,6 +64,27 @@ function PriceTag({ p }: { p: Product }) {
       )}
       {flash && <Zap className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />}
     </span>
+  );
+}
+
+// "يشمل: 2× X · 1× Y" under a bundle's name so shoppers see what's inside.
+function BundleIncludes({
+  p,
+  lang,
+  label,
+}: {
+  p: Product;
+  lang: Locale;
+  label: string;
+}) {
+  if (!p.isBundle || !p.includes?.length) return null;
+  return (
+    <p className="mt-0.5 text-xs text-muted-foreground">
+      <span className="font-semibold text-primary">{label} </span>
+      {p.includes
+        .map((it) => `${it.quantity}× ${localized(it.name, it.nameEn, lang)}`)
+        .join(" · ")}
+    </p>
   );
 }
 
@@ -558,6 +581,7 @@ export function StoreProducts({
                       {attributeSummary(category, p.attributes, lang)}
                     </p>
                   )}
+                  <BundleIncludes p={p} lang={lang} label={dict.store.bundleIncludes} />
                   <p className="mt-1">
                     <PriceTag p={p} />
                   </p>
@@ -606,6 +630,7 @@ export function StoreProducts({
                       {attributeSummary(category, p.attributes, lang)}
                     </p>
                   )}
+                  <BundleIncludes p={p} lang={lang} label={dict.store.bundleIncludes} />
                   <p className="mt-0.5 text-sm">
                     <PriceTag p={p} />
                     {p.stock != null && p.stock > 0 && p.stock <= 5 && (

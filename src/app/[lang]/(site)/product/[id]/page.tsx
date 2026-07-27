@@ -311,6 +311,26 @@ export default async function ProductPage({
             {attrText && (
               <p className="mt-3 text-sm text-muted-foreground">{attrText}</p>
             )}
+            {product.isBundle && product.includes.length > 0 && (
+              <div className="mt-5 rounded-2xl border border-primary/20 bg-primary-soft/40 p-4">
+                <h2 className="text-sm font-bold text-primary">
+                  {dict.product.bundleIncludes}
+                </h2>
+                <ul className="mt-2 space-y-1">
+                  {product.includes.map((it, i) => (
+                    <li
+                      key={i}
+                      className="flex items-center gap-2 text-sm font-semibold"
+                    >
+                      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-bold text-primary-foreground">
+                        {it.quantity}
+                      </span>
+                      {localized(it.name, it.nameEn, l)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {description && (
               <div className="mt-5">
                 <h2 className="text-sm font-bold text-muted-foreground">
