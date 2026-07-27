@@ -82,20 +82,30 @@ export default async function StoreCustomersPage({
       .business_types?.slug as CategoryKey) ?? "retail";
   const noun = dict.os.nouns[sectorConfig[category].customersNoun];
 
-  const [{ data: bookData }, { data: ordersData }, { data: loyaltyData }] =
-    await Promise.all([
-      supabase
-        .from("store_customers")
-        .select("id, name, phone, notes, status, follow_up_on")
-        .eq("store_id", storeId)
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("orders")
-        .select("customer_id, customer_name, phone, total, created_at")
-        .eq("store_id", storeId),
-      // Available loyalty points per registered customer (RLS-safe reader).
-      supabase.rpc("store_customer_loyalty", { p_store_id: storeId }),
-    ]);
+  const [
+    { data: bookData },
+    { data: ordersData },
+    { data: bookingsData },
+    { data: loyaltyData },
+  ] = await Promise.all([
+    supabase
+      .from("store_customers")
+      .select("id, name, phone, notes, status, follow_up_on")
+      .eq("store_id", storeId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("orders")
+      .select("customer_id, customer_name, phone, total, created_at")
+      .eq("store_id", storeId),
+    // Booking customers too — a padel/clinic customer who only booked (never
+    // ordered) must still appear here with their name + phone.
+    supabase
+      .from("bookings")
+      .select("customer_id, customer_name, phone, created_at")
+      .eq("store_id", storeId),
+    // Available loyalty points per registered customer (RLS-safe reader).
+    supabase.rpc("store_customer_loyalty", { p_store_id: storeId }),
+  ]);
   const book = (bookData ?? []) as BookCustomer[];
 
   const balances: Record<string, number> = {};
@@ -123,6 +133,32 @@ export default async function StoreCustomersPage({
     if (!c.phone && o.phone) c.phone = o.phone;
     if (!c.customerId && o.customer_id) c.customerId = o.customer_id;
     if (!c.lastOrder || o.created_at > c.lastOrder) c.lastOrder = o.created_at;
+    map.set(key, c);
+  });
+  // Fold booking customers into the same map (no order revenue, but they're
+  // real customers with a name + phone the merchant needs).
+  ((bookingsData ?? []) as {
+    customer_id: string | null;
+    customer_name: string | null;
+    phone: string | null;
+    created_at: string;
+  }[]).forEach((b) => {
+    const key = b.customer_id ?? b.phone ?? "anon";
+    const c =
+      map.get(key) ??
+      {
+        name: null,
+        phone: null,
+        count: 0,
+        total: 0,
+        customerId: null,
+        lastOrder: null,
+      };
+    c.count += 1;
+    if (!c.name && b.customer_name) c.name = b.customer_name;
+    if (!c.phone && b.phone) c.phone = b.phone;
+    if (!c.customerId && b.customer_id) c.customerId = b.customer_id;
+    if (!c.lastOrder || b.created_at > c.lastOrder) c.lastOrder = b.created_at;
     map.set(key, c);
   });
   const derived = [...map.values()].sort((a, b) => b.total - a.total);

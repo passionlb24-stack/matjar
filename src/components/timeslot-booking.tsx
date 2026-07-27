@@ -25,12 +25,14 @@ export function TimeslotBooking({
   dict,
   resources,
   customerName,
+  customerPhone = null,
 }: {
   storeId: string;
   lang: Locale;
   dict: Dictionary;
   resources: Resource[];
   customerName: string | null;
+  customerPhone?: string | null;
 }) {
   const router = useRouter();
   const t = dict.timeslot;
@@ -43,6 +45,7 @@ export function TimeslotBooking({
   const prefillName =
     customerName && !customerName.includes("@") ? customerName : "";
   const [name, setName] = useState(prefillName);
+  const [phone, setPhone] = useState(customerPhone ?? "");
   const [resourceId, setResourceId] = useState(resources[0]?.id ?? "");
   const [date, setDate] = useState(today);
   const [taken, setTaken] = useState<Set<string>>(new Set());
@@ -114,6 +117,7 @@ export function TimeslotBooking({
       requested_date: date,
       requested_time: slot,
       customer_name: name.trim() || customerName || "",
+      phone: phone.trim() || null,
     });
     setBooking(false);
     if (err) {
@@ -166,14 +170,25 @@ export function TimeslotBooking({
             </div>
           )}
 
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder={dict.booking.yourNamePlaceholder}
-            aria-label={dict.booking.yourName}
-            className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary sm:max-w-xs"
-          />
+          <div className="flex flex-col gap-2 sm:flex-row sm:max-w-lg">
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={dict.booking.yourNamePlaceholder}
+              aria-label={dict.booking.yourName}
+              className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+            />
+            <input
+              type="tel"
+              inputMode="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+961 …"
+              aria-label={dict.booking.yourPhone}
+              className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+            />
+          </div>
 
           <div className="flex flex-wrap items-center gap-3">
             <input
@@ -229,7 +244,7 @@ export function TimeslotBooking({
           <button
             type="button"
             onClick={book}
-            disabled={!slot || booking || !name.trim()}
+            disabled={!slot || booking || !name.trim() || phone.trim().length < 4}
             className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary text-[15px] font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60 sm:w-auto sm:px-8"
           >
             {booking && <Loader2 className="h-4 w-4 animate-spin" />}

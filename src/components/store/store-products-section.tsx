@@ -44,7 +44,7 @@ export function StoreProductsSection({
   isBooking: boolean;
   doctors: DoctorView[];
   providerServices: Record<string, string[]>;
-  currentUser: { id: string; name: string } | null;
+  currentUser: { id: string; name: string; phone?: string } | null;
   loggedIn: boolean;
   defaultAddress: string;
   savedAddresses: { label: string; value: string }[];
@@ -75,6 +75,7 @@ export function StoreProductsSection({
               dict={dict}
               category={store.category}
               customerName={currentUser?.name ?? null}
+              customerPhone={currentUser?.phone ?? null}
               whatsapp={store.whatsapp ?? null}
               storeName={store.name}
               hours={parseHours(store.hours)}

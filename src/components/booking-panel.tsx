@@ -60,6 +60,7 @@ export function BookingPanel({
   category,
   services,
   customerName,
+  customerPhone = null,
   whatsapp = null,
   storeName = "",
   hours = null,
@@ -74,6 +75,7 @@ export function BookingPanel({
   category: CategoryKey;
   services: Service[];
   customerName: string | null;
+  customerPhone?: string | null;
   whatsapp?: string | null;
   storeName?: string;
   hours?: WeekHours | null;
@@ -116,6 +118,8 @@ export function BookingPanel({
   // email, so a booking is never recorded under an email address.
   const prefillName =
     customerName && !customerName.includes("@") ? customerName : "";
+  // Contact number so the merchant can reach the customer about the booking.
+  const [phone, setPhone] = useState(customerPhone ?? "");
 
   // A provider can deliver a service if it's unassigned or explicitly linked.
   const offeredBy = (svcId: string, doctor: string) => {
@@ -359,7 +363,7 @@ export function BookingPanel({
         p_any: doctorId === "any",
         p_customer_name:
           String(form.get("customer_name")).trim() || customerName,
-        p_phone: null,
+        p_phone: phone.trim() || null,
         p_notes: String(form.get("notes")) || null,
         p_coupon: coupon?.code ?? null,
       });
@@ -409,6 +413,7 @@ export function BookingPanel({
       requested_date: String(form.get("date")) || null,
       requested_time: String(form.get("time")) || null,
       customer_name: String(form.get("customer_name")).trim() || customerName,
+      phone: phone.trim() || null,
       notes: String(form.get("notes")) || null,
       coupon_code: coupon?.code ?? null,
       discount: coupon?.discount ?? 0,
@@ -553,6 +558,22 @@ export function BookingPanel({
                 required
                 defaultValue={prefillName}
                 placeholder={dict.booking.yourNamePlaceholder}
+                className={fieldClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass} htmlFor="customer_phone">
+                {dict.booking.yourPhone}
+              </label>
+              <input
+                id="customer_phone"
+                name="customer_phone"
+                type="tel"
+                inputMode="tel"
+                required
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+961 …"
                 className={fieldClass}
               />
             </div>

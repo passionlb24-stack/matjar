@@ -35,12 +35,14 @@ export function ClassesBooking({
   dict,
   classes,
   customerName,
+  customerPhone = null,
 }: {
   storeId: string;
   lang: Locale;
   dict: Dictionary;
   classes: ClassRow[];
   customerName: string | null;
+  customerPhone?: string | null;
 }) {
   const router = useRouter();
   const t = dict.classes;
@@ -49,6 +51,7 @@ export function ClassesBooking({
   const prefillName =
     customerName && !customerName.includes("@") ? customerName : "";
   const [name, setName] = useState(prefillName);
+  const [phone, setPhone] = useState(customerPhone ?? "");
   const [taken, setTaken] = useState<Record<string, number>>({});
   const [booked, setBooked] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<string | null>(null);
@@ -99,6 +102,7 @@ export function ClassesBooking({
       requested_date: date,
       requested_time: c.start_time,
       customer_name: name.trim() || customerName || "",
+      phone: phone.trim() || null,
     });
     setBusy(null);
     if (error) return;
@@ -114,14 +118,25 @@ export function ClassesBooking({
         <CalendarRange className="h-5 w-5 text-primary" />
         {t.publicTitle}
       </h2>
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder={dict.booking.yourNamePlaceholder}
-        aria-label={dict.booking.yourName}
-        className="mb-4 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary sm:max-w-xs"
-      />
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:max-w-lg">
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder={dict.booking.yourNamePlaceholder}
+          aria-label={dict.booking.yourName}
+          className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+        />
+        <input
+          type="tel"
+          inputMode="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="+961 …"
+          aria-label={dict.booking.yourPhone}
+          className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+        />
+      </div>
       <div className="grid gap-3 sm:grid-cols-2">
         {classes.map((c) => {
           const name = lang === "en" ? c.name_en || c.name : c.name;
@@ -162,7 +177,7 @@ export function ClassesBooking({
                   <button
                     type="button"
                     onClick={() => book(c)}
-                    disabled={full || busy === c.id || !name.trim()}
+                    disabled={full || busy === c.id || !name.trim() || phone.trim().length < 4}
                     className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-50"
                   >
                     {busy === c.id && <Loader2 className="h-4 w-4 animate-spin" />}

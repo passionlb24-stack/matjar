@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Mail, MessageCircle, Phone } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -23,6 +23,8 @@ type BookingRow = {
   requested_date: string | null;
   requested_time: string | null;
   customer_name: string | null;
+  phone: string | null;
+  customer_id: string | null;
   notes: string | null;
   party_size: number | null;
   attendance_confirmed_at: string | null;
@@ -60,7 +62,7 @@ export default async function StoreBookingsPage({
   const { data } = await supabase
     .from("bookings")
     .select(
-      "id, status, service_name, requested_date, requested_time, customer_name, notes, party_size, attendance_confirmed_at, doctors(name)",
+      "id, status, service_name, requested_date, requested_time, customer_name, phone, customer_id, notes, party_size, attendance_confirmed_at, doctors(name)",
     )
     .eq("store_id", storeId)
     .order("requested_date", { ascending: true, nullsFirst: false })
@@ -69,6 +71,15 @@ export default async function StoreBookingsPage({
   // PostgREST types the doctors embed as an array; at runtime a to-one FK
   // returns a single object (or null), which is what BookingRow expects.
   const bookings = (data ?? []) as unknown as BookingRow[];
+
+  // Account emails of this store's customers (SECURITY DEFINER, store-scoped).
+  const emailByCustomer = new Map<string, string>();
+  const { data: emailRows } = await supabase.rpc("store_customer_emails", {
+    p_store_id: storeId,
+  });
+  for (const r of (emailRows ?? []) as { customer_id: string; email: string }[]) {
+    if (r.customer_id && r.email) emailByCustomer.set(r.customer_id, r.email);
+  }
   // Pending = new/unhandled requests that still need the merchant's reply.
   const pendingCount = bookings.filter((b) => b.status === "pending").length;
 
@@ -148,13 +159,57 @@ export default async function StoreBookingsPage({
                       )}
                     </p>
                     <p className="mt-0.5 text-sm text-muted-foreground">
-                      {b.customer_name}
+                      {b.customer_name || dict.booking.noName}
                       {b.requested_date ? ` · ${b.requested_date}` : ""}
                       {b.requested_time ? ` ${b.requested_time}` : ""}
                       {b.party_size
                         ? ` · ${b.party_size} ${dict.reservations.people}`
                         : ""}
                     </p>
+                    {(() => {
+                      const email =
+                        b.customer_id ? emailByCustomer.get(b.customer_id) : null;
+                      const waNum = b.phone
+                        ? b.phone.replace(/[^\d]/g, "")
+                        : "";
+                      return (
+                        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+                          {b.phone ? (
+                            <>
+                              <a
+                                href={`https://wa.me/${waNum}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 font-semibold text-success hover:underline"
+                              >
+                                <MessageCircle className="h-3.5 w-3.5" />
+                                {b.phone}
+                              </a>
+                              <a
+                                href={`tel:${b.phone}`}
+                                className="inline-flex items-center gap-1 font-semibold text-primary hover:underline"
+                              >
+                                <Phone className="h-3.5 w-3.5" />
+                                {dict.booking.call}
+                              </a>
+                            </>
+                          ) : (
+                            <span className="text-xs text-warning">
+                              {dict.booking.noPhone}
+                            </span>
+                          )}
+                          {email && (
+                            <a
+                              href={`mailto:${email}`}
+                              className="inline-flex items-center gap-1 text-muted-foreground hover:underline"
+                            >
+                              <Mail className="h-3.5 w-3.5" />
+                              {email}
+                            </a>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                   <BookingStatusControl
                     bookingId={b.id}

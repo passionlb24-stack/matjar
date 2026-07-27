@@ -306,6 +306,17 @@ export default async function StorePage({
     : null;
   const headerRating = store.isReal ? avg : (store.rating ?? null);
   const headerCount = store.isReal ? reviews.length : (store.reviews ?? 0);
+  // Prefill the booking contact from the customer's profile (phone) so they
+  // don't retype it, and so the merchant always gets a real name + number.
+  let profilePhone = "";
+  if (user) {
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("full_name, phone")
+      .eq("id", user.id)
+      .maybeSingle();
+    profilePhone = (prof as { phone: string | null } | null)?.phone ?? "";
+  }
   const currentUser = user
     ? {
         id: user.id,
@@ -313,6 +324,7 @@ export default async function StorePage({
           (user.user_metadata?.full_name as string | undefined) ??
           user.email ??
           "",
+        phone: profilePhone,
       }
     : null;
 
@@ -581,6 +593,7 @@ export default async function StorePage({
             dict={dict}
             resources={resources}
             customerName={currentUser?.name ?? null}
+            customerPhone={currentUser?.phone ?? null}
           />
         )}
 
@@ -600,6 +613,7 @@ export default async function StorePage({
             dict={dict}
             classes={classes}
             customerName={currentUser?.name ?? null}
+            customerPhone={currentUser?.phone ?? null}
           />
         )}
 
