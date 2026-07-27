@@ -2511,12 +2511,20 @@
       "confirmed": "مؤكّد الحضور ✓",
       "confirmedMerchant": "أكّد الحضور ✓"
     },
+    "waitlist": {
+      "fullTitle": "كل المواعيد محجوزة بهاليوم",
+      "fullNote": "سجّل بلائحة الانتظار وأول ما يفضى موعد منبعتلك إشعار.",
+      "join": "سجّلني بالانتظار",
+      "joined": "انسجّلت بلائحة الانتظار ✓ — منخبّرك أول ما يفضى موعد.",
+      "already": "إنت مسجّل أصلاً بلائحة الانتظار لهاليوم."
+    },
     "booking": "حجز",
     "status": {
       "pending": "بانتظار التأكيد",
       "accepted": "مقبول",
       "scheduled": "مجدول",
       "completed": "مكتمل",
+      "no_show": "ما حضر",
       "cancelled": "ملغى",
       "rejected": "مرفوض"
     }
@@ -2975,6 +2983,8 @@
     "bookingRescheduled": "تغيّر موعد حجزك",
     "bookingRescheduledMerchant": "زبون غيّر موعد حجزه",
     "bookingAttendanceConfirmed": "زبون أكّد حضوره",
+    "bookingReminder": "تذكير: عندك موعد قريب",
+    "bookingSlotFreed": "فضى موعد بالخدمة يلي كنت مستنّيها",
     "bookingStatusMerchant": "تغيّرت حالة حجز على متجرك",
     "storeProduct": "منتج جديد من متجر بتتابعه",
     "storeProductNamed": "{store} أضاف منتجاً جديداً",

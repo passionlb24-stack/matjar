@@ -10,6 +10,7 @@ const STATUSES = [
   "accepted",
   "scheduled",
   "completed",
+  "no_show",
   "cancelled",
   "rejected",
 ] as const;

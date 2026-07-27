@@ -133,6 +133,14 @@ export default async function NotificationsPage({
       return `${dict.notifications.bookingAttendanceConfirmed}${
         n.data?.date ? ` · ${n.data.date} ${n.data?.time ?? ""}` : ""
       }`;
+    if (t === "booking_reminder")
+      return `${dict.notifications.bookingReminder}${
+        n.data?.date ? ` · ${n.data.date} ${n.data?.time ?? ""}` : ""
+      }`;
+    if (t === "booking_slot_freed")
+      return `${dict.notifications.bookingSlotFreed}${
+        n.data?.store_name ? ` · ${n.data.store_name}` : ""
+      }`;
     if (t === "order_placed") return dict.notifications.orderPlaced;
     if (t === "booking_status_merchant")
       return dict.notifications.bookingStatusMerchant;
@@ -183,7 +191,9 @@ export default async function NotificationsPage({
       : (n.type === "price_drop" || n.type === "restock") &&
           n.data?.product_id
         ? `/${lang}/product/${n.data.product_id}`
-        : n.type === "store_product" && n.data?.store_id
+        : (n.type === "store_product" ||
+              n.type === "booking_slot_freed") &&
+            n.data?.store_id
         ? `/${lang}/store/${n.data.store_id}`
         : n.type === "store_new" || n.type === "pro_request"
           ? `/${lang}/admin/stores`
@@ -205,7 +215,8 @@ export default async function NotificationsPage({
               ? `/${lang}/orders`
               : n.type === "booking_status" ||
                   n.type === "booking_placed" ||
-                  n.type === "booking_rescheduled"
+                  n.type === "booking_rescheduled" ||
+                  n.type === "booking_reminder"
                 ? `/${lang}/bookings`
                 : `/${lang}`;
 

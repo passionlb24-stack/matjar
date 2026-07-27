@@ -108,6 +108,9 @@ export function BookingPanel({
   // Multi-doctor clinics: availability is per doctor, so bookings for different
   // doctors don't block each other. Defaults to the first (server-ordered).
   const [doctorId, setDoctorId] = useState<string>(doctors[0]?.id ?? "");
+  // Waitlist: when the chosen day is fully booked, let the customer get in line.
+  const [waitBusy, setWaitBusy] = useState(false);
+  const [waitJoined, setWaitJoined] = useState(false);
   const today = new Date().toISOString().slice(0, 10);
   // Prefill the name only when the account actually has a real name — never the
   // email, so a booking is never recorded under an email address.
@@ -152,6 +155,33 @@ export function BookingPanel({
   const slots = hours && span ? generateSlots(span, engineStep) : null;
   const dayClosed = (!!hours && !!pickedDate && !span) || !!avail?.blocked;
 
+  async function joinWaitlist() {
+    if (waitBusy || !serviceId || !pickedDate) return;
+    setWaitBusy(true);
+    const { data, error: err } = await createClient().rpc(
+      "join_booking_waitlist",
+      {
+        p_store_id: storeId,
+        p_product_id: serviceId,
+        p_date: pickedDate,
+        p_doctor_id: doctorId && doctorId !== "any" ? doctorId : null,
+        p_customer_name: prefillName || null,
+        p_phone: null,
+      },
+    );
+    setWaitBusy(false);
+    const res = data as { ok: boolean; code?: string } | null;
+    if (err || !res?.ok) {
+      setError(
+        res?.code === "already_waiting"
+          ? dict.booking.waitlist.already
+          : dict.auth.errorGeneric,
+      );
+      return;
+    }
+    setWaitJoined(true);
+  }
+
   function addMinutes(hhmm: string, mins: number) {
     const [h, m] = hhmm.split(":").map(Number);
     const t = h * 60 + m + mins;
@@ -191,6 +221,17 @@ export function BookingPanel({
     }
     return { blocked: avail.busy.some((r) => rangesOverlap(r, a, b)) };
   }
+
+  // The whole chosen day is unavailable: either the merchant is closed, or
+  // every generated slot is blocked. request_based never counts as full
+  // (it's a request, not a fixed seat).
+  const dayFull =
+    !!hours &&
+    !!pickedDate &&
+    !!serviceId &&
+    engineMode !== "request_based" &&
+    (dayClosed ||
+      (!!slots && slots.length > 0 && slots.every((s) => slotState(s).blocked)));
 
   async function refreshTaken(date: string, doctor: string, service: string) {
     // Nothing to conflict against until a service (or a doctor) is chosen.
@@ -660,6 +701,29 @@ export function BookingPanel({
                 )}
               </div>
             )}
+            {dayFull &&
+              (waitJoined ? (
+                <div className="rounded-xl bg-success-soft px-4 py-3 text-sm font-bold text-success">
+                  {dict.booking.waitlist.joined}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-warning/30 bg-warning-soft px-4 py-3">
+                  <p className="text-sm font-bold text-warning">
+                    {dict.booking.waitlist.fullTitle}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {dict.booking.waitlist.fullNote}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={joinWaitlist}
+                    disabled={waitBusy}
+                    className="mt-2.5 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+                  >
+                    {dict.booking.waitlist.join}
+                  </button>
+                </div>
+              ))}
             {!hours && taken.length > 0 && (
               <div className="rounded-xl bg-warning-soft p-3">
                 <p className="text-xs font-bold text-warning">

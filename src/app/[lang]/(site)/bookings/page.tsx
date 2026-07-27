@@ -13,6 +13,7 @@ type BookingStatus =
   | "accepted"
   | "scheduled"
   | "completed"
+  | "no_show"
   | "cancelled"
   | "rejected";
 
@@ -31,6 +32,7 @@ const statusStyle: Record<BookingStatus, string> = {
   accepted: "bg-info-soft text-info",
   scheduled: "bg-info-soft text-info",
   completed: "bg-success-soft text-success",
+  no_show: "bg-warning-soft text-warning",
   cancelled: "bg-slate-100 text-slate-600",
   rejected: "bg-danger-soft text-danger",
 };

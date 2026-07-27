@@ -2510,6 +2510,13 @@
       "confirmed": "Attendance confirmed ✓",
       "confirmedMerchant": "Confirmed attendance ✓"
     },
+    "waitlist": {
+      "fullTitle": "All slots are booked on this day",
+      "fullNote": "Join the waitlist and we'll notify you the moment a slot frees up.",
+      "join": "Join the waitlist",
+      "joined": "You're on the waitlist ✓ — we'll notify you when a slot opens.",
+      "already": "You're already on the waitlist for this day."
+    },
     "noBookings": "You don't have any bookings yet.",
     "booking": "Booking",
     "status": {
@@ -2517,6 +2524,7 @@
       "accepted": "Accepted",
       "scheduled": "Scheduled",
       "completed": "Completed",
+      "no_show": "No-show",
       "cancelled": "Cancelled",
       "rejected": "Rejected"
     }
@@ -2975,6 +2983,8 @@
     "bookingRescheduled": "Your booking time changed",
     "bookingRescheduledMerchant": "A customer changed their booking time",
     "bookingAttendanceConfirmed": "A customer confirmed attendance",
+    "bookingReminder": "Reminder: you have an upcoming appointment",
+    "bookingSlotFreed": "A slot opened up for the service you were waiting for",
     "bookingStatusMerchant": "A booking on your store changed status",
     "storeProduct": "New product from a store you follow",
     "storeProductNamed": "{store} added a new product",
