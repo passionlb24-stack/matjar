@@ -2504,6 +2504,12 @@
       "slotTaken": "That slot is taken — try another time.",
       "outsideHours": "That time is outside the provider's hours."
     },
+    "attendance": {
+      "action": "Confirm attendance",
+      "done": "Attendance confirmed ✓ — the place knows you're coming.",
+      "confirmed": "Attendance confirmed ✓",
+      "confirmedMerchant": "Confirmed attendance ✓"
+    },
     "noBookings": "You don't have any bookings yet.",
     "booking": "Booking",
     "status": {
@@ -2968,6 +2974,7 @@
     "bookingPlaced": "Your booking was received — awaiting merchant confirmation",
     "bookingRescheduled": "Your booking time changed",
     "bookingRescheduledMerchant": "A customer changed their booking time",
+    "bookingAttendanceConfirmed": "A customer confirmed attendance",
     "bookingStatusMerchant": "A booking on your store changed status",
     "storeProduct": "New product from a store you follow",
     "storeProductNamed": "{store} added a new product",

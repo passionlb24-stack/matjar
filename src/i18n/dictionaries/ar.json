@@ -2505,6 +2505,12 @@
       "slotTaken": "هالموعد محجوز — جرّب وقت تاني.",
       "outsideHours": "هالوقت خارج دوام مقدّم الخدمة."
     },
+    "attendance": {
+      "action": "أكّد حضورك",
+      "done": "تأكّد حضورك ✓ — المكان صار بيعرف إنك جايي.",
+      "confirmed": "مؤكّد الحضور ✓",
+      "confirmedMerchant": "أكّد الحضور ✓"
+    },
     "booking": "حجز",
     "status": {
       "pending": "بانتظار التأكيد",
@@ -2968,6 +2974,7 @@
     "bookingPlaced": "تمّ استلام حجزك — بانتظار تأكيد التاجر",
     "bookingRescheduled": "تغيّر موعد حجزك",
     "bookingRescheduledMerchant": "زبون غيّر موعد حجزه",
+    "bookingAttendanceConfirmed": "زبون أكّد حضوره",
     "bookingStatusMerchant": "تغيّرت حالة حجز على متجرك",
     "storeProduct": "منتج جديد من متجر بتتابعه",
     "storeProductNamed": "{store} أضاف منتجاً جديداً",

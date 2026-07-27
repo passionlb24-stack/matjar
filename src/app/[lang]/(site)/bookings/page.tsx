@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { OrderCancelButton } from "@/components/order-cancel-button";
 import { BookingReschedule } from "@/components/booking-reschedule";
+import { AttendanceConfirm } from "@/components/attendance-confirm";
 
 type BookingStatus =
   | "pending"
@@ -21,6 +22,7 @@ type BookingRow = {
   service_name: string | null;
   requested_date: string | null;
   requested_time: string | null;
+  attendance_confirmed_at: string | null;
   stores: { name: string } | null;
 };
 
@@ -50,7 +52,7 @@ export default async function BookingsPage({
 
   const { data } = await supabase
     .from("bookings")
-    .select("id, status, service_name, requested_date, requested_time, stores(name)")
+    .select("id, status, service_name, requested_date, requested_time, attendance_confirmed_at, stores(name)")
     .eq("customer_id", user.id)
     .order("created_at", { ascending: false });
   const bookings = (data ?? []) as unknown as BookingRow[];
@@ -96,6 +98,14 @@ export default async function BookingsPage({
                       initialTime={b.requested_time}
                     />
                   )}
+                  {(b.status === "accepted" || b.status === "scheduled") &&
+                    (b.attendance_confirmed_at ? (
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-success-soft px-3 py-1.5 text-xs font-bold text-success">
+                        {dict.booking.attendance.confirmed}
+                      </span>
+                    ) : (
+                      <AttendanceConfirm bookingId={b.id} dict={dict} />
+                    ))}
                 </div>
               </div>
             ))}

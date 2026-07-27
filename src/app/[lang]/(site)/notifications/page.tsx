@@ -129,6 +129,10 @@ export default async function NotificationsPage({
       return `${dict.notifications.bookingRescheduledMerchant}${
         n.data?.date ? ` · ${n.data.date} ${n.data?.time ?? ""}` : ""
       }`;
+    if (t === "booking_attendance_confirmed")
+      return `${dict.notifications.bookingAttendanceConfirmed}${
+        n.data?.date ? ` · ${n.data.date} ${n.data?.time ?? ""}` : ""
+      }`;
     if (t === "order_placed") return dict.notifications.orderPlaced;
     if (t === "booking_status_merchant")
       return dict.notifications.bookingStatusMerchant;
@@ -194,6 +198,7 @@ export default async function NotificationsPage({
               n.type === "order_status_merchant" ||
               n.type === "booking_status_merchant" ||
               n.type === "booking_rescheduled_merchant" ||
+              n.type === "booking_attendance_confirmed" ||
               n.type === "store_transferred"
             ? `/${lang}/merchant`
             : n.type === "order_status" || n.type === "order_placed"

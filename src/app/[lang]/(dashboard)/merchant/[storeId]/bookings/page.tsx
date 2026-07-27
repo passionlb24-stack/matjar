@@ -25,6 +25,7 @@ type BookingRow = {
   customer_name: string | null;
   notes: string | null;
   party_size: number | null;
+  attendance_confirmed_at: string | null;
   doctors: { name: string } | null;
 };
 
@@ -59,7 +60,7 @@ export default async function StoreBookingsPage({
   const { data } = await supabase
     .from("bookings")
     .select(
-      "id, status, service_name, requested_date, requested_time, customer_name, notes, party_size, doctors(name)",
+      "id, status, service_name, requested_date, requested_time, customer_name, notes, party_size, attendance_confirmed_at, doctors(name)",
     )
     .eq("store_id", storeId)
     .order("requested_date", { ascending: true, nullsFirst: false })
@@ -138,6 +139,11 @@ export default async function StoreBookingsPage({
                       {b.doctors?.name && (
                         <span className="ms-2 text-sm font-semibold text-primary">
                           · {b.doctors.name}
+                        </span>
+                      )}
+                      {b.attendance_confirmed_at && (
+                        <span className="rounded-full bg-success-soft px-2 py-0.5 text-[11px] font-bold text-success">
+                          {dict.booking.attendance.confirmedMerchant}
                         </span>
                       )}
                     </p>
