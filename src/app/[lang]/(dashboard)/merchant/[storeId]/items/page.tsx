@@ -13,7 +13,7 @@ import { ServiceForm } from "@/components/service-form";
 import { SectionManager, type SectionRow } from "@/components/section-manager";
 import { ProductRowActions } from "@/components/product-row-actions";
 import { ProGate } from "@/components/pro-gate";
-import { FREE_PRODUCT_LIMIT } from "@/lib/plan";
+import { planProductLimit } from "@/lib/plan";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -57,12 +57,18 @@ export default async function StoreItemsPage({
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, owner_id, plan, business_types(slug)")
+    .select("id, name, owner_id, plan, trial_ends_at, business_types(slug)")
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
-  const storeIsPro =
-    (store as unknown as { plan: string | null }).plan === "pro";
+  const sPlan = store as unknown as {
+    plan: string | null;
+    trial_ends_at: string | null;
+  };
+  const onTrial =
+    sPlan.trial_ends_at != null && new Date(sPlan.trial_ends_at) > new Date();
+  const effectivePlan = onTrial ? "pro" : (sPlan.plan ?? "free");
+  const productCap = planProductLimit(effectivePlan);
   const category =
     ((store as unknown as { business_types: { slug: string } | null })
       .business_types?.slug as CategoryKey) ?? "retail";
@@ -208,7 +214,7 @@ export default async function StoreItemsPage({
             )}
           </div>
 
-          {!storeIsPro && products.length >= FREE_PRODUCT_LIMIT ? (
+          {products.length >= productCap ? (
             <ProGate
               lang={lang}
               dict={dict}

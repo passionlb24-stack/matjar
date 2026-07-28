@@ -100,8 +100,9 @@ export const OS_MODULE_META: Record<
     path: string;
     ownerOnly?: boolean;
     perm?: "orders" | "bookings" | "products";
-    /** Requires the Pro plan (free stores see a lock + upsell). */
-    pro?: boolean;
+    /** Minimum paid tier to open this module (stores below see a lock +
+     *  upsell). Absent = available on every plan. */
+    minPlan?: "pro" | "business";
   }
 > = {
   orders: { Icon: ClipboardList, path: "orders", perm: "orders" },
@@ -111,24 +112,24 @@ export const OS_MODULE_META: Record<
   classes: { Icon: CalendarRange, path: "classes", perm: "bookings" },
   portfolio: { Icon: Images, path: "portfolio", perm: "products" },
   courses: { Icon: BookOpen, path: "courses", perm: "products" },
-  tools: { Icon: Wrench, path: "tools", pro: true },
+  tools: { Icon: Wrench, path: "tools", minPlan: "pro" },
   requests: { Icon: FileText, path: "requests", perm: "bookings" },
   items: { Icon: Package, path: "items", perm: "products" },
-  doctors: { Icon: Stethoscope, path: "doctors", perm: "bookings", pro: true },
-  customers: { Icon: Users, path: "customers", perm: "orders", pro: true },
-  campaigns: { Icon: Megaphone, path: "campaigns", perm: "orders", pro: true },
-  staff: { Icon: UserCog, path: "staff", ownerOnly: true, pro: true },
-  automations: { Icon: Zap, path: "automations", perm: "orders", pro: true },
-  tasks: { Icon: ListTodo, path: "tasks", pro: true },
-  inventory: { Icon: Boxes, path: "inventory", perm: "products", pro: true },
-  pos: { Icon: Calculator, path: "pos", perm: "orders", pro: true },
-  suppliers: { Icon: Handshake, path: "suppliers", perm: "orders", pro: true },
-  kitchen: { Icon: ChefHat, path: "kitchen", perm: "orders", pro: true },
-  reports: { Icon: BarChart3, path: "reports", perm: "orders", pro: true },
-  accounting: { Icon: Wallet, path: "accounting", perm: "orders", pro: true },
-  coupons: { Icon: Ticket, path: "coupons", ownerOnly: true, pro: true },
+  doctors: { Icon: Stethoscope, path: "doctors", perm: "bookings", minPlan: "pro" },
+  customers: { Icon: Users, path: "customers", perm: "orders", minPlan: "pro" },
+  campaigns: { Icon: Megaphone, path: "campaigns", perm: "orders", minPlan: "business" },
+  staff: { Icon: UserCog, path: "staff", ownerOnly: true, minPlan: "pro" },
+  automations: { Icon: Zap, path: "automations", perm: "orders", minPlan: "business" },
+  tasks: { Icon: ListTodo, path: "tasks", minPlan: "pro" },
+  inventory: { Icon: Boxes, path: "inventory", perm: "products", minPlan: "business" },
+  pos: { Icon: Calculator, path: "pos", perm: "orders", minPlan: "pro" },
+  suppliers: { Icon: Handshake, path: "suppliers", perm: "orders", minPlan: "business" },
+  kitchen: { Icon: ChefHat, path: "kitchen", perm: "orders", minPlan: "business" },
+  reports: { Icon: BarChart3, path: "reports", perm: "orders", minPlan: "pro" },
+  accounting: { Icon: Wallet, path: "accounting", perm: "orders", minPlan: "business" },
+  coupons: { Icon: Ticket, path: "coupons", ownerOnly: true, minPlan: "pro" },
   subscription: { Icon: CreditCard, path: "subscription", ownerOnly: true },
-  branches: { Icon: MapPin, path: "branches", ownerOnly: true },
+  branches: { Icon: MapPin, path: "branches", ownerOnly: true, minPlan: "business" },
   verifications: { Icon: BadgeCheck, path: "verifications", ownerOnly: true },
   modules: { Icon: Blocks, path: "modules", ownerOnly: true },
   settings: { Icon: Settings, path: "settings", ownerOnly: true },

@@ -8,6 +8,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
 import { logAdminAction } from "@/lib/audit";
+import { planRank } from "@/lib/plan-tiers";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardBody } from "@/components/ui/card";
@@ -20,7 +21,7 @@ import { useConfirm } from "@/components/ui/confirm-dialog";
 export type SubRow = {
   id: string;
   name: string;
-  plan: "free" | "pro";
+  plan: string;
   subId: string | null;
   expiresAt: string | null;
   payments: number;
@@ -40,13 +41,22 @@ function Row({
   const t = dict.admin.subs;
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
   const [amount, setAmount] = useState("12");
+  const [tier, setTier] = useState<"basic" | "pro" | "business">("pro");
   const [busy, setBusy] = useState(false);
 
   // Read the clock once for the expiry badge; harmless in render for a status display.
   // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
   const expiresMs = row.expiresAt ? new Date(row.expiresAt).getTime() : null;
-  const isPro = row.plan === "pro";
+  const paid = planRank(row.plan) >= planRank("basic");
+  const planLabel =
+    row.plan === "business"
+      ? t.business
+      : row.plan === "pro"
+        ? t.pro
+        : row.plan === "basic"
+          ? t.basic
+          : t.free;
   const expired = expiresMs != null && expiresMs <= now;
   const fmt = (iso: string) =>
     new Date(iso).toLocaleDateString(lang === "ar" ? "ar" : "en", {
@@ -86,7 +96,7 @@ function Row({
         .from("subscriptions")
         .update({
           status: "active",
-          plan: "pro",
+          plan: tier,
           expires_at: expires.toISOString(),
           updated_at: new Date().toISOString(),
         })
@@ -96,7 +106,7 @@ function Row({
         .from("subscriptions")
         .insert({
           store_id: row.id,
-          plan: "pro",
+          plan: tier,
           status: "active",
           expires_at: expires.toISOString(),
         })
@@ -114,7 +124,7 @@ function Row({
     });
     const { error } = await supabase
       .from("stores")
-      .update({ plan: "pro", is_verified: true })
+      .update({ plan: tier, is_verified: true })
       .eq("id", row.id);
     setBusy(false);
     if (error) {
@@ -161,11 +171,11 @@ function Row({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-bold">{row.name}</h3>
-            <Badge variant={isPro ? "warning" : "neutral"} size="sm">
-              {isPro && <Crown className="h-3 w-3" />}
-              {isPro ? t.pro : t.free}
+            <Badge variant={paid ? "warning" : "neutral"} size="sm">
+              {paid && <Crown className="h-3 w-3" />}
+              {planLabel}
             </Badge>
-            {isPro && row.expiresAt && (
+            {paid && row.expiresAt && (
               <Badge variant={expired ? "danger" : "success"} size="sm">
                 {expired ? t.expired : t.active} · {t.expires}{" "}
                 {fmt(row.expiresAt)}
@@ -175,7 +185,7 @@ function Row({
               {row.payments} {t.payments}
             </span>
           </div>
-          {isPro && (
+          {paid && (
             <Button
               size="sm"
               variant="secondary"
@@ -189,6 +199,18 @@ function Row({
         </div>
 
         <div className="mt-4 flex flex-wrap items-end gap-3 border-t border-border pt-4">
+          <Field label={t.plan} className="w-36">
+            <Select
+              value={tier}
+              onChange={(e) =>
+                setTier(e.target.value as "basic" | "pro" | "business")
+              }
+            >
+              <option value="basic">{t.basic}</option>
+              <option value="pro">{t.pro}</option>
+              <option value="business">{t.business}</option>
+            </Select>
+          </Field>
           <Field label={t.period} className="w-40">
             <Select
               value={period}

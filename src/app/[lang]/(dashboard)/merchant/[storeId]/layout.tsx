@@ -9,6 +9,7 @@ import {
   OS_MODULE_META,
   type OsModuleKey,
 } from "@/lib/sectors";
+import { hasPlan, planRank } from "@/lib/plan-tiers";
 import {
   MerchantSidebar,
   type SidebarNav,
@@ -63,7 +64,7 @@ export default async function StoreOsLayout({
     name: string;
     slug: string | null;
     owner_id: string;
-    plan: "free" | "pro" | null;
+    plan: string | null;
     trial_ends_at: string | null;
     logo_url: string | null;
     business_types: { slug: string } | null;
@@ -78,7 +79,7 @@ export default async function StoreOsLayout({
         Math.ceil((trialEnds!.getTime() - Date.now()) / 86_400_000),
       )
     : 0;
-  const storeIsPro = s.plan === "pro" || onTrial;
+  const effectivePlan = onTrial ? "pro" : (s.plan ?? "free");
   const category = (s.business_types?.slug as CategoryKey) ?? "retail";
   const sector = getSector(category);
 
@@ -141,7 +142,7 @@ export default async function StoreOsLayout({
       key,
       label: moduleLabel[key],
       href: `${base}/${meta.path}`,
-      locked: !!meta.pro && !storeIsPro,
+      locked: !!meta.minPlan && !hasPlan(effectivePlan, meta.minPlan),
     };
   };
 
@@ -170,7 +171,7 @@ export default async function StoreOsLayout({
         storeId={storeId}
         storeName={s.name}
         logoUrl={s.logo_url}
-        plan={storeIsPro ? "pro" : "free"}
+        plan={planRank(effectivePlan) >= planRank("pro") ? "pro" : "free"}
         trialDaysLeft={trialDaysLeft}
         slug={s.slug}
         nav={nav}

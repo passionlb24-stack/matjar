@@ -34,11 +34,14 @@ export function StaffManager({
   storeId,
   dict,
   staff,
+  maxStaff,
 }: {
   storeId: string;
   dict: Dictionary;
   staff: Staff[];
+  maxStaff: number;
 }) {
+  const atLimit = staff.length >= maxStaff;
   const router = useRouter();
   const confirm = useConfirm();
   const [busy, setBusy] = useState(false);
@@ -110,18 +113,24 @@ export function StaffManager({
 
   return (
     <div>
-      <form onSubmit={onAdd} className="flex gap-2">
-        <Input
-          name="email"
-          type="email"
-          required
-          placeholder={dict.merchant.staffEmail}
-          className="flex-1 min-w-0"
-        />
-        <Button type="submit" loading={busy}>
-          {dict.merchant.staffAdd}
-        </Button>
-      </form>
+      {atLimit ? (
+        <p className="rounded-xl border border-warning/40 bg-warning-soft px-4 py-3 text-sm font-semibold text-warning">
+          {dict.merchant.staffLimitReached.replace("{max}", String(maxStaff))}
+        </p>
+      ) : (
+        <form onSubmit={onAdd} className="flex gap-2">
+          <Input
+            name="email"
+            type="email"
+            required
+            placeholder={dict.merchant.staffEmail}
+            className="flex-1 min-w-0"
+          />
+          <Button type="submit" loading={busy}>
+            {dict.merchant.staffAdd}
+          </Button>
+        </form>
+      )}
       {msg && (
         <p className="mt-2 text-sm font-medium text-muted-foreground">{msg}</p>
       )}

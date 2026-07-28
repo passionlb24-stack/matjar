@@ -4,6 +4,9 @@ import { ChevronRight } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { isBusiness } from "@/lib/plan";
+import { getStorePlan } from "@/lib/plan-server";
+import { ProGate } from "@/components/pro-gate";
 import { Container } from "@/components/ui/container";
 import { BranchManager, type BranchRow } from "@/components/branch-manager";
 
@@ -36,6 +39,10 @@ export default async function StoreBranchesPage({
   // Branches are an owner-only setting (matches the registry ownerOnly flag).
   if ((store as unknown as { owner_id: string }).owner_id !== user.id)
     redirect(`/${lang}/merchant/${storeId}`);
+  // Multiple branches is a Business-plan feature.
+  if (!isBusiness(await getStorePlan(storeId))) {
+    return <ProGate lang={lang} dict={dict} storeId={storeId} requiredPlan="business" />;
+  }
 
   const { data } = await supabase
     .from("store_locations")

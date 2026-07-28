@@ -64,3 +64,39 @@ export function promoState(now: Date): { active: boolean; daysLeft: number } {
 export function annualPrice(plan: PlanConfig, promoActive: boolean): number {
   return promoActive ? plan.annualPromo : plan.annualStandard;
 }
+
+// ── Tier enforcement ─────────────────────────────────────────────────────────
+// 'free' is the lapsed/entry floor (never subscribed / trial expired). Paid
+// tiers rank above it. A store "has" a tier if its rank meets the requirement.
+export type StorePlan = "free" | "basic" | "pro" | "business";
+
+export const PLAN_RANK: Record<string, number> = {
+  free: 0,
+  basic: 1,
+  pro: 2,
+  business: 3,
+};
+
+export function planRank(plan?: string | null): number {
+  return PLAN_RANK[plan ?? "free"] ?? 0;
+}
+
+export function hasPlan(
+  current: string | null | undefined,
+  required: "basic" | "pro" | "business",
+): boolean {
+  return planRank(current) >= PLAN_RANK[required];
+}
+
+// Catalog size cap by plan: free 3, basic 30, pro 200, business unlimited.
+export function planProductLimit(plan?: string | null): number {
+  const r = planRank(plan);
+  return r >= 3 ? Infinity : r === 2 ? 200 : r === 1 ? 30 : 3;
+}
+
+// Staff seats by plan (the owner is always seat #1): free/basic 1, pro 3,
+// business 10.
+export function planStaffLimit(plan?: string | null): number {
+  const r = planRank(plan);
+  return r >= 3 ? 10 : r === 2 ? 3 : 1;
+}

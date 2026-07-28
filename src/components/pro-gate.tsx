@@ -12,6 +12,7 @@ export function ProGate({
   title,
   body,
   compact = false,
+  requiredPlan = "pro",
 }: {
   lang: string;
   dict: Dictionary;
@@ -19,18 +20,24 @@ export function ProGate({
   title?: string;
   body?: string;
   compact?: boolean;
+  requiredPlan?: "pro" | "business";
 }) {
   const t = dict.os.pro;
+  // Business-only modules get their own headline/upsell so a Pro store knows it
+  // needs the higher tier (not a generic "go Pro").
+  const isBiz = requiredPlan === "business";
+  const headline = title ?? (isBiz ? t.lockedTitleBusiness : t.lockedTitle);
+  const blurb = body ?? (isBiz ? t.lockedBodyBusiness : t.lockedBody);
   const card = (
     <div className="mx-auto max-w-lg rounded-3xl border border-accent/40 bg-gradient-to-b from-accent-soft to-transparent p-7 text-center">
       <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent-foreground">
         {compact ? <Lock className="h-7 w-7" /> : <Crown className="h-7 w-7" />}
       </span>
       <h2 className="mt-4 text-xl font-extrabold tracking-tight">
-        {title ?? t.lockedTitle}
+        {headline}
       </h2>
       <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-        {body ?? t.lockedBody}
+        {blurb}
       </p>
 
       <ul className="mx-auto mt-5 max-w-xs space-y-2 text-start">

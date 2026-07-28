@@ -3,6 +3,8 @@
 // server-side (migration 0079 caps free products; each Pro page redirects to the
 // upsell) and in the UI (locked tiles + upgrade prompts).
 
+import { hasPlan } from "@/lib/plan-tiers";
+
 export const FREE_PRODUCT_LIMIT = 3;
 
 // Effective (charged) prices after the launch discount.
@@ -42,6 +44,20 @@ export function isProModule(key: string): boolean {
   return PRO_MODULES.has(key);
 }
 
+// Tier checks are rank-based: a Business store also satisfies isPro. Kept here
+// (delegating to plan-tiers) so existing `isPro(getStorePlan())` call sites work
+// across the new Basic/Pro/Business tiers.
 export function isPro(plan: string | null | undefined): boolean {
-  return plan === "pro";
+  return hasPlan(plan, "pro");
 }
+
+export function isBusiness(plan: string | null | undefined): boolean {
+  return hasPlan(plan, "business");
+}
+
+export {
+  hasPlan,
+  planRank,
+  planProductLimit,
+  planStaffLimit,
+} from "@/lib/plan-tiers";
