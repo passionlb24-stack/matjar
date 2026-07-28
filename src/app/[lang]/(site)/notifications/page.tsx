@@ -165,6 +165,14 @@ export default async function NotificationsPage({
       return `${dict.notifications.stayNew}${
         n.data?.store_name ? ` · ${n.data.store_name}` : ""
       }`;
+    if (t === "membership_new")
+      return `${dict.notifications.membershipNew}${
+        n.data?.store_name ? ` · ${n.data.store_name}` : ""
+      }`;
+    if (t === "enroll_new")
+      return `${dict.notifications.enrollNew}${
+        n.data?.store_name ? ` · ${n.data.store_name}` : ""
+      }`;
     return t === "order_new"
       ? dict.notifications.orderNew
       : t === "order_status"
@@ -226,6 +234,9 @@ export default async function NotificationsPage({
           ? `/${lang}/merchant/${n.data.store_id}/leads`
           : n.type === "stay_new" && n.data?.store_id
           ? `/${lang}/merchant/${n.data.store_id}/stays`
+          : (n.type === "membership_new" || n.type === "enroll_new") &&
+            n.data?.store_id
+          ? `/${lang}/merchant/${n.data.store_id}/members`
           : (n.type === "booking_new" ||
               n.type === "booking_rescheduled_merchant" ||
               n.type === "booking_attendance_confirmed" ||

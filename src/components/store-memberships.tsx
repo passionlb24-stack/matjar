@@ -1,6 +1,7 @@
-import { Gem, MessageCircle } from "lucide-react";
+import { Gem } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { JoinAction } from "@/components/join-action";
 
 export type MembershipPlan = {
   id: string;
@@ -28,7 +29,6 @@ export function StoreMemberships({
   if (!plans.length) return null;
   const t = dict.memberships;
   const periods = t.periods as Record<string, string>;
-  const wa = whatsapp ? whatsapp.replace(/[^0-9]/g, "") : null;
 
   return (
     <section className="mt-10">
@@ -39,9 +39,6 @@ export function StoreMemberships({
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {plans.map((p) => {
           const name = lang === "en" ? p.name_en || p.name : p.name;
-          const href = wa
-            ? `https://wa.me/${wa}?text=${encodeURIComponent(`${t.joinMsg} ${name}`)}`
-            : null;
           return (
             <div
               key={p.id}
@@ -63,17 +60,18 @@ export function StoreMemberships({
                   {p.description}
                 </p>
               )}
-              {href && (
-                <a
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-4 inline-flex h-11 items-center justify-center gap-1.5 rounded-xl bg-primary text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  {t.join}
-                </a>
-              )}
+              <JoinAction
+                kind="membership"
+                targetId={p.id}
+                whatsapp={whatsapp}
+                waText={`${t.joinMsg} ${name}`}
+                loginHref={`/${lang}/login`}
+                labels={{
+                  join: t.join,
+                  done: t.subscribed,
+                  errorGeneric: dict.common.actionFailed,
+                }}
+              />
             </div>
           );
         })}

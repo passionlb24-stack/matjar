@@ -69,6 +69,7 @@ export type OsModuleKey =
   | "leads"
   | "units"
   | "stays"
+  | "members"
   | "items"
   | "doctors"
   | "customers"
@@ -121,6 +122,7 @@ export const OS_MODULE_META: Record<
   leads: { Icon: Inbox, path: "leads", perm: "orders" },
   units: { Icon: BedDouble, path: "units", perm: "products" },
   stays: { Icon: CalendarRange, path: "stays", perm: "bookings" },
+  members: { Icon: Users, path: "members", perm: "orders" },
   items: { Icon: Package, path: "items", perm: "products" },
   doctors: { Icon: Stethoscope, path: "doctors", perm: "bookings", minPlan: "pro" },
   customers: { Icon: Users, path: "customers", perm: "orders", minPlan: "pro" },
@@ -269,7 +271,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-lime-100 text-lime-700",
     customersNoun: "customers",
     modules: {
-      daily: ["bookings", "doctors", "memberships", "classes", "items", "tasks"],
+      daily: ["bookings", "doctors", "memberships", "classes", "members", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY,
       store: STORE,
@@ -295,7 +297,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-indigo-100 text-indigo-600",
     customersNoun: "clients",
     modules: {
-      daily: ["bookings", "doctors", "courses", "memberships", "items", "tasks"],
+      daily: ["bookings", "doctors", "courses", "memberships", "members", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY,
       store: STORE,

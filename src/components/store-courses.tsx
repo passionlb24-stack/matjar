@@ -1,6 +1,7 @@
-import { BookOpen, MessageCircle } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { JoinAction } from "@/components/join-action";
 
 export type CourseRow = {
   id: string;
@@ -28,7 +29,6 @@ export function StoreCourses({
 }) {
   if (!courses.length) return null;
   const t = dict.courses;
-  const wa = whatsapp ? whatsapp.replace(/[^0-9]/g, "") : null;
 
   return (
     <section className="mt-10">
@@ -40,9 +40,6 @@ export function StoreCourses({
         {courses.map((c) => {
           const name = lang === "en" ? c.name_en || c.name : c.name;
           const meta = [c.duration, c.schedule, c.level].filter(Boolean).join(" · ");
-          const href = wa
-            ? `https://wa.me/${wa}?text=${encodeURIComponent(`${t.enrollMsg} ${name}`)}`
-            : null;
           return (
             <div
               key={c.id}
@@ -58,17 +55,18 @@ export function StoreCourses({
               {c.description && (
                 <p className="mt-2 flex-1 text-sm text-muted-foreground">{c.description}</p>
               )}
-              {href && (
-                <a
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-4 inline-flex h-11 items-center justify-center gap-1.5 rounded-xl bg-primary text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  {t.enroll}
-                </a>
-              )}
+              <JoinAction
+                kind="course"
+                targetId={c.id}
+                whatsapp={whatsapp}
+                waText={`${t.enrollMsg} ${name}`}
+                loginHref={`/${lang}/login`}
+                labels={{
+                  join: t.enroll,
+                  done: t.enrolled,
+                  errorGeneric: dict.common.actionFailed,
+                }}
+              />
             </div>
           );
         })}

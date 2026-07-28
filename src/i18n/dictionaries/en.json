@@ -84,6 +84,15 @@
       "delete": "Delete",
       "confirmDelete": "Delete this unit?"
     },
+    "members": {
+      "link": "Members",
+      "title": "Members & enrollments",
+      "subtitle": "Everyone who subscribed to a plan or enrolled in a course.",
+      "empty": "No members yet. They'll show here once someone subscribes or enrolls.",
+      "membershipsTitle": "Memberships",
+      "coursesTitle": "Course enrollments",
+      "expires": "Expires"
+    },
     "stays": {
       "link": "Bookings",
       "title": "Stay bookings",
@@ -909,7 +918,8 @@
     "save": "Save",
     "publicTitle": "Membership plans",
     "join": "Join now",
-    "joinMsg": "Hi, I'd like to join the plan"
+    "joinMsg": "Hi, I'd like to join the plan",
+    "subscribed": "Subscribed ✓"
   },
   "classes": {
     "link": "Group classes",
@@ -986,7 +996,8 @@
     "empty": "You haven't added any courses yet.",
     "publicTitle": "Training courses",
     "enroll": "Enroll now",
-    "enrollMsg": "Hi, I'd like to enroll in a course"
+    "enrollMsg": "Hi, I'd like to enroll in a course",
+    "enrolled": "Enrolled ✓"
   },
   "featured": {
     "title": "Featured stores",
@@ -3242,6 +3253,8 @@
     "orderNew": "New order on your store",
     "leadNew": "New inquiry on your store",
     "stayNew": "New stay booking request",
+    "membershipNew": "New subscription to your plan",
+    "enrollNew": "New course enrollment",
     "orderStatus": "Your order status changed",
     "orderPlaced": "Your order was received",
     "orderStatusMerchant": "An order on your store changed status",
