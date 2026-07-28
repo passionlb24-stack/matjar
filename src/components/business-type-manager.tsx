@@ -7,7 +7,14 @@ import { Plus, Pencil, Trash2, X } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
+import { categoryKeys } from "@/lib/catalog";
 import { logAdminAction } from "@/lib/audit";
+
+// Sector behavior (transaction model, modules, fields, CTA) is code-keyed by
+// slug. Creating a business type with a slug outside this set would resolve to
+// no sector config and crash the public store + module pages. Until the dynamic
+// sector-definitions engine exists (audit file 17), only these slugs are safe.
+const SUPPORTED_SLUGS = new Set<string>(categoryKeys);
 import { Container } from "@/components/ui/container";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 
@@ -66,10 +73,24 @@ export function BusinessTypeManager({
     setDraft(empty);
   }
 
+  // A new type may only use a supported slug; an existing type keeps its slug.
+  const slugUnsupported =
+    editingId === "new" && !SUPPORTED_SLUGS.has(draft.slug.trim());
+
   async function save() {
+    const isNew = editingId === "new";
+    if (isNew && !SUPPORTED_SLUGS.has(draft.slug.trim())) {
+      notifyError(
+        lang === "ar"
+          ? "هذا الـslug غير مدعوم بعد. القطاعات المدعومة فقط تعمل بشكل صحيح — استخدم أحد: " +
+              [...SUPPORTED_SLUGS].join("، ")
+          : "This slug is not supported yet. Only built-in sectors render correctly — use one of: " +
+              [...SUPPORTED_SLUGS].join(", "),
+      );
+      return;
+    }
     setBusy(true);
     const supabase = createClient();
-    const isNew = editingId === "new";
     const currentId = editingId;
     const { error } = isNew
       ? await supabase.from("business_types").insert(draft)
@@ -135,6 +156,14 @@ export function BusinessTypeManager({
             value={draft.slug}
             onChange={(e) => setDraft({ ...draft, slug: e.target.value })}
           />
+          {slugUnsupported && draft.slug.trim() !== "" && (
+            <span className="mt-1 block text-xs font-medium text-danger">
+              {lang === "ar"
+                ? "slug غير مدعوم — سيعطّل صفحة المتجر. المدعوم فقط: "
+                : "Unsupported slug — would break the store page. Supported only: "}
+              {[...SUPPORTED_SLUGS].join(lang === "ar" ? "، " : ", ")}
+            </span>
+          )}
         </label>
         <label className="text-sm font-semibold">
           {t.icon}
@@ -167,7 +196,13 @@ export function BusinessTypeManager({
       </div>
       <div className="mt-4 flex gap-2">
         <button
-          disabled={busy || !draft.name_ar || !draft.name_en || !draft.slug}
+          disabled={
+            busy ||
+            !draft.name_ar ||
+            !draft.name_en ||
+            !draft.slug ||
+            slugUnsupported
+          }
           onClick={save}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
         >

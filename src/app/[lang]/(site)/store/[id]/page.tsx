@@ -55,11 +55,10 @@ import { StoreProductsSection } from "@/components/store/store-products-section"
 import { StoreHealthcareInfo } from "@/components/store/store-healthcare-info";
 import { StoreDoctors, type DoctorView } from "@/components/store/store-doctors";
 import { TrackVisit } from "@/components/track-visit";
+import { resolveStoreExperience } from "@/lib/store-experience";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-const bookingCategories = new Set(["services", "healthcare", "realEstate"]);
 
 // React cache(): generateMetadata + the page both call loadStore(id) — dedupe
 // the load into one call per request. The public store view now comes from
@@ -480,7 +479,13 @@ export default async function StorePage({
   const style = categoryStyles[store.category];
   // Theme = defaults; the merchant's own accent color / layout always win.
   const sf = resolveTheme(store);
-  const isBooking = bookingCategories.has(store.category);
+  // Single source of truth for which transaction surface this storefront shows,
+  // derived from the enabled modules + sector operational status (never from a
+  // hardcoded slug list). See src/lib/store-experience.ts.
+  const experience = resolveStoreExperience({
+    category: store.category,
+    enabledModules,
+  });
   const sectionTitle =
     store.category === "food"
       ? dict.store.menu
@@ -578,15 +583,13 @@ export default async function StorePage({
           </div>
         )}
 
-        {store.isReal &&
-          (store.category === "services" ||
-            store.category === "healthcare") && (
-            <div className="mt-10">
-              <ServiceRequestForm storeId={id} lang={lang} dict={dict} />
-            </div>
-          )}
+        {store.isReal && experience.showServiceRequest && (
+          <div className="mt-10">
+            <ServiceRequestForm storeId={id} lang={lang} dict={dict} />
+          </div>
+        )}
 
-        {resources.length > 0 && (
+        {resources.length > 0 && experience.allowResourceBooking && (
           <TimeslotBooking
             storeId={id}
             lang={lang}
@@ -606,7 +609,7 @@ export default async function StorePage({
           />
         )}
 
-        {classes.length > 0 && (
+        {classes.length > 0 && experience.allowResourceBooking && (
           <ClassesBooking
             storeId={id}
             lang={lang}
@@ -635,7 +638,8 @@ export default async function StorePage({
           id={id}
           lang={lang}
           dict={dict}
-          isBooking={isBooking}
+          surface={experience.itemSurface}
+          directoryOnly={experience.directoryOnly}
           doctors={doctors}
           providerServices={providerServices}
           currentUser={currentUser}

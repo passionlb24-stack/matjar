@@ -14,7 +14,7 @@ import {
   type ProductView,
 } from "@/lib/data/product-view";
 import { Breadcrumbs } from "@/components/breadcrumbs";
-import { regions, type CategoryKey } from "@/lib/catalog";
+import { regions } from "@/lib/catalog";
 import { attributeSummary } from "@/lib/attributes";
 import { effectivePrice, compareAtPrice, flashEndsAt } from "@/lib/pricing";
 import { FlashCountdown } from "@/components/flash-countdown";
@@ -41,14 +41,10 @@ import { ProductStoryCard } from "@/components/product-story-card";
 import { BackButton } from "@/components/back-button";
 import { TrackVisit } from "@/components/track-visit";
 import { RestockButton } from "@/components/restock-button";
+import { isOrderSurface } from "@/lib/store-experience";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const bookingCategories = new Set<CategoryKey>([
-  "services",
-  "healthcare",
-  "realEstate",
-]);
 
 function formatPrice(price: number) {
   return price >= 1000 ? `$${Number(price).toLocaleString("en-US")}` : `$${price}`;
@@ -193,7 +189,11 @@ export default async function ProductPage({
     isStoreOwner = (st as { owner_id?: string } | null)?.owner_id === user.id;
   }
   const attrText = attributeSummary(product.category, product.attributes, l);
-  const isBooking = bookingCategories.has(product.category);
+  // Show the add-to-cart order box only for real commerce sectors that are not
+  // directory-only. Booking sectors + directory-only sectors (hotels, real
+  // estate, car sales) show a "visit store" / contact link instead — a car is
+  // never sold via cart + COD. Derived from the store-experience resolver.
+  const isBooking = !isOrderSurface(product.category);
   const soldOut = product.stock != null && product.stock <= 0;
 
   // Back-in-stock: is this signed-in viewer already waiting on this product?

@@ -1,8 +1,11 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { StoreView } from "@/lib/data/store-view";
+import type { ItemSurface } from "@/lib/store-experience";
+import { attributeSummary } from "@/lib/attributes";
 import { parseHours } from "@/lib/hours";
 import { StoreProducts, type DeliveryZone } from "@/components/store-products";
 import { BookingPanel } from "@/components/booking-panel";
@@ -20,7 +23,8 @@ export function StoreProductsSection({
   id,
   lang,
   dict,
-  isBooking,
+  surface,
+  directoryOnly = false,
   doctors,
   providerServices,
   currentUser,
@@ -41,7 +45,8 @@ export function StoreProductsSection({
   id: string;
   lang: Locale;
   dict: Dictionary;
-  isBooking: boolean;
+  surface: ItemSurface;
+  directoryOnly?: boolean;
   doctors: DoctorView[];
   providerServices: Record<string, string[]>;
   currentUser: { id: string; name: string; phone?: string } | null;
@@ -68,7 +73,7 @@ export function StoreProductsSection({
       <h2 className="mb-4 mt-10 text-xl font-bold">{sectionTitle}</h2>
       {store.isReal ? (
         store.products.length ? (
-          isBooking ? (
+          surface === "appointment" ? (
             <BookingPanel
               storeId={id}
               lang={lang}
@@ -103,13 +108,13 @@ export function StoreProductsSection({
                   capacityPerSlot: p.capacityPerSlot ?? null,
                 }))}
             />
-          ) : (
+          ) : surface === "order" ? (
             <StoreProducts
               storeId={id}
               lang={lang}
               dict={dict}
               category={store.category}
-              isBooking={isBooking}
+              isBooking={false}
               loggedIn={loggedIn}
               defaultAddress={defaultAddress}
               savedAddresses={savedAddresses}
@@ -154,6 +159,67 @@ export function StoreProductsSection({
               zones={zones}
               checkoutFields={store.checkoutFields}
             />
+          ) : (
+            /* Catalog surface: browse-only listing + contact via the header.
+               Used by directory-only sectors (hotels/real-estate/cars/events)
+               whose real transaction engine is not built yet, and by service
+               sectors whose primary action is the request form above. No cart,
+               no wrong booking flow. */
+            <>
+              {directoryOnly && (
+                <p className="mb-4 rounded-xl border border-border bg-surface-muted/50 px-4 py-3 text-sm font-medium text-muted-foreground">
+                  {dict.store.comingSoonNote}
+                </p>
+              )}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {store.products
+                  .filter((p) => p.id)
+                  .map((p) => {
+                    const attr = attributeSummary(
+                      store.category,
+                      p.attributes,
+                      lang,
+                    );
+                    return (
+                      <Link
+                        key={p.id as string}
+                        href={`/${lang}/product/${p.id}`}
+                        className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-colors hover:border-primary"
+                      >
+                        <span
+                          className={`relative flex aspect-[4/3] items-center justify-center bg-gradient-to-br ${style.cover}`}
+                        >
+                          {p.imageUrl ? (
+                            <Image
+                              src={p.imageUrl}
+                              alt={p.name}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 640px) 100vw, 33vw"
+                            />
+                          ) : (
+                            <Icon className="h-8 w-8 text-black/20" />
+                          )}
+                        </span>
+                        <div className="flex min-w-0 flex-1 flex-col p-4">
+                          <h3 className="truncate font-bold">{p.name}</h3>
+                          {attr && (
+                            <p className="mt-1 truncate text-xs text-muted-foreground">
+                              {attr}
+                            </p>
+                          )}
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            {dict.store.from}{" "}
+                            <span className="font-bold text-foreground">
+                              {formatPrice(p.price)}
+                            </span>
+                          </p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+              </div>
+            </>
           )
         ) : (
           <div className="rounded-2xl border border-dashed border-border py-14 text-center text-muted-foreground">
@@ -182,7 +248,7 @@ export function StoreProductsSection({
                 </p>
               </div>
               <button className="shrink-0 rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover">
-                {isBooking ? dict.store.book : dict.store.order}
+                {surface === "appointment" ? dict.store.book : dict.store.order}
               </button>
             </div>
           ))}
