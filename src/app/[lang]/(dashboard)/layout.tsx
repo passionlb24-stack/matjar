@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { LogoutButton } from "@/components/logout-button";
 import { DashboardMobileMenu } from "@/components/dashboard-mobile-menu";
 import { HeaderBells } from "@/components/header-bells";
+import { RealtimeNotifications } from "@/components/realtime-notifications";
 
 // Dedicated control-panel chrome for merchants and admins — distinct from the
 // customer marketplace. Logged-in only.
@@ -81,6 +82,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-dvh flex-col overflow-x-clip bg-surface-muted/30">
+      {user && <RealtimeNotifications userId={user.id} />}
       <header className="sticky top-0 z-50 border-b border-border bg-background print:hidden">
         <Container className="flex h-16 items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-6">

@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { BottomNav } from "@/components/bottom-nav";
 import { LogoutButton } from "@/components/logout-button";
+import { RealtimeNotifications } from "@/components/realtime-notifications";
 
 // Shared chrome (header + footer) for all public marketing/browse pages.
 export default async function SiteLayout({
@@ -81,6 +82,7 @@ export default async function SiteLayout({
         dashboardHref={dashboardHref}
         lbpRate={lbpRate}
       />
+      {user && <RealtimeNotifications userId={user.id} />}
       <main className="flex-1">{children}</main>
       <SiteFooter lang={lang} dict={dict} />
       {/* Spacer so page content can scroll clear of the fixed mobile tab bar. */}
