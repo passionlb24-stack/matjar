@@ -17,7 +17,20 @@ export type Variant = {
   color: string | null;
   size: string | null;
 };
-export type AddOn = { id: string; name: string; price: number };
+export type AddOn = {
+  id: string;
+  name: string;
+  price: number;
+  groupId?: string | null;
+};
+export type ModifierGroup = {
+  id: string;
+  name: string;
+  nameEn: string | null;
+  required: boolean;
+  minSelect: number;
+  maxSelect: number | null;
+};
 
 const fieldClass =
   "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
@@ -35,6 +48,8 @@ export function ProductOrder({
   stock,
   variants,
   addons,
+  modifierGroups = [],
+  allowScheduling = false,
   defaultAddress = "",
   acceptsDelivery = true,
   acceptsPickup = true,
@@ -48,6 +63,8 @@ export function ProductOrder({
   stock: number | null;
   variants: Variant[];
   addons: AddOn[];
+  modifierGroups?: ModifierGroup[];
+  allowScheduling?: boolean;
   defaultAddress?: string;
   acceptsDelivery?: boolean;
   acceptsPickup?: boolean;
@@ -67,6 +84,8 @@ export function ProductOrder({
     colors[0] ?? null,
   );
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+  const [itemNote, setItemNote] = useState("");
+  const [scheduledFor, setScheduledFor] = useState("");
   const [qty, setQty] = useState(1);
   const [checkingOut, setCheckingOut] = useState(false);
   const [placing, setPlacing] = useState(false);
@@ -101,10 +120,44 @@ export function ProductOrder({
   const unitPrice = unitBase + addonsSum;
   const total = unitPrice * qty;
 
+  // Modifier groups (food): options carry a groupId; ungrouped options are flat
+  // add-ons rendered as before. Selection rules (required / min / max) are
+  // enforced here for UX and re-enforced server-side in the order RPC.
+  const groupedAddons = (id: string) =>
+    addons.filter((a) => a.groupId === id);
+  const ungroupedAddons = addons.filter((a) => !a.groupId);
+  const selectedInGroup = (id: string) =>
+    groupedAddons(id).filter((a) => selectedAddons.includes(a.id)).length;
+  const groupFloor = (g: ModifierGroup) =>
+    Math.max(g.minSelect, g.required ? 1 : 0);
+  const unmetGroup = modifierGroups.find(
+    (g) => selectedInGroup(g.id) < groupFloor(g),
+  );
+  const modifiersOk = !unmetGroup;
+
   function toggleAddon(id: string) {
-    setSelectedAddons((s) =>
-      s.includes(id) ? s.filter((x) => x !== id) : [...s, id],
-    );
+    const addon = addons.find((a) => a.id === id);
+    const group = addon?.groupId
+      ? modifierGroups.find((g) => g.id === addon.groupId)
+      : null;
+    setSelectedAddons((s) => {
+      if (s.includes(id)) return s.filter((x) => x !== id);
+      if (group) {
+        const inGroup = addons
+          .filter((a) => a.groupId === group.id)
+          .map((a) => a.id);
+        const chosen = s.filter((x) => inGroup.includes(x));
+        // Single-select group (max 1): replace the current pick.
+        if (group.maxSelect === 1) {
+          return [...s.filter((x) => !inGroup.includes(x)), id];
+        }
+        // Multi-select with a cap: ignore clicks past the max.
+        if (group.maxSelect != null && chosen.length >= group.maxSelect) {
+          return s;
+        }
+      }
+      return [...s, id];
+    });
   }
 
   async function confirmOrder(e: React.FormEvent<HTMLFormElement>) {
@@ -136,8 +189,13 @@ export function ProductOrder({
           quantity: qty,
           variant_id: variantId,
           addon_ids: selectedAddons,
+          note: itemNote.trim() || undefined,
         },
       ],
+      p_custom_fields:
+        allowScheduling && scheduledFor
+          ? { scheduled_for: new Date(scheduledFor).toISOString() }
+          : undefined,
     });
     if (error) {
       const outOfStock = error.message?.includes("insufficient_stock");
@@ -265,12 +323,72 @@ export function ProductOrder({
         )
       )}
 
-      {/* Add-ons */}
-      {addons.length > 0 && (
+      {/* Modifier groups (food): each group its own selection rules */}
+      {modifierGroups.map((g) => {
+        const opts = groupedAddons(g.id);
+        if (opts.length === 0) return null;
+        const single = g.maxSelect === 1;
+        const label = lang === "en" && g.nameEn?.trim() ? g.nameEn : g.name;
+        const floor = groupFloor(g);
+        const hint = single
+          ? floor >= 1
+            ? dict.product.modRequiredOne
+            : dict.product.modPickOne
+          : g.maxSelect != null
+            ? dict.product.modUpTo.replace("{n}", String(g.maxSelect))
+            : floor >= 1
+              ? dict.product.modAtLeast.replace("{n}", String(floor))
+              : dict.product.modOptional;
+        const unmet = selectedInGroup(g.id) < floor;
+        return (
+          <div key={g.id}>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold">{label}</span>
+              <span
+                className={`text-xs font-semibold ${unmet ? "text-danger" : "text-muted-foreground"}`}
+              >
+                {hint}
+              </span>
+            </div>
+            <div className="mt-2 space-y-2">
+              {opts.map((a) => {
+                const checked = selectedAddons.includes(a.id);
+                return (
+                  <label
+                    key={a.id}
+                    className={`flex cursor-pointer items-center justify-between rounded-xl border px-4 py-2.5 text-sm transition-colors ${
+                      checked ? "border-primary bg-primary-soft" : "border-border"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2 font-medium">
+                      <input
+                        type={single ? "radio" : "checkbox"}
+                        name={`mod-${g.id}`}
+                        checked={checked}
+                        onChange={() => toggleAddon(a.id)}
+                        className="h-4 w-4 accent-primary"
+                      />
+                      {a.name}
+                    </span>
+                    {a.price > 0 && (
+                      <span className="font-bold text-primary">
+                        + {formatPrice(a.price)}
+                      </span>
+                    )}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Flat add-ons (no group) */}
+      {ungroupedAddons.length > 0 && (
         <div>
           <span className="text-sm font-semibold">{dict.product.addons}</span>
           <div className="mt-2 space-y-2">
-            {addons.map((a) => (
+            {ungroupedAddons.map((a) => (
               <label
                 key={a.id}
                 className="flex cursor-pointer items-center justify-between rounded-xl border border-border px-4 py-2.5 text-sm"
@@ -290,6 +408,39 @@ export function ProductOrder({
               </label>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Per-item special instructions */}
+      <div>
+        <label className="text-sm font-semibold" htmlFor="item-note">
+          {dict.product.itemNote}
+        </label>
+        <input
+          id="item-note"
+          value={itemNote}
+          onChange={(e) => setItemNote(e.target.value)}
+          placeholder={dict.product.itemNotePlaceholder}
+          className={fieldClass}
+        />
+      </div>
+
+      {/* Schedule for later (food) */}
+      {allowScheduling && (
+        <div>
+          <label className="text-sm font-semibold" htmlFor="scheduled-for">
+            {dict.product.scheduleFor}
+          </label>
+          <input
+            id="scheduled-for"
+            type="datetime-local"
+            value={scheduledFor}
+            onChange={(e) => setScheduledFor(e.target.value)}
+            className={fieldClass}
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            {dict.product.scheduleHint}
+          </p>
         </div>
       )}
 
@@ -333,12 +484,16 @@ export function ProductOrder({
             </div>
             <button
               type="button"
-              disabled={soldOut}
+              disabled={soldOut || !modifiersOk}
               onClick={() => setCheckingOut(true)}
               className="flex items-center gap-1.5 rounded-xl bg-primary px-6 py-3 font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               <ShoppingCart className="h-4 w-4" />
-              {soldOut ? dict.product.outOfStock : dict.product.buyNow}
+              {soldOut
+                ? dict.product.outOfStock
+                : !modifiersOk
+                  ? dict.product.modChoose
+                  : dict.product.buyNow}
             </button>
           </div>
         </>

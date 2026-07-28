@@ -361,6 +361,8 @@ export default async function ProductPage({
                   stock={product.stock}
                   variants={product.variants}
                   addons={product.addons}
+                  modifierGroups={product.modifierGroups}
+                  allowScheduling={product.category === "food"}
                   defaultAddress={defaultAddress}
                   acceptsDelivery={product.acceptsDelivery}
                   acceptsPickup={product.acceptsPickup}

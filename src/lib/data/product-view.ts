@@ -3,7 +3,11 @@ import { unstable_cache } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createPublicClient } from "@/lib/supabase/public-client";
 import type { CategoryKey } from "@/lib/catalog";
-import type { Variant, AddOn } from "@/components/product-order";
+import type {
+  Variant,
+  AddOn,
+  ModifierGroup,
+} from "@/components/product-order";
 
 // The public product view: the product row + its store context + variants +
 // add-ons. Identical for every anonymous visitor, so it's cached cross-request
@@ -31,6 +35,7 @@ export type ProductView = {
   attributes: Record<string, string> | null;
   variants: Variant[];
   addons: AddOn[];
+  modifierGroups: ModifierGroup[];
   isBundle: boolean;
   includes: { name: string; nameEn: string | null; quantity: number }[];
 };
@@ -59,18 +64,24 @@ async function fetchProductView(
     business_types: { slug: string } | null;
   } | null;
 
-  const [{ data: variants }, { data: addons }] = await Promise.all([
-    supabase
-      .from("product_variants")
-      .select("id, label, price, stock, is_available, color, size")
-      .eq("product_id", id)
-      .order("sort_order", { ascending: true }),
-    supabase
-      .from("product_options")
-      .select("id, name, price")
-      .eq("product_id", id)
-      .order("sort_order", { ascending: true }),
-  ]);
+  const [{ data: variants }, { data: addons }, { data: modGroups }] =
+    await Promise.all([
+      supabase
+        .from("product_variants")
+        .select("id, label, price, stock, is_available, color, size")
+        .eq("product_id", id)
+        .order("sort_order", { ascending: true }),
+      supabase
+        .from("product_options")
+        .select("id, name, price, group_id")
+        .eq("product_id", id)
+        .order("sort_order", { ascending: true }),
+      supabase
+        .from("product_modifier_groups")
+        .select("id, name, name_en, required, min_select, max_select")
+        .eq("product_id", id)
+        .order("sort_order", { ascending: true }),
+    ]);
 
   // Bundle contents for the "what's inside" list on the detail page.
   const isBundle = (data.is_bundle as boolean | null) ?? false;
@@ -132,6 +143,15 @@ async function fetchProductView(
       id: a.id as string,
       name: a.name as string,
       price: Number(a.price),
+      groupId: (a.group_id as string | null) ?? null,
+    })),
+    modifierGroups: (modGroups ?? []).map((g) => ({
+      id: g.id as string,
+      name: g.name as string,
+      nameEn: (g.name_en as string | null) ?? null,
+      required: g.required as boolean,
+      minSelect: Number(g.min_select) || 0,
+      maxSelect: g.max_select != null ? Number(g.max_select) : null,
     })),
     isBundle,
     includes,

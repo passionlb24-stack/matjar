@@ -14,7 +14,7 @@ export type KitchenOrder = {
   customer_name: string | null;
   customer_note: string | null;
   created_at: string;
-  order_items: { name: string; quantity: number }[];
+  order_items: { name: string; quantity: number; note: string | null }[];
 };
 
 type ColumnKey = "new" | "inProgress" | "ready";
@@ -159,11 +159,18 @@ export function KitchenBoard({
 
                     <ul className="mt-3 space-y-1">
                       {o.order_items.map((it, i) => (
-                        <li key={i} className="flex gap-2 font-bold leading-snug">
-                          <span className="tabular-nums text-primary">
-                            {it.quantity}×
-                          </span>
-                          <span className="min-w-0">{it.name}</span>
+                        <li key={i} className="font-bold leading-snug">
+                          <div className="flex gap-2">
+                            <span className="tabular-nums text-primary">
+                              {it.quantity}×
+                            </span>
+                            <span className="min-w-0">{it.name}</span>
+                          </div>
+                          {it.note && (
+                            <span className="ms-6 block text-xs font-medium italic text-warning">
+                              ↳ {it.note}
+                            </span>
+                          )}
                         </li>
                       ))}
                     </ul>

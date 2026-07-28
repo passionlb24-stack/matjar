@@ -479,7 +479,9 @@ export function StoreProducts({
               ? dict.store.tooManyOrders
               : msg.includes("below_zone_minimum")
                 ? dict.store.belowZoneMin
-                : dict.auth.errorGeneric,
+                : msg.includes("modifier_")
+                  ? dict.store.modifierNeeded
+                  : dict.auth.errorGeneric,
         );
         router.refresh();
         return;
@@ -526,7 +528,9 @@ export function StoreProducts({
           ? dict.store.outOfStock
           : msg.includes("below_zone_minimum")
             ? dict.store.belowZoneMin
-            : dict.auth.errorGeneric,
+            : msg.includes("modifier_")
+              ? dict.store.modifierNeeded
+              : dict.auth.errorGeneric,
       );
       setPlacing(false);
       router.refresh();

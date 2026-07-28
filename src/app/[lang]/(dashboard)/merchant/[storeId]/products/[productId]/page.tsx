@@ -68,18 +68,24 @@ export default async function EditProductPage({
     name_en: string | null;
   }[];
 
-  const [{ data: variants }, { data: options }] = await Promise.all([
-    supabase
-      .from("product_variants")
-      .select("label, price, stock, color, size")
-      .eq("product_id", productId)
-      .order("sort_order", { ascending: true }),
-    supabase
-      .from("product_options")
-      .select("name, price")
-      .eq("product_id", productId)
-      .order("sort_order", { ascending: true }),
-  ]);
+  const [{ data: variants }, { data: options }, { data: modGroups }] =
+    await Promise.all([
+      supabase
+        .from("product_variants")
+        .select("label, price, stock, color, size")
+        .eq("product_id", productId)
+        .order("sort_order", { ascending: true }),
+      supabase
+        .from("product_options")
+        .select("name, price, group_id")
+        .eq("product_id", productId)
+        .order("sort_order", { ascending: true }),
+      supabase
+        .from("product_modifier_groups")
+        .select("id, name, name_en, required, min_select, max_select")
+        .eq("product_id", productId)
+        .order("sort_order", { ascending: true }),
+    ]);
 
   const gallery = Array.isArray(product.gallery)
     ? (product.gallery as string[])
@@ -122,9 +128,25 @@ export default async function EditProductPage({
       color: (v.color as string | null) ?? null,
       size: (v.size as string | null) ?? null,
     })),
-    options: (options ?? []).map((o) => ({
-      name: (o.name as string) ?? "",
-      price: o.price != null ? String(o.price) : "",
+    // Flat (ungrouped) add-ons only; grouped options are carried on modGroups.
+    options: (options ?? [])
+      .filter((o) => (o.group_id as string | null) == null)
+      .map((o) => ({
+        name: (o.name as string) ?? "",
+        price: o.price != null ? String(o.price) : "",
+      })),
+    modGroups: (modGroups ?? []).map((g) => ({
+      name: (g.name as string) ?? "",
+      nameEn: (g.name_en as string | null) ?? "",
+      required: (g.required as boolean) ?? false,
+      minSelect: g.min_select != null ? String(g.min_select) : "0",
+      maxSelect: g.max_select != null ? String(g.max_select) : "",
+      options: (options ?? [])
+        .filter((o) => (o.group_id as string | null) === (g.id as string))
+        .map((o) => ({
+          name: (o.name as string) ?? "",
+          price: o.price != null ? String(o.price) : "",
+        })),
     })),
   };
 
