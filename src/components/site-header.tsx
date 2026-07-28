@@ -17,6 +17,7 @@ export function SiteHeader({
   lang,
   dict,
   user,
+  userId = null,
   unread = 0,
   unreadMessages = 0,
   dashboardHref = null,
@@ -25,6 +26,7 @@ export function SiteHeader({
   lang: Locale;
   dict: Dictionary;
   user: { name: string } | null;
+  userId?: string | null;
   unread?: number;
   unreadMessages?: number;
   dashboardHref?: string | null;
@@ -101,6 +103,7 @@ export function SiteHeader({
             <HeaderBells
               lang={lang}
               dict={dict}
+              userId={userId}
               unreadNotifications={unread}
               unreadMessages={unreadMessages}
             />

@@ -672,7 +672,7 @@ export function BookingPanel({
                   name="date"
                   type="date"
                   required
-                  min={today}
+                  min={todayBeirut}
                   onChange={(e) => onDateChange(e.target.value)}
                   className={fieldClass}
                 />

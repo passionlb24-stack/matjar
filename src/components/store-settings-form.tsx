@@ -18,6 +18,7 @@ export type StoreSettings = {
   min_order: string;
   prep_time: string;
   payment_note: string;
+  booking_cancel_hours: string;
   specialties: string;
   insurance: string;
   lat: string;
@@ -78,6 +79,8 @@ export function StoreSettingsForm({
         min_order: minRaw === "" ? null : Number(minRaw),
         prep_time: String(form.get("prep_time")) || null,
         payment_note: String(form.get("payment_note")) || null,
+        booking_cancel_hours:
+          Math.max(0, Number(form.get("booking_cancel_hours")) || 0),
         commercial_reg_no: String(form.get("commercial_reg_no") ?? "").trim() || null,
         specialties: String(form.get("specialties") ?? "") || null,
         insurance: String(form.get("insurance") ?? "") || null,
@@ -137,6 +140,23 @@ export function StoreSettingsForm({
       <div>
         <label className={labelClass} htmlFor="payment_note">{t.paymentNote}</label>
         <input id="payment_note" name="payment_note" type="text" defaultValue={initial.payment_note} placeholder={t.paymentNotePlaceholder} className={fieldClass} />
+      </div>
+
+      <div>
+        <label className={labelClass} htmlFor="booking_cancel_hours">
+          {t.cancelHours}
+        </label>
+        <input
+          id="booking_cancel_hours"
+          name="booking_cancel_hours"
+          type="number"
+          min="0"
+          step="1"
+          defaultValue={initial.booking_cancel_hours}
+          placeholder="0"
+          className={fieldClass}
+        />
+        <p className="mt-1 text-xs text-muted-foreground">{t.cancelHoursHint}</p>
       </div>
 
       <div className="rounded-xl border border-border bg-surface-muted/30 p-4">

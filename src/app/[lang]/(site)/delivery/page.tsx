@@ -6,6 +6,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
+import { ButtonLink } from "@/components/ui/button";
 
 export async function generateMetadata({
   params,
@@ -114,6 +115,13 @@ export default async function DeliveryPage({
         <div className="mt-8 rounded-2xl border border-primary/30 bg-primary-soft/40 p-5 text-center">
           <p className="font-bold">{t.joinTitle}</p>
           <p className="mt-1 text-sm text-muted-foreground">{t.joinBody}</p>
+          <ButtonLink
+            href={`/${lang}/contact`}
+            className="mt-4"
+            leftIcon={<MessageCircle className="h-4 w-4" />}
+          >
+            {t.contactCta}
+          </ButtonLink>
         </div>
       </Container>
     </div>

@@ -883,6 +883,7 @@
     "notesHint": "Notes (occasion, outdoor table…)",
     "book": "Reserve table",
     "sent": "Reservation request sent!",
+    "another": "Book another table",
     "loginToBook": "Log in to reserve",
     "people": "people"
   },
@@ -1402,6 +1403,8 @@
       "minOrderHint": "Leave empty for no minimum.",
       "prepTime": "Preparation time",
       "prepTimePlaceholder": "e.g. 30-45 min",
+      "cancelHours": "Cancellation window (hours)",
+      "cancelHoursHint": "How long before the appointment a customer may cancel. 0 = cancel anytime.",
       "paymentNote": "Payment methods / note",
       "paymentNotePlaceholder": "e.g. Cash on delivery",
       "commercialReg": "Commercial registration (Chamber of Commerce)",
@@ -2639,6 +2642,7 @@
     "loginToBook": "Log in to book",
     "cancel": "Cancel booking",
     "cancelConfirm": "Are you sure you want to cancel this booking?",
+    "cancelTooLate": "Too close to the appointment to cancel — contact the place directly.",
     "waGreeting": "Hi, I'd like to book an appointment at",
     "bookedTitle": "Your booking request was received ✅",
     "bookedNote": "To confirm your slot faster, notify the place on WhatsApp.",
@@ -2741,7 +2745,8 @@
     "subtitle": "Partner couriers that deliver store orders across Lebanon.",
     "empty": "No delivery companies listed yet. Coming soon!",
     "joinTitle": "Run a delivery company?",
-    "joinBody": "Get in touch to join and deliver orders for hundreds of Matjar stores."
+    "joinBody": "Get in touch to join and deliver orders for hundreds of Matjar stores.",
+    "contactCta": "Contact us"
   },
   "jobs": {
     "title": "Jobs",

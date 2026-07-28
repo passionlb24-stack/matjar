@@ -42,7 +42,11 @@ export function OrderCancelButton({
     const { error: e } = await createClient().rpc(rpc, { p_id: id });
     setBusy(false);
     if (e) {
-      setError(dict.auth.errorGeneric);
+      setError(
+        e.message?.includes("cancel_too_late")
+          ? dict.booking.cancelTooLate
+          : dict.auth.errorGeneric,
+      );
       return;
     }
     router.refresh();

@@ -77,6 +77,7 @@ export default async function SiteLayout({
         lang={lang}
         dict={dict}
         user={user ? { name: displayName } : null}
+        userId={user?.id ?? null}
         unread={unread}
         unreadMessages={unreadMessages}
         dashboardHref={dashboardHref}

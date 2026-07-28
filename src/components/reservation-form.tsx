@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarClock, Minus, Plus, Send } from "lucide-react";
+import { CalendarClock, Check, Minus, Plus, Send } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
@@ -32,6 +32,9 @@ export function ReservationForm({
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
+  // After a successful reservation we swap the form for a confirmation so the
+  // customer can't accidentally submit the same request several times.
+  const [sent, setSent] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -50,7 +53,8 @@ export function ReservationForm({
   }, []);
 
   async function submit() {
-    if (!date || party < 1 || phone.trim().length < 4 || busy || !uid) return;
+    if (!date || party < 1 || phone.trim().length < 4 || busy || !uid || sent)
+      return;
     setBusy(true);
     const { error } = await createClient().from("bookings").insert({
       store_id: storeId,
@@ -69,8 +73,16 @@ export function ReservationForm({
       return;
     }
     notifySuccess(t.sent);
-    setNotes("");
+    setSent(true);
     router.refresh();
+  }
+
+  function reset() {
+    setDate("");
+    setTime("20:00");
+    setParty(2);
+    setNotes("");
+    setSent(false);
   }
 
   if (!ready) return null;
@@ -83,7 +95,21 @@ export function ReservationForm({
       </h3>
       <p className="mt-1 text-sm text-muted-foreground">{t.subtitle}</p>
 
-      {uid ? (
+      {sent ? (
+        <div className="mt-4 rounded-xl border border-success/30 bg-success-soft p-5 text-center">
+          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-emerald-600 text-white">
+            <Check className="h-6 w-6" />
+          </div>
+          <p className="mt-3 font-bold text-success">{t.sent}</p>
+          <button
+            type="button"
+            onClick={reset}
+            className="mt-4 rounded-xl border border-border bg-surface px-5 py-2.5 text-sm font-bold transition-colors hover:border-primary hover:text-primary"
+          >
+            {t.another}
+          </button>
+        </div>
+      ) : uid ? (
         <div className="mt-4 grid gap-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="grid gap-1 text-sm">

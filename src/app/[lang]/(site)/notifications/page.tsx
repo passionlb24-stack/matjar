@@ -214,9 +214,14 @@ export default async function NotificationsPage({
           ? n.data?.conversation_id
             ? `/${lang}/messages/${n.data.conversation_id}`
             : `/${lang}/messages`
-          : n.type === "booking_new" && n.data?.store_id
+          : (n.type === "booking_new" ||
+              n.type === "booking_rescheduled_merchant" ||
+              n.type === "booking_attendance_confirmed" ||
+              n.type === "booking_status_merchant") &&
+            n.data?.store_id
             ? `/${lang}/merchant/${n.data.store_id}/bookings`
-          : n.type === "order_new" && n.data?.store_id
+          : (n.type === "order_new" || n.type === "order_status_merchant") &&
+            n.data?.store_id
             ? `/${lang}/merchant/${n.data.store_id}/orders`
           : n.type === "order_new" ||
               n.type === "booking_new" ||
