@@ -159,6 +159,23 @@ export function BookingPanel({
   const slots = hours && span ? generateSlots(span, engineStep) : null;
   const dayClosed = (!!hours && !!pickedDate && !span) || !!avail?.blocked;
 
+  // No booking a time that has already passed today (Asia/Beirut, so it's
+  // correct whatever timezone the customer's device is in). The DB trigger is
+  // the hard guard; this just hides past slots so they can't be picked.
+  /* eslint-disable-next-line react-hooks/purity */
+  const nowRef = new Date();
+  const todayBeirut = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Beirut",
+  }).format(nowRef);
+  const nowBeirut = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Beirut",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(nowRef);
+  const isPastSlot = (slot: string) =>
+    pickedDate === todayBeirut && slot <= nowBeirut;
+
   async function joinWaitlist() {
     if (waitBusy || !serviceId || !pickedDate) return;
     setWaitBusy(true);
@@ -198,6 +215,7 @@ export function BookingPanel({
   }
   // Per-slot verdict under the selected service's allocation mode.
   function slotState(slot: string): { blocked: boolean; remaining?: number } {
+    if (isPastSlot(slot)) return { blocked: true };
     if (!engineMode || !avail) return { blocked: taken.includes(slot) };
     if (avail.blocked) return { blocked: true };
     const a = new Date(`${pickedDate}T${slot}:00`).getTime();
@@ -351,6 +369,13 @@ export function BookingPanel({
     const chosenDate = String(form.get("date")) || "";
     const chosenTime = String(form.get("time")) || "";
 
+    // Guard against a past time (e.g. slot picked, then time passed).
+    if (chosenTime && isPastSlot(chosenTime)) {
+      setError(dict.booking.pastSlot);
+      setLoading(false);
+      return;
+    }
+
     // New engine: one atomic RPC computes the real range, assigns pooled
     // providers, checks hours/capacity, and the DB constraints win any race.
     if (service?.allocationMode) {
@@ -371,7 +396,9 @@ export function BookingPanel({
       if (rpcErr || !r?.ok) {
         const code = r?.code ?? "";
         setError(
-          code === "slot_taken"
+          rpcErr?.message?.includes("past_booking")
+            ? dict.booking.pastSlot
+            : code === "slot_taken"
             ? dict.booking.slotTaken
             : code === "capacity_full"
               ? dict.booking.capacityFull
@@ -424,6 +451,8 @@ export function BookingPanel({
       if (bookingError.code === "23505") {
         await refreshTaken(chosenDate, doctorId, serviceId);
         setError(dict.booking.slotTaken);
+      } else if (bookingError.message?.includes("past_booking")) {
+        setError(dict.booking.pastSlot);
       } else {
         setError(dict.auth.errorGeneric);
       }

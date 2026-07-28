@@ -91,6 +91,9 @@ export function ReservationForm({
               <input
                 type="date"
                 value={date}
+                min={new Intl.DateTimeFormat("en-CA", {
+                  timeZone: "Asia/Beirut",
+                }).format(new Date())}
                 onChange={(e) => setDate(e.target.value)}
                 className="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
               />

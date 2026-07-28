@@ -2624,6 +2624,7 @@
     "notesPlaceholder": "Any extra details?",
     "takenTimes": "Taken times on this date:",
     "slotTaken": "This time is already booked — pick another.",
+    "pastSlot": "You can't book a time in the past — pick a later time.",
     "anyProvider": "Any available provider",
     "capacityFull": "This slot is at full capacity — pick another time.",
     "noProviderFree": "No team member is free at this time — try another.",

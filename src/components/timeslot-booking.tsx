@@ -42,6 +42,18 @@ export function TimeslotBooking({
     [],
   );
 
+  // A slot is unbookable if it's already passed today (Asia/Beirut).
+  const nowBeirut = useMemo(
+    () =>
+      new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Asia/Beirut",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }).format(new Date()),
+    [],
+  );
+
   const prefillName =
     customerName && !customerName.includes("@") ? customerName : "";
   const [name, setName] = useState(prefillName);
@@ -67,6 +79,7 @@ export function TimeslotBooking({
     }
     return out;
   }, [resource]);
+  const isPast = (s: string) => date === today && s <= nowBeirut;
 
   useEffect(() => {
     if (!resourceId || !date) return;
@@ -209,14 +222,14 @@ export function TimeslotBooking({
             <div className="flex justify-center py-6 text-muted-foreground">
               <Loader2 className="h-6 w-6 animate-spin" />
             </div>
-          ) : slots.filter((s) => !taken.has(s)).length === 0 ? (
+          ) : slots.filter((s) => !taken.has(s) && !isPast(s)).length === 0 ? (
             <p className="py-4 text-center text-sm text-muted-foreground">
               {t.noSlots}
             </p>
           ) : (
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
               {slots.map((s) => {
-                const isTaken = taken.has(s);
+                const isTaken = taken.has(s) || isPast(s);
                 const active = slot === s;
                 return (
                   <button
