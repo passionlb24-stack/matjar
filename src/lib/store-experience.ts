@@ -39,6 +39,22 @@ const DIRECTORY_ONLY_SECTORS: ReadonlySet<CategoryKey> = new Set<CategoryKey>([
   "events",
 ]);
 
+// Sectors whose correct model is capturing a LEAD (inquiry / viewing / test
+// drive / offer) — high-consideration listings, not a cart or an appointment.
+// These get an on-platform lead form (CP3, migration 0190) instead of only a
+// WhatsApp hand-off.
+const LEAD_SECTORS: ReadonlySet<CategoryKey> = new Set<CategoryKey>([
+  "realEstate",
+  "automotive",
+]);
+
+/** The lead kinds a sector's inquiry form should offer (first = default). */
+export function leadKinds(category: CategoryKey): string[] {
+  if (category === "realEstate") return ["viewing", "contact", "offer"];
+  if (category === "automotive") return ["test_drive", "contact", "offer"];
+  return ["contact"];
+}
+
 export type StoreExperience = {
   status: SectorStatus;
   itemSurface: ItemSurface;
@@ -46,6 +62,8 @@ export type StoreExperience = {
   showBooking: boolean;
   /** Service-request / quote form should surface. */
   showServiceRequest: boolean;
+  /** Lead / inquiry capture form should surface (real estate, automotive). */
+  showLeadForm: boolean;
   /** Resource (hourly) / class / reservation booking may surface (still gated
    *  on seeded rows by the caller). False in directory-only mode so a hotel or
    *  event hall never exposes an hourly booking. */
@@ -86,6 +104,7 @@ export function resolveStoreExperience(args: {
       // — surface it as an interim on-platform inquiry/lead capture channel
       // rather than losing the lead to WhatsApp. No wrong booking/cart.
       showServiceRequest: hasRequests,
+      showLeadForm: LEAD_SECTORS.has(category),
       allowResourceBooking: false,
       directoryOnly: true,
     };
@@ -104,6 +123,7 @@ export function resolveStoreExperience(args: {
     itemSurface,
     showBooking,
     showServiceRequest: hasRequests,
+    showLeadForm: false,
     allowResourceBooking: true,
     directoryOnly: false,
   };

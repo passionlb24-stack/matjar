@@ -40,6 +40,29 @@
     "account": "Account"
   },
   "os": {
+    "leads": {
+      "link": "Leads",
+      "title": "Leads & inquiries",
+      "subtitle": "Everyone who contacted you through the site — follow up to win them.",
+      "empty": "No inquiries yet. They'll show up here the moment someone contacts you.",
+      "phone": "Phone",
+      "statusLabel": "Status",
+      "status": {
+        "new": "New",
+        "contacted": "Contacted",
+        "scheduled": "Scheduled",
+        "negotiating": "Negotiating",
+        "won": "Won",
+        "lost": "Lost"
+      },
+      "kinds": {
+        "viewing": "Viewing",
+        "contact": "Contact",
+        "offer": "Offer",
+        "test_drive": "Test drive",
+        "rental_inquiry": "Rental"
+      }
+    },
     "modules": {
       "heading": "Your store's modules",
       "subheading": "Turn your business capabilities on or off — each module adds an experience to your store.",
@@ -1093,6 +1116,26 @@
     "following": "Following",
     "share": "Share",
     "copied": "Link copied ✓"
+  },
+  "leadForm": {
+    "title": "Request a viewing or ask",
+    "subtitle": "Leave your number and the store will contact you directly.",
+    "kinds": {
+      "viewing": "Request a viewing",
+      "contact": "Contact me",
+      "offer": "Make an offer",
+      "test_drive": "Request a test drive",
+      "rental_inquiry": "Rental inquiry"
+    },
+    "name": "Name",
+    "phone": "Phone number",
+    "messageHint": "Your message (optional)",
+    "send": "Send request",
+    "sentTitle": "Request sent ✓",
+    "sentNote": "The store will contact you soon on the number you left.",
+    "another": "Send another",
+    "rateLimited": "Too many requests. Try again shortly.",
+    "privacyNote": "Your number goes to the store only, to contact you."
   },
   "auth": {
     "loginTitle": "Log in",
@@ -3131,6 +3174,7 @@
     "title": "Notifications",
     "empty": "No notifications yet.",
     "orderNew": "New order on your store",
+    "leadNew": "New inquiry on your store",
     "orderStatus": "Your order status changed",
     "orderPlaced": "Your order was received",
     "orderStatusMerchant": "An order on your store changed status",

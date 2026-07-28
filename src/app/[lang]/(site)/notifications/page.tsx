@@ -157,6 +157,10 @@ export default async function NotificationsPage({
       return `${dict.notifications.orderNew}${
         n.data?.store_name ? ` · ${n.data.store_name}` : ""
       }`;
+    if (t === "lead_new")
+      return `${dict.notifications.leadNew}${
+        n.data?.store_name ? ` · ${n.data.store_name}` : ""
+      }`;
     return t === "order_new"
       ? dict.notifications.orderNew
       : t === "order_status"
@@ -214,6 +218,8 @@ export default async function NotificationsPage({
           ? n.data?.conversation_id
             ? `/${lang}/messages/${n.data.conversation_id}`
             : `/${lang}/messages`
+          : n.type === "lead_new" && n.data?.store_id
+          ? `/${lang}/merchant/${n.data.store_id}/leads`
           : (n.type === "booking_new" ||
               n.type === "booking_rescheduled_merchant" ||
               n.type === "booking_attendance_confirmed" ||
