@@ -6,7 +6,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import type { CategoryKey } from "@/lib/catalog";
-import { getSector } from "@/lib/sectors";
+import { getSector, sectorPrimarySetup } from "@/lib/sectors";
 import { SITE_URL } from "@/lib/site";
 import { Container } from "@/components/ui/container";
 import { StoreShareCard } from "@/components/store-share-card";
@@ -577,7 +577,28 @@ export default async function StoreOsHomePage({
     brandColor: !!s.accent_color,
     customLink: !!s.slug,
   };
-  const checklistDone = Object.values(checklist).every(Boolean);
+  // Sector-aware onboarding: sectors whose core entity isn't products (a hotel's
+  // units, an events organizer's ticket types) get a tailored primary-setup step.
+  const primarySetup = sectorPrimarySetup(category);
+  let checklistPrimaryOverride:
+    | { label: string; href: string; done: boolean }
+    | undefined;
+  if (isOwner && primarySetup) {
+    const { count: coreCount } = await supabase
+      .from(primarySetup.table)
+      .select("id", { count: "exact", head: true })
+      .eq("store_id", storeId);
+    checklistPrimaryOverride = {
+      label: dict.merchant.checklist[primarySetup.labelKey],
+      href: `/${lang}/merchant/${storeId}/${primarySetup.module}`,
+      done: (coreCount ?? 0) > 0,
+    };
+  }
+  const checklistDone = Object.entries(checklist).every(([k, v]) =>
+    k === "products" && checklistPrimaryOverride
+      ? checklistPrimaryOverride.done
+      : v,
+  );
   const hasAudience =
     (followersRes.count ?? 0) > 0 || (report?.total_orders ?? 0) > 0;
   const suggestions: SuggestionRow[] = [];
@@ -884,6 +905,7 @@ export default async function StoreOsHomePage({
                 storeName={s.name}
                 storeSlug={s.slug}
                 state={checklist}
+                primaryOverride={checklistPrimaryOverride}
               />
             </div>
           )}

@@ -408,6 +408,22 @@ export function sectorDefaultModules(category: CategoryKey): FeatureModuleKey[] 
   return sectorConfig[category].features;
 }
 
+/** A sector's primary "core" setup entity — the first thing that sector must
+ *  create before it can transact — when it differs from plain products. Drives
+ *  a sector-aware onboarding step so a hotel is told to add a unit and an events
+ *  organizer to add ticket types, instead of the generic "add products" nudge.
+ *  Sectors whose core IS products/services return null (the generic step fits).
+ */
+export function sectorPrimarySetup(
+  category: CategoryKey,
+): { table: string; module: OsModuleKey; labelKey: "units" | "tickets" } | null {
+  if (category === "hospitality")
+    return { table: "accommodation_units", module: "units", labelKey: "units" };
+  if (category === "events")
+    return { table: "event_ticket_types", module: "tickets", labelKey: "tickets" };
+  return null;
+}
+
 /** Whether this sector has a roster of service providers (a "team") — clinics,
  *  salons, gyms, schools, pet care, professional services. Drives the provider
  *  (team) module + booking provider picker across sectors. */

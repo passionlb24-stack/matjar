@@ -1679,6 +1679,8 @@
       "hours": "Add opening hours",
       "whatsapp": "Add a WhatsApp number",
       "products": "Add at least 3 items",
+      "units": "Add your first unit (room/chalet)",
+      "tickets": "Add ticket types",
       "brandColor": "Pick your brand color",
       "customLink": "Set your custom link",
       "fix": "Complete",
