@@ -1,0 +1,18 @@
+sector,current_surface_after_cp1,works_now,primary_gap,needed_engine,checkpoint,build_trigger,status
+retail,order (cart),full commerce (variants/delivery/coupons/flash),size guide + structured returns + electronics/furniture attrs,none (config fields),CP2 fields,anytime (polish),LIVE-OK
+food,order (cart),order + table reservation,required modifier groups + item note + scheduled orders,extend order RPC + modifier tables,CP4,first restaurant that needs modifiers,LIVE-PARTIAL
+pharmacy,order (cart),OTC sale,split lab (appointment) + prescription upload,lab appointment + rx field,CP4/CP2,first pharmacy or lab merchant,LIVE-PARTIAL
+farm,order (cart),product order + delivery,weight/unit pricing + delivery windows,products.sold_by + windows,CP4,first grocery merchant selling by weight,LIVE-PARTIAL
+healthcare,appointment,full booking engine (providers/hours/waitlist),appt type + new-patient flag + insurance + disclaimer,config fields,CP2,anytime (polish),LIVE-OK
+beauty,appointment (FIXED CP1),booking engine now surfaces,staff pick + packages + deposit + before/after,config + deposit field,CP2,first salon actively booking,LIVE-OK
+petCare,appointment (FIXED CP1),booking engine surfaces,pet species/breed at booking,config fields,CP2,first vet actively booking,LIVE-OK
+professional,appointment + request (FIXED CP1),consultation + quote request,structured project brief (scope/budget/files) + credentials,extend service_requests fields,CP2,first firm needing project briefs,LIVE-OK
+services,request + catalog,service request + quote lifecycle,photos/urgency/service-area/assignment/tracking,extend service_requests,CP2,first home-service merchant,LIVE-OK
+contractors,request + catalog (FIXED CP1),request form now surfaces,project brief + site photos + portfolio surface,extend service_requests,CP2,first contractor merchant,LIVE-OK
+sportsCourts,timeslot (resource),hourly court booking works,per-hour price display + per-court calendar + peak pricing,rate_plans (shared),CP3/CP6,first court operator scaling,LIVE-OK
+fitness,catalog + classes/memberships(WhatsApp),drop-in class booking,real membership ledger (expiry/renewal/sessions),memberships table + subscribe RPC,CP6,first gym selling memberships,LIVE-PARTIAL
+education,catalog + courses/memberships(WhatsApp),course cards,real enrollment (seats/schedule/certificate/trial),enrollments table + enroll RPC,CP6,first school with real enrollment,LIVE-PARTIAL
+events,directory-only (CP1),browse + contact; no wrong hourly flow,ticketing (type/qty/attendee/capacity) + venue date booking,ticket tables + stay engine,CP6/CP5,first event/venue merchant,DIRECTORY-ONLY
+hospitality,directory-only (CP1),browse + contact; no wrong hourly flow,accommodation date-range engine (nights/guests/rates/availability),units + unit_availability + rate_plans + stay_bookings,CP5,first hotel/chalet merchant,DIRECTORY-ONLY
+realEstate,directory-only (CP1),browse + contact; no clinic-appt flow,lead engine (viewing/contact) + typed listing fields + map search,leads table + create_lead RPC,CP3,first real-estate agent,DIRECTORY-ONLY
+automotive,directory-only (CP1),browse + contact + interim request; no cart-COD,lead engine (contact/test-drive) + rental date-range,leads table + stay engine (rental),CP3/CP2,first dealer/rental merchant,DIRECTORY-ONLY
