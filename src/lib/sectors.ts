@@ -67,6 +67,8 @@ export type OsModuleKey =
   | "tools"
   | "requests"
   | "leads"
+  | "units"
+  | "stays"
   | "items"
   | "doctors"
   | "customers"
@@ -117,6 +119,8 @@ export const OS_MODULE_META: Record<
   tools: { Icon: Wrench, path: "tools", minPlan: "pro" },
   requests: { Icon: FileText, path: "requests", perm: "bookings" },
   leads: { Icon: Inbox, path: "leads", perm: "orders" },
+  units: { Icon: BedDouble, path: "units", perm: "products" },
+  stays: { Icon: CalendarRange, path: "stays", perm: "bookings" },
   items: { Icon: Package, path: "items", perm: "products" },
   doctors: { Icon: Stethoscope, path: "doctors", perm: "bookings", minPlan: "pro" },
   customers: { Icon: Users, path: "customers", perm: "orders", minPlan: "pro" },
@@ -317,7 +321,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-orange-100 text-orange-600",
     customersNoun: "customers",
     modules: {
-      daily: ["bookings", "resources", "items", "tasks"],
+      daily: ["stays", "units", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,

@@ -114,6 +114,8 @@ export default async function StoreOsLayout({
     tools: dict.hub.toolsTitle,
     requests: dict.os.requests.link,
     leads: dict.os.leads.link,
+    units: dict.os.units.link,
+    stays: dict.os.stays.link,
     items: dict.store[sector.flow.itemsKey],
     doctors: dict.merchant.doctorsLink,
     customers: dict.os.nouns[sector.customersNoun],

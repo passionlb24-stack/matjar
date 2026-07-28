@@ -33,10 +33,14 @@ export type ItemSurface =
 // Removing a sector from this set is a deliberate go-live decision made once its
 // engine ships (see the vertical audit, files 06/12/13/15).
 const DIRECTORY_ONLY_SECTORS: ReadonlySet<CategoryKey> = new Set<CategoryKey>([
-  "hospitality",
   "realEstate",
   "automotive",
   "events",
+]);
+
+// Sectors that book a date-range STAY (accommodation engine, migration 0191).
+const STAY_SECTORS: ReadonlySet<CategoryKey> = new Set<CategoryKey>([
+  "hospitality",
 ]);
 
 // Sectors whose correct model is capturing a LEAD (inquiry / viewing / test
@@ -64,6 +68,8 @@ export type StoreExperience = {
   showServiceRequest: boolean;
   /** Lead / inquiry capture form should surface (real estate, automotive). */
   showLeadForm: boolean;
+  /** Date-range accommodation search + booking should surface (hospitality). */
+  showStay: boolean;
   /** Resource (hourly) / class / reservation booking may surface (still gated
    *  on seeded rows by the caller). False in directory-only mode so a hotel or
    *  event hall never exposes an hourly booking. */
@@ -95,6 +101,19 @@ export function resolveStoreExperience(args: {
   const hasAppointments = enabledModules.has("appointments");
   const hasRequests = enabledModules.has("requests");
 
+  if (STAY_SECTORS.has(category)) {
+    return {
+      status: "active",
+      itemSurface: "catalog",
+      showBooking: false,
+      showServiceRequest: false,
+      showLeadForm: false,
+      showStay: true,
+      allowResourceBooking: false, // uses the stay engine, not hourly slots
+      directoryOnly: false,
+    };
+  }
+
   if (DIRECTORY_ONLY_SECTORS.has(category)) {
     return {
       status: "directory_only",
@@ -105,6 +124,7 @@ export function resolveStoreExperience(args: {
       // rather than losing the lead to WhatsApp. No wrong booking/cart.
       showServiceRequest: hasRequests,
       showLeadForm: LEAD_SECTORS.has(category),
+      showStay: false,
       allowResourceBooking: false,
       directoryOnly: true,
     };
@@ -124,6 +144,7 @@ export function resolveStoreExperience(args: {
     showBooking,
     showServiceRequest: hasRequests,
     showLeadForm: false,
+    showStay: false,
     allowResourceBooking: true,
     directoryOnly: false,
   };
