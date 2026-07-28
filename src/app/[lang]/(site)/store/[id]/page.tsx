@@ -55,7 +55,8 @@ import { StoreProductsSection } from "@/components/store/store-products-section"
 import { StoreHealthcareInfo } from "@/components/store/store-healthcare-info";
 import { StoreDoctors, type DoctorView } from "@/components/store/store-doctors";
 import { TrackVisit } from "@/components/track-visit";
-import { resolveStoreExperience } from "@/lib/store-experience";
+import { LeadForm } from "@/components/lead-form";
+import { resolveStoreExperience, leadKinds } from "@/lib/store-experience";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -586,6 +587,17 @@ export default async function StorePage({
         {store.isReal && experience.showServiceRequest && (
           <div className="mt-10">
             <ServiceRequestForm storeId={id} lang={lang} dict={dict} />
+          </div>
+        )}
+
+        {store.isReal && experience.showLeadForm && (
+          <div className="mt-10">
+            <LeadForm
+              storeId={id}
+              lang={lang}
+              dict={dict}
+              kinds={leadKinds(store.category)}
+            />
           </div>
         )}
 

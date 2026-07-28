@@ -44,6 +44,7 @@ import {
   Sprout,
   Images,
   BookOpen,
+  Inbox,
 } from "lucide-react";
 import type { CategoryKey } from "./catalog";
 import { categoryModule } from "./modules";
@@ -65,6 +66,7 @@ export type OsModuleKey =
   | "courses"
   | "tools"
   | "requests"
+  | "leads"
   | "items"
   | "doctors"
   | "customers"
@@ -114,6 +116,7 @@ export const OS_MODULE_META: Record<
   courses: { Icon: BookOpen, path: "courses", perm: "products" },
   tools: { Icon: Wrench, path: "tools", minPlan: "pro" },
   requests: { Icon: FileText, path: "requests", perm: "bookings" },
+  leads: { Icon: Inbox, path: "leads", perm: "orders" },
   items: { Icon: Package, path: "items", perm: "products" },
   doctors: { Icon: Stethoscope, path: "doctors", perm: "bookings", minPlan: "pro" },
   customers: { Icon: Users, path: "customers", perm: "orders", minPlan: "pro" },
@@ -223,7 +226,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-amber-100 text-amber-700",
     customersNoun: "leads",
     modules: {
-      daily: ["bookings", "items", "tasks"],
+      daily: ["leads", "bookings", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY,
       store: STORE,
@@ -236,7 +239,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-slate-200 text-slate-700",
     customersNoun: "leads",
     modules: {
-      daily: ["orders", "items", "tasks"],
+      daily: ["leads", "orders", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,

@@ -3,6 +3,7 @@ import {
   resolveStoreExperience,
   isDirectoryOnlySector,
   isOrderSurface,
+  leadKinds,
 } from "../store-experience";
 import { sectorDefaultModules } from "../sectors";
 import type { CategoryKey } from "../catalog";
@@ -75,6 +76,19 @@ describe("resolveStoreExperience", () => {
     }
     expect(isDirectoryOnlySector("hospitality")).toBe(true);
     expect(isDirectoryOnlySector("retail")).toBe(false);
+  });
+
+  it("lead sectors surface the lead form with the right kinds", () => {
+    for (const c of ["realEstate", "automotive"] as CategoryKey[]) {
+      expect(resolveDefault(c).showLeadForm).toBe(true);
+    }
+    // non-lead sectors never show it
+    for (const c of ["retail", "healthcare", "hospitality", "food"] as CategoryKey[]) {
+      expect(resolveDefault(c).showLeadForm).toBe(false);
+    }
+    expect(leadKinds("realEstate")).toContain("viewing");
+    expect(leadKinds("automotive")).toContain("test_drive");
+    expect(leadKinds("retail")).toEqual(["contact"]);
   });
 
   it("automotive keeps an interim lead channel via its requests module", () => {
