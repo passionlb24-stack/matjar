@@ -73,20 +73,31 @@ describe("resolveStoreExperience", () => {
   });
 
   it("directory-only sectors never expose a wrong transaction", () => {
-    for (const c of [
-      "realEstate",
-      "automotive",
-      "events",
-    ] as CategoryKey[]) {
+    for (const c of ["realEstate", "automotive"] as CategoryKey[]) {
       const x = resolveDefault(c);
       expect(x.status).toBe("directory_only");
       expect(x.directoryOnly).toBe(true);
       expect(x.itemSurface).toBe("catalog");
       expect(x.showBooking).toBe(false); // no clinic-style property booking
-      expect(x.allowResourceBooking).toBe(false); // no hourly hotel/event booking
+      expect(x.allowResourceBooking).toBe(false); // no hourly property booking
+      expect(x.showTickets).toBe(false);
     }
     expect(isDirectoryOnlySector("realEstate")).toBe(true);
     expect(isDirectoryOnlySector("retail")).toBe(false);
+  });
+
+  it("events use the ticket engine, not directory-only or hourly slots", () => {
+    const x = resolveDefault("events");
+    expect(x.status).toBe("active");
+    expect(x.showTickets).toBe(true);
+    expect(x.directoryOnly).toBe(false);
+    expect(x.itemSurface).toBe("catalog");
+    expect(x.allowResourceBooking).toBe(false); // no hourly venue slots
+    expect(x.showBooking).toBe(false);
+    expect(isDirectoryOnlySector("events")).toBe(false);
+    // other sectors don't show tickets
+    expect(resolveDefault("retail").showTickets).toBe(false);
+    expect(resolveDefault("hospitality").showTickets).toBe(false);
   });
 
   it("lead sectors surface the lead form with the right kinds", () => {
