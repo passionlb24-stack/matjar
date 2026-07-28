@@ -2394,7 +2394,88 @@
   },
   "pricing": {
     "title": "Pricing",
-    "subtitle": "Start free, upgrade to Pro as your store grows.",
+    "subtitle": "A plan for every stage — start small and grow your store with us. 0% commission, always.",
+    "annualOnly": "August only",
+    "save": "Save {pct}%",
+    "countdown": "Offer ends in {n} days",
+    "promoBadge": "August offer",
+    "commission": "0% commission on sales",
+    "trialLine": "14 days free — no card",
+    "cta": "Open your store free",
+    "everythingIn": "Everything in {plan}, plus:",
+    "mo": "/mo",
+    "yr": "/yr",
+    "colFeature": "Feature",
+    "matrixTitle": "Full comparison",
+    "tiers": {
+      "basic": {
+        "name": "Basic",
+        "tagline": "For new sellers, small shops, and Insta stores getting started",
+        "features": [
+          "Full store page (AR/EN)",
+          "Directory + search + map listing — customers find you",
+          "Up to 30 products",
+          "WhatsApp orders + cash on delivery",
+          "USD & LBP pricing",
+          "1 staff account",
+          "Verified badge after verification",
+          "Chat support"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "tagline": "For active shops, restaurants, and clinics with real traffic",
+        "features": [
+          "Up to 200 products",
+          "We build your store with you — our team sets it up and adds your first products",
+          "Orders + bookings",
+          "3 staff accounts",
+          "Offers, coupons & loyalty",
+          "Featured placement in category",
+          "Point of sale (POS)",
+          "Sales reports",
+          "Priority support (chat + WhatsApp)"
+        ]
+      },
+      "business": {
+        "name": "Business",
+        "tagline": "For established brands, chains, and multi-branch operations",
+        "features": [
+          "Unlimited products",
+          "Multiple branches",
+          "10 staff accounts",
+          "Kitchen (KDS) + inventory + suppliers",
+          "Automation",
+          "Marketing & win-back campaigns",
+          "Profit analytics",
+          "Mobile store unit & advanced modules",
+          "Dedicated success manager"
+        ]
+      }
+    },
+    "matrix": [
+      { "f": "Store page on Matjar (AR/EN)", "basic": "✓", "pro": "✓", "business": "✓" },
+      { "f": "Directory + search + map listing", "basic": "✓", "pro": "✓", "business": "✓" },
+      { "f": "Products", "basic": "30", "pro": "200", "business": "Unlimited" },
+      { "f": "WhatsApp orders + cash on delivery", "basic": "✓", "pro": "✓", "business": "✓" },
+      { "f": "USD & LBP pricing", "basic": "✓", "pro": "✓", "business": "✓" },
+      { "f": "Staff accounts", "basic": "1", "pro": "3", "business": "10" },
+      { "f": "Verified badge (after verification)", "basic": "✓", "pro": "✓", "business": "✓" },
+      { "f": "Support", "basic": "Chat", "pro": "Priority (chat + WhatsApp)", "business": "Dedicated success manager" },
+      { "f": "We build your store with you (onboarding)", "basic": "—", "pro": "✓", "business": "✓" },
+      { "f": "Bookings (restaurants/clinics/services)", "basic": "—", "pro": "✓", "business": "✓" },
+      { "f": "Offers, coupons & loyalty", "basic": "—", "pro": "✓", "business": "✓" },
+      { "f": "Featured placement in category", "basic": "—", "pro": "✓", "business": "✓" },
+      { "f": "Point of sale (POS)", "basic": "—", "pro": "✓", "business": "✓" },
+      { "f": "Sales reports", "basic": "—", "pro": "✓", "business": "✓" },
+      { "f": "Multiple branches", "basic": "—", "pro": "—", "business": "✓" },
+      { "f": "Kitchen (KDS) + inventory + suppliers", "basic": "—", "pro": "—", "business": "✓" },
+      { "f": "Automation (confirm, follow-up, auto-messages)", "basic": "—", "pro": "—", "business": "✓" },
+      { "f": "Marketing & win-back campaigns", "basic": "—", "pro": "—", "business": "✓" },
+      { "f": "Profit analytics (after delivery & returns)", "basic": "—", "pro": "—", "business": "✓" },
+      { "f": "Mobile store unit & advanced modules", "basic": "—", "pro": "—", "business": "✓" },
+      { "f": "Matjar commission on sales", "basic": "0%", "pro": "0%", "business": "0%" }
+    ],
     "free": "Free",
     "pro": "Matjar Pro",
     "perMonth": "/month",
@@ -2422,11 +2503,12 @@
     ],
     "faqTitle": "Frequently asked questions",
     "faq": [
-      { "q": "How do I pay for Pro?", "a": "Payment is manual for now — you request the upgrade from your store dashboard, and we contact you to complete payment and activate Pro. Online payment is coming soon." },
-      { "q": "Is there a free trial?", "a": "Yes — every new store gets a full 14-day Pro trial for free, no card required." },
-      { "q": "Can I go back to the free plan?", "a": "Absolutely. You can stay on Free or return to it anytime — your store and products remain." },
-      { "q": "What happens after the trial ends?", "a": "Your store keeps working on the Free plan, and Pro features lock until you subscribe." },
-      { "q": "Is there a commission on sales?", "a": "No — Matjar takes no commission on your orders. Only the monthly Pro subscription if you want the extra features." }
+      { "q": "Is opening a store free?", "a": "Yes — creating your store and account is free, and you get a full 14-day trial with no card. The plan is only for the extra features." },
+      { "q": "What's the difference between the three plans?", "a": "Basic to start (up to 30 products), Pro for active shops (bookings, POS, offers, we build your store with you), and Business for chains & branches (kitchen, inventory, automation, profit analytics)." },
+      { "q": "How long does the annual offer last?", "a": "The annual promo prices ($75 / $150 / $300) run during August only. After that, annual reverts to the standard yearly price." },
+      { "q": "Is there a commission on sales?", "a": "Never — Matjar takes 0% commission on your orders, on any plan. Only the plan subscription." },
+      { "q": "Can I change or cancel my plan?", "a": "Of course — upgrade, downgrade, or cancel anytime, and your store and products stay." },
+      { "q": "How do I pay?", "a": "Payment is manual for now — request the plan from your store dashboard and we'll contact you to activate it. Online payment is coming soon." }
     ],
     "discountOff": "{pct}% off",
     "monthly": "Monthly",
