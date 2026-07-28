@@ -27,6 +27,7 @@ export function StoreChecklist({
   storeName,
   storeSlug,
   state,
+  primaryOverride,
 }: {
   lang: Locale;
   dict: Dictionary;
@@ -34,9 +35,28 @@ export function StoreChecklist({
   storeName: string;
   storeSlug: string | null;
   state: ChecklistState;
+  /** Sector-aware replacement for the generic "add products" step (e.g. a hotel
+   *  adds a unit, an events organizer adds ticket types). */
+  primaryOverride?: { label: string; href: string; done: boolean };
 }) {
   const t = dict.merchant.checklist;
   const editHref = `/${lang}/merchant/${storeId}/edit`;
+  const productsItem = primaryOverride
+    ? {
+        key: "products" as const,
+        label: primaryOverride.label,
+        href: primaryOverride.href,
+      }
+    : {
+        key: "products" as const,
+        label: t.products,
+        href: `/${lang}/merchant/${storeId}/items`,
+      };
+  // When a sector override is present, its `done` drives the row (the generic
+  // `state.products` counts products, which these sectors don't sell).
+  const effState: ChecklistState = primaryOverride
+    ? { ...state, products: primaryOverride.done }
+    : state;
   const items: {
     key: keyof ChecklistState;
     label: string;
@@ -47,15 +67,11 @@ export function StoreChecklist({
     { key: "description", label: t.description, href: editHref },
     { key: "hours", label: t.hours, href: editHref },
     { key: "whatsapp", label: t.whatsapp, href: editHref },
-    {
-      key: "products",
-      label: t.products,
-      href: `/${lang}/merchant/${storeId}/items`,
-    },
+    productsItem,
     { key: "brandColor", label: t.brandColor, href: editHref },
     { key: "customLink", label: t.customLink, href: editHref },
   ];
-  const done = items.filter((i) => state[i.key]).length;
+  const done = items.filter((i) => effState[i.key]).length;
   const pct = Math.round((done / items.length) * 100);
   const complete = done === items.length;
 
@@ -113,7 +129,7 @@ export function StoreChecklist({
 
       <ul className="mt-4 space-y-2">
         {items.map((item) => {
-          const isDone = state[item.key];
+          const isDone = effState[item.key];
           const row = (
             <span className="flex items-center gap-2 text-sm">
               {isDone ? (
