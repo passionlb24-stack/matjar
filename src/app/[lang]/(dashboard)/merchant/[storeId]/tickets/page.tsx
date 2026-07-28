@@ -1,0 +1,137 @@
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { ChevronRight, Ticket, Phone } from "lucide-react";
+import { isLocale } from "@/i18n/config";
+import { getDictionary } from "@/i18n/get-dictionary";
+import { createClient } from "@/lib/supabase/server";
+import { Container } from "@/components/ui/container";
+import {
+  TicketTypeManager,
+  type TicketTypeRow,
+} from "@/components/ticket-type-manager";
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+type SaleRow = {
+  id: string;
+  attendee_name: string;
+  phone: string;
+  quantity: number;
+  status: string;
+  created_at: string;
+  event_ticket_types: { name: string } | null;
+};
+
+export default async function StoreTicketsPage({
+  params,
+}: {
+  params: Promise<{ lang: string; storeId: string }>;
+}) {
+  const { lang, storeId } = await params;
+  if (!isLocale(lang)) notFound();
+  if (!UUID_RE.test(storeId)) redirect(`/${lang}/merchant`);
+  const dict = await getDictionary(lang);
+  const t = dict.os.tickets;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect(`/${lang}/login`);
+
+  const { data: canManage } = await supabase.rpc("can_manage_store", {
+    p_store_id: storeId,
+  });
+  if (!canManage) redirect(`/${lang}/merchant`);
+
+  const { data: store } = await supabase
+    .from("stores")
+    .select("name")
+    .eq("id", storeId)
+    .maybeSingle();
+  if (!store) redirect(`/${lang}/merchant`);
+
+  const { data: typeData } = await supabase
+    .from("event_ticket_types")
+    .select("id, name, name_en, description, price, capacity, sold, active")
+    .eq("store_id", storeId)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+  const types = (typeData ?? []) as TicketTypeRow[];
+
+  const { data: saleData } = await supabase
+    .from("event_tickets")
+    .select(
+      "id, attendee_name, phone, quantity, status, created_at, event_ticket_types(name)",
+    )
+    .eq("store_id", storeId)
+    .order("created_at", { ascending: false });
+  const sales = (saleData ?? []) as unknown as SaleRow[];
+
+  const fmt = (d: string) =>
+    new Date(d).toLocaleDateString(lang === "ar" ? "ar" : "en", {
+      month: "short",
+      day: "numeric",
+    });
+
+  return (
+    <div className="py-10">
+      <Container className="max-w-5xl">
+        <Link
+          href={`/${lang}/merchant/${storeId}`}
+          className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+          {(store as { name: string }).name}
+        </Link>
+        <h1 className="mt-3 flex items-center gap-2 text-3xl font-extrabold tracking-tight">
+          <Ticket className="h-7 w-7 text-primary" />
+          {t.title}
+        </h1>
+        <p className="mt-2 text-muted-foreground">{t.subtitle}</p>
+
+        <TicketTypeManager storeId={storeId} dict={dict} initial={types} />
+
+        <h2 className="mt-12 text-xl font-extrabold tracking-tight">
+          {t.attendees}
+        </h2>
+        {sales.length ? (
+          <div className="mt-4 space-y-3">
+            {sales.map((s) => (
+              <div
+                key={s.id}
+                className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-border bg-surface p-4"
+              >
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-bold">{s.attendee_name}</span>
+                    {s.event_ticket_types?.name && (
+                      <span className="rounded-full bg-primary-soft px-2 py-0.5 text-xs font-bold text-primary">
+                        {s.event_ticket_types.name}
+                      </span>
+                    )}
+                    <span className="text-xs text-muted-foreground">
+                      ×{s.quantity} · {fmt(s.created_at)}
+                    </span>
+                  </div>
+                  <a
+                    href={`tel:${s.phone}`}
+                    className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+                  >
+                    <Phone className="h-3.5 w-3.5" />
+                    {s.phone}
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-4 rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
+            {t.noAttendees}
+          </div>
+        )}
+      </Container>
+    </div>
+  );
+}

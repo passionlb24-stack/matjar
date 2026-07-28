@@ -35,12 +35,16 @@ export type ItemSurface =
 const DIRECTORY_ONLY_SECTORS: ReadonlySet<CategoryKey> = new Set<CategoryKey>([
   "realEstate",
   "automotive",
-  "events",
 ]);
 
 // Sectors that book a date-range STAY (accommodation engine, migration 0191).
 const STAY_SECTORS: ReadonlySet<CategoryKey> = new Set<CategoryKey>([
   "hospitality",
+]);
+
+// Sectors that sell event TICKETS (ticketing engine, migration 0193).
+const TICKET_SECTORS: ReadonlySet<CategoryKey> = new Set<CategoryKey>([
+  "events",
 ]);
 
 // Sectors whose correct model is capturing a LEAD (inquiry / viewing / test
@@ -70,6 +74,8 @@ export type StoreExperience = {
   showLeadForm: boolean;
   /** Date-range accommodation search + booking should surface (hospitality). */
   showStay: boolean;
+  /** Event ticket purchase should surface (events). */
+  showTickets: boolean;
   /** Resource (hourly) / class / reservation booking may surface (still gated
    *  on seeded rows by the caller). False in directory-only mode so a hotel or
    *  event hall never exposes an hourly booking. */
@@ -109,7 +115,22 @@ export function resolveStoreExperience(args: {
       showServiceRequest: false,
       showLeadForm: false,
       showStay: true,
+      showTickets: false,
       allowResourceBooking: false, // uses the stay engine, not hourly slots
+      directoryOnly: false,
+    };
+  }
+
+  if (TICKET_SECTORS.has(category)) {
+    return {
+      status: "active",
+      itemSurface: "catalog",
+      showBooking: false,
+      showServiceRequest: false,
+      showLeadForm: false,
+      showStay: false,
+      showTickets: true,
+      allowResourceBooking: false, // ticketing, not hourly slots
       directoryOnly: false,
     };
   }
@@ -125,6 +146,7 @@ export function resolveStoreExperience(args: {
       showServiceRequest: hasRequests,
       showLeadForm: LEAD_SECTORS.has(category),
       showStay: false,
+      showTickets: false,
       allowResourceBooking: false,
       directoryOnly: true,
     };
@@ -145,6 +167,7 @@ export function resolveStoreExperience(args: {
     showServiceRequest: hasRequests,
     showLeadForm: false,
     showStay: false,
+    showTickets: false,
     allowResourceBooking: true,
     directoryOnly: false,
   };

@@ -173,6 +173,10 @@ export default async function NotificationsPage({
       return `${dict.notifications.enrollNew}${
         n.data?.store_name ? ` · ${n.data.store_name}` : ""
       }`;
+    if (t === "ticket_new")
+      return `${dict.notifications.ticketNew}${
+        n.data?.store_name ? ` · ${n.data.store_name}` : ""
+      }`;
     return t === "order_new"
       ? dict.notifications.orderNew
       : t === "order_status"
@@ -237,6 +241,8 @@ export default async function NotificationsPage({
           : (n.type === "membership_new" || n.type === "enroll_new") &&
             n.data?.store_id
           ? `/${lang}/merchant/${n.data.store_id}/members`
+          : n.type === "ticket_new" && n.data?.store_id
+          ? `/${lang}/merchant/${n.data.store_id}/tickets`
           : (n.type === "booking_new" ||
               n.type === "booking_rescheduled_merchant" ||
               n.type === "booking_attendance_confirmed" ||

@@ -113,6 +113,26 @@
         "no_show": "No show"
       }
     },
+    "tickets": {
+      "link": "Tickets",
+      "title": "Event tickets",
+      "subtitle": "Create ticket types with prices and capacity, and track who booked.",
+      "add": "Add ticket type",
+      "name": "Ticket name (e.g. General, VIP)",
+      "nameEn": "English name (optional)",
+      "description": "Short description (optional)",
+      "price": "Price",
+      "capacity": "Capacity",
+      "unlimited": "Unlimited",
+      "remaining": "left",
+      "soldCount": "sold",
+      "save": "Save",
+      "empty": "No ticket types yet. Add your first to start selling.",
+      "delete": "Delete",
+      "confirmDelete": "Delete this ticket type?",
+      "attendees": "Attendees",
+      "noAttendees": "No tickets sold yet."
+    },
     "modules": {
       "heading": "Your store's modules",
       "subheading": "Turn your business capabilities on or off — each module adds an experience to your store.",
@@ -1213,6 +1233,21 @@
     "minStay": "Fewer nights than this unit's minimum.",
     "datesTaken": "Those dates were just taken. Try other dates.",
     "overCapacity": "More guests than the unit's capacity."
+  },
+  "tickets": {
+    "title": "Get your ticket",
+    "subtitle": "Pick a ticket type and quantity to reserve your spot.",
+    "remaining": "left",
+    "soldOut": "Sold out",
+    "buy": "Book",
+    "cancel": "Cancel",
+    "name": "Name",
+    "phone": "Phone",
+    "confirm": "Confirm booking",
+    "sentTitle": "Ticket booked ✓",
+    "sentNote": "The organizer will reach out to confirm the details.",
+    "another": "Book another ticket",
+    "soldOutErr": "This ticket type is sold out."
   },
   "auth": {
     "loginTitle": "Log in",
@@ -3255,6 +3290,7 @@
     "stayNew": "New stay booking request",
     "membershipNew": "New subscription to your plan",
     "enrollNew": "New course enrollment",
+    "ticketNew": "New ticket booking for your event",
     "orderStatus": "Your order status changed",
     "orderPlaced": "Your order was received",
     "orderStatusMerchant": "An order on your store changed status",
