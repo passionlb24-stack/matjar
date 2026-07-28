@@ -1,11 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
+import { MessageCircle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { StoreView } from "@/lib/data/store-view";
 import type { ItemSurface } from "@/lib/store-experience";
 import { attributeSummary } from "@/lib/attributes";
+import { waLink } from "@/lib/whatsapp";
 import { parseHours } from "@/lib/hours";
 import { StoreProducts, type DeliveryZone } from "@/components/store-products";
 import { BookingPanel } from "@/components/booking-panel";
@@ -167,9 +169,25 @@ export function StoreProductsSection({
                no wrong booking flow. */
             <>
               {directoryOnly && (
-                <p className="mb-4 rounded-xl border border-border bg-surface-muted/50 px-4 py-3 text-sm font-medium text-muted-foreground">
-                  {dict.store.comingSoonNote}
-                </p>
+                <div className="mb-4 rounded-xl border border-border bg-surface-muted/50 px-4 py-3">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {dict.store.comingSoonNote}
+                  </p>
+                  {store.whatsapp && (
+                    <a
+                      href={waLink(
+                        store.whatsapp,
+                        `${dict.store.inquiryGreeting} ${store.name}`,
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      {dict.store.contactCta}
+                    </a>
+                  )}
+                </div>
               )}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {store.products
@@ -223,7 +241,9 @@ export function StoreProductsSection({
           )
         ) : (
           <div className="rounded-2xl border border-dashed border-border py-14 text-center text-muted-foreground">
-            {dict.store.noProducts}
+            {surface === "appointment"
+              ? dict.store.noServices
+              : dict.store.noProducts}
           </div>
         )
       ) : (
