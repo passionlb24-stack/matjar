@@ -56,6 +56,7 @@ import { StoreHealthcareInfo } from "@/components/store/store-healthcare-info";
 import { StoreDoctors, type DoctorView } from "@/components/store/store-doctors";
 import { TrackVisit } from "@/components/track-visit";
 import { LeadForm } from "@/components/lead-form";
+import { StaySearch } from "@/components/stay-search";
 import { resolveStoreExperience, leadKinds } from "@/lib/store-experience";
 
 const UUID_RE =
@@ -598,6 +599,12 @@ export default async function StorePage({
               dict={dict}
               kinds={leadKinds(store.category)}
             />
+          </div>
+        )}
+
+        {store.isReal && experience.showStay && (
+          <div className="mt-10">
+            <StaySearch storeId={id} lang={lang} dict={dict} />
           </div>
         )}
 

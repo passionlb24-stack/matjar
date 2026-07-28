@@ -60,9 +60,20 @@ describe("resolveStoreExperience", () => {
     expect(resolveDefault("healthcare").showBooking).toBe(true);
   });
 
+  it("hospitality uses the stay engine, not directory-only or hourly", () => {
+    const x = resolveDefault("hospitality");
+    expect(x.showStay).toBe(true);
+    expect(x.directoryOnly).toBe(false);
+    expect(x.allowResourceBooking).toBe(false); // no hourly room booking
+    expect(x.showBooking).toBe(false);
+    expect(isDirectoryOnlySector("hospitality")).toBe(false);
+    // other sectors don't show stay
+    expect(resolveDefault("retail").showStay).toBe(false);
+    expect(resolveDefault("realEstate").showStay).toBe(false);
+  });
+
   it("directory-only sectors never expose a wrong transaction", () => {
     for (const c of [
-      "hospitality",
       "realEstate",
       "automotive",
       "events",
@@ -74,7 +85,7 @@ describe("resolveStoreExperience", () => {
       expect(x.showBooking).toBe(false); // no clinic-style property booking
       expect(x.allowResourceBooking).toBe(false); // no hourly hotel/event booking
     }
-    expect(isDirectoryOnlySector("hospitality")).toBe(true);
+    expect(isDirectoryOnlySector("realEstate")).toBe(true);
     expect(isDirectoryOnlySector("retail")).toBe(false);
   });
 
