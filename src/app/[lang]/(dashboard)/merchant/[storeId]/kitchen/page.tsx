@@ -66,7 +66,7 @@ export default async function StoreKitchenPage({
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, status, fulfillment, customer_name, customer_note, created_at, order_items(name, quantity)",
+      "id, status, fulfillment, customer_name, customer_note, created_at, order_items(name, quantity, note)",
     )
     .eq("store_id", storeId)
     .in("status", ["pending", "accepted", "preparing", "ready"])

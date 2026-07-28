@@ -9,7 +9,12 @@ import { OrderPayments, type OrderPayment } from "@/components/order-payments";
 import { OrderNoteEditor } from "@/components/order-note-editor";
 import { OrderAssignTags } from "@/components/order-assign-tags";
 
-type OrderItem = { name: string; quantity: number; unit_price: number };
+type OrderItem = {
+  name: string;
+  quantity: number;
+  unit_price: number;
+  note: string | null;
+};
 
 // One order, fully shaped on the server: money ledger and branch label resolved
 // so this client component only filters and renders — no extra round-trips.
@@ -34,6 +39,7 @@ export type OrderCard = {
   change_for: number | null;
   delivery_instructions: string | null;
   custom_fields: Record<string, string> | null;
+  scheduled_for: string | null;
 };
 
 // Mirrors the order_status enum, minus the implicit "all" tab rendered first.
@@ -177,16 +183,32 @@ export function OrdersFilter({
                 </div>
                 <ul className="mt-3 space-y-1 border-t border-border pt-3 text-sm">
                   {order.order_items.map((item, i) => (
-                    <li key={i} className="flex justify-between gap-4">
-                      <span>
-                        {item.quantity}× {item.name}
-                      </span>
-                      <span className="text-muted-foreground">
-                        {formatPrice(item.unit_price * item.quantity)}
-                      </span>
+                    <li key={i} className="flex flex-col gap-0.5">
+                      <div className="flex justify-between gap-4">
+                        <span>
+                          {item.quantity}× {item.name}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {formatPrice(item.unit_price * item.quantity)}
+                        </span>
+                      </div>
+                      {item.note && (
+                        <span className="ps-4 text-xs italic text-warning">
+                          ↳ {item.note}
+                        </span>
+                      )}
                     </li>
                   ))}
                 </ul>
+                {order.scheduled_for && (
+                  <p className="mt-3 flex items-center gap-1.5 rounded-lg bg-warning-soft px-3 py-2 text-sm font-bold text-warning">
+                    🕒 {dict.orders.scheduledFor}:{" "}
+                    {new Date(order.scheduled_for).toLocaleString(
+                      lang === "ar" ? "ar" : "en",
+                      { dateStyle: "medium", timeStyle: "short" },
+                    )}
+                  </p>
+                )}
                 <div className="mt-3 flex justify-between border-t border-border pt-3 font-bold">
                   <span>{dict.orders.total}</span>
                   <span>{formatPrice(order.total)}</span>

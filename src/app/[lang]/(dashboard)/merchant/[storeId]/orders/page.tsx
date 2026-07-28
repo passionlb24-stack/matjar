@@ -12,7 +12,12 @@ import { OrdersFilter, type OrderCard } from "@/components/orders-filter";
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-type OrderItem = { name: string; quantity: number; unit_price: number };
+type OrderItem = {
+  name: string;
+  quantity: number;
+  unit_price: number;
+  note: string | null;
+};
 type OrderRow = {
   id: string;
   status: string;
@@ -32,6 +37,7 @@ type OrderRow = {
   change_for: number | null;
   delivery_instructions: string | null;
   custom_fields: Record<string, string> | null;
+  scheduled_for: string | null;
 };
 type StoreLocation = { id: string; name: string | null; area: string | null };
 type TeamMember = { user_id: string; name: string; role: string };
@@ -66,7 +72,7 @@ export default async function StoreOrdersPage({
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, status, total, fulfillment, address, phone, customer_name, customer_note, store_note, created_at, location_id, assigned_to, tags, delivery_fee, change_for, delivery_instructions, custom_fields, order_items(name, quantity, unit_price)",
+      "id, status, total, fulfillment, address, phone, customer_name, customer_note, store_note, created_at, location_id, assigned_to, tags, delivery_fee, change_for, delivery_instructions, custom_fields, scheduled_for, order_items(name, quantity, unit_price, note)",
     )
     .eq("store_id", storeId)
     .order("created_at", { ascending: false });

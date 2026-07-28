@@ -42,6 +42,14 @@ type VariantRow = {
   size?: string | null;
 };
 type OptionRow = { name: string; price: string };
+type ModifierGroupRow = {
+  name: string;
+  nameEn: string;
+  required: boolean;
+  minSelect: string;
+  maxSelect: string;
+  options: OptionRow[];
+};
 export type SectionOption = { id: string; name: string; name_en: string | null };
 
 export type ProductInitial = {
@@ -67,6 +75,7 @@ export type ProductInitial = {
   attributes: Record<string, string>;
   variants: VariantRow[];
   options: OptionRow[];
+  modGroups?: ModifierGroupRow[];
 };
 
 export function ProductEditForm({
@@ -111,6 +120,9 @@ export function ProductEditForm({
     ),
   );
   const [options, setOptions] = useState<OptionRow[]>(initial.options);
+  const [modGroups, setModGroups] = useState<ModifierGroupRow[]>(
+    initial.modGroups ?? [],
+  );
   const [dealToday, setDealToday] = useState(initial.dealToday);
   const [sectionId, setSectionId] = useState<string>(initial.sectionId);
   const [bookMode, setBookMode] = useState<string>(initial.bookingMode);
@@ -215,19 +227,79 @@ export function ProductEditForm({
         }
       }
 
+      // Options + modifier groups are replaced wholesale (order_items snapshot
+      // name/price, so nothing references these rows). Delete options first
+      // (they FK the groups), then groups; re-insert groups to get their ids,
+      // then insert both grouped and ungrouped (flat) options.
       await supabase.from("product_options").delete().eq("product_id", productId);
-      const cleanOptions = options
-        .filter((o) => o.name.trim())
-        .map((o, i) => ({
+      await supabase
+        .from("product_modifier_groups")
+        .delete()
+        .eq("product_id", productId);
+
+      let optSort = 0;
+      const optionRows: {
+        product_id: string;
+        name: string;
+        price: number;
+        sort_order: number;
+        group_id: string | null;
+      }[] = [];
+
+      const cleanGroups = modGroups
+        .map((g) => ({
+          ...g,
+          options: g.options.filter((o) => o.name.trim()),
+        }))
+        .filter((g) => g.name.trim() && g.options.length > 0);
+
+      for (let gi = 0; gi < cleanGroups.length; gi++) {
+        const g = cleanGroups[gi];
+        const max = g.maxSelect.trim() === "" ? null : Number(g.maxSelect);
+        const min = g.minSelect.trim() === "" ? 0 : Number(g.minSelect);
+        const { data: grpRow, error: grpErr } = await supabase
+          .from("product_modifier_groups")
+          .insert({
+            product_id: productId,
+            name: g.name.trim(),
+            name_en: g.nameEn.trim() || null,
+            required: g.required,
+            min_select: Number.isFinite(min) && min > 0 ? Math.floor(min) : 0,
+            max_select: max != null && Number.isFinite(max) && max >= 1 ? Math.floor(max) : null,
+            sort_order: gi,
+          })
+          .select("id")
+          .single();
+        if (grpErr || !grpRow) {
+          setError(dict.auth.errorGeneric);
+          setLoading(false);
+          return;
+        }
+        for (const o of g.options) {
+          optionRows.push({
+            product_id: productId,
+            name: o.name.trim(),
+            price: o.price.trim() === "" ? 0 : Number(o.price),
+            sort_order: optSort++,
+            group_id: grpRow.id as string,
+          });
+        }
+      }
+
+      for (const o of options.filter((o) => o.name.trim())) {
+        optionRows.push({
           product_id: productId,
           name: o.name.trim(),
           price: o.price.trim() === "" ? 0 : Number(o.price),
-          sort_order: i,
-        }));
-      if (cleanOptions.length) {
+          sort_order: optSort++,
+          group_id: null,
+        });
+      }
+
+      if (optionRows.length) {
         const { error: optionsError } = await supabase
           .from("product_options")
-          .insert(cleanOptions);
+          .insert(optionRows);
         if (optionsError) {
           setError(dict.auth.errorGeneric);
           setLoading(false);
@@ -474,6 +546,86 @@ export function ProductEditForm({
             </div>
           </div>
           )}
+
+          {/* Modifier groups (food): grouped options with selection rules */}
+          <div className="rounded-xl border border-border/70 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className={label}>{p.modGroupsTitle}</span>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {p.modGroupsHint}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setModGroups([
+                    ...modGroups,
+                    {
+                      name: "",
+                      nameEn: "",
+                      required: false,
+                      minSelect: "0",
+                      maxSelect: "",
+                      options: [{ name: "", price: "" }],
+                    },
+                  ])
+                }
+                className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-semibold transition-colors hover:bg-surface-muted"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                {p.modAddGroup}
+              </button>
+            </div>
+            {modGroups.length > 0 && (
+              <div className="mt-3 space-y-4">
+                {modGroups.map((g, gi) => {
+                  const patch = (d: Partial<ModifierGroupRow>) =>
+                    setModGroups(modGroups.map((x, j) => (j === gi ? { ...x, ...d } : x)));
+                  return (
+                    <div key={gi} className="rounded-lg border border-border bg-surface-muted/40 p-3">
+                      <div className="flex flex-wrap items-stretch gap-2">
+                        <input value={g.name} onChange={(e) => patch({ name: e.target.value })} placeholder={p.modGroupName} className="w-full min-w-0 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary sm:w-auto sm:flex-1" />
+                        <input value={g.nameEn} onChange={(e) => patch({ nameEn: e.target.value })} placeholder={p.modGroupNameEn} className="w-full min-w-0 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary sm:w-auto sm:flex-1" />
+                        <button type="button" onClick={() => setModGroups(modGroups.filter((_, j) => j !== gi))} aria-label={p.remove} className="flex w-9 shrink-0 items-center justify-center rounded-lg border border-border text-danger transition-colors hover:bg-danger-soft">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-3">
+                        <label className="flex items-center gap-1.5 text-xs font-semibold">
+                          <input type="checkbox" checked={g.required} onChange={(e) => patch({ required: e.target.checked })} className="h-4 w-4 accent-primary" />
+                          {p.modRequired}
+                        </label>
+                        <label className="flex items-center gap-1.5 text-xs font-semibold">
+                          {p.modMin}
+                          <input value={g.minSelect} onChange={(e) => patch({ minSelect: e.target.value })} type="number" min="0" className="w-16 rounded-lg border border-border bg-surface px-2 py-1 text-sm outline-none focus:border-primary" />
+                        </label>
+                        <label className="flex items-center gap-1.5 text-xs font-semibold">
+                          {p.modMax}
+                          <input value={g.maxSelect} onChange={(e) => patch({ maxSelect: e.target.value })} type="number" min="1" placeholder="∞" className="w-16 rounded-lg border border-border bg-surface px-2 py-1 text-sm outline-none focus:border-primary" />
+                        </label>
+                      </div>
+                      <div className="mt-3 space-y-2">
+                        {g.options.map((o, oi) => (
+                          <div key={oi} className="flex flex-wrap items-stretch gap-2">
+                            <input value={o.name} onChange={(e) => patch({ options: g.options.map((x, k) => (k === oi ? { ...x, name: e.target.value } : x)) })} placeholder={p.addonNamePlaceholder} className="w-full min-w-0 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary sm:w-auto sm:flex-1" />
+                            <input value={o.price} onChange={(e) => patch({ options: g.options.map((x, k) => (k === oi ? { ...x, price: e.target.value } : x)) })} type="number" min="0" step="0.01" placeholder={p.addonPrice} className="w-24 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary" />
+                            <button type="button" onClick={() => patch({ options: g.options.filter((_, k) => k !== oi) })} aria-label={p.remove} className="flex w-9 shrink-0 items-center justify-center rounded-lg border border-border text-danger transition-colors hover:bg-danger-soft">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                        <button type="button" onClick={() => patch({ options: [...g.options, { name: "", price: "" }] })} className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-semibold transition-colors hover:bg-surface-muted">
+                          <Plus className="h-3.5 w-3.5" />
+                          {p.modAddOption}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           <div className="rounded-xl border border-border/70 p-4">
             <div className="flex items-center justify-between">
