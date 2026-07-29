@@ -156,109 +156,107 @@ export default async function StorePage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  let reviews: Review[] = [];
-  if (store.isReal && UUID_RE.test(id)) {
-    const { data } = await supabase
-      .from("reviews")
-      .select("id, customer_id, customer_name, rating, comment")
-      .eq("store_id", id)
-      .order("created_at", { ascending: false });
-    reviews = (data ?? []) as Review[];
-  }
+  const realStore = store.isReal && UUID_RE.test(id);
 
-  // Certificates & licenses (public). Rejected ones are excluded; a store shows
-  // the "verified" badge only if it has at least one admin-verified document.
-  let verifications: StoreVerification[] = [];
-  if (store.isReal && UUID_RE.test(id)) {
-    const { data } = await supabase
-      .from("store_verifications")
-      .select(
-        "id, kind, title, issuer, number, issued_on, expires_on, doc_url, verify_url, status",
-      )
-      .eq("store_id", id)
-      .neq("status", "rejected")
-      .order("created_at", { ascending: false });
-    verifications = (data ?? []) as StoreVerification[];
-  }
+  // Wave 1 — the independent public reads for a real store run in parallel
+  // (reviews, verification badges, enabled modules) instead of a waterfall.
+  const [reviews, verifications, modRowsData] = realStore
+    ? await Promise.all([
+        supabase
+          .from("reviews")
+          .select("id, customer_id, customer_name, rating, comment")
+          .eq("store_id", id)
+          .order("created_at", { ascending: false })
+          .then((r) => (r.data ?? []) as Review[]),
+        // Certificates & licenses (public, non-rejected). The "verified" badge
+        // shows only if at least one document is admin-verified.
+        supabase
+          .from("store_verifications")
+          .select(
+            "id, kind, title, issuer, number, issued_on, expires_on, doc_url, verify_url, status",
+          )
+          .eq("store_id", id)
+          .neq("status", "rejected")
+          .order("created_at", { ascending: false })
+          .then((r) => (r.data ?? []) as StoreVerification[]),
+        supabase
+          .from("store_modules")
+          .select("module_key, enabled")
+          .eq("store_id", id)
+          .then(
+            (r) =>
+              (r.data ?? []) as { module_key: string; enabled: boolean }[],
+          ),
+      ])
+    : [
+        [] as Review[],
+        [] as StoreVerification[],
+        [] as { module_key: string; enabled: boolean }[],
+      ];
   const hasVerified = verifications.some((v) => v.status === "verified");
 
   // Which feature modules this store has switched on (sector defaults overlaid
   // with per-store overrides) — public sections render only for enabled ones.
   const modOverrides: Record<string, boolean> = {};
-  if (store.isReal && UUID_RE.test(id)) {
-    const { data: modRows } = await supabase
-      .from("store_modules")
-      .select("module_key, enabled")
-      .eq("store_id", id);
-    for (const r of (modRows ?? []) as {
-      module_key: string;
-      enabled: boolean;
-    }[]) {
-      modOverrides[r.module_key] = r.enabled;
-    }
-  }
+  for (const r of modRowsData) modOverrides[r.module_key] = r.enabled;
   const enabledModules = resolveStoreModules(store.category, modOverrides);
 
-  // Bookable resources (courts/rooms/rental items) for time-slot sectors.
-  let resources: Resource[] = [];
-  if (store.isReal && UUID_RE.test(id) && enabledModules.has("timeslot")) {
-    const { data: resData } = await supabase
-      .from("store_resources")
-      .select("id, name, name_en, price, open_hour, close_hour")
-      .eq("store_id", id)
-      .eq("active", true)
-      .order("sort_order", { ascending: true });
-    resources = (resData ?? []) as Resource[];
-  }
-
-  // Membership / subscription plans for gym/club/school sectors.
-  let membershipPlans: MembershipPlan[] = [];
-  if (store.isReal && UUID_RE.test(id) && enabledModules.has("memberships")) {
-    const { data: mpData } = await supabase
-      .from("store_membership_plans")
-      .select("id, name, name_en, price, period, description")
-      .eq("store_id", id)
-      .eq("active", true)
-      .order("sort_order", { ascending: true });
-    membershipPlans = (mpData ?? []) as MembershipPlan[];
-  }
-
-  // Weekly group classes (gym sessions, group courses) for capacity booking.
-  let classes: ClassRow[] = [];
-  if (store.isReal && UUID_RE.test(id) && enabledModules.has("classes")) {
-    const { data: clData } = await supabase
-      .from("store_classes")
-      .select("id, name, name_en, description, day_of_week, start_time, capacity, price")
-      .eq("store_id", id)
-      .eq("active", true)
-      .order("day_of_week", { ascending: true })
-      .order("start_time", { ascending: true });
-    classes = (clData ?? []) as ClassRow[];
-  }
-
-  // Portfolio gallery (services & contractors).
-  let portfolio: PortfolioItem[] = [];
-  if (store.isReal && UUID_RE.test(id) && enabledModules.has("portfolio")) {
-    const { data: pfData } = await supabase
-      .from("store_portfolio")
-      .select("id, title, title_en, description, image_url, link")
-      .eq("store_id", id)
-      .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: true });
-    portfolio = (pfData ?? []) as PortfolioItem[];
-  }
-
-  // Courses catalogue (education).
-  let courses: CourseRow[] = [];
-  if (store.isReal && UUID_RE.test(id) && enabledModules.has("courses")) {
-    const { data: coData } = await supabase
-      .from("store_courses")
-      .select("id, name, name_en, description, price, duration, schedule, level")
-      .eq("store_id", id)
-      .eq("active", true)
-      .order("sort_order", { ascending: true });
-    courses = (coData ?? []) as CourseRow[];
-  }
+  // Wave 2 — module-gated public sections. Independent of each other, so run in
+  // parallel; each resolves to [] when its module is off (or the store is demo).
+  const [resources, membershipPlans, classes, portfolio, courses] =
+    await Promise.all([
+      // Bookable resources (courts/rooms/rental items) for time-slot sectors.
+      realStore && enabledModules.has("timeslot")
+        ? supabase
+            .from("store_resources")
+            .select("id, name, name_en, price, open_hour, close_hour")
+            .eq("store_id", id)
+            .eq("active", true)
+            .order("sort_order", { ascending: true })
+            .then((r) => (r.data ?? []) as Resource[])
+        : Promise.resolve([] as Resource[]),
+      // Membership / subscription plans for gym/club/school sectors.
+      realStore && enabledModules.has("memberships")
+        ? supabase
+            .from("store_membership_plans")
+            .select("id, name, name_en, price, period, description")
+            .eq("store_id", id)
+            .eq("active", true)
+            .order("sort_order", { ascending: true })
+            .then((r) => (r.data ?? []) as MembershipPlan[])
+        : Promise.resolve([] as MembershipPlan[]),
+      // Weekly group classes (gym sessions, group courses) for capacity booking.
+      realStore && enabledModules.has("classes")
+        ? supabase
+            .from("store_classes")
+            .select("id, name, name_en, description, day_of_week, start_time, capacity, price")
+            .eq("store_id", id)
+            .eq("active", true)
+            .order("day_of_week", { ascending: true })
+            .order("start_time", { ascending: true })
+            .then((r) => (r.data ?? []) as ClassRow[])
+        : Promise.resolve([] as ClassRow[]),
+      // Portfolio gallery (services & contractors).
+      realStore && enabledModules.has("portfolio")
+        ? supabase
+            .from("store_portfolio")
+            .select("id, title, title_en, description, image_url, link")
+            .eq("store_id", id)
+            .order("sort_order", { ascending: true })
+            .order("created_at", { ascending: true })
+            .then((r) => (r.data ?? []) as PortfolioItem[])
+        : Promise.resolve([] as PortfolioItem[]),
+      // Courses catalogue (education).
+      realStore && enabledModules.has("courses")
+        ? supabase
+            .from("store_courses")
+            .select("id, name, name_en, description, price, duration, schedule, level")
+            .eq("store_id", id)
+            .eq("active", true)
+            .order("sort_order", { ascending: true })
+            .then((r) => (r.data ?? []) as CourseRow[])
+        : Promise.resolve([] as CourseRow[]),
+    ]);
 
   let doctors: DoctorView[] = [];
   // providerServices: productId -> the provider ids that offer that service.
@@ -285,24 +283,24 @@ export default async function StorePage({
     }
   }
 
-  let isFollowing = false;
-  if (user && store.isReal && UUID_RE.test(id)) {
-    const { data: fol } = await supabase
-      .from("follows")
-      .select("store_id")
-      .eq("user_id", user.id)
-      .eq("store_id", id)
-      .maybeSingle();
-    isFollowing = !!fol;
-  }
-  const lbpRate = await getUsdLbpRate();
-  let ordersFulfilled = 0;
-  if (store.isReal && UUID_RE.test(id)) {
-    const { data: fc } = await supabase.rpc("store_fulfilled_count", {
-      p_store_id: id,
-    });
-    ordersFulfilled = (fc as number | null) ?? 0;
-  }
+  // Wave 3 — follow state + exchange rate + fulfilled count (all independent).
+  const [isFollowing, lbpRate, ordersFulfilled] = await Promise.all([
+    user && realStore
+      ? supabase
+          .from("follows")
+          .select("store_id")
+          .eq("user_id", user.id)
+          .eq("store_id", id)
+          .maybeSingle()
+          .then((r) => !!r.data)
+      : Promise.resolve(false),
+    getUsdLbpRate(),
+    realStore
+      ? supabase
+          .rpc("store_fulfilled_count", { p_store_id: id })
+          .then((r) => (r.data as number | null) ?? 0)
+      : Promise.resolve(0),
+  ]);
   const avg = reviews.length
     ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
     : null;
