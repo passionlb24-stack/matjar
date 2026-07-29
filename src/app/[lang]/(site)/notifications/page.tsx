@@ -30,6 +30,8 @@ type Notif = {
     date?: string;
     time?: string;
     service_name?: string;
+    owner_name?: string;
+    trial_ends_at?: string;
   } | null;
   is_read: boolean;
   created_at: string;
@@ -307,10 +309,35 @@ export default async function NotificationsPage({
                         {n.data.body}
                       </p>
                     )}
-                  {n.type === "pro_request" && n.data?.phone && (
-                    <p className="mt-1 text-sm font-semibold text-primary" dir="ltr">
-                      {dict.notifications.phoneLabel}: {n.data.phone}
-                    </p>
+                  {n.type === "pro_request" && (
+                    <>
+                      {n.data?.owner_name && (
+                        <p className="mt-1 text-sm font-semibold">
+                          {dict.notifications.requestedBy}: {n.data.owner_name}
+                        </p>
+                      )}
+                      {n.data?.phone && (
+                        <p
+                          className="mt-1 text-sm font-semibold text-primary"
+                          dir="ltr"
+                        >
+                          {dict.notifications.phoneLabel}: {n.data.phone}
+                        </p>
+                      )}
+                      {n.data?.trial_ends_at && (
+                        <p className="mt-1 text-sm font-semibold text-warning">
+                          {new Date(n.data.trial_ends_at) > new Date()
+                            ? dict.notifications.onTrialUntil.replace(
+                                "{date}",
+                                new Date(n.data.trial_ends_at).toLocaleDateString(
+                                  lang === "ar" ? "ar" : "en",
+                                  { dateStyle: "medium" },
+                                ),
+                              )
+                            : dict.notifications.trialEnded}
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
                 {!n.is_read && (

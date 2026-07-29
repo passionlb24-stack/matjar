@@ -3331,7 +3331,10 @@
     "storeCampaign": "عرض جديد من متجر بتتابعه 📣",
     "proRequest": "طلب ترقية لـPro 👑",
     "leaderSubmission": "طلب انضمام لدليل رجال الأعمال 🧑‍💼",
-    "phoneLabel": "الهاتف"
+    "phoneLabel": "الهاتف",
+    "requestedBy": "صاحب الطلب",
+    "onTrialUntil": "على تجربة Pro حتى {date} — ما في داعي للقبول قبل الدفع",
+    "trialEnded": "انتهت التجربة — وقت الدفع والتفعيل"
   },
   "dashboard": {
     "panel": "لوحة التحكم",

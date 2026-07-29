@@ -3331,7 +3331,10 @@
     "storeCampaign": "New offer from a store you follow 📣",
     "proRequest": "Pro upgrade request 👑",
     "leaderSubmission": "Business leaders directory request 🧑‍💼",
-    "phoneLabel": "Phone"
+    "phoneLabel": "Phone",
+    "requestedBy": "Requested by",
+    "onTrialUntil": "On Pro trial until {date} — no need to approve before payment",
+    "trialEnded": "Trial ended — time to collect payment & activate"
   },
   "dashboard": {
     "panel": "Dashboard",
