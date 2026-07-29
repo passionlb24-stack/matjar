@@ -140,10 +140,11 @@ export function resolveStoreExperience(args: {
       status: "directory_only",
       itemSurface: "catalog",
       showBooking: false,
-      // A directory-only sector may still declare `requests` (e.g. automotive)
-      // — surface it as an interim on-platform inquiry/lead capture channel
-      // rather than losing the lead to WhatsApp. No wrong booking/cart.
-      showServiceRequest: hasRequests,
+      // Lead sectors (automotive/realEstate) use the LEAD form as their single
+      // inquiry channel — don't also show the generic service-request form (that
+      // split car inquiries across two merchant inboxes). Non-lead directory-only
+      // sectors may still surface `requests` as their inquiry channel.
+      showServiceRequest: hasRequests && !LEAD_SECTORS.has(category),
       showLeadForm: LEAD_SECTORS.has(category),
       showStay: false,
       showTickets: false,

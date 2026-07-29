@@ -113,11 +113,13 @@ describe("resolveStoreExperience", () => {
     expect(leadKinds("retail")).toEqual(["contact"]);
   });
 
-  it("automotive keeps an interim lead channel via its requests module", () => {
-    // automotive is directory-only but declares `requests` → surface it as a
-    // lead capture instead of losing the inquiry to WhatsApp.
-    expect(resolveDefault("automotive").showServiceRequest).toBe(true);
-    // ...but the cart/order surface is gone.
+  it("automotive uses leads as its single inquiry channel (no service-request form)", () => {
+    // Lead sectors consolidate to the lead form; the generic service-request
+    // form is suppressed so car inquiries don't split across two inboxes.
+    const x = resolveDefault("automotive");
+    expect(x.showServiceRequest).toBe(false);
+    expect(x.showLeadForm).toBe(true);
+    // ...and the cart/order surface is gone.
     expect(isOrderSurface("automotive")).toBe(false);
   });
 
