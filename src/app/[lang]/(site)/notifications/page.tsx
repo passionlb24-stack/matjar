@@ -32,6 +32,8 @@ type Notif = {
     service_name?: string;
     owner_name?: string;
     trial_ends_at?: string;
+    customer_name?: string;
+    description?: string;
   } | null;
   is_read: boolean;
   created_at: string;
@@ -163,6 +165,10 @@ export default async function NotificationsPage({
       return `${dict.notifications.leadNew}${
         n.data?.store_name ? ` · ${n.data.store_name}` : ""
       }`;
+    if (t === "service_request_new")
+      return `${dict.notifications.serviceRequestNew}${
+        n.data?.customer_name ? ` · ${n.data.customer_name}` : ""
+      }`;
     if (t === "stay_new")
       return `${dict.notifications.stayNew}${
         n.data?.store_name ? ` · ${n.data.store_name}` : ""
@@ -240,6 +246,8 @@ export default async function NotificationsPage({
             : `/${lang}/messages`
           : n.type === "lead_new" && n.data?.store_id
           ? `/${lang}/merchant/${n.data.store_id}/leads`
+          : n.type === "service_request_new" && n.data?.store_id
+          ? `/${lang}/merchant/${n.data.store_id}/requests`
           : n.type === "stay_new" && n.data?.store_id
           ? `/${lang}/merchant/${n.data.store_id}/stays`
           : (n.type === "membership_new" || n.type === "enroll_new") &&
@@ -337,6 +345,23 @@ export default async function NotificationsPage({
                                 ),
                               )
                             : dict.notifications.trialEnded}
+                        </p>
+                      )}
+                    </>
+                  )}
+                  {n.type === "service_request_new" && (
+                    <>
+                      {n.data?.description && (
+                        <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                          {n.data.description}
+                        </p>
+                      )}
+                      {n.data?.phone && (
+                        <p
+                          className="mt-1 text-sm font-semibold text-primary"
+                          dir="ltr"
+                        >
+                          {dict.notifications.phoneLabel}: {n.data.phone}
                         </p>
                       )}
                     </>
