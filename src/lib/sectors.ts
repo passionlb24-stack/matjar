@@ -247,7 +247,9 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-slate-200 text-slate-700",
     customersNoun: "leads",
     modules: {
-      daily: ["leads", "orders", "items", "tasks"],
+      // Directory-only (no cart) → drop the always-empty "orders" tile; surface
+      // "requests" so the merchant can see submitted service/inquiry requests.
+      daily: ["leads", "requests", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
