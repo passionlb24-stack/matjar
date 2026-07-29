@@ -228,7 +228,9 @@ export default async function NotificationsPage({
               n.type === "booking_slot_freed") &&
             n.data?.store_id
         ? `/${lang}/store/${n.data.store_id}`
-        : n.type === "store_new" || n.type === "pro_request"
+        : n.type === "pro_request"
+          ? `/${lang}/admin/stores?q=${encodeURIComponent(n.data?.store_name ?? "")}`
+          : n.type === "store_new"
           ? `/${lang}/admin/stores`
           : n.type === "leader_submission"
           ? `/${lang}/admin/leaders`

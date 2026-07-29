@@ -1542,6 +1542,10 @@
     "subscription": {
       "title": "Store subscription",
       "trialBanner": "Free Pro trial — {days} days left. Subscribe to keep your Pro features.",
+      "startTrialTitle": "Try Pro free for 14 days",
+      "startTrialBody": "Activate your free trial instantly — every Pro feature unlocks and the countdown starts now. No card, no approval needed. Payment only comes up once the trial ends.",
+      "startTrialCta": "Start free trial",
+      "startTrialBusy": "Activating…",
       "currentPlan": "Your current plan",
       "free": "Free",
       "pro": "Matjar Pro",

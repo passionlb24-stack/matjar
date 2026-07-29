@@ -6,6 +6,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { RequestProButton } from "@/components/request-pro-button";
+import { StartTrialButton } from "@/components/start-trial-button";
 import { PRO_PRICE_MONTHLY, PRO_PRICE_YEARLY } from "@/lib/plan";
 
 const UUID_RE =
@@ -126,6 +127,26 @@ export default async function StoreSubscriptionPage({
           )}
         </div>
 
+        {/* Never trialed (older store): offer the self-serve 14-day trial — it
+            activates instantly and starts counting, no admin approval. */}
+        {!isPro && trialEndsAt === null && (
+          <div className="mt-4 rounded-2xl border border-primary/30 bg-primary/10 p-6">
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-primary">
+              <Sparkles className="h-5 w-5" />
+              {t.startTrialTitle}
+            </h2>
+            <p className="mt-2 text-sm font-medium text-primary/80">
+              {t.startTrialBody}
+            </p>
+            <StartTrialButton
+              storeId={storeId}
+              label={t.startTrialCta}
+              busyLabel={t.startTrialBusy}
+              errorLabel={dict.common.actionFailed}
+            />
+          </div>
+        )}
+
         {/* Active free trial: Pro features are unlocked but billing is still
             free — nudge the owner to subscribe before the trial ends. */}
         {onTrial && (
@@ -137,8 +158,9 @@ export default async function StoreSubscriptionPage({
           </div>
         )}
 
-        {/* Upgrade CTA for free stores (kept visible during the trial). */}
-        {!isPro && (
+        {/* Paid upgrade CTA — shown during/after the trial (a never-trialed store
+            sees the free-trial card above instead). */}
+        {!isPro && trialEndsAt !== null && (
           <div className="mt-4 rounded-2xl border border-warning/30 bg-warning-soft p-6">
             <h2 className="flex items-center gap-2 text-lg font-extrabold">
               <Crown className="h-5 w-5 text-amber-500" />

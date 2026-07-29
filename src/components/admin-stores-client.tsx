@@ -2,7 +2,7 @@
 import { notifyError } from "@/lib/notify";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Search,
   Check,
@@ -74,7 +74,10 @@ export function AdminStoresClient({
   const confirm = useConfirm();
   const t = dict.admin.storesAdmin;
   const [busy, setBusy] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
+  // Seed the search from ?q= so a "Pro request" notification lands pre-filtered
+  // on the requesting store instead of the whole list.
+  const initialQuery = useSearchParams().get("q") ?? "";
+  const [query, setQuery] = useState(initialQuery);
   const [status, setStatus] = useState<AdminStore["status"] | "all">("all");
   const [region, setRegion] = useState<string | "all">("all");
 
