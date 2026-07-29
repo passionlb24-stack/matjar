@@ -86,18 +86,33 @@ function toCard(r: Row, lang: Locale): ListingCard {
   };
 }
 
+// Market taxonomy (categories/regions/cities) is admin-managed, near-static, and
+// read on every market page render. Cache the raw rows cross-request (1h) with the
+// cookie-less client; the per-locale mapping stays outside the cache so both
+// locales share one cached fetch. Tagged "market" so an admin edit can bust it.
+const fetchMarketCategoriesRaw = unstable_cache(
+  async () => {
+    const supabase = createPublicClient();
+    const { data } = await supabase
+      .from("market_categories")
+      .select("id, slug, name_ar, name_en")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true });
+    return (data ?? []) as {
+      id: string;
+      slug: string;
+      name_ar: string;
+      name_en: string;
+    }[];
+  },
+  ["market-categories"],
+  { revalidate: 3600, tags: ["market"] },
+);
+
 export async function getMarketCategories(
   lang: Locale,
 ): Promise<MarketCategory[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("market_categories")
-    .select("id, slug, name_ar, name_en")
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true });
-  return (
-    (data ?? []) as { id: string; slug: string; name_ar: string; name_en: string }[]
-  ).map((c) => ({
+  return (await fetchMarketCategoriesRaw()).map((c) => ({
     id: c.id,
     slug: c.slug,
     name: lang === "ar" ? c.name_ar : c.name_en,
@@ -106,39 +121,54 @@ export async function getMarketCategories(
 
 export type MarketRegion = { key: string; name: string };
 
+const fetchMarketRegionsRaw = unstable_cache(
+  async () => {
+    const supabase = createPublicClient();
+    const { data } = await supabase
+      .from("market_regions")
+      .select("key, name_ar, name_en")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true });
+    return (data ?? []) as { key: string; name_ar: string; name_en: string }[];
+  },
+  ["market-regions"],
+  { revalidate: 3600, tags: ["market"] },
+);
+
 // Admin-managed region list (active only). Falls back to nothing if the table
 // is empty — callers can default to the catalog regions.
 export async function getMarketRegions(lang: Locale): Promise<MarketRegion[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("market_regions")
-    .select("key, name_ar, name_en")
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true });
-  return (
-    (data ?? []) as { key: string; name_ar: string; name_en: string }[]
-  ).map((r) => ({ key: r.key, name: lang === "ar" ? r.name_ar : r.name_en }));
+  return (await fetchMarketRegionsRaw()).map((r) => ({
+    key: r.key,
+    name: lang === "ar" ? r.name_ar : r.name_en,
+  }));
 }
 
 export type MarketCity = { id: string; region: string; name: string };
 
-// Admin-managed city list (active only), ordered by region then sort_order.
-export async function getMarketCities(lang: Locale): Promise<MarketCity[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("market_cities")
-    .select("id, region, name_ar, name_en")
-    .eq("is_active", true)
-    .order("region", { ascending: true })
-    .order("sort_order", { ascending: true });
-  return (
-    (data ?? []) as {
+const fetchMarketCitiesRaw = unstable_cache(
+  async () => {
+    const supabase = createPublicClient();
+    const { data } = await supabase
+      .from("market_cities")
+      .select("id, region, name_ar, name_en")
+      .eq("is_active", true)
+      .order("region", { ascending: true })
+      .order("sort_order", { ascending: true });
+    return (data ?? []) as {
       id: string;
       region: string;
       name_ar: string;
       name_en: string;
-    }[]
-  ).map((c) => ({
+    }[];
+  },
+  ["market-cities"],
+  { revalidate: 3600, tags: ["market"] },
+);
+
+// Admin-managed city list (active only), ordered by region then sort_order.
+export async function getMarketCities(lang: Locale): Promise<MarketCity[]> {
+  return (await fetchMarketCitiesRaw()).map((c) => ({
     id: c.id,
     region: c.region,
     name: lang === "ar" ? c.name_ar : c.name_en,
