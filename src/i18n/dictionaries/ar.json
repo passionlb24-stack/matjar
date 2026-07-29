@@ -626,6 +626,7 @@
       "lockedTitleBusiness": "هالميزة لخطة الأعمال",
       "lockedBodyBusiness": "ترقّى لخطة الأعمال لتفتح: فروع متعددة، مخزون، مورّدين، مطبخ (KDS)، أتمتة، حملات تسويقية، وتحليلات الربح.",
       "upgrade": "ترقّى لـ Pro",
+      "upgradeBusiness": "ترقّى لخطة الأعمال",
       "seePlans": "شوف الخطط",
       "perMonth": "$15/شهر",
       "perYear": "أو $150/سنة",
@@ -1788,6 +1789,13 @@
     "activeStores": "المتاجر المفعّلة",
     "makePro": "ترقية لـ Pro",
     "makeFree": "إرجاع لمجاني",
+    "planLabel": "الباقة",
+    "plans": {
+      "free": "مجاني",
+      "basic": "Basic",
+      "pro": "Pro",
+      "business": "الأعمال"
+    },
     "feature": "تمييز 30 يوم",
     "unfeature": "إلغاء التمييز",
     "reg": "السجل التجاري",

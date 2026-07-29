@@ -7,7 +7,10 @@ import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { RequestProButton } from "@/components/request-pro-button";
 import { StartTrialButton } from "@/components/start-trial-button";
-import { PRO_PRICE_MONTHLY, PRO_PRICE_YEARLY } from "@/lib/plan";
+import { PLAN_TIERS, promoState, annualPrice, planRank } from "@/lib/plan-tiers";
+
+// Single source of truth for Pro pricing (promo-aware): plan-tiers.
+const PRO_PRICE_MONTHLY = PLAN_TIERS.pro.monthly;
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -49,8 +52,11 @@ export default async function StoreSubscriptionPage({
   // Read the RAW plan here (not the trial-collapsed effective plan): a store on
   // an active free trial is still on the free plan for billing, so we keep the
   // subscribe CTA visible and show a trial-countdown banner instead.
-  const plan = (store as { plan: "free" | "pro" }).plan;
-  const isPro = plan === "pro";
+  const plan = (store as { plan: string }).plan;
+  // Rank-based: a Business store is also "Pro or higher" — don't show it the
+  // upgrade CTA. (planRank: free 0, basic 1, pro 2, business 3.)
+  const isPro = planRank(plan) >= 2;
+  const proYearly = annualPrice(PLAN_TIERS.pro, promoState(new Date()).active);
   const trialEndsAt =
     (store as { trial_ends_at: string | null }).trial_ends_at ?? null;
   const trialEnd = trialEndsAt ? new Date(trialEndsAt) : null;
@@ -175,7 +181,7 @@ export default async function StoreSubscriptionPage({
                 {dict.pricing.perMonth}
               </span>
               <span className="text-sm font-bold text-warning">
-                · ${PRO_PRICE_YEARLY}
+                · ${proYearly}
                 {dict.pricing.perYear}
               </span>
             </p>

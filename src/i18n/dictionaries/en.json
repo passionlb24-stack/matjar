@@ -626,6 +626,7 @@
       "lockedTitleBusiness": "This feature is on the Business plan",
       "lockedBodyBusiness": "Upgrade to Business to unlock: multiple branches, inventory, suppliers, kitchen (KDS), automation, marketing campaigns, and profit analytics.",
       "upgrade": "Upgrade to Pro",
+      "upgradeBusiness": "Upgrade to Business",
       "seePlans": "See plans",
       "perMonth": "$15/mo",
       "perYear": "or $150/yr",
@@ -1788,6 +1789,13 @@
     "activeStores": "Active stores",
     "makePro": "Make Pro",
     "makeFree": "Make Free",
+    "planLabel": "Plan",
+    "plans": {
+      "free": "Free",
+      "basic": "Basic",
+      "pro": "Pro",
+      "business": "Business"
+    },
     "feature": "Feature 30d",
     "unfeature": "Unfeature",
     "reg": "Reg. no.",

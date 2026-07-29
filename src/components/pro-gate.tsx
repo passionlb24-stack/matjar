@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Crown, Lock, Check } from "lucide-react";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
+import { PLAN_TIERS, promoState, annualPrice } from "@/lib/plan-tiers";
 
 // Upsell shown in place of a Pro-only module when a free store opens it. Also
 // used inline when the free product limit is hit (compact variant).
@@ -28,6 +29,14 @@ export function ProGate({
   const isBiz = requiredPlan === "business";
   const headline = title ?? (isBiz ? t.lockedTitleBusiness : t.lockedTitle);
   const blurb = body ?? (isBiz ? t.lockedBodyBusiness : t.lockedBody);
+  // Price the ACTUAL required tier from the single source of truth (plan-tiers),
+  // promo-aware — not a hardcoded string. Pro = $25/mo, Business = $65/mo.
+  const tier = PLAN_TIERS[requiredPlan];
+  const promoActive = promoState(new Date()).active;
+  const priceLine = `$${tier.monthly}${dict.pricing.perMonth} · $${annualPrice(
+    tier,
+    promoActive,
+  )}${dict.pricing.perYear}`;
   const card = (
     <div className="mx-auto max-w-lg rounded-3xl border border-accent/40 bg-gradient-to-b from-accent-soft to-transparent p-7 text-center">
       <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent-foreground">
@@ -55,10 +64,10 @@ export function ProGate({
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-6 py-3 text-sm font-extrabold text-white transition-colors hover:bg-amber-600"
         >
           <Crown className="h-4 w-4" />
-          {t.upgrade}
+          {isBiz ? t.upgradeBusiness : t.upgrade}
         </Link>
-        <p className="mt-2 text-xs font-bold text-warning">
-          {t.perMonth} · {t.perYear}
+        <p className="mt-2 text-xs font-bold text-warning" dir="ltr">
+          {priceLine}
         </p>
       </div>
     </div>

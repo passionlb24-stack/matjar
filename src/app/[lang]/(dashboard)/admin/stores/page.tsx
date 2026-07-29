@@ -11,7 +11,7 @@ type StoreRow = {
   owner_id: string;
   region: string | null;
   status: "pending" | "active" | "suspended" | "rejected";
-  plan: "free" | "pro";
+  plan: "free" | "basic" | "pro" | "business";
   is_verified: boolean;
   featured_until: string | null;
   commercial_reg_no: string | null;

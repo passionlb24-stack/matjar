@@ -36,7 +36,7 @@ export type AdminStore = {
   name: string;
   region: string | null;
   status: "pending" | "active" | "suspended" | "rejected";
-  plan: "free" | "pro";
+  plan: "free" | "basic" | "pro" | "business";
   isVerified: boolean;
   featuredUntil: string | null;
   commercialRegNo: string | null;
@@ -194,10 +194,10 @@ export function AdminStoresClient({
                         <BadgeCheck className="h-3 w-3" />
                       </Badge>
                     )}
-                    {s.plan === "pro" && (
+                    {s.plan !== "free" && (
                       <Badge variant="warning" size="sm">
                         <Crown className="h-3 w-3" />
-                        Pro
+                        {dict.admin.plans[s.plan]}
                       </Badge>
                     )}
                   </div>
@@ -232,31 +232,6 @@ export function AdminStoresClient({
                       disabled: busy === s.id,
                       onClick: () =>
                         patch(s.id, { is_verified: !s.isVerified }),
-                    },
-                    {
-                      label:
-                        s.plan === "pro"
-                          ? dict.admin.makeFree
-                          : dict.admin.makePro,
-                      Icon: Crown,
-                      active: s.plan === "pro",
-                      disabled: busy === s.id,
-                      onClick: async () => {
-                        if (
-                          s.plan === "pro" &&
-                          !(await confirm({
-                            message: dict.admin.confirmDowngrade,
-                            confirmLabel: dict.common.confirm,
-                            cancelLabel: dict.common.cancel,
-                            danger: true,
-                          }))
-                        )
-                          return;
-                        patch(s.id, {
-                          plan: s.plan === "pro" ? "free" : "pro",
-                          is_verified: s.plan === "pro" ? s.isVerified : true,
-                        });
-                      },
                     },
                     {
                       label: featured
@@ -356,6 +331,30 @@ export function AdminStoresClient({
                           {t.activate}
                         </Button>
                       )}
+                      <select
+                        value={s.plan}
+                        disabled={busy === s.id}
+                        onChange={(e) =>
+                          patch(s.id, {
+                            plan: e.target.value,
+                            // Any paid plan implies an active/verified store.
+                            is_verified:
+                              e.target.value === "free"
+                                ? s.isVerified
+                                : true,
+                          })
+                        }
+                        aria-label={dict.admin.planLabel}
+                        title={dict.admin.planLabel}
+                        className="h-9 rounded-lg border border-border bg-surface px-2 text-sm font-semibold outline-none focus:border-primary disabled:opacity-50"
+                      >
+                        <option value="free">{dict.admin.plans.free}</option>
+                        <option value="basic">{dict.admin.plans.basic}</option>
+                        <option value="pro">{dict.admin.plans.pro}</option>
+                        <option value="business">
+                          {dict.admin.plans.business}
+                        </option>
+                      </select>
                       <OverflowMenu
                         actions={menuActions}
                         label={dict.admin.moreActions}
