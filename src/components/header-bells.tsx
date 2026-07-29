@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Bell, MessageCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -35,11 +36,23 @@ export function HeaderBells({
 }) {
   const [notifs, setNotifs] = useState(unreadNotifications);
   const [msgs, setMsgs] = useState(unreadMessages);
+  const router = useRouter();
+  const lastNotifs = useRef<number | null>(null);
+  const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!userId) return;
     const supabase = createClient();
     let cancelled = false;
+
+    // Also refresh the server-rendered tree (notifications list, dashboard
+    // widgets) — debounced. This is the single realtime owner for the app now
+    // (the former headless RealtimeNotifications was merged in to avoid a second
+    // socket + poll per page).
+    const bumpRefresh = () => {
+      if (refreshTimer.current) clearTimeout(refreshTimer.current);
+      refreshTimer.current = setTimeout(() => router.refresh(), 300);
+    };
 
     const refreshCounts = async () => {
       if (document.visibilityState !== "visible") return;
@@ -53,7 +66,15 @@ export function HeaderBells({
         supabase.rpc("unread_conversation_count"),
       ]);
       if (cancelled) return;
-      if (count != null) setNotifs(count);
+      if (count != null) {
+        setNotifs(count);
+        // Fallback path (missed realtime event): if the poll sees the count
+        // rise, refresh the server content too.
+        if (lastNotifs.current !== null && count > lastNotifs.current) {
+          bumpRefresh();
+        }
+        lastNotifs.current = count;
+      }
       if (msgCount != null) setMsgs(msgCount as number);
     };
 
@@ -72,7 +93,10 @@ export function HeaderBells({
           table: "notifications",
           filter: `user_id=eq.${userId}`,
         },
-        () => void refreshCounts(),
+        () => {
+          void refreshCounts();
+          bumpRefresh();
+        },
       )
       .subscribe();
 
@@ -85,11 +109,12 @@ export function HeaderBells({
 
     return () => {
       cancelled = true;
+      if (refreshTimer.current) clearTimeout(refreshTimer.current);
       clearInterval(poll);
       document.removeEventListener("visibilitychange", onVisible);
       void supabase.removeChannel(channel);
     };
-  }, [userId]);
+  }, [userId, router]);
 
   const label = (base: string, count: number) =>
     count > 0 ? `${base} — ${count} ${dict.common.unread}` : base;
