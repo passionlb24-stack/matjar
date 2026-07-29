@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -84,6 +84,7 @@ export function ProductOrder({
     colors[0] ?? null,
   );
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+  const idemKeyRef = useRef<string>("");
   const [itemNote, setItemNote] = useState("");
   const [scheduledFor, setScheduledFor] = useState("");
   const [qty, setQty] = useState(1);
@@ -174,6 +175,10 @@ export function ProductOrder({
       router.push(`/${lang}/login`);
       return;
     }
+    // Idempotency: reuse one key across retries of the same attempt so a stalled
+    // request the user re-submits collapses to a single order (the RPC dedupes on
+    // it). Regenerated only after a successful placement.
+    if (!idemKeyRef.current) idemKeyRef.current = crypto.randomUUID();
     // Server-side pricing: the RPC re-reads product/variant/add-on prices from
     // the catalog and enforces stock (incl. per-variant) in one transaction.
     const { error } = await supabase.rpc("place_customer_order", {
@@ -196,6 +201,7 @@ export function ProductOrder({
         allowScheduling && scheduledFor
           ? { scheduled_for: new Date(scheduledFor).toISOString() }
           : undefined,
+      p_idempotency_key: idemKeyRef.current,
     });
     if (error) {
       const outOfStock = error.message?.includes("insufficient_stock");
@@ -203,8 +209,11 @@ export function ProductOrder({
         outOfStock ? dict.store.outOfStock : dict.auth.errorGeneric,
       );
       setPlacing(false);
+      // Re-sync so the stale in-stock state doesn't linger after a stock error.
+      if (outOfStock) router.refresh();
       return;
     }
+    idemKeyRef.current = "";
     router.push(`/${lang}/orders`);
     router.refresh();
   }

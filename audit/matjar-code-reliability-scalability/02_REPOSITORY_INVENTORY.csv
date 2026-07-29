@@ -1,0 +1,23 @@
+folder,purpose,file_count_approx,important_files,risk_level,domain,review_status
+src/app/[lang]/(site),"Public storefront + customer pages (home, store, product, explore, search, market, cart, orders, bookings)",~90,"store/[id]/page.tsx, product/[id]/page.tsx, notifications/page.tsx",High,Storefront/Customer,Reviewed (server pages + data flow)
+src/app/[lang]/(dashboard)/merchant,"Merchant Business-OS dashboard + all module pages",~70,"[storeId]/page.tsx (929 lines), orders/page.tsx, tickets/page.tsx, units/page.tsx, products/*",High,Merchant,Reviewed (dashboard + orders + new modules)
+src/app/[lang]/(dashboard)/admin,"Super-admin console (moderation, academy, leaders, roles)",~25,"admin/*",Medium,Admin,Partially reviewed
+src/app/api,"API route handlers (push broadcast/hook, etc.)",4,"api/push/*/route.ts",Medium,Integration,Requires runtime verification
+src/components,"All UI (233 files, 169 client components)",233,"store-products.tsx (1328), booking-panel.tsx (884), automation-manager.tsx (825), crm-manager.tsx (777)",High,UI,Reviewed (hot-path components); god-components flagged
+src/components/ui,"Design-system primitives (Button, field, confirm-dialog, etc.)",14,"button.tsx, confirm-dialog.tsx, field.tsx",Low,UI library,Reviewed
+src/components/store,"Storefront sub-sections",7,"store-products-section.tsx, store-hero.tsx",Medium,Storefront,Reviewed
+src/components/os-dashboard,"Merchant dashboard widgets",9,"suggestions-card.tsx",Medium,Merchant,Partially reviewed
+src/components/hub,"Business Hub (tools/academy/leaders)",10,"hub tools",Low,Content,Partially reviewed
+src/components/automation,"No-code automation builder",7,"automation-manager.tsx (825)",Medium,Automation,Partially reviewed
+src/lib,"Domain logic + helpers (sectors, catalog, currency, jsonld, themes)",60,"sectors.ts, store-experience.ts, modules.ts, catalog.ts",High,Domain,Reviewed (registry + resolver)
+src/lib/data,"Cached public reads (unstable_cache)",13,"store-view.ts, product-view.ts, settings.ts",High,Data access,Reviewed
+src/lib/supabase,"Supabase client factories (server/client/public/middleware)",5,"server.ts, client.ts, public-client.ts",High,Data access,Reviewed
+src/lib/__tests__,"Unit tests",8,"store-experience.test.ts (11 tests)",Medium,Tests,Reviewed (coverage gap — see 19)
+src/i18n,"Dictionaries ar/en (RTL) + config",2,"dictionaries/ar.json, en.json (3082 keys each, parity verified)",Medium,i18n,Reviewed
+src/modules,"(empty)",0,,Informational,—,Irrelevant to runtime
+src/content,"Static content",1,,Low,Content,Partially reviewed
+supabase/migrations,"194 SQL migrations — source of truth for schema/RPCs/RLS",194,"0193_event_tickets, 0194_food_modifiers, place_customer_order/place_guest_order",Critical,Database,Reviewed (schema/index/RLS/RPC via live DB)
+android + ios + native-shell,"Capacitor native shells (hosted-hybrid)",—,"capacitor.config.ts",Low,Mobile,Requires build env; not run
+public,"Static assets, PWA manifest, icons",—,,Low,Assets,Irrelevant to runtime review
+docs,"Project docs + prior checkpoint reports",—,,Informational,Docs,Not reviewed (non-runtime)
+node_modules / .next / tsconfig.tsbuildinfo,"Dependencies + build output",—,,Excluded,—,Generated — excluded from line review (manifests inspected)
