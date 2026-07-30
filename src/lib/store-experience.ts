@@ -65,9 +65,19 @@ export function leadKinds(category: CategoryKey): string[] {
 
 export type StoreExperience = {
   status: SectorStatus;
+  /** The surface for items that carry no explicit kind — and the section's
+   *  default framing. Items are now split by `products.item_kind`, so a store
+   *  can render a booking panel AND a cart at the same time; this stays as the
+   *  fallback and as the label chooser. */
   itemSurface: ItemSurface;
   /** Appointment booking engine (BookingPanel) should surface. */
   showBooking: boolean;
+  /** Physical goods (item_kind = 'product') may be sold via the cart.
+   *  True for every sector that transacts at all — a vet sells pet food, a
+   *  salon sells hair products, a clinic sells supplements. Before item_kind
+   *  existed this was impossible: enabling appointments turned every row into a
+   *  bookable service and the cart vanished. */
+  canOrderProducts: boolean;
   /** Service-request / quote form should surface. */
   showServiceRequest: boolean;
   /** Lead / inquiry capture form should surface (real estate, automotive). */
@@ -115,6 +125,7 @@ export function resolveStoreExperience(args: {
       showServiceRequest: false,
       showLeadForm: false,
       showStay: true,
+      canOrderProducts: true,
       showTickets: false,
       allowResourceBooking: false, // uses the stay engine, not hourly slots
       directoryOnly: false,
@@ -130,6 +141,7 @@ export function resolveStoreExperience(args: {
       showLeadForm: false,
       showStay: false,
       showTickets: true,
+      canOrderProducts: true,
       allowResourceBooking: false, // ticketing, not hourly slots
       directoryOnly: false,
     };
@@ -146,6 +158,7 @@ export function resolveStoreExperience(args: {
       // sectors may still surface `requests` as their inquiry channel.
       showServiceRequest: hasRequests && !LEAD_SECTORS.has(category),
       showLeadForm: LEAD_SECTORS.has(category),
+      canOrderProducts: false,
       showStay: false,
       showTickets: false,
       allowResourceBooking: false,
@@ -167,6 +180,7 @@ export function resolveStoreExperience(args: {
     showBooking,
     showServiceRequest: hasRequests,
     showLeadForm: false,
+    canOrderProducts: true,
     showStay: false,
     showTickets: false,
     allowResourceBooking: true,

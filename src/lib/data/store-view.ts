@@ -73,6 +73,8 @@ export type StoreView = {
     bufferMinutes?: number | null;
     capacityPerSlot?: number | null;
     sectionId?: string | null;
+    /** "product" = sold via cart, "service" = booked. A store may have both. */
+    itemKind?: "product" | "service";
     isBundle?: boolean;
     includes?: { name: string; nameEn: string | null; quantity: number }[];
   }[];
@@ -107,7 +109,7 @@ async function fetchStoreView(
   const { data: prods } = await supabase
     .from("products")
     .select(
-      "id, name, name_en, brand, description_en, price, discount_price, image_url, attributes, flash_price, flash_start, flash_end, stock, section_id, booking_allocation_mode, duration_minutes, buffer_minutes, capacity_per_slot, is_bundle",
+      "id, name, name_en, brand, description_en, price, discount_price, image_url, attributes, flash_price, flash_start, flash_end, stock, section_id, item_kind, booking_allocation_mode, duration_minutes, buffer_minutes, capacity_per_slot, is_bundle",
     )
     .eq("store_id", id)
     .eq("status", "active")
@@ -237,6 +239,7 @@ async function fetchStoreView(
       bufferMinutes: p.buffer_minutes != null ? Number(p.buffer_minutes) : 0,
       capacityPerSlot: p.capacity_per_slot != null ? Number(p.capacity_per_slot) : null,
       sectionId: (p.section_id as string | null) ?? null,
+      itemKind: ((p.item_kind as string | null) ?? "product") as "product" | "service",
       isBundle: (p.is_bundle as boolean | null) ?? false,
       includes: includesByBundle[p.id as string] ?? undefined,
     })),

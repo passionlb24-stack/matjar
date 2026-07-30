@@ -68,6 +68,16 @@ export function ProductForm({
   const attrFields = categoryAttributes[category] ?? [];
   const bookable =
     sectorHasTeam(category) || category === "services" || category === "healthcare";
+  // A booking store can also sell goods (a vet selling pet food, a salon selling
+  // hair products). The merchant picks per item; before this, everything in such
+  // a store became a bookable service and none of it could be ordered.
+  const [itemKind, setItemKind] = useState<"product" | "service">(
+    bookable ? "service" : "product",
+  );
+  const isService = bookable && itemKind === "service";
+  // Only a service gets the trimmed form; a product needs the full field set
+  // (stock, variants, offers) even inside a booking-sector store.
+  const simple = simplified && isService;
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -90,17 +100,18 @@ export function ProductForm({
         name: String(form.get("name")),
         name_en: String(form.get("name_en") ?? "").trim() || null,
         brand: String(form.get("brand") ?? "").trim() || null,
-        booking_allocation_mode: bookable ? bookMode || null : null,
+        item_kind: isService ? "service" : "product",
+        booking_allocation_mode: isService ? bookMode || null : null,
         duration_minutes:
-          bookable && Number(form.get("duration_minutes")) > 0
+          isService && Number(form.get("duration_minutes")) > 0
             ? Number(form.get("duration_minutes"))
             : null,
         buffer_minutes:
-          bookable && Number(form.get("buffer_minutes")) > 0
+          isService && Number(form.get("buffer_minutes")) > 0
             ? Number(form.get("buffer_minutes"))
             : 0,
         capacity_per_slot:
-          bookable && bookMode === "capacity_based" &&
+          isService && bookMode === "capacity_based" &&
           Number(form.get("capacity_per_slot")) > 0
             ? Number(form.get("capacity_per_slot"))
             : null,
@@ -214,7 +225,36 @@ export function ProductForm({
       onSubmit={onSubmit}
       className="space-y-4 rounded-2xl border border-border bg-surface p-5"
     >
-      <h3 className="font-bold">{addLabel}</h3>
+      <h3 className="font-bold">{bookable ? p.addItem : addLabel}</h3>
+
+      {/* Booking sectors can also stock goods — the merchant says which this is,
+          and the form (and the storefront) follow. */}
+      {bookable && (
+        <div>
+          <span className={label}>{p.itemKindLabel}</span>
+          <div className="mt-1.5 flex gap-2">
+            {(["service", "product"] as const).map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setItemKind(k)}
+                aria-pressed={itemKind === k}
+                className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-bold transition-colors ${
+                  itemKind === k
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-surface text-muted-foreground hover:border-primary/40"
+                }`}
+              >
+                {k === "service" ? p.kindService : p.kindProduct}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            {itemKind === "service" ? p.kindServiceHint : p.kindProductHint}
+          </p>
+        </div>
+      )}
+
       <ImageUpload
         folder={storeId}
         value={imageUrl}
@@ -297,7 +337,7 @@ export function ProductForm({
           </select>
         </div>
       )}
-      <div className={`grid gap-4 ${simplified ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
+      <div className={`grid gap-4 ${simple ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
         <div>
           <label className={label} htmlFor="price">
             {p.price}
@@ -310,7 +350,7 @@ export function ProductForm({
           </label>
           <input id="discount_price" name="discount_price" type="number" min="0" step="0.01" placeholder="0" className={field} />
         </div>
-        {!simplified && (
+        {!simple && (
           <div>
             <label className={label} htmlFor="stock">
               {p.stock}
@@ -369,7 +409,7 @@ export function ProductForm({
         </div>
       )}
 
-      {!simplified && (
+      {!simple && (
       <>
       {/* Variants */}
       {useMatrix ? (

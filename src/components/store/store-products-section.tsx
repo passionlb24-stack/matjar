@@ -26,6 +26,7 @@ export function StoreProductsSection({
   lang,
   dict,
   surface,
+  canOrderProducts,
   directoryOnly = false,
   doctors,
   providerServices,
@@ -48,6 +49,7 @@ export function StoreProductsSection({
   lang: Locale;
   dict: Dictionary;
   surface: ItemSurface;
+  canOrderProducts: boolean;
   directoryOnly?: boolean;
   doctors: DoctorView[];
   providerServices: Record<string, string[]>;
@@ -70,11 +72,23 @@ export function StoreProductsSection({
   layout?: "grid" | "menu" | "showcase" | null;
   zones?: DeliveryZone[];
 }) {
+  // A store may both book services and sell goods (a vet clinic selling pet
+  // food, a salon selling hair products). Items carry an explicit kind, so the
+  // two are rendered by their own engine instead of one surface swallowing both
+  // — which is what made products unorderable in every appointment store.
+  const services = store.products.filter((p) => p.itemKind === "service");
+  const goods = store.products.filter((p) => p.itemKind !== "service");
+  // On an appointment surface the primary list is the services; the goods get
+  // their own cart section below.
+  const primary = surface === "appointment" ? services : goods;
+  const showGoodsSection =
+    surface === "appointment" && canOrderProducts && goods.length > 0;
+
   return (
     <>
       <h2 className="mb-4 mt-10 text-xl font-bold">{sectionTitle}</h2>
       {store.isReal ? (
-        store.products.length ? (
+        primary.length ? (
           surface === "appointment" ? (
             <BookingPanel
               storeId={id}
@@ -94,7 +108,7 @@ export function StoreProductsSection({
               }))}
               providerServices={providerServices}
               sections={store.sections}
-              services={store.products
+              services={services
                 .filter((p) => p.id)
                 .map((p) => ({
                   id: p.id as string,
@@ -138,7 +152,7 @@ export function StoreProductsSection({
                 address: b.address,
               }))}
               sections={store.sections}
-              products={store.products
+              products={goods
                 .filter((p) => p.id)
                 .map((p) => ({
                   id: p.id as string,
@@ -246,7 +260,69 @@ export function StoreProductsSection({
               : dict.store.noProducts}
           </div>
         )
-      ) : (
+      ) : null}
+
+      {/* A booking store that also sells goods gets a real cart for them — the
+          appointment engine above handles only its services. */}
+      {store.isReal && showGoodsSection ? (
+        <>
+          <h2 className="mb-4 mt-10 text-xl font-bold">
+            {dict.store.productsForSale}
+          </h2>
+          <StoreProducts
+            storeId={id}
+            lang={lang}
+            dict={dict}
+            category={store.category}
+            isBooking={false}
+            loggedIn={loggedIn}
+            defaultAddress={defaultAddress}
+            savedAddresses={savedAddresses}
+            acceptsDelivery={store.acceptsDelivery ?? true}
+            acceptsPickup={store.acceptsPickup ?? true}
+            minOrder={store.minOrder ?? null}
+            paymentNote={store.paymentNote ?? null}
+            prepTime={store.prepTime ?? null}
+            whatsapp={store.whatsapp ?? null}
+            storeName={store.name}
+            layout={layout ?? store.storefrontLayout}
+            lbpRate={lbpRate}
+            loyaltyPoints={loyaltyPoints}
+            loyaltyPointsPerUnit={store.loyaltyPointsPerUnit ?? 0}
+            branches={branches.map((b) => ({
+              id: b.id,
+              name: b.name,
+              area: b.area,
+              address: b.address,
+            }))}
+            sections={store.sections}
+            products={goods
+              .filter((p) => p.id)
+              .map((p) => ({
+                id: p.id as string,
+                name: p.name,
+                nameEn: p.nameEn,
+                brand: p.brand ?? null,
+                price: p.price,
+                discountPrice: p.discountPrice,
+                imageUrl: p.imageUrl,
+                attributes: p.attributes,
+                stock: p.stock ?? null,
+                flashPrice: p.flashPrice,
+                flashStart: p.flashStart,
+                flashEnd: p.flashEnd,
+                sectionId: p.sectionId ?? null,
+                isBundle: p.isBundle ?? false,
+                includes: p.includes,
+              }))}
+            initialBrand={initialBrand}
+            zones={zones}
+            checkoutFields={store.checkoutFields}
+          />
+        </>
+      ) : null}
+      {/* Demo/sample stores: a static preview grid, no transaction. */}
+      {!store.isReal && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {store.products.map((p, i) => (
             <div

@@ -663,6 +663,7 @@ export default async function StorePage({
           lang={lang}
           dict={dict}
           surface={experience.itemSurface}
+          canOrderProducts={experience.canOrderProducts}
           directoryOnly={experience.directoryOnly}
           doctors={doctors}
           providerServices={providerServices}
