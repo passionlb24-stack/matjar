@@ -27,6 +27,7 @@ export function StoreProductsSection({
   dict,
   surface,
   canOrderProducts,
+  initialServiceId = null,
   directoryOnly = false,
   doctors,
   providerServices,
@@ -50,6 +51,7 @@ export function StoreProductsSection({
   dict: Dictionary;
   surface: ItemSurface;
   canOrderProducts: boolean;
+  initialServiceId?: string | null;
   directoryOnly?: boolean;
   doctors: DoctorView[];
   providerServices: Record<string, string[]>;
@@ -107,6 +109,7 @@ export function StoreProductsSection({
                 specialty: d.specialty,
               }))}
               providerServices={providerServices}
+              initialServiceId={initialServiceId}
               sections={store.sections}
               services={services
                 .filter((p) => p.id)

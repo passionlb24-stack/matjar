@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { cache } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Store as StoreIcon } from "lucide-react";
+import { Store as StoreIcon, CalendarCheck, Clock } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -193,7 +193,11 @@ export default async function ProductPage({
   // directory-only. Booking sectors + directory-only sectors (hotels, real
   // estate, car sales) show a "visit store" / contact link instead — a car is
   // never sold via cart + COD. Derived from the store-experience resolver.
-  const isBooking = !isOrderSurface(product.category);
+  // Decided by the ITEM, not the sector: a booking store can stock goods, and
+  // those must still reach the cart. Only a real service takes the booking CTA.
+  // (Directory-only sectors still never transact.)
+  const isBooking =
+    product.itemKind === "service" || !isOrderSurface(product.category);
   const soldOut = product.stock != null && product.stock <= 0;
 
   // Back-in-stock: is this signed-in viewer already waiting on this product?
@@ -344,13 +348,38 @@ export default async function ProductPage({
 
             <div className="mt-6 rounded-2xl border border-border bg-surface p-5">
               {isBooking ? (
-                <Link
-                  href={`/${lang}/store/${product.storeId}`}
-                  className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-6 py-3 font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-                >
-                  <StoreIcon className="h-4 w-4" />
-                  {dict.product.visitStore}
-                </Link>
+                /* A service page used to dead-end on a bare "visit store" link:
+                   no idea what happens next, and the customer landed at the top
+                   of the storefront having to find the service again. Now it
+                   states the outcome and deep-links with the service preselected. */
+                <>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    {dict.product.bookingLead}
+                  </p>
+                  {product.durationMinutes ? (
+                    <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold">
+                      <Clock className="h-4 w-4 text-primary" />
+                      {dict.product.durationLabel.replace(
+                        "{n}",
+                        String(product.durationMinutes),
+                      )}
+                    </p>
+                  ) : null}
+                  <Link
+                    href={`/${lang}/store/${product.storeId}?service=${product.id}`}
+                    className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-6 py-3.5 font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
+                  >
+                    <CalendarCheck className="h-4.5 w-4.5" />
+                    {dict.product.bookThisService}
+                  </Link>
+                  <Link
+                    href={`/${lang}/store/${product.storeId}`}
+                    className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl border border-border px-6 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                  >
+                    <StoreIcon className="h-4 w-4" />
+                    {dict.product.visitStore}
+                  </Link>
+                </>
               ) : (
                 <ProductOrder
                   lang={lang}

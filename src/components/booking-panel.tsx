@@ -68,6 +68,7 @@ export function BookingPanel({
   doctors = [],
   providerServices = {},
   sections = [],
+  initialServiceId = null,
 }: {
   storeId: string;
   lang: Locale;
@@ -84,6 +85,8 @@ export function BookingPanel({
   /** productId -> provider ids that offer it. Absent/empty = any provider. */
   providerServices?: Record<string, string[]>;
   sections?: SectionInfo[];
+  /** Preselect a service — set when the customer arrives from a service page. */
+  initialServiceId?: string | null;
 }) {
   const router = useRouter();
   const Icon = categoryIcons[category];
@@ -100,7 +103,9 @@ export function BookingPanel({
   const [pickedDate, setPickedDate] = useState("");
   // Availability is scoped to the chosen service (a different service at the
   // same time is fine — different provider/room), so we track the selection.
-  const [serviceId, setServiceId] = useState("");
+  // Arriving from a service detail page preselects it, so the customer lands on
+  // the slot picker instead of an empty dropdown they must re-navigate.
+  const [serviceId, setServiceId] = useState(initialServiceId ?? "");
   // Coupon (validated against the chosen service price; discount is honored on
   // arrival — there's no online payment).
   const [couponInput, setCouponInput] = useState("");

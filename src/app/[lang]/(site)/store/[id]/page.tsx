@@ -140,10 +140,13 @@ export default async function StorePage({
   searchParams,
 }: {
   params: Promise<{ lang: string; id: string }>;
-  searchParams?: Promise<{ brand?: string }>;
+  searchParams?: Promise<{ brand?: string; service?: string }>;
 }) {
   const { lang, id } = await params;
-  const initialBrand = (await searchParams)?.brand ?? null;
+  const sp = await searchParams;
+  const initialBrand = sp?.brand ?? null;
+  // Deep link from a service detail page preselects that service in the panel.
+  const initialServiceId = sp?.service ?? null;
   if (!isLocale(lang)) notFound();
 
   const store = await loadStore(id, lang);
@@ -586,7 +589,14 @@ export default async function StorePage({
 
         {store.isReal && experience.showServiceRequest && (
           <div className="mt-10">
-            <ServiceRequestForm storeId={id} lang={lang} dict={dict} />
+            <ServiceRequestForm
+              storeId={id}
+              lang={lang}
+              dict={dict}
+              examples={store.products
+                .filter((p) => p.itemKind === "service")
+                .map((p) => p.name)}
+            />
           </div>
         )}
 
@@ -664,6 +674,7 @@ export default async function StorePage({
           dict={dict}
           surface={experience.itemSurface}
           canOrderProducts={experience.canOrderProducts}
+          initialServiceId={initialServiceId}
           directoryOnly={experience.directoryOnly}
           doctors={doctors}
           providerServices={providerServices}

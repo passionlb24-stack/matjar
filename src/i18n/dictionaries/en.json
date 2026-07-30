@@ -464,6 +464,8 @@
       "subtitle": "Tell us what you need and the provider will reply with a quote.",
       "describe": "Describe the service you need",
       "describeHint": "e.g. Fix electrical wiring in two rooms…",
+      "describePrefix": "e.g.",
+      "describeHintGeneric": "Tell us which service you need…",
       "address": "Your address",
       "phone": "Phone number",
       "name": "Your name (optional)",
@@ -3288,6 +3290,9 @@
     "callSeller": "Call",
     "contactWaGreeting": "Hi, I'm interested in the listing:",
     "visitStore": "Visit store",
+    
+    
+    
     "publish": "Post a listing",
     "myListings": "My listings",
     "myListingsEmpty": "You have no listings yet. Post your first one!",
@@ -3440,6 +3445,9 @@
     "moreFromStore": "More from this store",
     "similar": "Similar products",
     "recentlyViewed": "Recently viewed",
+    "bookThisService": "Book this service",
+    "bookingLead": "Pick a time that suits you and confirm in seconds.",
+    "durationLabel": "Duration: {n} min",
     "boughtTogether": "Frequently bought together"
   },
   "wishlist": {

@@ -29,10 +29,14 @@ export function ServiceRequestForm({
   storeId,
   lang,
   dict,
+  examples = [],
 }: {
   storeId: string;
   lang: Locale;
   dict: Dictionary;
+  /** The store own service names — the placeholder example is built from these
+   *  so a marketing agency never shows an electrical-wiring example. */
+  examples?: string[];
 }) {
   const router = useRouter();
   const confirm = useConfirm();
@@ -150,7 +154,11 @@ export function ServiceRequestForm({
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder={t.describeHint}
+              placeholder={
+                examples.length
+                  ? `${t.describePrefix} ${examples.slice(0, 2).join("، ")}…`
+                  : t.describeHintGeneric
+              }
               rows={2}
               className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
             />

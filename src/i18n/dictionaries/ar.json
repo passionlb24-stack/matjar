@@ -464,6 +464,8 @@
       "subtitle": "احكيلنا شو بدّك، وبيرجعلك مقدّم الخدمة بعرض سعر.",
       "describe": "وصف الخدمة المطلوبة",
       "describeHint": "مثلاً: تصليح تمديدات كهربائية بغرفتين…",
+      "describePrefix": "مثلاً:",
+      "describeHintGeneric": "احكيلنا شو الخدمة يلي بدّك ياها…",
       "address": "عنوانك",
       "phone": "رقم الهاتف",
       "name": "اسمك (اختياري)",
@@ -3288,6 +3290,9 @@
     "callSeller": "اتصال",
     "contactWaGreeting": "مرحبا، مهتمّ بالإعلان:",
     "visitStore": "زيارة المتجر",
+    
+    
+    
     "publish": "نشر إعلان",
     "myListings": "إعلاناتي",
     "myListingsEmpty": "لسا ما عندك إعلانات. انشر أول إعلان!",
@@ -3440,6 +3445,9 @@
     "moreFromStore": "منتجات أخرى من نفس المتجر",
     "similar": "منتجات مشابهة",
     "recentlyViewed": "شاهدتها مؤخراً",
+    "bookThisService": "احجز هالخدمة",
+    "bookingLead": "اختار الوقت يلي بيناسبك وأكّد حجزك بثواني.",
+    "durationLabel": "مدّة الخدمة: {n} دقيقة",
     "boughtTogether": "يُشترى عادةً مع"
   },
   "wishlist": {

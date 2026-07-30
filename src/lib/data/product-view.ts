@@ -20,6 +20,9 @@ export type ProductView = {
   acceptsDelivery: boolean;
   acceptsPickup: boolean;
   category: CategoryKey;
+  /** product = cart, service = booked. Decides this page CTA. */
+  itemKind: "product" | "service";
+  durationMinutes: number | null;
   name: string;
   nameEn: string | null;
   brand: string | null;
@@ -50,7 +53,7 @@ async function fetchProductView(
   const { data } = await supabase
     .from("products")
     .select(
-      "id, store_id, name, name_en, brand, description, description_en, price, discount_price, flash_price, flash_start, flash_end, image_url, gallery, stock, attributes, is_bundle, stores(name, accepts_delivery, accepts_pickup, business_types(slug))",
+      "id, store_id, name, name_en, brand, description, description_en, price, discount_price, flash_price, flash_start, flash_end, image_url, gallery, stock, attributes, is_bundle, item_kind, duration_minutes, stores(name, accepts_delivery, accepts_pickup, business_types(slug))",
     )
     .eq("id", id)
     .is("deleted_at", null)
@@ -116,6 +119,8 @@ async function fetchProductView(
     acceptsDelivery: store?.accepts_delivery ?? true,
     acceptsPickup: store?.accepts_pickup ?? true,
     category: (store?.business_types?.slug as CategoryKey) ?? "retail",
+    itemKind: ((data.item_kind as string | null) ?? "product") as "product" | "service",
+    durationMinutes: data.duration_minutes != null ? Number(data.duration_minutes) : null,
     name: data.name as string,
     nameEn: (data.name_en as string | null) ?? null,
     brand: (data.brand as string | null) ?? null,
