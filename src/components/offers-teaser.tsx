@@ -65,7 +65,7 @@ export async function OffersTeaser({
                   </div>
                 )}
                 {p.off > 0 && (
-                  <span className="absolute end-2 top-2 rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white shadow-sm">
+                  <span className="absolute end-2 top-2 rounded-full bg-danger-strong px-2 py-0.5 text-xs font-bold text-danger-strong-foreground shadow-sm">
                     -{p.off}%
                   </span>
                 )}

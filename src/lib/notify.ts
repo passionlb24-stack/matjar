@@ -31,7 +31,14 @@ function notify(message: string, type: ToastType) {
 
   const toast = document.createElement("div");
   toast.setAttribute("role", type === "error" ? "alert" : "status");
-  const bg = type === "error" ? "#dc2626" : "#059669";
+  // Token-driven so the toast follows the active theme; the literals are only a
+  // fallback for the (impossible in practice) case of the vars being absent.
+  // The *-strong tokens, not --danger/--success: those are the on-soft TEXT
+  // colours, and white on the dark-theme --success (#3fb950) is only 2.54:1.
+  const bg =
+    type === "error"
+      ? "var(--danger-strong, #b91c1c)"
+      : "var(--success-strong, #0b7a35)";
   toast.style.cssText = `pointer-events:auto;max-width:32rem;background:${bg};color:#fff;font-weight:600;font-size:.875rem;line-height:1.4;padding:.75rem 1rem;border-radius:.75rem;box-shadow:0 10px 30px -10px rgba(0,0,0,.4);opacity:0;transform:translateY(${reduce ? "0" : ".5rem"});transition:opacity .2s ease,transform .2s ease`;
   toast.textContent = message;
   root.appendChild(toast);

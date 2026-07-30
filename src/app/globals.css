@@ -30,10 +30,20 @@
      tinted background pair for pill/badge fills on the light theme. */
   --success: #0b7a35; /* darkened for AA text on --success-soft (4.9:1) */
   --success-soft: #e8f7ee;
+  /* Solid-fill pair (see --danger-strong). White on this: 5.46:1, and the same
+     value clears AA on the dark ground too, so both themes share it. */
+  --success-strong: #0b7a35;
+  --success-strong-foreground: #ffffff;
   --warning: #a15607; /* darkened for AA text on --warning-soft (4.9:1) */
   --warning-soft: #fdf1e0;
   --danger: #b91c1c; /* darkened for AA text on --danger-soft (5.7:1) */
   --danger-soft: #fdecea;
+  /* Solid-fill pair. The `-soft` tokens are backgrounds for DARK text; this is
+     the inverse — a fill that carries WHITE text. Needed because badges and
+     count pills sit on a solid danger fill, and `--danger` alone is tuned for
+     text-on-soft, not fill-under-white. White on this: 6.47:1. */
+  --danger-strong: #b91c1c;
+  --danger-strong-foreground: #ffffff;
   --info: #0369a1; /* darkened for AA text on --info-soft (5.2:1) */
   --info-soft: #e3f2fb;
 }
@@ -55,10 +65,14 @@
   --color-ring: var(--ring);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
+  --color-success-strong: var(--success-strong);
+  --color-success-strong-foreground: var(--success-strong-foreground);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
+  --color-danger-strong: var(--danger-strong);
+  --color-danger-strong-foreground: var(--danger-strong-foreground);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
 
@@ -138,10 +152,17 @@
     --ring: #4c8dff;
     --success: #3fb950;
     --success-soft: #12261a;
+    /* NOT --success: white on #3fb950 is 2.54. The solid fill stays dark. */
+    --success-strong: #0b7a35;
+    --success-strong-foreground: #ffffff;
     --warning: #d29922;
     --warning-soft: #2a2410;
     --danger: #f85149;
     --danger-soft: #2d1719;
+    /* See the [data-theme="dark"] block: white text on the solid fill needs a
+       darker red than --danger, which is the on-dark TEXT colour. */
+    --danger-strong: #c02626;
+    --danger-strong-foreground: #ffffff;
     --info: #58a6ff;
     --info-soft: #12233a;
   }
@@ -163,10 +184,17 @@
   --ring: #4c8dff;
   --success: #3fb950;
   --success-soft: #12261a;
+  /* NOT --success: white on #3fb950 is 2.54. The solid fill stays dark. */
+  --success-strong: #0b7a35;
+  --success-strong-foreground: #ffffff;
   --warning: #d29922;
   --warning-soft: #2a2410;
   --danger: #f85149;
   --danger-soft: #2d1719;
+  /* Darker than --danger so WHITE text on the fill still clears AA (5.92:1);
+     --danger itself is the bright on-dark TEXT colour and would only give 3.35. */
+  --danger-strong: #c02626;
+  --danger-strong-foreground: #ffffff;
   --info: #58a6ff;
   --info-soft: #12233a;
 }

@@ -82,7 +82,7 @@ export function DealOfTheDay({
               </div>
             )}
             {deal.off > 0 && (
-              <span className="absolute start-4 top-4 rounded-full bg-red-600 px-3 py-1 text-sm font-extrabold text-white shadow">
+              <span className="absolute start-4 top-4 rounded-full bg-danger-strong px-3 py-1 text-sm font-extrabold text-danger-strong-foreground shadow">
                 -{deal.off}%
               </span>
             )}

@@ -145,7 +145,7 @@ export default async function AccountingPage({
             </p>
           </div>
           <div
-            className={`rounded-2xl p-4 ${profit >= 0 ? "bg-primary text-primary-foreground" : "bg-red-600 text-white"}`}
+            className={`rounded-2xl p-4 ${profit >= 0 ? "bg-primary text-primary-foreground" : "bg-danger-strong text-danger-strong-foreground"}`}
           >
             <p className="text-xs font-medium opacity-80">{t.profit}</p>
             <p className="mt-1 text-2xl font-extrabold">{money(profit)}</p>

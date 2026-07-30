@@ -786,7 +786,7 @@ export function BookingPanel({
                       dir="ltr"
                       className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
                         tt === time
-                          ? "bg-red-500 text-white"
+                          ? "bg-danger-strong text-danger-strong-foreground"
                           : "bg-warning-soft text-warning"
                       }`}
                     >
