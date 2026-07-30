@@ -2932,6 +2932,10 @@
     "joinBody": "Get in touch to join and deliver orders for hundreds of Matjar stores.",
     "contactCta": "Contact us"
   },
+  "upload": {
+    "tooLarge": "Image is too large (25 MB max). Try a smaller one.",
+    "failed": "Couldn't upload the image. Please try again."
+  },
   "jobs": {
     "title": "Jobs",
     "subtitle": "Job openings across Lebanon — apply or post a job for free.",

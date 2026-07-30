@@ -5,11 +5,29 @@ import Image from "next/image";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { hasNativeCamera, pickNativeImage } from "@/lib/native";
+import type { Dictionary } from "@/i18n/get-dictionary";
 
-// Downscale + recompress an image before upload so every asset on the site has a
-// sane, consistent weight (phone photos are often 4000px / several MB). Caps the
-// longest side to 1600px; keeps PNG (transparency, e.g. logos), else JPEG.
-async function downscaleImage(file: File, maxDim = 1600, quality = 0.85): Promise<File> {
+// Target weight for any uploaded image — keeps pages fast on Lebanese mobile
+// data. We compress DOWN to this rather than rejecting the user's photo (phone
+// shots are routinely 3–6 MB; a hard limit would just block them).
+const TARGET_BYTES = 1_000_000; // ~1 MB
+// Guard against a genuinely huge file that could hang/crash the canvas step on a
+// low-end phone. This is a "too big to process" wall, not the size budget.
+const MAX_RAW_BYTES = 25_000_000; // 25 MB
+
+function encode(
+  canvas: HTMLCanvasElement,
+  type: string,
+  quality: number,
+): Promise<Blob | null> {
+  return new Promise((res) => canvas.toBlob(res, type, quality));
+}
+
+// Downscale + recompress an image before upload so every asset has a sane weight
+// (phone photos are often 4000px / several MB). Caps the longest side to 1600px,
+// then steps quality down until the result is under TARGET_BYTES. Keeps PNG for
+// transparency (logos); everything else becomes JPEG.
+async function downscaleImage(file: File, maxDim = 1600): Promise<File> {
   if (
     !file.type.startsWith("image/") ||
     file.type === "image/gif" ||
@@ -42,10 +60,23 @@ async function downscaleImage(file: File, maxDim = 1600, quality = 0.85): Promis
   }
   ctx.drawImage(bitmap, 0, 0, w, h);
   bitmap.close?.();
-  const outType = file.type === "image/png" ? "image/png" : "image/jpeg";
-  const blob: Blob | null = await new Promise((res) =>
-    canvas.toBlob(res, outType, quality),
-  );
+
+  // PNGs (toBlob ignores quality for PNG) can't be squeezed by quality — if a
+  // PNG is still heavy, re-encode it as JPEG to hit the budget.
+  const isPng = file.type === "image/png";
+  let outType = isPng ? "image/png" : "image/jpeg";
+  let blob = await encode(canvas, outType, 0.85);
+
+  // Step quality down until under budget (JPEG only — PNG size won't move).
+  if (blob && blob.size > TARGET_BYTES) {
+    if (isPng) outType = "image/jpeg";
+    for (const q of [0.8, 0.7, 0.6, 0.5, 0.4]) {
+      const next = await encode(canvas, outType, q);
+      if (next) blob = next;
+      if (next && next.size <= TARGET_BYTES) break;
+    }
+  }
+
   if (!blob || blob.size >= file.size) return file; // no gain — keep original
   const base = file.name.replace(/\.[^.]+$/, "");
   const ext = outType === "image/png" ? "png" : "jpg";
@@ -57,29 +88,47 @@ export function ImageUpload({
   value,
   onChange,
   label,
+  dict,
 }: {
   folder: string;
   value: string | null;
   onChange: (url: string | null) => void;
   label: string;
+  /** Optional — enables localized error text; falls back to Arabic if omitted. */
+  dict?: Dictionary;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const tooLargeMsg =
+    dict?.upload?.tooLarge ?? "الصورة كبيرة جدًّا. جرّب صورة أصغر.";
+  const failedMsg =
+    dict?.upload?.failed ?? "تعذّر رفع الصورة. جرّب مرّة تانية.";
 
   async function uploadFile(rawFile: File) {
+    setError(null);
+    // Reject only genuinely huge files (can't be processed) — everything else is
+    // compressed down, never rejected for weight.
+    if (rawFile.size > MAX_RAW_BYTES) {
+      setError(tooLargeMsg);
+      return;
+    }
     setUploading(true);
     const file = await downscaleImage(rawFile);
     const supabase = createClient();
     const ext = file.name.split(".").pop() ?? "jpg";
     const path = `${folder}/${crypto.randomUUID()}.${ext}`;
-    const { error } = await supabase.storage
+    const { error: upErr } = await supabase.storage
       .from("store-assets")
       .upload(path, file, { cacheControl: "3600", upsert: false });
-    if (!error) {
+    if (!upErr) {
       const { data } = supabase.storage
         .from("store-assets")
         .getPublicUrl(path);
       onChange(data.publicUrl);
+    } else {
+      setError(failedMsg);
     }
     setUploading(false);
   }
@@ -142,6 +191,9 @@ export function ImageUpload({
           onChange={onFile}
           className="hidden"
         />
+        {error && (
+          <p className="mt-1.5 text-xs font-medium text-danger">{error}</p>
+        )}
       </div>
     </div>
   );
