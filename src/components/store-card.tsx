@@ -46,7 +46,7 @@ export function StoreCard({
         </div>
         <span
           className={`absolute start-3 top-3 rounded-full px-2.5 py-1 text-xs font-bold text-white ${
-            store.isOpen ? "bg-emerald-700" : "bg-slate-600"
+            store.isOpen ? "bg-emerald-700" : "bg-muted-foreground"
           }`}
         >
           {store.isOpen ? dict.featured.open : dict.featured.closed}

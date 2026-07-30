@@ -33,7 +33,7 @@ const statusStyle: Record<BookingStatus, string> = {
   scheduled: "bg-info-soft text-info",
   completed: "bg-success-soft text-success",
   no_show: "bg-warning-soft text-warning",
-  cancelled: "bg-slate-100 text-slate-600",
+  cancelled: "bg-surface-muted text-muted-foreground",
   rejected: "bg-danger-soft text-danger",
 };
 

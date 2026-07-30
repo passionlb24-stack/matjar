@@ -22,7 +22,7 @@ export type TaskRow = {
 const priorityDot: Record<TaskRow["priority"], string> = {
   high: "bg-red-500",
   normal: "bg-amber-400",
-  low: "bg-zinc-300",
+  low: "bg-border",
 };
 
 // Tasks & reminders module of the Business OS. Deliberately tiny: title, due

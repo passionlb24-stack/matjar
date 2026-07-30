@@ -17,7 +17,7 @@ type StoreRow = {
 const statusStyle: Record<StoreRow["status"], string> = {
   pending: "bg-warning-soft text-warning",
   active: "bg-success-soft text-success",
-  suspended: "bg-slate-100 text-slate-600",
+  suspended: "bg-surface-muted text-muted-foreground",
   rejected: "bg-danger-soft text-danger",
 };
 

@@ -65,7 +65,7 @@ export function StoreHeader({
                 {store.name}
               </h1>
               <span
-                className={`rounded-full px-2.5 py-0.5 text-xs font-bold text-white ${store.isOpen ? "bg-emerald-600" : "bg-slate-500"}`}
+                className={`rounded-full px-2.5 py-0.5 text-xs font-bold text-white ${store.isOpen ? "bg-emerald-600" : "bg-muted-foreground"}`}
               >
                 {store.isOpen ? dict.store.openNow : dict.store.closed}
               </span>

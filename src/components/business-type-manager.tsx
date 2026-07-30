@@ -263,7 +263,7 @@ export function BusinessTypeManager({
                       {item.slug}
                     </span>
                     {!item.is_active && (
-                      <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-xs font-bold text-zinc-600">
+                      <span className="rounded-full bg-surface-muted px-2 py-0.5 text-xs font-bold text-muted-foreground">
                         {t.inactiveBadge}
                       </span>
                     )}

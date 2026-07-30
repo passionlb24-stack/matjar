@@ -18,7 +18,7 @@ const STATUSES = ["all", "active", "pending", "sold", "expired", "rejected", "dr
 const statusStyle: Record<string, string> = {
   active: "bg-success-soft text-success",
   pending: "bg-warning-soft text-warning",
-  sold: "bg-zinc-800 text-white",
+  sold: "bg-foreground text-background",
   expired: "bg-warning-soft text-warning",
   rejected: "bg-danger-soft text-danger",
   draft: "bg-zinc-200 text-zinc-600",
