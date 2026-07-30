@@ -55,13 +55,13 @@ export function HeaderSearch({
               placeholder={dict.hero.searchPlaceholder}
               aria-label={dict.hero.searchButton}
               tabIndex={show ? 0 : -1}
-              className="h-10 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              className="h-11 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             />
           </div>
           <button
             type="submit"
             tabIndex={show ? 0 : -1}
-            className="h-10 shrink-0 rounded-xl bg-primary px-5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover active:scale-[0.97]"
+            className="h-11 shrink-0 rounded-xl bg-primary px-5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover active:scale-[0.97]"
           >
             {dict.hero.searchButton}
           </button>

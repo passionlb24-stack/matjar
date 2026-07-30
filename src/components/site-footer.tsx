@@ -105,12 +105,15 @@ export function SiteFooter({ lang, dict }: { lang: Locale; dict: Dictionary }) {
               <h3 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
                 {col.title}
               </h3>
-              <ul className="mt-4 space-y-2.5">
+              {/* Links carry vertical padding so the touch target clears 44px
+                  (WCAG 2.5.5) — measured at 20px before. The negative inline
+                  margin keeps the text where it was, so only the hit area grows. */}
+              <ul className="mt-3 space-y-0.5">
                 {col.links.map((link) => (
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-muted-foreground transition-colors hover:text-primary"
+                      className="-mx-2 inline-flex min-h-11 items-center px-2 text-sm text-muted-foreground transition-colors hover:text-primary"
                     >
                       {link.label}
                     </Link>

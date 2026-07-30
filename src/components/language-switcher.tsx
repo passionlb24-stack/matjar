@@ -24,7 +24,9 @@ export function LanguageSwitcher({
           <Link
             key={locale}
             href={href}
-            className={`rounded-md px-2.5 py-1 text-sm font-semibold transition-colors ${
+            // min-h-11 keeps the touch target at 44px while the pill itself
+            // stays visually compact.
+            className={`inline-flex min-h-11 items-center rounded-md px-2.5 text-sm font-semibold transition-colors ${
               isActive
                 ? "bg-foreground text-background"
                 : "text-muted-foreground hover:text-foreground"

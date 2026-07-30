@@ -123,7 +123,7 @@ export function HeaderBells({
       <Link
         href={`/${lang}/messages`}
         aria-label={label(dict.common.messages, msgs)}
-        className="relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-surface-muted"
+        className="relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors after:absolute after:left-1/2 after:top-1/2 after:h-11 after:w-11 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] hover:bg-surface-muted"
       >
         <MessageCircle className="h-5 w-5" />
         <CountBadge count={msgs} />
@@ -131,7 +131,7 @@ export function HeaderBells({
       <Link
         href={`/${lang}/notifications`}
         aria-label={label(dict.common.notifications, notifs)}
-        className="relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-surface-muted"
+        className="relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors after:absolute after:left-1/2 after:top-1/2 after:h-11 after:w-11 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] hover:bg-surface-muted"
       >
         <Bell className="h-5 w-5" />
         <CountBadge count={notifs} />

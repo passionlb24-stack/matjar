@@ -241,6 +241,7 @@ export function ExploreClient({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={dict.explore.searchPlaceholder}
+              aria-label={dict.explore.searchPlaceholder}
               className="w-full bg-transparent py-4 text-[15px] outline-none placeholder:text-muted-foreground"
             />
           </div>

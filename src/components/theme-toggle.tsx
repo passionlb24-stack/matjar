@@ -43,7 +43,8 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
       onClick={toggle}
       aria-label={isDark ? "الوضع الفاتح" : "الوضع الداكن"}
       title={isDark ? "الوضع الفاتح" : "الوضع الداكن"}
-      className={`inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground active:scale-95 ${className}`}
+      // 36px visual, 44px hit area (WCAG 2.5.5) via a transparent outset.
+      className={`relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors after:absolute after:left-1/2 after:top-1/2 after:h-11 after:w-11 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] hover:bg-surface-muted hover:text-foreground active:scale-95 ${className}`}
     >
       {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
     </button>

@@ -3247,6 +3247,8 @@
     "search": "دوّر على إعلان…",
     "allCategories": "كل التصنيفات",
     "allRegions": "كل المناطق",
+    "filterRegion": "المنطقة",
+    "filterDate": "تاريخ النشر",
     "city": "المدينة",
     "cityPlaceholder": "مثلاً: طرابلس",
     "priceMin": "من ($)",

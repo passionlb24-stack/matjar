@@ -64,6 +64,7 @@ export function HeroSearch({
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder={dict.hero.searchPlaceholder}
+            aria-label={dict.hero.searchButton}
             className="w-full bg-transparent py-3 text-[15px] outline-none placeholder:text-muted-foreground"
           />
         </div>

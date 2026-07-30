@@ -3247,6 +3247,8 @@
     "search": "Search listings…",
     "allCategories": "All categories",
     "allRegions": "All regions",
+    "filterRegion": "Region",
+    "filterDate": "Date posted",
     "city": "City",
     "cityPlaceholder": "e.g. Tripoli",
     "priceMin": "From ($)",

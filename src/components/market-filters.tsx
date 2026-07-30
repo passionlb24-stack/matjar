@@ -115,10 +115,13 @@ export function MarketFilters({
         }}
         className="flex items-center gap-2"
       >
+        {/* Every control carries an aria-label: a placeholder is not an
+            accessible name (it vanishes on input, and <select> has none at all). */}
         <Input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={t.search}
+          aria-label={t.search}
           className="flex-1"
         />
         <Button type="submit" size="sm">
@@ -152,7 +155,12 @@ export function MarketFilters({
 
       <div className="flex flex-wrap items-end gap-2 rounded-xl border border-border bg-surface-muted/40 p-3">
         <SlidersHorizontal className="h-4 w-4 self-center text-muted-foreground" />
-        <Select value={region} onChange={(e) => setRegion(e.target.value)} className="w-40">
+        <Select
+          value={region}
+          onChange={(e) => setRegion(e.target.value)}
+          aria-label={t.filterRegion}
+          className="w-40"
+        >
           <option value="all">{t.allRegions}</option>
           {regionList.map((r) => (
             <option key={r.key} value={r.key}>
@@ -161,7 +169,7 @@ export function MarketFilters({
           ))}
         </Select>
         <div className="w-28">
-          <Input value={city} onChange={(e) => setCity(e.target.value)} list="market-filter-cities" placeholder={t.city} />
+          <Input value={city} onChange={(e) => setCity(e.target.value)} list="market-filter-cities" placeholder={t.city} aria-label={t.city} />
         </div>
         <datalist id="market-filter-cities">
           {cities
@@ -171,18 +179,23 @@ export function MarketFilters({
             ))}
         </datalist>
         <div className="w-24">
-          <Input value={priceMin} onChange={(e) => setPriceMin(e.target.value)} type="number" min="0" placeholder={t.priceMin} />
+          <Input value={priceMin} onChange={(e) => setPriceMin(e.target.value)} type="number" min="0" placeholder={t.priceMin} aria-label={t.priceMin} />
         </div>
         <div className="w-24">
-          <Input value={priceMax} onChange={(e) => setPriceMax(e.target.value)} type="number" min="0" placeholder={t.priceMax} />
+          <Input value={priceMax} onChange={(e) => setPriceMax(e.target.value)} type="number" min="0" placeholder={t.priceMax} aria-label={t.priceMax} />
         </div>
-        <Select value={datePosted} onChange={(e) => setDatePosted(e.target.value)} className="w-32">
+        <Select
+          value={datePosted}
+          onChange={(e) => setDatePosted(e.target.value)}
+          aria-label={t.filterDate}
+          className="w-32"
+        >
           <option value="any">{t.dateAny}</option>
           <option value="24h">{t.date24h}</option>
           <option value="7d">{t.date7d}</option>
           <option value="30d">{t.date30d}</option>
         </Select>
-        <Select value={sort} onChange={(e) => setSort(e.target.value)} className="w-40">
+        <Select value={sort} onChange={(e) => setSort(e.target.value)} aria-label={t.sort} className="w-40">
           <option value="newest">{t.sortNewest}</option>
           <option value="oldest">{t.sortOldest}</option>
           <option value="cheapest">{t.sortCheapest}</option>
