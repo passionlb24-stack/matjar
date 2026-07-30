@@ -8,6 +8,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { regions } from "@/lib/catalog";
 import { GIG_CATEGORIES } from "@/lib/gigs";
 import { ImageUpload } from "@/components/image-upload";
+import { GalleryUpload } from "@/components/gallery-upload";
 import { Field, Input, Textarea, Select } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 
@@ -25,6 +26,9 @@ export function GigForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  // Work samples are the single biggest decision driver for a service listing —
+  // one cover image can't sell a design/writing gig.
+  const [gallery, setGallery] = useState<string[]>([]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -41,6 +45,12 @@ export function GigForm({
     }
     const priceRaw = String(form.get("price") ?? "").trim();
     const daysRaw = String(form.get("delivery_days") ?? "").trim();
+    const revisionsRaw = String(form.get("revisions") ?? "").trim();
+    // "What's included" is captured as up to 3 short bullets, stored as an array.
+    const includes = [1, 2, 3]
+      .map((i) => String(form.get(`include_${i}`) ?? "").trim())
+      .filter(Boolean);
+    const link = String(form.get("portfolio_link") ?? "").trim();
     const { data, error: insErr } = await supabase
       .from("gigs")
       .insert({
@@ -52,7 +62,11 @@ export function GigForm({
         price: priceRaw === "" ? null : Number(priceRaw),
         delivery_days: daysRaw === "" ? null : Number(daysRaw),
         region: String(form.get("region")) || null,
-        image_url: imageUrl,
+        image_url: imageUrl ?? gallery[0] ?? null,
+        gallery: gallery.length ? gallery : null,
+        includes: includes.length ? includes : null,
+        revisions: revisionsRaw === "" ? null : Number(revisionsRaw),
+        portfolio_link: link || null,
       })
       .select("id")
       .single();
@@ -102,6 +116,45 @@ export function GigForm({
       <Field label={t.description} htmlFor="description" required>
         <Textarea id="description" name="description" rows={5} required placeholder={t.descriptionPlaceholder} />
       </Field>
+
+      {/* Work samples — what actually sells the service. */}
+      <GalleryUpload
+        folder="gigs"
+        value={gallery}
+        onChange={setGallery}
+        label={t.workSamples}
+        max={6}
+      />
+      <p className="-mt-2 text-xs text-muted-foreground">{t.workSamplesHint}</p>
+
+      {/* The two questions every buyer asks before contacting. */}
+      <div>
+        <span className="text-sm font-semibold">{t.includesLabel}</span>
+        <div className="mt-2 space-y-2">
+          {[1, 2, 3].map((i) => (
+            <Input
+              key={i}
+              name={`include_${i}`}
+              type="text"
+              placeholder={t.includesPlaceholder.replace("{n}", String(i))}
+            />
+          ))}
+        </div>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label={t.revisions} htmlFor="revisions">
+          <Input id="revisions" name="revisions" type="number" min="0" step="1" />
+        </Field>
+        <Field label={t.portfolioLink} htmlFor="portfolio_link">
+          <Input
+            id="portfolio_link"
+            name="portfolio_link"
+            type="url"
+            dir="ltr"
+            placeholder="https://…"
+          />
+        </Field>
+      </div>
 
       {error && <p className="text-sm font-medium text-danger">{error}</p>}
       <Button type="submit" loading={loading}>

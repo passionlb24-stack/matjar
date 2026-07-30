@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ChevronRight, MapPin, User, Package } from "lucide-react";
+import { ChevronRight, MapPin, User, Package, Images } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -59,7 +59,7 @@ export default async function WholesaleDetailPage({
   const { data } = await supabase
     .from("wholesale_products")
     .select(
-      "id, seller_id, seller_name, title, description, category, image_url, unit, moq, price, tiers, region",
+      "id, seller_id, seller_name, title, description, category, image_url, unit, moq, price, tiers, region, gallery",
     )
     .eq("id", id)
     .maybeSingle();
@@ -173,7 +173,11 @@ export default async function WholesaleDetailPage({
             </div>
           </div>
 
-          {!isOwn && (
+          {isOwn ? (
+            <p className="mt-5 rounded-xl bg-surface-muted px-4 py-3 text-sm font-semibold text-muted-foreground">
+              {t.ownerPreviewNote}
+            </p>
+          ) : (
             <div className="mt-5">
               <StartChatButton
                 userId={w.seller_id}
@@ -183,6 +187,29 @@ export default async function WholesaleDetailPage({
             </div>
           )}
         </Card>
+
+        {/* Extra product shots. */}
+        {Array.isArray(w.gallery) && w.gallery.length > 0 && (
+          <div className="mt-6">
+            <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
+              <Images className="h-5 w-5 text-primary" />
+              {t.gallery}
+            </h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {w.gallery.map((url) => (
+                <Image
+                  key={url}
+                  src={url}
+                  alt={w.title}
+                  width={400}
+                  height={400}
+                  className="aspect-square w-full rounded-xl object-cover"
+                  sizes="(max-width: 640px) 50vw, 220px"
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </Container>
     </div>
   );

@@ -21,4 +21,8 @@ export type JobPosting = {
   how_to_apply: string | null;
   status: string;
   created_at: string;
+  // Reachable-contact + decision depth (migration 0204). All optional.
+  apply_email?: string | null;
+  apply_deadline?: string | null;
+  experience_level?: string | null;
 };

@@ -2,7 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ChevronRight, Clock, MapPin, User } from "lucide-react";
+import {
+  ChevronRight,
+  Clock,
+  MapPin,
+  User,
+  Check,
+  Images,
+  ExternalLink,
+} from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -59,7 +67,7 @@ export default async function GigDetailPage({
   const { data } = await supabase
     .from("gigs")
     .select(
-      "id, freelancer_id, freelancer_name, title, description, category, price, delivery_days, image_url, region",
+      "id, freelancer_id, freelancer_name, title, description, category, price, delivery_days, image_url, region, gallery, includes, revisions, portfolio_link",
     )
     .eq("id", id)
     .maybeSingle();
@@ -127,6 +135,27 @@ export default async function GigDetailPage({
             {gig.description}
           </p>
 
+          {/* What the starting price covers — the buyer's first question. */}
+          {Array.isArray(gig.includes) && gig.includes.length > 0 && (
+            <div className="mt-4 border-t border-border pt-4">
+              <h2 className="text-sm font-bold">{t.includesLabel}</h2>
+              <ul className="mt-2 space-y-1.5">
+                {gig.includes.map((it) => (
+                  <li key={it} className="flex items-start gap-2 text-sm">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    {it}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {gig.revisions != null && (
+            <p className="mt-3 text-sm font-semibold">
+              {t.revisions}:{" "}
+              <span className="text-primary">{gig.revisions}</span>
+            </p>
+          )}
+
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
             {gig.price != null && (
               <div>
@@ -136,7 +165,13 @@ export default async function GigDetailPage({
                 </p>
               </div>
             )}
-            {!isOwn && (
+            {isOwn ? (
+              // The owner can't see the visitor CTA, which reads as "there is no
+              // way to contact me" — state plainly what a visitor sees instead.
+              <p className="rounded-xl bg-surface-muted px-4 py-3 text-sm font-semibold text-muted-foreground">
+                {t.ownerPreviewNote}
+              </p>
+            ) : (
               <ContactFreelancerButton
                 freelancerId={gig.freelancer_id}
                 lang={lang as Locale}
@@ -145,6 +180,42 @@ export default async function GigDetailPage({
             )}
           </div>
         </Card>
+
+        {/* Work samples gallery — the strongest signal a service listing has. */}
+        {Array.isArray(gig.gallery) && gig.gallery.length > 0 && (
+          <div className="mt-6">
+            <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
+              <Images className="h-5 w-5 text-primary" />
+              {t.workSamples}
+            </h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {gig.gallery.map((url) => (
+                <Image
+                  key={url}
+                  src={url}
+                  alt={gig.title}
+                  width={400}
+                  height={400}
+                  className="aspect-square w-full rounded-xl object-cover"
+                  sizes="(max-width: 640px) 50vw, 220px"
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {gig.portfolio_link && (
+          <a
+            href={gig.portfolio_link}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+            dir="ltr"
+          >
+            <ExternalLink className="h-4 w-4" />
+            {t.portfolioLink}
+          </a>
+        )}
       </Container>
     </div>
   );

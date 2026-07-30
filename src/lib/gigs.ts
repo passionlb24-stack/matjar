@@ -25,4 +25,13 @@ export type Gig = {
   region: string | null;
   status: string;
   created_at: string;
+  // Decision-support depth (migration 0204). All optional — older gigs have none.
+  /** Work samples beyond the cover image. */
+  gallery?: string[] | null;
+  /** Short "what's included" bullets. */
+  includes?: string[] | null;
+  /** Revisions included in the starting price. */
+  revisions?: number | null;
+  /** One optional external portfolio/profile link. */
+  portfolio_link?: string | null;
 };

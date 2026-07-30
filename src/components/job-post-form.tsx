@@ -48,6 +48,11 @@ export function JobPostForm({
         job_type: String(form.get("job_type")) || null,
         salary_note: String(form.get("salary_note")) || null,
         how_to_apply: String(form.get("how_to_apply")) || null,
+        // Structured so a posting can't advertise "apply by email" with no
+        // address (the DB also enforces the format).
+        apply_email: String(form.get("apply_email") ?? "").trim() || null,
+        apply_deadline: String(form.get("apply_deadline") ?? "") || null,
+        experience_level: String(form.get("experience_level") ?? "") || null,
       })
       .select("id")
       .single();
@@ -95,7 +100,29 @@ export function JobPostForm({
       <Field label={t.description} htmlFor="description" required>
         <Textarea id="description" name="description" rows={5} required placeholder={t.descriptionPlaceholder} />
       </Field>
-      <Field label={t.howToApply} htmlFor="how_to_apply">
+      <Field label={t.applyEmail} htmlFor="apply_email" hint={t.applyEmailHint}>
+        <Input
+          id="apply_email"
+          name="apply_email"
+          type="email"
+          dir="ltr"
+          placeholder="jobs@company.com"
+        />
+      </Field>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label={t.experienceLevel} htmlFor="experience_level">
+          <Select id="experience_level" name="experience_level" defaultValue="">
+            <option value="">{t.selectExperience}</option>
+            <option value="entry">{t.expEntry}</option>
+            <option value="mid">{t.expMid}</option>
+            <option value="senior">{t.expSenior}</option>
+          </Select>
+        </Field>
+        <Field label={t.applyDeadline} htmlFor="apply_deadline">
+          <Input id="apply_deadline" name="apply_deadline" type="date" />
+        </Field>
+      </div>
+      <Field label={t.howToApply} htmlFor="how_to_apply" hint={t.howToApplyOtherHint}>
         <Input id="how_to_apply" name="how_to_apply" type="text" placeholder={t.howToApplyPlaceholder} />
       </Field>
 

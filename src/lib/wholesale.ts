@@ -29,4 +29,6 @@ export type WholesaleProduct = {
   region: string | null;
   status: string;
   created_at: string;
+  /** Extra product shots beyond the cover (migration 0204). */
+  gallery?: string[] | null;
 };

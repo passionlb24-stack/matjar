@@ -1,7 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Briefcase, MapPin, ChevronRight, Phone, FileText } from "lucide-react";
+import {
+  Briefcase,
+  MapPin,
+  ChevronRight,
+  Phone,
+  FileText,
+  Mail,
+  CalendarClock,
+  GraduationCap,
+} from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -67,7 +76,7 @@ export default async function JobDetailPage({
   const { data } = await supabase
     .from("job_postings")
     .select(
-      "id, poster_id, title, company_name, description, region, job_type, salary_note, how_to_apply, status, created_at",
+      "id, poster_id, title, company_name, description, region, job_type, salary_note, how_to_apply, apply_email, apply_deadline, experience_level, status, created_at",
     )
     .eq("id", id)
     .maybeSingle();
@@ -97,6 +106,20 @@ export default async function JobDetailPage({
 
   const regionName =
     regions.find((r) => r.key === job.region)?.name[lang] ?? job.region;
+  // Deadline compared date-only so "today" is still open. toISOString is UTC —
+  // fine for a coarse day-granularity gate.
+  const deadlinePassed =
+    !!job.apply_deadline &&
+    job.apply_deadline < new Date().toISOString().slice(0, 10);
+  const expLabel = job.experience_level
+    ? (
+        {
+          entry: t.expEntry,
+          mid: t.expMid,
+          senior: t.expSenior,
+        } as Record<string, string>
+      )[job.experience_level]
+    : null;
 
   return (
     <div className="py-10">
@@ -153,10 +176,38 @@ export default async function JobDetailPage({
             {job.salary_note && (
               <span className="font-semibold text-primary">{job.salary_note}</span>
             )}
+            {expLabel && (
+              <span className="flex items-center gap-1">
+                <GraduationCap className="h-4 w-4" />
+                {expLabel}
+              </span>
+            )}
+            {job.apply_deadline && (
+              <span
+                className={`flex items-center gap-1 ${
+                  deadlinePassed ? "font-semibold text-danger" : ""
+                }`}
+              >
+                <CalendarClock className="h-4 w-4" />
+                {deadlinePassed
+                  ? t.deadlinePassed
+                  : `${t.deadline}: ${job.apply_deadline}`}
+              </span>
+            )}
           </div>
           <p className="mt-4 whitespace-pre-wrap border-t border-border pt-4 text-muted-foreground">
             {job.description}
           </p>
+          {job.apply_email && (
+            <a
+              href={`mailto:${job.apply_email}?subject=${encodeURIComponent(job.title)}`}
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+              dir="ltr"
+            >
+              <Mail className="h-4 w-4" />
+              {job.apply_email}
+            </a>
+          )}
           {job.how_to_apply && (
             <p className="mt-3 text-sm">
               <span className="font-bold">{t.howToApply}:</span> {job.how_to_apply}
@@ -167,10 +218,16 @@ export default async function JobDetailPage({
         {/* Poster sees applicants; others see the apply form */}
         {isPoster ? (
           <div className="mt-6">
-            <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
+            <h2 className="mb-2 flex items-center gap-2 text-lg font-bold">
               <Briefcase className="h-5 w-5 text-primary" />
               {t.applicants} ({applicants.length})
             </h2>
+            {/* The poster sees the applicants panel where a visitor sees the
+                apply form — spell that out so an empty list doesn't read as
+                "there is no way to apply". */}
+            <p className="mb-3 rounded-xl bg-surface-muted px-4 py-2.5 text-sm text-muted-foreground">
+              {t.ownerPreviewNote}
+            </p>
             {applicants.length ? (
               <div className="space-y-3">
                 {applicants.map((a) => (
@@ -212,6 +269,10 @@ export default async function JobDetailPage({
             ) : (
               <EmptyState icon={Briefcase} title={t.noApplicants} />
             )}
+          </div>
+        ) : deadlinePassed ? (
+          <div className="mt-6">
+            <EmptyState icon={CalendarClock} title={t.deadlinePassed} />
           </div>
         ) : (
           <div className="mt-6">

@@ -9,6 +9,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { regions } from "@/lib/catalog";
 import { WHOLESALE_CATEGORIES } from "@/lib/wholesale";
 import { ImageUpload } from "@/components/image-upload";
+import { GalleryUpload } from "@/components/gallery-upload";
 import { Field, Input, Textarea, Select } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 
@@ -28,6 +29,7 @@ export function WholesaleForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [gallery, setGallery] = useState<string[]>([]);
   const [tiers, setTiers] = useState<TierRow[]>([]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -61,7 +63,8 @@ export function WholesaleForm({
         price: priceRaw === "" ? null : Number(priceRaw),
         tiers: cleanTiers,
         region: String(form.get("region")) || null,
-        image_url: imageUrl,
+        image_url: imageUrl ?? gallery[0] ?? null,
+        gallery: gallery.length ? gallery : null,
       })
       .select("id")
       .single();
@@ -80,6 +83,13 @@ export function WholesaleForm({
       className="space-y-4 rounded-2xl border border-border bg-surface p-6 shadow-sm"
     >
       <ImageUpload folder="wholesale" value={imageUrl} onChange={setImageUrl} label={t.image} />
+      <GalleryUpload
+        folder="wholesale"
+        value={gallery}
+        onChange={setGallery}
+        label={t.gallery}
+        max={6}
+      />
 
       <Field label={t.productTitle} htmlFor="title" required>
         <Input id="title" name="title" type="text" required placeholder={t.productTitlePlaceholder} />
