@@ -39,6 +39,16 @@ type Notif = {
   created_at: string;
 };
 
+// Notification types that are delivered to a user in their PLATFORM-ADMIN
+// capacity (they fan out to every super_admin and are about other people's
+// stores) — as opposed to the viewer's own orders, bookings, and messages.
+// Tagged in the list so an admin who is also shopping can tell them apart.
+const ADMIN_SCOPE_TYPES = new Set([
+  "store_new",
+  "pro_request",
+  "leader_submission",
+]);
+
 // Relative time ("5 minutes ago" / "منذ ٥ دقائق"). Timezone-independent since
 // it's a delta, so it's always correct regardless of server/client TZ.
 function timeAgo(iso: string, lang: string): string {
@@ -308,7 +318,19 @@ export default async function NotificationsPage({
                   <Bell className="h-4 w-4" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold">{titleFor(n)}</p>
+                  <p className="font-semibold">
+                    {/* Platform-admin notifications (any store's signup / Pro
+                        request / directory submission) land in the same personal
+                        bell as the user's own orders and messages. Tag them so
+                        it's obvious they arrived in an admin capacity and are
+                        not about the viewer's own account. */}
+                    {ADMIN_SCOPE_TYPES.has(n.type) && (
+                      <span className="me-1.5 rounded-md bg-warning-soft px-1.5 py-0.5 align-middle text-[10px] font-bold text-warning">
+                        {dict.notifications.adminScope}
+                      </span>
+                    )}
+                    {titleFor(n)}
+                  </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {timeAgo(n.created_at, lang)}
                   </p>

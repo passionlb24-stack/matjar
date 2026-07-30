@@ -34,24 +34,22 @@ export default async function ThreadPage({
     .maybeSingle();
   if (!conv) notFound();
 
-  const { data: others } = await supabase
-    .from("conversation_participants")
-    .select("user_id, profiles(full_name)")
-    .eq("conversation_id", id)
-    .neq("user_id", user.id);
-  const otherName =
-    (others?.[0]?.profiles as unknown as { full_name: string | null } | null)
-      ?.full_name ?? null;
   const store = conv.stores as unknown as {
     name: string;
     owner_id: string;
   } | null;
-  // Show the counterparty from the viewer's side: a customer sees the store's
-  // name; the store owner (viewing their own store's chat) sees the person.
+  // Resolve the counterparty via a SECURITY DEFINER, participant-gated RPC.
+  // Reading profiles directly does NOT work here: profiles_select RLS is
+  // (is_super_admin() OR auth.uid() = id), so a merchant could not read the
+  // customer's name and the header fell back to their own store's name.
+  // The RPC also applies the side-aware rule: a customer sees the store's name;
+  // the store owner sees the person.
+  const { data: peerRows } = await supabase.rpc("conversation_peer", {
+    p_conversation_id: id,
+  });
+  const peer = (peerRows ?? [])[0] as { display_name: string | null } | undefined;
   const header =
-    store && store.owner_id !== user.id
-      ? store.name
-      : otherName || store?.name || dict.messages.unknown;
+    peer?.display_name?.trim() || store?.name || dict.messages.unknown;
 
   const { data: msgs } = await supabase
     .from("messages")
