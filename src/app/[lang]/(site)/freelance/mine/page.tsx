@@ -11,6 +11,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FreelancerProfileForm } from "@/components/freelancer-profile-form";
 
 export default async function MyGigsPage({
   params,
@@ -28,11 +29,15 @@ export default async function MyGigsPage({
   } = await supabase.auth.getUser();
   if (!user) redirect(`/${lang}/login`);
 
-  const { data } = await supabase
-    .from("gigs")
-    .select("id, title, status, image_url")
-    .eq("freelancer_id", user.id)
-    .order("created_at", { ascending: false });
+  const [{ data }, { data: prof }] = await Promise.all([
+    supabase
+      .from("gigs")
+      .select("id, title, status, image_url")
+      .eq("freelancer_id", user.id)
+      .order("created_at", { ascending: false }),
+    supabase.from("profiles").select("bio, skills").eq("id", user.id).maybeSingle(),
+  ]);
+  const profile = (prof ?? {}) as { bio: string | null; skills: string[] | null };
   const gigs = (data ?? []) as {
     id: string;
     title: string;
@@ -64,6 +69,28 @@ export default async function MyGigsPage({
           }
         />
 
+        {/* Public profile — buyers pick a person, so this is what /u/[id] shows.
+            Link to preview it as visitors see it. */}
+        <div className="mt-6">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-lg font-bold">{t.publicProfile}</h2>
+            <Link
+              href={`/${lang}/u/${user.id}`}
+              className="text-sm font-semibold text-primary hover:underline"
+            >
+              {t.viewPublicProfile}
+            </Link>
+          </div>
+          <FreelancerProfileForm
+            dict={dict}
+            initial={{
+              bio: profile.bio ?? "",
+              skills: Array.isArray(profile.skills) ? profile.skills : [],
+            }}
+          />
+        </div>
+
+        <h2 className="mt-8 text-lg font-bold">{t.myGigs}</h2>
         {gigs.length ? (
           <div data-animate className="mt-6 space-y-3">
             {gigs.map((g) => (

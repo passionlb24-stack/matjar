@@ -114,10 +114,13 @@ export default async function GigDetailPage({
             {gig.title}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1">
+            <Link
+              href={`/${lang}/u/${gig.freelancer_id}`}
+              className="flex items-center gap-1 font-semibold text-primary hover:underline"
+            >
               <User className="h-4 w-4" />
               {gig.freelancer_name || t.freelancer}
-            </span>
+            </Link>
             {regionName && (
               <span className="flex items-center gap-1">
                 <MapPin className="h-4 w-4" />
