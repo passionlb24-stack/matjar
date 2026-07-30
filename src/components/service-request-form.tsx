@@ -16,6 +16,8 @@ type MyRequest = {
   description: string;
   quote_amount: number | null;
   quote_note: string | null;
+  counter_amount: number | null;
+  counter_note: string | null;
 };
 
 function money(n: number) {
@@ -66,7 +68,7 @@ export function ServiceRequestForm({
         );
         const { data } = await supabase
           .from("service_requests")
-          .select("id, status, description, quote_amount, quote_note")
+          .select("id, status, description, quote_amount, quote_note, counter_amount, counter_note")
           .eq("store_id", storeId)
           .eq("customer_id", user.id)
           .order("created_at", { ascending: false });
@@ -110,19 +112,31 @@ export function ServiceRequestForm({
         status: "pending",
         description: desc,
         quote_amount: null,
+        counter_amount: null,
+        counter_note: null,
         quote_note: null,
       },
       ...m,
     ]);
   }
 
-  async function act(id: string, action: "accept" | "cancel") {
+  // Which request has the counter-offer form open, and its draft values.
+  const [countering, setCountering] = useState<string | null>(null);
+  const [counterAmount, setCounterAmount] = useState("");
+  const [counterNote, setCounterNote] = useState("");
+
+  async function act(
+    id: string,
+    action: "accept" | "cancel" | "counter",
+    amount?: number | null,
+    note?: string | null,
+  ) {
     if (action === "cancel" && !(await confirm({ message: t.confirmCancel, confirmLabel: dict.common.confirm, cancelLabel: dict.common.cancel, danger: true }))) return;
     const { error } = await createClient().rpc("manage_service_request", {
       p_id: id,
       p_action: action,
-      p_amount: null,
-      p_note: null,
+      p_amount: amount ?? null,
+      p_note: note ?? null,
     });
     if (error) {
       notifyError(dict.common.actionFailed);
@@ -132,7 +146,18 @@ export function ServiceRequestForm({
     setMine((m) =>
       m.map((r) =>
         r.id === id
-          ? { ...r, status: action === "accept" ? "accepted" : "cancelled" }
+          ? {
+              ...r,
+              status:
+                action === "accept"
+                  ? "accepted"
+                  : action === "counter"
+                    ? "countered"
+                    : "cancelled",
+              ...(action === "counter"
+                ? { counter_amount: amount ?? null, counter_note: note ?? null }
+                : {}),
+            }
           : r,
       ),
     );
@@ -215,16 +240,49 @@ export function ServiceRequestForm({
                         ) : null}
                       </p>
                     )}
+                    {r.counter_amount != null || r.counter_note ? (
+                      <p className="mt-1 text-sm font-semibold text-warning">
+                        {t.yourCounter}
+                        {r.counter_amount != null
+                          ? `: ${money(Number(r.counter_amount))}`
+                          : ""}
+                        {r.counter_note ? (
+                          <span className="font-normal text-muted-foreground">
+                            {" "}
+                            · {r.counter_note}
+                          </span>
+                        ) : null}
+                      </p>
+                    ) : null}
+
                     {(r.status === "quoted" ||
+                      r.status === "countered" ||
                       r.status === "pending" ||
                       r.status === "accepted") && (
-                      <div className="mt-2 flex gap-2">
-                        {r.status === "quoted" && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {(r.status === "quoted" ||
+                          r.status === "countered") && (
                           <button
                             onClick={() => act(r.id, "accept")}
-                            className="rounded-lg bg-emerald-600 px-3 py-1 text-xs font-bold text-white hover:bg-emerald-700"
+                            className="rounded-lg bg-success-strong px-3 py-1 text-xs font-bold text-success-strong-foreground hover:opacity-90"
                           >
                             {t.accept}
+                          </button>
+                        )}
+                        {/* Accept-or-walk was the whole choice before. In this
+                            market the normal next move is to reply with a
+                            number or a question, so offer that too. */}
+                        {(r.status === "quoted" ||
+                          r.status === "countered") && (
+                          <button
+                            onClick={() => {
+                              setCountering(countering === r.id ? null : r.id);
+                              setCounterAmount("");
+                              setCounterNote("");
+                            }}
+                            className="rounded-lg border border-border px-3 py-1 text-xs font-bold text-foreground hover:border-primary hover:text-primary"
+                          >
+                            {t.negotiate}
                           </button>
                         )}
                         <button
@@ -233,6 +291,60 @@ export function ServiceRequestForm({
                         >
                           {t.cancel}
                         </button>
+                      </div>
+                    )}
+
+                    {countering === r.id && (
+                      <div className="mt-2 rounded-xl border border-border bg-surface p-3">
+                        <p className="text-xs text-muted-foreground">
+                          {t.negotiateHint}
+                        </p>
+                        <div className="mt-2 grid gap-2 sm:grid-cols-[7rem_1fr]">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={counterAmount}
+                            onChange={(e) => setCounterAmount(e.target.value)}
+                            placeholder={t.counterAmount}
+                            aria-label={t.counterAmount}
+                            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+                          />
+                          <input
+                            type="text"
+                            value={counterNote}
+                            onChange={(e) => setCounterNote(e.target.value)}
+                            placeholder={t.counterNote}
+                            aria-label={t.counterNote}
+                            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+                          />
+                        </div>
+                        <div className="mt-2 flex gap-2">
+                          <button
+                            onClick={async () => {
+                              const amt = Number(counterAmount);
+                              await act(
+                                r.id,
+                                "counter",
+                                amt > 0 ? amt : null,
+                                counterNote.trim() || null,
+                              );
+                              setCountering(null);
+                            }}
+                            disabled={
+                              !(Number(counterAmount) > 0) && !counterNote.trim()
+                            }
+                            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground disabled:opacity-50"
+                          >
+                            {t.sendCounter}
+                          </button>
+                          <button
+                            onClick={() => setCountering(null)}
+                            className="rounded-lg px-3 py-1.5 text-xs font-semibold text-muted-foreground"
+                          >
+                            {dict.common.cancel}
+                          </button>
+                        </div>
                       </div>
                     )}
                   </li>

@@ -34,6 +34,9 @@ type Notif = {
     trial_ends_at?: string;
     customer_name?: string;
     description?: string;
+    /** Quote loop (0207): quoted / counter-offer amount and its note. */
+    amount?: string | number;
+    note?: string;
   } | null;
   is_read: boolean;
   created_at: string;
@@ -175,6 +178,21 @@ export default async function NotificationsPage({
       return `${dict.notifications.leadNew}${
         n.data?.store_name ? ` · ${n.data.store_name}` : ""
       }`;
+    // Quote loop (0207): the customer had no way to learn a quote arrived.
+    if (t === "service_quote")
+      return `${dict.notifications.serviceQuote}${
+        n.data?.store_name ? ` · ${n.data.store_name}` : ""
+      }`;
+    if (t === "service_countered") return dict.notifications.serviceCountered;
+    if (t === "service_accepted") return dict.notifications.serviceAccepted;
+    if (t === "service_declined")
+      return `${dict.notifications.serviceDeclined}${
+        n.data?.store_name ? ` · ${n.data.store_name}` : ""
+      }`;
+    if (t === "service_completed")
+      return `${dict.notifications.serviceCompleted}${
+        n.data?.store_name ? ` · ${n.data.store_name}` : ""
+      }`;
     if (t === "service_request_new")
       return `${dict.notifications.serviceRequestNew}${
         n.data?.customer_name ? ` · ${n.data.customer_name}` : ""
@@ -256,6 +274,14 @@ export default async function NotificationsPage({
             : `/${lang}/messages`
           : n.type === "lead_new" && n.data?.store_id
           ? `/${lang}/merchant/${n.data.store_id}/leads`
+          : (n.type === "service_quote" ||
+              n.type === "service_declined" ||
+              n.type === "service_completed") &&
+            n.data?.store_id
+          ? `/${lang}/store/${n.data.store_id}`
+          : (n.type === "service_countered" || n.type === "service_accepted") &&
+            n.data?.store_id
+          ? `/${lang}/merchant/${n.data.store_id}/requests`
           : n.type === "service_request_new" && n.data?.store_id
           ? `/${lang}/merchant/${n.data.store_id}/requests`
           : n.type === "stay_new" && n.data?.store_id
@@ -367,6 +393,21 @@ export default async function NotificationsPage({
                                 ),
                               )
                             : dict.notifications.trialEnded}
+                        </p>
+                      )}
+                    </>
+                  )}
+                  {(n.type === "service_quote" ||
+                    n.type === "service_countered") && (
+                    <>
+                      {n.data?.amount != null && (
+                        <p className="mt-1 font-bold text-primary">
+                          ${String(n.data.amount)}
+                        </p>
+                      )}
+                      {n.data?.note && (
+                        <p className="mt-0.5 text-sm text-muted-foreground line-clamp-2">
+                          {n.data.note}
                         </p>
                       )}
                     </>

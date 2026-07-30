@@ -60,7 +60,7 @@ export default async function StoreRequestsPage({
   const { data } = await supabase
     .from("service_requests")
     .select(
-      "id, status, description, address, phone, customer_name, quote_amount, quote_note, created_at",
+      "id, status, description, address, phone, customer_name, quote_amount, quote_note, counter_amount, counter_note, created_at",
     )
     .eq("store_id", storeId)
     .order("created_at", { ascending: false });

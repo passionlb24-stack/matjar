@@ -14,6 +14,7 @@ export type ServiceRequestRow = {
   status:
     | "pending"
     | "quoted"
+    | "countered"
     | "accepted"
     | "in_progress"
     | "completed"
@@ -25,6 +26,8 @@ export type ServiceRequestRow = {
   customer_name: string | null;
   quote_amount: number | null;
   quote_note: string | null;
+  counter_amount: number | null;
+  counter_note: string | null;
   created_at: string;
 };
 
@@ -35,6 +38,7 @@ function money(n: number) {
 const STATUS_TONE: Record<ServiceRequestRow["status"], string> = {
   pending: "bg-warning-soft text-warning",
   quoted: "bg-info-soft text-info",
+  countered: "bg-warning-soft text-warning",
   accepted: "bg-success-soft text-success",
   in_progress: "bg-primary-soft text-primary",
   completed: "bg-success-soft text-success",
@@ -129,6 +133,17 @@ export function ServiceRequestManager({
         )}
       </div>
 
+      {(request.counter_amount != null || request.counter_note) && (
+        <p className="mt-2 rounded-xl bg-warning-soft px-3 py-2 text-sm font-bold text-warning">
+          {t.counterFrom}
+          {request.counter_amount != null
+            ? `: ${money(Number(request.counter_amount))}`
+            : ""}
+          {request.counter_note && (
+            <span className="font-normal"> · {request.counter_note}</span>
+          )}
+        </p>
+      )}
       {request.quote_amount != null && (
         <p className="mt-3 rounded-xl bg-info-soft px-3 py-2 text-sm">
           <span className="font-bold text-info">
@@ -141,7 +156,7 @@ export function ServiceRequestManager({
       )}
 
       {/* Provider actions by state. */}
-      {request.status === "pending" && (
+      {(request.status === "pending" || request.status === "countered") && (
         <div className="mt-3 grid gap-2 rounded-xl border border-border bg-surface-muted/40 p-3 sm:grid-cols-[1fr_2fr_auto]">
           <input
             type="number"
