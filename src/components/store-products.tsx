@@ -11,6 +11,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { categoryStyles, type CategoryKey } from "@/lib/catalog";
 import { attributeSummary, categoryAttributes } from "@/lib/attributes";
 import { effectivePrice, compareAtPrice, isFlashActive } from "@/lib/pricing";
+import { parseStockError } from "@/lib/order-math";
 import { waLink, buildOrderMessage } from "@/lib/whatsapp";
 import { formatLbp } from "@/lib/currency";
 import { localized } from "@/lib/i18n-field";
@@ -201,6 +202,21 @@ export function StoreProducts({
 
   const [placing, setPlacing] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
+  // The product the server said was short, so the customer can drop just that
+  // one instead of guessing which item blocked an otherwise fine order.
+  const [shortItemId, setShortItemId] = useState<string | null>(null);
+
+  // The stock trigger raises "insufficient_stock:<product name>".
+  function stockErrorMessage(msg: string): string {
+    const name = parseStockError(msg);
+    const match = name
+      ? products.find((x) => x.name === name || name.startsWith(x.name))
+      : undefined;
+    setShortItemId(match?.id ?? null);
+    return name
+      ? dict.store.outOfStockNamed.replace("{name}", name)
+      : dict.store.outOfStock;
+  }
   const [checkingOut, setCheckingOut] = useState(false);
   // Answers to the merchant's custom checkout fields, keyed by field id.
   const [cfAnswers, setCfAnswers] = useState<Record<string, string>>({});
@@ -474,7 +490,7 @@ export function StoreProducts({
         const msg = guestError?.message ?? "";
         setOrderError(
           msg.includes("insufficient_stock")
-            ? dict.store.outOfStock
+            ? stockErrorMessage(msg)
             : msg.includes("rate_limited")
               ? dict.store.tooManyOrders
               : msg.includes("below_zone_minimum")
@@ -525,7 +541,7 @@ export function StoreProducts({
       const msg = error.message ?? "";
       setOrderError(
         msg.includes("insufficient_stock")
-          ? dict.store.outOfStock
+          ? stockErrorMessage(msg)
           : msg.includes("below_zone_minimum")
             ? dict.store.belowZoneMin
             : msg.includes("modifier_")
@@ -1267,7 +1283,25 @@ export function StoreProducts({
               </p>
             )}
             {orderError && (
-              <p className="text-sm font-medium text-danger">{orderError}</p>
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-danger">{orderError}</p>
+                {/* The order is atomic, so we can't silently ship a partial
+                    basket — but the customer's intent is to buy the rest, so
+                    make that one tap instead of a hunt through the cart. */}
+                {shortItemId && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQty(shortItemId, 0);
+                      setShortItemId(null);
+                      setOrderError(null);
+                    }}
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                  >
+                    {dict.store.removeAndContinue}
+                  </button>
+                )}
+              </div>
             )}
             <div className="flex gap-2">
               <button

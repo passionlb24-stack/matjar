@@ -1156,6 +1156,8 @@
     "orderWhatsapp": "Order via WhatsApp",
     "waGreeting": "Hi, I'd like to order from",
     "outOfStock": "Sorry, the requested quantity is no longer available. Adjust your cart and try again.",
+    "outOfStockNamed": "“{name}” doesn’t have enough stock. Remove it or lower the quantity to continue.",
+    "removeAndContinue": "Remove it and continue",
     "tooManyOrders": "Too many orders in a short time. Please wait a bit or sign in and try again.",
     "chooseBranch": "Choose branch",
     "clearFilters": "Clear filters",
