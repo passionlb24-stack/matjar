@@ -88,6 +88,25 @@ export function hasPlan(
   return planRank(current) >= PLAN_RANK[required];
 }
 
+/**
+ * The plan actually in force for a store.
+ *
+ * An active 14-day trial grants Pro — but it must never DOWNGRADE a paid plan.
+ * The three call sites used to compute `onTrial ? "pro" : plan`, so a store
+ * upgraded to Business while a trial was still running was silently served Pro
+ * until the trial lapsed: an upgrade that took features away. Taking the higher
+ * of the two ranks is the only correct reading, and keeps this in one place.
+ */
+export function effectivePlan(
+  plan: string | null | undefined,
+  trialEndsAt: string | Date | null | undefined,
+): string {
+  const base = plan ?? "free";
+  const onTrial =
+    trialEndsAt != null && new Date(trialEndsAt).getTime() > Date.now();
+  return onTrial && planRank(base) < PLAN_RANK.pro ? "pro" : base;
+}
+
 // Catalog size cap by plan: free 3, basic 30, pro 200, business unlimited.
 export function planProductLimit(plan?: string | null): number {
   const r = planRank(plan);

@@ -14,6 +14,7 @@ import { SectionManager, type SectionRow } from "@/components/section-manager";
 import { ProductRowActions } from "@/components/product-row-actions";
 import { ProGate } from "@/components/pro-gate";
 import { planProductLimit } from "@/lib/plan";
+import { effectivePlan as resolvePlan } from "@/lib/plan-tiers";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -67,7 +68,7 @@ export default async function StoreItemsPage({
   };
   const onTrial =
     sPlan.trial_ends_at != null && new Date(sPlan.trial_ends_at) > new Date();
-  const effectivePlan = onTrial ? "pro" : (sPlan.plan ?? "free");
+  const effectivePlan = resolvePlan(sPlan.plan, sPlan.trial_ends_at);
   const productCap = planProductLimit(effectivePlan);
   const category =
     ((store as unknown as { business_types: { slug: string } | null })

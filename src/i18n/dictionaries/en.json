@@ -3372,6 +3372,8 @@
     "orderNew": "New order on your store",
     "leadNew": "New inquiry on your store",
     "serviceRequestNew": "New service request on your store",
+    "trialEnding": "Your free trial is ending soon",
+    "trialEnded": "Your free trial has ended",
     "serviceQuote": "You received a quote",
     "serviceCountered": "Customer sent a counter-offer",
     "serviceAccepted": "Customer accepted your quote",

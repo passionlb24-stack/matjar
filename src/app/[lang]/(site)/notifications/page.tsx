@@ -179,6 +179,9 @@ export default async function NotificationsPage({
         n.data?.store_name ? ` · ${n.data.store_name}` : ""
       }`;
     // Quote loop (0207): the customer had no way to learn a quote arrived.
+    // Trial lifecycle (0208) — the merchant used to lose features with no warning.
+    if (t === "trial_ending") return dict.notifications.trialEnding;
+    if (t === "trial_ended") return dict.notifications.trialEnded;
     if (t === "service_quote")
       return `${dict.notifications.serviceQuote}${
         n.data?.store_name ? ` · ${n.data.store_name}` : ""
@@ -274,6 +277,9 @@ export default async function NotificationsPage({
             : `/${lang}/messages`
           : n.type === "lead_new" && n.data?.store_id
           ? `/${lang}/merchant/${n.data.store_id}/leads`
+          : (n.type === "trial_ending" || n.type === "trial_ended") &&
+            n.data?.store_id
+          ? `/${lang}/merchant/${n.data.store_id}/subscription`
           : (n.type === "service_quote" ||
               n.type === "service_declined" ||
               n.type === "service_completed") &&

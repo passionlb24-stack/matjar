@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { effectivePlan } from "@/lib/plan-tiers";
 
 /**
  * The store's effective plan ('free' | 'pro' | null). Used to gate Pro-only OS
@@ -15,8 +16,6 @@ export async function getStorePlan(storeId: string): Promise<string | null> {
     .maybeSingle();
   const store = data as { plan?: string; trial_ends_at?: string | null } | null;
   if (!store) return null;
-  const onTrial =
-    store.trial_ends_at != null && new Date(store.trial_ends_at) > new Date();
-  if (store.plan === "pro" || onTrial) return "pro";
-  return store.plan ?? null;
+  // An active trial grants Pro but must never downgrade a paid plan.
+  return effectivePlan(store.plan, store.trial_ends_at);
 }

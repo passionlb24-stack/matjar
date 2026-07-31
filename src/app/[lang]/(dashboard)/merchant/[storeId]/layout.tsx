@@ -9,7 +9,11 @@ import {
   OS_MODULE_META,
   type OsModuleKey,
 } from "@/lib/sectors";
-import { hasPlan, planRank } from "@/lib/plan-tiers";
+import {
+  hasPlan,
+  planRank,
+  effectivePlan as resolvePlan,
+} from "@/lib/plan-tiers";
 import {
   MerchantSidebar,
   type SidebarNav,
@@ -79,7 +83,7 @@ export default async function StoreOsLayout({
         Math.ceil((trialEnds!.getTime() - Date.now()) / 86_400_000),
       )
     : 0;
-  const effectivePlan = onTrial ? "pro" : (s.plan ?? "free");
+  const effectivePlan = resolvePlan(s.plan, s.trial_ends_at);
   const category = (s.business_types?.slug as CategoryKey) ?? "retail";
   const sector = getSector(category);
 
