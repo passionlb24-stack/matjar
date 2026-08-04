@@ -8,6 +8,11 @@ import { OrderStatusControl } from "@/components/order-status-control";
 import { OrderPayments, type OrderPayment } from "@/components/order-payments";
 import { OrderNoteEditor } from "@/components/order-note-editor";
 import { OrderAssignTags } from "@/components/order-assign-tags";
+import {
+  OrderDispatch,
+  type DispatchCourier,
+  type DeliveryRequest,
+} from "@/components/order-dispatch";
 
 type OrderItem = {
   name: string;
@@ -40,6 +45,8 @@ export type OrderCard = {
   delivery_instructions: string | null;
   custom_fields: Record<string, string> | null;
   scheduled_for: string | null;
+  /** Live courier dispatch for this order, if one was requested. */
+  delivery: DeliveryRequest | null;
 };
 
 // Mirrors the order_status enum, minus the implicit "all" tab rendered first.
@@ -71,13 +78,19 @@ export function OrdersFilter({
   dict,
   lang,
   storeId,
+  storeName,
   team,
+  couriers,
+  canDispatch,
 }: {
   orders: OrderCard[];
   dict: Dictionary;
   lang: string;
   storeId: string;
+  storeName: string;
   team: { id: string; name: string }[];
+  couriers: DispatchCourier[];
+  canDispatch: boolean;
 }) {
   const [status, setStatus] = useState<string>("all");
   const [query, setQuery] = useState("");
@@ -254,6 +267,21 @@ export function OrdersFilter({
                   payments={order.payments}
                   dict={dict}
                 />
+                {/* Pickup orders never need a courier. */}
+                {order.fulfillment === "delivery" && (
+                  <OrderDispatch
+                    orderId={order.id}
+                    lang={lang}
+                    storeId={storeId}
+                    storeName={storeName}
+                    customerName={order.customer_name}
+                    address={order.address}
+                    couriers={couriers}
+                    request={order.delivery}
+                    canDispatch={canDispatch}
+                    dict={dict}
+                  />
+                )}
                 <OrderNoteEditor
                   orderId={order.id}
                   note={order.store_note}

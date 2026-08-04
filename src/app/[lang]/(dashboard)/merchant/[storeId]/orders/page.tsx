@@ -8,6 +8,12 @@ import { Container } from "@/components/ui/container";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { type OrderPayment } from "@/components/order-payments";
 import { OrdersFilter, type OrderCard } from "@/components/orders-filter";
+import {
+  type DispatchCourier,
+  type DeliveryRequest,
+} from "@/components/order-dispatch";
+import { getStorePlan } from "@/lib/plan-server";
+import { hasPlan } from "@/lib/plan-tiers";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -110,6 +116,50 @@ export default async function StoreOrdersPage({
     paymentsByOrder.set(p.order_id, list);
   });
 
+  // Courier dispatch (Pro+). The couriers this store enabled, and any live
+  // request per order. The plan is read here for the UI only — request_delivery()
+  // enforces it again server-side.
+  const plan = await getStorePlan(storeId);
+  const canDispatch = hasPlan(plan, "pro");
+
+  const { data: courierData } = await supabase
+    .from("store_couriers")
+    .select(
+      "company_id, price, delivery_companies(id, name, phone, whatsapp, is_active)",
+    )
+    .eq("store_id", storeId);
+  type CourierJoin = {
+    company_id: string;
+    price: number | null;
+    delivery_companies: {
+      id: string;
+      name: string;
+      phone: string | null;
+      whatsapp: string | null;
+      is_active: boolean;
+    } | null;
+  };
+  const couriers: DispatchCourier[] = ((courierData ?? []) as unknown as
+    CourierJoin[])
+    .filter((r) => r.delivery_companies?.is_active)
+    .map((r) => ({
+      id: r.delivery_companies!.id,
+      name: r.delivery_companies!.name,
+      phone: r.delivery_companies!.phone,
+      whatsapp: r.delivery_companies!.whatsapp,
+      price: r.price,
+    }));
+
+  const { data: delData } = await supabase
+    .from("delivery_requests")
+    .select("id, order_id, company_id, status, fee, tracking_ref")
+    .eq("store_id", storeId)
+    .neq("status", "cancelled");
+  const deliveryByOrder = new Map<string, DeliveryRequest>();
+  ((delData ?? []) as (DeliveryRequest & { order_id: string })[]).forEach((d) =>
+    deliveryByOrder.set(d.order_id, d),
+  );
+
   // Shape each order for the client filter: resolve its ledger and branch label
   // here so the interactive list can filter/search in memory without refetching.
   const cards: OrderCard[] = orders.map((o) => {
@@ -122,6 +172,7 @@ export default async function StoreOrdersPage({
       tags: o.tags ?? [],
       payments: paymentsByOrder.get(o.id) ?? [],
       branch: loc ? { name: loc.name, area: loc.area } : null,
+      delivery: deliveryByOrder.get(o.id) ?? null,
     };
   });
 
@@ -146,7 +197,10 @@ export default async function StoreOrdersPage({
             dict={dict}
             lang={lang}
             storeId={storeId}
+            storeName={(store as { name: string }).name}
             team={team}
+            couriers={couriers}
+            canDispatch={canDispatch}
           />
         ) : (
           <div className="mt-8 rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
