@@ -1,5 +1,5 @@
 "use client";
-import { revalidateProduct } from "@/lib/cache-actions";
+import { revalidateProduct, revalidateStore } from "@/lib/cache-actions";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,7 @@ import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export function ProductRowActions({
   productId,
+  storeId,
   isAvailable,
   showLabel,
   hideLabel,
@@ -18,6 +19,7 @@ export function ProductRowActions({
   errorLabel,
 }: {
   productId: string;
+  storeId: string;
   isAvailable: boolean;
   showLabel: string;
   hideLabel: string;
@@ -41,6 +43,7 @@ export function ProductRowActions({
       return;
     }
     await revalidateProduct(productId);
+    await revalidateStore(storeId);
     router.refresh();
   }
 
@@ -65,6 +68,7 @@ export function ProductRowActions({
       return;
     }
     await revalidateProduct(productId);
+    await revalidateStore(storeId);
     router.refresh();
   }
 

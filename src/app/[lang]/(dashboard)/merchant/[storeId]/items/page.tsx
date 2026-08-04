@@ -207,6 +207,7 @@ export default async function StoreItemsPage({
                     </Link>
                     <ProductRowActions
                       productId={p.id}
+                      storeId={storeId}
                       isAvailable={p.is_available}
                       showLabel={dict.merchant.products.show}
                       hideLabel={dict.merchant.products.hide}

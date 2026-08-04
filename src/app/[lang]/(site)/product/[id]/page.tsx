@@ -392,6 +392,7 @@ export default async function ProductPage({
                   addons={product.addons}
                   modifierGroups={product.modifierGroups}
                   allowScheduling={product.category === "food"}
+                  category={product.category}
                   defaultAddress={defaultAddress}
                   acceptsDelivery={product.acceptsDelivery}
                   acceptsPickup={product.acceptsPickup}

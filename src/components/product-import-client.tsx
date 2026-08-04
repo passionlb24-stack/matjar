@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { notifyError } from "@/lib/notify";
+import { revalidateProduct, revalidateStore } from "@/lib/cache-actions";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import {
   IMPORT_COLUMNS,
@@ -215,6 +216,11 @@ export function ProductImportClient({
     }
     setReview(null);
     setDone({ created: res.created ?? 0, updated: res.updated ?? 0 });
+    // Without this the merchant checks their storefront, sees the old catalogue
+    // for up to five minutes, and concludes the import failed — right after the
+    // moment the feature was supposed to win them over.
+    await revalidateProduct();
+    await revalidateStore(storeId);
     router.refresh();
   }
 
