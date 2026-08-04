@@ -61,7 +61,10 @@ export function TimeslotBooking({
   const [resourceId, setResourceId] = useState(resources[0]?.id ?? "");
   const [date, setDate] = useState(today);
   const [taken, setTaken] = useState<Set<string>>(new Set());
-  const [loadingSlots, setLoadingSlots] = useState(false);
+  // Which (resource, day) the `taken` set actually describes. Loading is then
+  // derived from "what we hold isn't what's selected" instead of a separate
+  // flag the fetch effect has to raise and lower in step with it.
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const [slot, setSlot] = useState<string | null>(null);
   const [booking, setBooking] = useState(false);
   const [done, setDone] = useState(false);
@@ -81,10 +84,20 @@ export function TimeslotBooking({
   }, [resource]);
   const isPast = (s: string) => date === today && s <= nowBeirut;
 
+  const slotsKey = resourceId && date ? `${resourceId}|${date}|${done}` : null;
+  const loadingSlots = slotsKey !== null && loadedKey !== slotsKey;
+
+  // Changing the resource or the day drops the picked slot — it belonged to the
+  // old day. Adjusted during render so the slot can never be submitted against
+  // a date the merchant has already moved away from.
+  const [lastSlotsKey, setLastSlotsKey] = useState(slotsKey);
+  if (slotsKey !== lastSlotsKey) {
+    setLastSlotsKey(slotsKey);
+    setSlot(null);
+  }
+
   useEffect(() => {
     if (!resourceId || !date) return;
-    setLoadingSlots(true);
-    setSlot(null);
     let cancelled = false;
     void (async () => {
       const { data } = await supabase.rpc("resource_booked_times", {
@@ -93,7 +106,7 @@ export function TimeslotBooking({
       });
       if (cancelled) return;
       setTaken(new Set((data ?? []) as string[]));
-      setLoadingSlots(false);
+      setLoadedKey(`${resourceId}|${date}|${done}`);
     })();
     return () => {
       cancelled = true;
