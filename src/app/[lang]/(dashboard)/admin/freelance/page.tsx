@@ -7,6 +7,7 @@ import {
   AdminModerationClient,
   type ModerationItem,
 } from "@/components/admin-moderation-client";
+import { FreelancerVerifyList } from "@/components/freelancer-verify-list";
 
 export default async function AdminFreelancePage({
   params,
@@ -22,7 +23,7 @@ export default async function AdminFreelancePage({
   const { data } = await supabase
     .from("gigs")
     .select(
-      "id, title, freelancer_name, category, price, region, image_url, status, created_at",
+      "id, title, freelancer_id, freelancer_name, category, price, region, image_url, status, created_at",
     )
     .order("created_at", { ascending: false })
     .limit(500);
@@ -30,6 +31,7 @@ export default async function AdminFreelancePage({
   const rows = (data ?? []) as unknown as {
     id: string;
     title: string;
+    freelancer_id: string | null;
     freelancer_name: string | null;
     category: string | null;
     price: number | null;
@@ -52,15 +54,47 @@ export default async function AdminFreelancePage({
     createdAt: r.created_at,
   }));
 
+  // Verification is per PERSON, not per gig — one freelancer with three
+  // listings is verified once. profiles is readable here because the section is
+  // already behind requireAdminSection and profiles_select admits super admins.
+  const byFreelancer = new Map<string, number>();
+  for (const r of rows) {
+    if (r.status !== "active" || !r.freelancer_id) continue;
+    byFreelancer.set(r.freelancer_id, (byFreelancer.get(r.freelancer_id) ?? 0) + 1);
+  }
+  const ids = [...byFreelancer.keys()];
+  const { data: profs } = ids.length
+    ? await supabase
+        .from("profiles")
+        .select("id, full_name, freelancer_verified")
+        .in("id", ids)
+    : { data: [] };
+  const people = ((profs ?? []) as {
+    id: string;
+    full_name: string | null;
+    freelancer_verified: boolean | null;
+  }[])
+    .map((p) => ({
+      id: p.id,
+      name: p.full_name?.trim() || "—",
+      gigCount: byFreelancer.get(p.id) ?? 0,
+      verified: Boolean(p.freelancer_verified),
+    }))
+    // Unverified first: this list exists to work through, not to admire.
+    .sort((a, b) => Number(a.verified) - Number(b.verified));
+
   return (
-    <AdminModerationClient
-      lang={lang}
-      dict={dict}
-      table="gigs"
-      title={dict.admin.freelance.title}
-      subtitle={dict.admin.freelance.subtitle}
-      viewBase="freelance"
-      items={items}
-    />
+    <div className="space-y-6">
+      <FreelancerVerifyList people={people} dict={dict} />
+      <AdminModerationClient
+        lang={lang}
+        dict={dict}
+        table="gigs"
+        title={dict.admin.freelance.title}
+        subtitle={dict.admin.freelance.subtitle}
+        viewBase="freelance"
+        items={items}
+      />
+    </div>
   );
 }
