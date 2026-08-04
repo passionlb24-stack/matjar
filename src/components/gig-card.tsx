@@ -10,7 +10,7 @@ import { Image as ImageIcon, BadgeCheck } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { formatUsd, formatLbp } from "@/lib/currency";
-import { trustChips, type TrustChip } from "@/lib/freelancer-trust";
+import { TrustChips, fill } from "@/components/trust-chips";
 
 export type BrowsedGig = {
   id: string;
@@ -37,56 +37,6 @@ function initials(name: string | null): string {
   return parts.slice(0, 2).map((p) => p[0]).join("");
 }
 
-// A missing key returns the fallback rather than undefined. A dictionary that
-// is briefly out of step with the code — a new key, a stale cache — must not
-// take the page down with it; the shopper should lose a word, not the listing.
-function fill(
-  template: string | undefined,
-  fallback: string,
-  vars: Record<string, string | number> = {},
-): string {
-  return Object.entries(vars).reduce(
-    (out, [k, v]) => out.replace(`{${k}}`, String(v)),
-    template ?? fallback,
-  );
-}
-
-function chipLabel(
-  chip: TrustChip,
-  t: Record<string, string> | undefined,
-  regionLabels: Record<string, string>,
-): string {
-  const s = t ?? {};
-  switch (chip.kind) {
-    case "rating":
-      return fill(s.rating, "★ {rating} · {count}", {
-        rating: chip.rating.toFixed(1),
-        count: chip.count,
-      });
-    case "completed":
-      return fill(s.completed, "{count}", { count: chip.count });
-    case "available":
-      return s.available ?? "✓";
-    case "delivery":
-      return fill(s.delivery, "{days}d", { days: chip.days });
-    case "revisions":
-      return fill(s.revisions, "{count}×", { count: chip.count });
-    case "samples":
-      return fill(s.samples, "{count}", { count: chip.count });
-    case "region":
-      return regionLabels[chip.region] ?? chip.region;
-  }
-}
-
-// Earned evidence is tinted; declared evidence stays neutral. The shopper should
-// be able to tell a verdict from a promise without reading the words.
-function chipTone(chip: TrustChip): string {
-  if (chip.kind === "rating" || chip.kind === "completed")
-    return "bg-primary-soft text-primary";
-  if (chip.kind === "available") return "bg-success-soft text-success";
-  return "bg-surface-muted text-muted-foreground";
-}
-
 export function GigCard({
   gig,
   lang,
@@ -104,20 +54,7 @@ export function GigCard({
   regionLabels?: Record<string, string>;
 }) {
   const t = dict.freelance;
-  const trustT = t.trust as unknown as Record<string, string> | undefined;
-  const chips = trustChips(
-    {
-      ratingAvg: gig.rating_avg,
-      ratingCount: gig.rating_count,
-      completedCount: gig.completed_count,
-      availableUntil: gig.available_until,
-      deliveryDays: gig.delivery_days,
-      revisions: gig.revisions,
-      gallery: gig.gallery,
-      region: gig.region,
-    },
-    todayIso,
-  );
+
 
   const samples = gig.gallery?.length ?? 0;
   const name = gig.freelancer_name ?? "";
@@ -143,7 +80,7 @@ export function GigCard({
             deep it goes before the shopper has to open the page to find out. */}
         {samples > 1 && (
           <span className="absolute bottom-2 start-2 rounded-full bg-foreground/70 px-2 py-0.5 text-[11px] font-bold text-surface backdrop-blur-sm">
-            {fill(trustT?.samples, "{count}", { count: samples })}
+            {fill((dict.freelance.trust as unknown as Record<string, string> | undefined)?.samples, "{count}", { count: samples })}
           </span>
         )}
       </div>
@@ -186,18 +123,21 @@ export function GigCard({
           {gig.title}
         </h2>
 
-        {chips.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {chips.map((c, i) => (
-              <span
-                key={`${c.kind}-${i}`}
-                className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${chipTone(c)}`}
-              >
-                {chipLabel(c, trustT, regionLabels)}
-              </span>
-            ))}
-          </div>
-        )}
+        <TrustChips
+          gig={{
+            ratingAvg: gig.rating_avg,
+            ratingCount: gig.rating_count,
+            completedCount: gig.completed_count,
+            availableUntil: gig.available_until,
+            deliveryDays: gig.delivery_days,
+            revisions: gig.revisions,
+            gallery: gig.gallery,
+            region: gig.region,
+          }}
+          dict={dict}
+          todayIso={todayIso}
+          regionLabels={regionLabels}
+        />
 
         <div className="mt-auto flex items-end justify-between gap-2 border-t border-border pt-3">
           <span>
