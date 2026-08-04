@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight, Package, BellRing } from "lucide-react";
+import { ChevronRight, Package, BellRing, FileSpreadsheet } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -136,13 +136,22 @@ export default async function StoreItemsPage({
           <h1 className="text-3xl font-extrabold tracking-tight">
             {itemsLabel}
           </h1>
-          <Link
-            href={`/${lang}/merchant/${storeId}/bundles`}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
-          >
-            <Package className="h-4 w-4" />
-            {dict.merchant.bundles.title}
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href={`/${lang}/merchant/${storeId}/products/import`}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              {dict.merchant.productImport.cta}
+            </Link>
+            <Link
+              href={`/${lang}/merchant/${storeId}/bundles`}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+            >
+              <Package className="h-4 w-4" />
+              {dict.merchant.bundles.title}
+            </Link>
+          </div>
         </div>
 
         <div className="mt-8">
