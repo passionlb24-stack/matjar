@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { noteHintKey } from "@/lib/note-hint";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { formatLbp } from "@/lib/currency";
@@ -54,6 +55,7 @@ export function ProductOrder({
   acceptsDelivery = true,
   acceptsPickup = true,
   lbpRate = 0,
+  category = null,
 }: {
   lang: Locale;
   dict: Dictionary;
@@ -69,6 +71,8 @@ export function ProductOrder({
   acceptsDelivery?: boolean;
   acceptsPickup?: boolean;
   lbpRate?: number;
+  /** Store sector — decides which note example the shopper is shown. */
+  category?: string | null;
 }) {
   const router = useRouter();
   // Apparel variants carry color/size → render a 2-step picker; legacy flat
@@ -429,7 +433,11 @@ export function ProductOrder({
           id="item-note"
           value={itemNote}
           onChange={(e) => setItemNote(e.target.value)}
-          placeholder={dict.product.itemNotePlaceholder}
+          placeholder={
+            (dict.product.itemNoteHints as Record<string, string>)[
+              noteHintKey(category)
+            ] ?? dict.product.itemNotePlaceholder
+          }
           className={fieldClass}
         />
       </div>
