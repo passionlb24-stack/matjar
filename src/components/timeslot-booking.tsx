@@ -6,6 +6,7 @@ import { CalendarClock, Check, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { slotsKey, slotsLoading } from "@/lib/booking-slots";
 
 export type Resource = {
   id: string;
@@ -84,15 +85,15 @@ export function TimeslotBooking({
   }, [resource]);
   const isPast = (s: string) => date === today && s <= nowBeirut;
 
-  const slotsKey = resourceId && date ? `${resourceId}|${date}|${done}` : null;
-  const loadingSlots = slotsKey !== null && loadedKey !== slotsKey;
+  const currentSlotsKey = slotsKey(resourceId, date, done);
+  const loadingSlots = slotsLoading(currentSlotsKey, loadedKey);
 
   // Changing the resource or the day drops the picked slot — it belonged to the
   // old day. Adjusted during render so the slot can never be submitted against
   // a date the merchant has already moved away from.
-  const [lastSlotsKey, setLastSlotsKey] = useState(slotsKey);
-  if (slotsKey !== lastSlotsKey) {
-    setLastSlotsKey(slotsKey);
+  const [lastSlotsKey, setLastSlotsKey] = useState(currentSlotsKey);
+  if (currentSlotsKey !== lastSlotsKey) {
+    setLastSlotsKey(currentSlotsKey);
     setSlot(null);
   }
 
@@ -106,7 +107,7 @@ export function TimeslotBooking({
       });
       if (cancelled) return;
       setTaken(new Set((data ?? []) as string[]));
-      setLoadedKey(`${resourceId}|${date}|${done}`);
+      setLoadedKey(slotsKey(resourceId, date, done));
     })();
     return () => {
       cancelled = true;
