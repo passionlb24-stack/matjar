@@ -118,6 +118,15 @@ export function MerchantSidebar({
   const [open, setOpen] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
 
+  // Navigating closes the drawer. Adjusted during render rather than in an
+  // effect: an effect would paint the new route with the drawer still over it
+  // for a frame before closing it.
+  const [lastPath, setLastPath] = useState(pathname);
+  if (pathname !== lastPath) {
+    setLastPath(pathname);
+    setOpen(false);
+  }
+
   const viewHref = `/${lang}/${slug ?? `store/${storeId}`}`;
 
   // Longest-prefix active matching; the home item opts into exact-only so it
@@ -134,12 +143,8 @@ export function MerchantSidebar({
     return best?.href ?? null;
   }, [pathname, nav]);
 
-  // Drawer lifecycle: close on route change, close on Escape, focus the close
-  // button when opening (basic trap), lock body scroll while open.
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
-
+  // Drawer lifecycle: close on Escape, focus the close button when opening
+  // (basic trap), lock body scroll while open.
   useEffect(() => {
     if (!open) return;
     closeRef.current?.focus();

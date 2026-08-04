@@ -1,3 +1,4 @@
+import { requestNow } from "@/lib/now";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ChevronRight, Megaphone } from "lucide-react";
@@ -115,7 +116,7 @@ export default async function StoreCampaignsPage({
   }
   const customers = new Set(stats.keys());
   const all = new Set<string>([...followers, ...customers]);
-  const inactiveBefore = Date.now() - 60 * 24 * 60 * 60 * 1000;
+  const inactiveBefore = requestNow() - 60 * 24 * 60 * 60 * 1000;
   let repeat = 0;
   let vip = 0;
   let inactive = 0;

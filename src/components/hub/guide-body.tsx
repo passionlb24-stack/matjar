@@ -14,15 +14,21 @@ export function GuideBody({
 }) {
   const s = CATEGORY_STYLE[category];
   const firstP = blocks.findIndex((b) => b.t === "p");
-  let hn = 0;
+  // Heading numbers resolved up front. A counter incremented inside the JSX
+  // below would be mutated by a render React is free to discard and re-run,
+  // which is how the numbering could drift.
+  const headingNo = blocks.map((b, i) =>
+    b.t === "h"
+      ? blocks.slice(0, i + 1).filter((x) => x.t === "h").length
+      : 0,
+  );
 
   return (
     <article className="mt-2">
       {blocks.map((b, i) => {
         switch (b.t) {
           case "h": {
-            hn += 1;
-            const n = hn;
+            const n = headingNo[i];
             return (
               <h2
                 key={i}

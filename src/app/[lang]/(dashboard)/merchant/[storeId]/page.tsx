@@ -1,3 +1,4 @@
+import { requestNow } from "@/lib/now";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
@@ -161,7 +162,7 @@ export default async function StoreOsHomePage({
   const todayIso = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Beirut",
   }).format(new Date());
-  const since14d = new Date(Date.now() - 14 * 86400_000).toISOString();
+  const since14d = new Date(requestNow() - 14 * 86400_000).toISOString();
 
   // Everything in one round-trip: the report RPC (aggregated server-side, see
   // 0087/0111) + cheap head-counts and limit≤8 lists, each gated by permission
@@ -498,7 +499,7 @@ export default async function StoreOsHomePage({
   const alerts: AlertRow[] = [];
   if (isOwner && s.plan === "free" && s.trial_ends_at) {
     const daysLeft =
-      (new Date(s.trial_ends_at).getTime() - Date.now()) / 86400_000;
+      (new Date(s.trial_ends_at).getTime() - requestNow()) / 86400_000;
     if (daysLeft >= 0 && daysLeft <= 3) {
       alerts.push({
         id: "trial",

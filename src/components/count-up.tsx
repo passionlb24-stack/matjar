@@ -25,16 +25,19 @@ export function CountUp({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) {
-      setN(to);
-      return;
-    }
     const io = new IntersectionObserver(
       (entries) => {
         if (!entries[0].isIntersecting || done.current) return;
         done.current = true;
         io.disconnect();
+        // Reduced motion still lands on the final number — it just skips the
+        // count. Checked here rather than in the effect body so the state write
+        // happens in a callback, and so the number appears when it scrolls into
+        // view like every other one.
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          setN(to);
+          return;
+        }
         const start = performance.now();
         const tick = (t: number) => {
           const p = Math.min((t - start) / duration, 1);
