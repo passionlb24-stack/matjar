@@ -20,6 +20,7 @@ import { regions } from "@/lib/catalog";
 import type { Gig } from "@/lib/gigs";
 import { Container } from "@/components/ui/container";
 import { TrustChips } from "@/components/trust-chips";
+import { GigCard, type BrowsedGig } from "@/components/gig-card";
 import { getUsdLbpRate } from "@/lib/data/settings";
 import { requestNow } from "@/lib/now";
 import { formatLbp } from "@/lib/currency";
@@ -106,6 +107,15 @@ export default async function GigDetailPage({
     freelancer_verified: boolean | null;
     member_since: string | null;
   }[])[0];
+
+  // Same shape the grid uses, so the cards below are the cards above.
+  const { data: relData } = await supabase.rpc("browse_gigs", {
+    p_category: gig.category,
+    p_limit: 5,
+  });
+  const related = ((relData ?? []) as unknown as BrowsedGig[])
+    .filter((g) => g.id !== gig.id)
+    .slice(0, 2);
 
   const lbpRate = await getUsdLbpRate();
   // Beirut, not UTC — "available today" has to mean the buyer's today.
@@ -320,7 +330,44 @@ export default async function GigDetailPage({
             {t.portfolioLink}
           </a>
         )}
+
+        {/* Somewhere to go that isn't back. A buyer who bounces off one listing
+            usually still wants the job done. */}
+        {related.length > 0 && (
+          <div className="mt-10">
+            <h2 className="text-lg font-extrabold tracking-tight">
+              {t.relatedTitle}
+            </h2>
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {related.map((g) => (
+                <GigCard
+                  key={g.id}
+                  gig={g}
+                  lang={lang as Locale}
+                  dict={dict}
+                  todayIso={todayIso}
+                  lbpRate={lbpRate}
+                  regionLabels={regionLabels}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </Container>
+
+      {/* Mobile only. Nearly every visitor is on a phone, and the contact button
+          sat at the end of a long page — reachable only by deciding to look for
+          it. Here it is in reach from anywhere in the listing. Desktop keeps the
+          inline button; a bar there would be noise. */}
+      {!isOwn && (
+        <div className="sticky bottom-0 z-30 border-t border-border bg-surface/95 p-3 backdrop-blur-sm sm:hidden">
+          <ContactFreelancerButton
+            freelancerId={gig.freelancer_id}
+            lang={lang as Locale}
+            dict={dict}
+          />
+        </div>
+      )}
     </div>
   );
 }
