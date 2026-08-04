@@ -30,6 +30,7 @@ import { Container } from "@/components/ui/container";
 import { StoreCard } from "@/components/store-card";
 import { ProductMiniCard } from "@/components/product-mini-card";
 import { groupIcons } from "@/components/category-icon";
+import { resolveSearch, type SearchAnswer } from "@/lib/search-state";
 
 // A product hit from the search_products_fuzzy RPC (migration 0114).
 type ProductHit = {
@@ -95,21 +96,19 @@ export function ExploreClient({
   // The answer is stored WITH the term it answers, which is what makes both
   // "is this still loading" and "are these hits stale" derivable rather than
   // separate flags the effect has to keep in step with the input.
-  const [answer, setAnswer] = useState<{
-    term: string;
-    hits: ProductHit[] | null;
-  } | null>(null);
+  const [answer, setAnswer] = useState<SearchAnswer<ProductHit> | null>(null);
   // Latest term this effect fired for, so a slow/out-of-order response that
   // resolves after the query changed is discarded instead of clobbering state.
   const latestTermRef = useRef("");
 
-  const term = query.trim();
   // Store-name filtering below always runs; product search only kicks in at
   // 2+ chars (matches the RPC's own guard and avoids a full-catalog scan).
-  const productSearchOn = term.length >= 2;
-  const productResults =
-    productSearchOn && answer?.term === term ? answer.hits : null;
-  const searching = productSearchOn && answer?.term !== term;
+  const {
+    term,
+    active: productSearchOn,
+    results: productResults,
+    searching,
+  } = resolveSearch<ProductHit>(query, answer);
 
   // Stores that carry a matching product (derived from the product hits), so the
   // store list below can include them even when the store NAME doesn't match.

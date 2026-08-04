@@ -6,28 +6,10 @@ import { Download } from "lucide-react";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Button } from "@/components/ui/button";
 import { trackToolUse } from "@/lib/track-tool";
+import { isValidBarcode } from "@/lib/barcode";
 
 const field =
   "w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-base outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15";
-
-// EAN-13's 13th digit is a checksum over the first 12. JsBarcode rejects a
-// 13-digit code whose check digit doesn't match, so the same rule is applied
-// here — otherwise the two would disagree about what counts as valid.
-function ean13CheckDigit(first12: string): number {
-  let sum = 0;
-  for (let i = 0; i < 12; i++) {
-    sum += Number(first12[i]) * (i % 2 === 0 ? 1 : 3);
-  }
-  return (10 - (sum % 10)) % 10;
-}
-
-function isValidBarcode(v: string, format: string): boolean {
-  if (!v) return false;
-  if (format !== "EAN13") return true; // CODE128 takes any text
-  if (!/^\d{12,13}$/.test(v)) return false;
-  // 12 digits: JsBarcode appends the checksum itself.
-  return v.length === 12 || Number(v[12]) === ean13CheckDigit(v.slice(0, 12));
-}
 
 // Client-only barcode generator (bundled `jsbarcode`). CODE128 accepts any text;
 // EAN-13 needs 12–13 digits. Invalid input is surfaced, never thrown.
