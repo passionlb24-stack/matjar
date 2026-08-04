@@ -180,6 +180,11 @@ revoke all on function public.gig_facets() from public;
 grant execute on function public.gig_facets() to anon, authenticated;
 
 -- ── 6. Extend the existing public profile ──────────────────────────────────
+-- Adding OUT columns changes the return type, which `create or replace` refuses
+-- (42P13). It has to be dropped first — safe here because the drop and the
+-- recreate are in one transaction, so the function is never missing to a caller.
+drop function if exists public.public_lister_profile(uuid);
+
 create or replace function public.public_lister_profile(p_user uuid)
 returns table (
   id uuid,

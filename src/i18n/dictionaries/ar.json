@@ -3122,6 +3122,21 @@
     "allCategories": "كل الفئات",
     "from": "من",
     "daysShort": "ي",
+    "contactShort": "راسله",
+    "verifiedTitle": "هويّة موثّقة من متجر",
+    "noResults": "ما في نتيجة بالضبط لهالفلتر — هودي الأقرب.",
+    "filterVerified": "موثّق فقط",
+    "filterAvailable": "متاح اليوم",
+    "filterAll": "الكل",
+    "trust": {
+      "rating": "★ {rating} · {count} تقييم",
+      "completed": "{count} مشروع",
+      "available": "متاح اليوم",
+      "delivery": "تسليم {days} أيام",
+      "revisions": "{count} تعديل مجاني",
+      "samples": "{count} صورة شغل",
+      "region": "{region}"
+    },
     "categories": {
       "design": "تصميم",
       "photography": "تصوير",

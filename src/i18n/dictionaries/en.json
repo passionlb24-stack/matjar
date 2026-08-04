@@ -3122,6 +3122,21 @@
     "allCategories": "All categories",
     "from": "From",
     "daysShort": "d",
+    "contactShort": "Message",
+    "verifiedTitle": "Identity verified by Matjar",
+    "noResults": "Nothing matches that exactly — here's the closest.",
+    "filterVerified": "Verified only",
+    "filterAvailable": "Available today",
+    "filterAll": "All",
+    "trust": {
+      "rating": "★ {rating} · {count} reviews",
+      "completed": "{count} projects",
+      "available": "Available today",
+      "delivery": "{days}-day delivery",
+      "revisions": "{count} free revisions",
+      "samples": "{count} work samples",
+      "region": "{region}"
+    },
     "categories": {
       "design": "Design",
       "photography": "Photography",
