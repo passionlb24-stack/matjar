@@ -6,6 +6,7 @@ import {
   TrendingDown,
   BarChart3,
   Users,
+  Truck,
 } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -152,6 +153,7 @@ export default async function StoreReportsPage({
   if (!UUID_RE.test(storeId)) redirect(`/${lang}/merchant`);
   const dict = await getDictionary(lang);
   const t = dict.merchant.analytics;
+  const td = dict.merchant.dispatch;
 
   const supabase = await createClient();
   const {
@@ -251,6 +253,32 @@ export default async function StoreReportsPage({
     },
   ];
 
+  // ===== Delivery cost (migration 0213). Same 14-day window as the revenue
+  // block above. Cancelled dispatches are excluded — their fee was taken back
+  // off the order, so counting them would overstate what couriers actually cost.
+  const { data: delivery } = await supabase.rpc("store_delivery_report", {
+    p_store_id: storeId,
+    p_days: 14,
+  });
+  const d = (delivery ?? {}) as {
+    total_fees?: number;
+    dispatches?: number;
+    delivered?: number;
+    avg_fee?: number;
+    by_courier?: { name: string; fees: number }[];
+  };
+  const dispatchCount = Number(d.dispatches ?? 0);
+  const courierRows = (d.by_courier ?? []).map((c) => ({
+    label: c.name,
+    value: Number(c.fees),
+  }));
+  const deliveryKpis = [
+    { label: td.totalFees, value: formatPrice(Number(d.total_fees ?? 0)) },
+    { label: td.dispatches, value: String(dispatchCount) },
+    { label: td.delivered, value: String(d.delivered ?? 0) },
+    { label: td.avgFee, value: formatPrice(Number(d.avg_fee ?? 0)) },
+  ];
+
   // ===== Audience side (visits / sources / conversion), from migration 0161.
   const { data: audience } = await supabase.rpc("store_audience", {
     p_store_id: storeId,
@@ -339,6 +367,48 @@ export default async function StoreReportsPage({
           <Bars title={t.ordersOverTime} rows={perDay} empty={t.noData} />
           <Bars title={t.statusBreakdown} rows={statusRows} empty={t.noData} />
           <Bars title={t.topProducts} rows={topProducts} empty={t.noData} />
+        </div>
+
+        {/* ===== Delivery cost ===== */}
+        <div className="mt-12 border-t border-border pt-8">
+          <h2 className="flex items-center gap-2 text-xl font-extrabold tracking-tight">
+            <Truck className="h-6 w-6 text-primary" />
+            {td.reportTitle}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {td.reportSubtitle}
+          </p>
+
+          {dispatchCount ? (
+            <>
+              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {deliveryKpis.map((k) => (
+                  <div
+                    key={k.label}
+                    className="rounded-2xl bg-surface-muted/60 p-4"
+                  >
+                    <p className="text-xs font-medium text-muted-foreground">
+                      {k.label}
+                    </p>
+                    <p className="mt-1 text-2xl font-extrabold">{k.value}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4">
+                <Bars
+                  title={td.byCourier}
+                  rows={courierRows}
+                  empty={t.noData}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="mt-6 rounded-2xl border border-dashed border-border bg-surface-muted/40 p-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                {td.noDispatches}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* ===== Audience & conversion ===== */}

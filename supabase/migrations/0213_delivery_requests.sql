@@ -264,3 +264,45 @@ $function$;
 
 revoke all on function public.get_delivery_tracking(text) from public;
 grant execute on function public.get_delivery_tracking(text) to anon, authenticated;
+
+-- ── 7. What the courier cost ──────────────────────────────────────────────
+-- Aggregated here for the same reason store_report is (0087): a store that grows
+-- would otherwise silently truncate at PostgREST's 1000-row cap and under-report
+-- its own costs. Cancelled dispatches are excluded — their fee was taken back off
+-- the order, so counting them would overstate what couriers actually cost.
+create or replace function public.store_delivery_report(
+  p_store_id uuid,
+  p_days integer default 14
+) returns jsonb language plpgsql stable security definer set search_path to '' as $function$
+declare v_result jsonb;
+begin
+  if not public.can_manage_store(p_store_id) then
+    raise exception 'not allowed';
+  end if;
+
+  with d as (
+    select r.fee, r.status, c.name as courier
+    from public.delivery_requests r
+    join public.delivery_companies c on c.id = r.company_id
+    where r.store_id = p_store_id
+      and r.status <> 'cancelled'
+      and r.requested_at >= now() - make_interval(days => p_days)
+  )
+  select jsonb_build_object(
+    'days',       p_days,
+    'total_fees', coalesce(round(sum(d.fee), 2), 0),
+    'dispatches', count(*),
+    'delivered',  count(*) filter (where d.status = 'delivered'),
+    'avg_fee',    case when count(*) = 0 then 0
+                       else round(sum(d.fee) / count(*), 2) end,
+    'by_courier', coalesce((
+      select jsonb_agg(jsonb_build_object('name', g.courier, 'fees', g.fees)
+                       order by g.fees desc)
+      from (select courier, round(sum(fee), 2) as fees
+            from d group by courier) g
+    ), '[]'::jsonb)
+  ) into v_result
+  from d;
+
+  return v_result;
+end $function$;

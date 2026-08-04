@@ -1824,7 +1824,15 @@
         "cancelled": "ملغاة"
       },
       "waCustomer": "طلبيتك من {store} بالطريق. تابعها من هون: {link}",
-      "waCourier": "استلام من {store}\nالزبون: {customer}\nالعنوان: {address}\nالرسوم: {fee}\nالرقم: {ref}"
+      "waCourier": "استلام من {store}\nالزبون: {customer}\nالعنوان: {address}\nالرسوم: {fee}\nالرقم: {ref}",
+      "reportTitle": "كلفة التوصيل",
+      "reportSubtitle": "شو كلّفتك شركات التوصيل بآخر ١٤ يوم.",
+      "totalFees": "رسوم التوصيل",
+      "dispatches": "طلبات التوصيل",
+      "avgFee": "المعدّل للطلبية",
+      "delivered": "تم تسليمها",
+      "byCourier": "الكلفة حسب الشركة",
+      "noDispatches": "ما انطلبت ولا شركة توصيل بهالفترة."
     }
   },
   "tracking": {

@@ -1824,7 +1824,15 @@
         "cancelled": "Cancelled"
       },
       "waCustomer": "Your order from {store} is on its way. Follow it here: {link}",
-      "waCourier": "Pickup from {store}\nCustomer: {customer}\nAddress: {address}\nFee: {fee}\nRef: {ref}"
+      "waCourier": "Pickup from {store}\nCustomer: {customer}\nAddress: {address}\nFee: {fee}\nRef: {ref}",
+      "reportTitle": "Delivery cost",
+      "reportSubtitle": "What couriers cost you over the last 14 days.",
+      "totalFees": "Delivery fees",
+      "dispatches": "Dispatches",
+      "avgFee": "Average per order",
+      "delivered": "Delivered",
+      "byCourier": "Cost by courier",
+      "noDispatches": "No courier was requested in this period."
     }
   },
   "tracking": {
