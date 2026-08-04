@@ -1,3 +1,4 @@
+import { requestNow } from "@/lib/now";
 import { notFound, redirect } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -80,7 +81,7 @@ export default async function StoreOsLayout({
   const trialDaysLeft = onTrial
     ? Math.max(
         1,
-        Math.ceil((trialEnds!.getTime() - Date.now()) / 86_400_000),
+        Math.ceil((trialEnds!.getTime() - requestNow()) / 86_400_000),
       )
     : 0;
   const effectivePlan = resolvePlan(s.plan, s.trial_ends_at);

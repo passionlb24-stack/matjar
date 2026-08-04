@@ -23,8 +23,14 @@ export function LocationPicker({
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
+  // Kept in a ref so the map effect below can stay mounted across re-renders
+  // without re-subscribing every time the parent passes a new callback. Written
+  // in an effect, not during render — a ref touched mid-render is not guaranteed
+  // to survive a discarded render attempt.
   const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  });
   const [locating, setLocating] = useState(false);
 
   useEffect(() => {

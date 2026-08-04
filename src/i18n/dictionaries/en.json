@@ -1796,6 +1796,57 @@
       "subtitle": "Pick who you work with and set the price — shown to customers on your store page.",
       "pricePlaceholder": "Price ($)",
       "noneAvailable": "No delivery companies available yet. Check back soon!"
+    },
+    "dispatch": {
+      "title": "Delivery",
+      "request": "Request a courier",
+      "choose": "Choose a courier",
+      "fee": "Delivery fee",
+      "feeHint": "Leave empty to use the price you set for this courier.",
+      "send": "Request",
+      "sending": "Requesting…",
+      "none": "You haven't enabled any delivery company yet. Add one in Settings.",
+      "locked": "Requesting a courier is a Pro feature.",
+      "lockedCta": "See plans",
+      "trackingRef": "Tracking reference",
+      "copyLink": "Copy tracking link",
+      "copied": "Copied",
+      "sendCustomer": "Send tracking to the customer",
+      "messageCourier": "Message the courier",
+      "markAs": "Mark as",
+      "cancel": "Cancel delivery",
+      "cancelConfirm": "Cancel this delivery? The delivery fee will be removed from the order total.",
+      "status": {
+        "requested": "Requested",
+        "picked_up": "Picked up",
+        "in_transit": "On the way",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled"
+      },
+      "waCustomer": "Your order from {store} is on its way. Follow it here: {link}",
+      "waCourier": "Pickup from {store}\nCustomer: {customer}\nAddress: {address}\nFee: {fee}\nRef: {ref}",
+      "reportTitle": "Delivery cost",
+      "reportSubtitle": "What couriers cost you over the last 14 days.",
+      "totalFees": "Delivery fees",
+      "dispatches": "Dispatches",
+      "avgFee": "Average per order",
+      "delivered": "Delivered",
+      "byCourier": "Cost by courier",
+      "noDispatches": "No courier was requested in this period."
+    }
+  },
+  "tracking": {
+    "title": "Track your delivery",
+    "subtitle": "Reference {ref}",
+    "notFound": "We couldn't find this tracking reference. Check the link, or ask the store.",
+    "from": "From",
+    "courier": "Delivered by",
+    "callCourier": "Call the courier",
+    "steps": {
+      "requested": "Courier requested",
+      "picked_up": "Picked up from the store",
+      "in_transit": "On the way to you",
+      "delivered": "Delivered"
     }
   },
   "admin": {

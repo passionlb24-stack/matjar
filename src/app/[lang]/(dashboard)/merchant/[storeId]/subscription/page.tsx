@@ -8,6 +8,7 @@ import { Container } from "@/components/ui/container";
 import { RequestProButton } from "@/components/request-pro-button";
 import { StartTrialButton } from "@/components/start-trial-button";
 import { PLAN_TIERS, promoState, annualPrice, planRank } from "@/lib/plan-tiers";
+import { requestNow } from "@/lib/now";
 
 // Single source of truth for Pro pricing (promo-aware): plan-tiers.
 const PRO_PRICE_MONTHLY = PLAN_TIERS.pro.monthly;
@@ -64,7 +65,7 @@ export default async function StoreSubscriptionPage({
   const trialDaysLeft = onTrial
     ? Math.max(
         1,
-        Math.ceil((trialEnd!.getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
+        Math.ceil((trialEnd!.getTime() - requestNow()) / (1000 * 60 * 60 * 24)),
       )
     : 0;
 

@@ -92,13 +92,24 @@ export function ExploreClient({
   // products" section AND use to surface stores that carry a match. null = no
   // active product search (query < 2 chars); an array = the product hits.
   const supabase = useMemo(() => createClient(), []);
-  const [productResults, setProductResults] = useState<ProductHit[] | null>(
-    null,
-  );
-  const [searching, setSearching] = useState(false);
+  // The answer is stored WITH the term it answers, which is what makes both
+  // "is this still loading" and "are these hits stale" derivable rather than
+  // separate flags the effect has to keep in step with the input.
+  const [answer, setAnswer] = useState<{
+    term: string;
+    hits: ProductHit[] | null;
+  } | null>(null);
   // Latest term this effect fired for, so a slow/out-of-order response that
   // resolves after the query changed is discarded instead of clobbering state.
   const latestTermRef = useRef("");
+
+  const term = query.trim();
+  // Store-name filtering below always runs; product search only kicks in at
+  // 2+ chars (matches the RPC's own guard and avoids a full-catalog scan).
+  const productSearchOn = term.length >= 2;
+  const productResults =
+    productSearchOn && answer?.term === term ? answer.hits : null;
+  const searching = productSearchOn && answer?.term !== term;
 
   // Stores that carry a matching product (derived from the product hits), so the
   // store list below can include them even when the store NAME doesn't match.
@@ -111,16 +122,8 @@ export function ExploreClient({
   );
 
   useEffect(() => {
-    const term = query.trim();
     latestTermRef.current = term;
-    // Store-name filtering below always runs; product search only kicks in at
-    // 2+ chars (matches the RPC's own guard and avoids a full-catalog scan).
-    if (term.length < 2) {
-      setProductResults(null);
-      setSearching(false);
-      return;
-    }
-    setSearching(true);
+    if (!productSearchOn) return;
     const handle = setTimeout(() => {
       void (async () => {
         const { data, error } = await supabase.rpc("search_products_fuzzy", {
@@ -128,12 +131,11 @@ export function ExploreClient({
         });
         // Ignore this response if the query moved on while it was in flight.
         if (latestTermRef.current !== term) return;
-        setProductResults(error ? null : ((data ?? []) as ProductHit[]));
-        setSearching(false);
+        setAnswer({ term, hits: error ? null : ((data ?? []) as ProductHit[]) });
       })();
     }, 250);
     return () => clearTimeout(handle);
-  }, [query, supabase]);
+  }, [term, productSearchOn, supabase]);
 
   async function findNearMe() {
     setLocating(true);

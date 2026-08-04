@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Plus, Printer, Trash2 } from "lucide-react";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,18 @@ function money(n: number) {
   return n.toLocaleString("en-US", { maximumFractionDigits: 2 });
 }
 
+// Today, in the browser's own timezone, as the <input type="date"> wants it.
+// Read through useSyncExternalStore rather than set in an effect: the server has
+// no local date, so "" is its snapshot and the real one arrives at hydration —
+// which is exactly the mismatch the effect was working around. The date never
+// changes mid-session, so there is nothing to subscribe to.
+const subscribeToNothing = () => () => {};
+
+function localToday(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 // Invoice generator: a form drives a live A4-style preview; printing uses the
 // browser (window.print) so Arabic RTL renders perfectly with no PDF library
 // and no font-embedding headache. A scoped @media print rule isolates the sheet.
@@ -25,17 +37,15 @@ export function InvoiceGenerator({ dict }: { dict: Dictionary }) {
   const [buyer, setBuyer] = useState("");
   const [buyerInfo, setBuyerInfo] = useState("");
   const [invoiceNo, setInvoiceNo] = useState("001");
-  const [date, setDate] = useState("");
   const [currency, setCurrency] = useState("$");
   const [vatPct, setVatPct] = useState("11");
   const [notes, setNotes] = useState("");
   const [items, setItems] = useState<Item[]>([{ name: "", qty: "1", price: "" }]);
 
-  // Set today's date after mount to avoid an SSR/client hydration mismatch.
-  useEffect(() => {
-    const d = new Date();
-    setDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
-  }, []);
+  // Defaults to today; once the merchant picks a date, their choice wins.
+  const today = useSyncExternalStore(subscribeToNothing, localToday, () => "");
+  const [pickedDate, setPickedDate] = useState<string | null>(null);
+  const date = pickedDate ?? today;
 
   const rows = items.map((it) => ({
     ...it,
@@ -68,7 +78,7 @@ export function InvoiceGenerator({ dict }: { dict: Dictionary }) {
       <div className="no-print grid content-start gap-4">
         <div className="grid grid-cols-2 gap-3">
           <label className="grid gap-1"><span className="text-sm font-semibold">{t.invoiceNo}</span><input value={invoiceNo} onChange={(e) => setInvoiceNo(e.target.value)} className={field} /></label>
-          <label className="grid gap-1"><span className="text-sm font-semibold">{t.date}</span><input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={field} /></label>
+          <label className="grid gap-1"><span className="text-sm font-semibold">{t.date}</span><input type="date" value={date} onChange={(e) => setPickedDate(e.target.value)} className={field} /></label>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <label className="grid gap-1"><span className="text-sm font-semibold">{t.seller}</span><input value={seller} onChange={(e) => setSeller(e.target.value)} className={field} /></label>
