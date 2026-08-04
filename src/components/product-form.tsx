@@ -1,5 +1,5 @@
 "use client";
-import { revalidateProduct } from "@/lib/cache-actions";
+import { revalidateProduct, revalidateStore } from "@/lib/cache-actions";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -217,6 +217,7 @@ export function ProductForm({
     setInMarket(false);
     setLoading(false);
     await revalidateProduct();
+    await revalidateStore(storeId);
     router.refresh();
   }
 

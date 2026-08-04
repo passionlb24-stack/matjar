@@ -1,5 +1,5 @@
 "use client";
-import { revalidateProduct } from "@/lib/cache-actions";
+import { revalidateProduct, revalidateStore } from "@/lib/cache-actions";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -309,6 +309,7 @@ export function ProductEditForm({
     }
 
     await revalidateProduct(productId);
+    await revalidateStore(storeId);
     router.push(`/${lang}/merchant/${storeId}`);
     router.refresh();
   }

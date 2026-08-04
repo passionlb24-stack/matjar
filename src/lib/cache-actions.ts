@@ -28,6 +28,20 @@ export async function revalidateProduct(id?: string) {
   if (id) bustTag(`product:${id}`);
 }
 
+/**
+ * Bust one store's cached public page (see getPublicStoreView, tagged
+ * `store:<id>` with a 300s TTL).
+ *
+ * The storefront's product list is baked into that cached view, so
+ * revalidateProduct() alone does not refresh it — its `products` tag is a
+ * different cache. Anything that changes what a store sells has to bust this
+ * too, or the merchant looks at their own shop, sees the old catalogue, and
+ * concludes the change didn't save.
+ */
+export async function revalidateStore(id: string) {
+  bustTag(`store:${id}`);
+}
+
 /** Bust a Sunday-Market listing's cached public view (created / edited / moderated). */
 export async function revalidateListing(id?: string) {
   bustTag("listings");
