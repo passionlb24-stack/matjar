@@ -4,6 +4,10 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import {
+  AdminAttentionQueue,
+  type AttentionQueue,
+} from "@/components/admin-attention-queue";
 import { PageHeader } from "@/components/ui/page-header";
 import { Stat, StatGrid } from "@/components/ui/stat";
 import { Card, CardBody } from "@/components/ui/card";
@@ -64,6 +68,12 @@ export default async function AdminOverviewPage({
     .limit(20);
   const reviews = (reviewData ?? []) as unknown as ReviewRow[];
 
+  // The queue is what the admin opens this page for; the counts below explain
+  // it. Failing soft on purpose — a null here hides the section rather than
+  // taking down the whole overview.
+  const { data: queueData } = await supabase.rpc("admin_attention_queue");
+  const queue = (queueData ?? {}) as AttentionQueue;
+
   const initial = (name: string) => name.trim().charAt(0).toUpperCase() || "?";
 
   return (
@@ -76,6 +86,7 @@ export default async function AdminOverviewPage({
         />
 
         <div data-animate className="space-y-8">
+          <AdminAttentionQueue queue={queue} lang={lang} dict={dict} />
           <StatGrid>
             <Stat
               label={dict.admin.totalStores}
