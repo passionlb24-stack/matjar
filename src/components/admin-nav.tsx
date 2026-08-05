@@ -32,6 +32,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
 import { canAccess, type AdminAccess } from "@/lib/admin-sections";
+import { AdminCommandPalette } from "@/components/admin-command-palette";
 
 const icons = {
   overview: LayoutGrid,
@@ -137,10 +138,32 @@ export function AdminNav({
     ),
   })).filter((group) => group.items.length > 0);
 
+  // Flat list for the palette — every section the admin may reach, with the
+  // group carried along so typing a group name finds its members.
+  const searchable = visibleGroups.flatMap((group) =>
+    group.items.map((item) => ({
+      key: item.key,
+      label: dict.admin.nav[item.key],
+      group: groups[group.key] ?? "",
+      href: `${base}${item.path}`,
+    })),
+  );
+
   return (
     <div className="border-b border-border bg-background">
       <Container>
-        <nav className="flex items-stretch gap-2 overflow-x-auto py-2.5">
+        <div className="flex items-start pt-2.5">
+          <AdminCommandPalette
+            sections={searchable}
+            label={dict.admin.jumpTo}
+            placeholder={dict.admin.jumpToPlaceholder}
+            empty={dict.admin.jumpToEmpty}
+          />
+        </div>
+        {/* Wraps rather than scrolling sideways. With 23 sections the strip was
+            wider than any screen, so switching meant dragging past every label
+            you did not want. Two short rows beat one row you have to travel. */}
+        <nav className="flex flex-wrap items-stretch gap-x-2 gap-y-3 py-2.5">
           {visibleGroups.map((group, gi) => (
             <Fragment key={group.key}>
               {gi > 0 && (
