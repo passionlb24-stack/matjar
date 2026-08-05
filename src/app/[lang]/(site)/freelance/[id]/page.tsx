@@ -10,6 +10,7 @@ import {
   Check,
   Images,
   ExternalLink,
+  BadgeCheck,
 } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -18,6 +19,11 @@ import { localeAlternates } from "@/lib/site";
 import { regions } from "@/lib/catalog";
 import type { Gig } from "@/lib/gigs";
 import { Container } from "@/components/ui/container";
+import { TrustChips } from "@/components/trust-chips";
+import { GigCard, type BrowsedGig } from "@/components/gig-card";
+import { getUsdLbpRate } from "@/lib/data/settings";
+import { requestNow } from "@/lib/now";
+import { formatLbp } from "@/lib/currency";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ContactFreelancerButton } from "@/components/contact-freelancer-button";
@@ -67,12 +73,17 @@ export default async function GigDetailPage({
   const { data } = await supabase
     .from("gigs")
     .select(
-      "id, freelancer_id, freelancer_name, title, description, category, price, delivery_days, image_url, region, gallery, includes, revisions, portfolio_link",
+      "id, freelancer_id, freelancer_name, title, description, category, price, delivery_days, image_url, region, gallery, includes, revisions, portfolio_link, available_until, completed_count, rating_avg, rating_count",
     )
     .eq("id", id)
     .maybeSingle();
   if (!data) notFound();
-  const gig = data as Gig;
+  const gig = data as Gig & {
+    available_until: string | null;
+    completed_count: number | null;
+    rating_avg: number | null;
+    rating_count: number | null;
+  };
 
   const {
     data: { user },
@@ -80,6 +91,40 @@ export default async function GigDetailPage({
   const isOwn = user?.id === gig.freelancer_id;
   const regionName =
     regions.find((r) => r.key === gig.region)?.name[lang] ?? gig.region;
+
+  // The buyer is choosing a PERSON, not a listing. profiles is own-row-only
+  // under RLS, so this goes through the security-definer view added in 0205 and
+  // extended in 0215.
+  const { data: profRows } = await supabase.rpc("public_lister_profile", {
+    p_user: gig.freelancer_id,
+  });
+  const profile = ((profRows ?? []) as {
+    full_name: string | null;
+    bio: string | null;
+    skills: string[] | null;
+    gig_count: number | null;
+    languages: string[] | null;
+    freelancer_verified: boolean | null;
+    member_since: string | null;
+  }[])[0];
+
+  // Same shape the grid uses, so the cards below are the cards above.
+  const { data: relData } = await supabase.rpc("browse_gigs", {
+    p_category: gig.category,
+    p_limit: 5,
+  });
+  const related = ((relData ?? []) as unknown as BrowsedGig[])
+    .filter((g) => g.id !== gig.id)
+    .slice(0, 2);
+
+  const lbpRate = await getUsdLbpRate();
+  // Beirut, not UTC — "available today" has to mean the buyer's today.
+  const todayIso = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Beirut",
+  }).format(new Date(requestNow()));
+  const regionLabels = Object.fromEntries(
+    regions.map((r) => [r.key, r.name[lang]]),
+  );
 
   return (
     <div className="py-10">
@@ -119,7 +164,10 @@ export default async function GigDetailPage({
               className="flex items-center gap-1 font-semibold text-primary hover:underline"
             >
               <User className="h-4 w-4" />
-              {gig.freelancer_name || t.freelancer}
+              {profile?.full_name || gig.freelancer_name || t.freelancer}
+              {profile?.freelancer_verified && (
+                <BadgeCheck className="h-4 w-4" aria-label={t.verifiedTitle} />
+              )}
             </Link>
             {regionName && (
               <span className="flex items-center gap-1">
@@ -134,9 +182,65 @@ export default async function GigDetailPage({
               </span>
             )}
           </div>
+          {/* Same evidence the card showed. Identical component, so the listing
+              and this page can never claim different things about one person. */}
+          <div className="mt-3">
+            <TrustChips
+              gig={{
+                ratingAvg: gig.rating_avg,
+                ratingCount: gig.rating_count,
+                completedCount: gig.completed_count,
+                availableUntil: gig.available_until,
+                deliveryDays: gig.delivery_days,
+                revisions: gig.revisions,
+                gallery: gig.gallery,
+                region: gig.region,
+              }}
+              dict={dict}
+              todayIso={todayIso}
+              regionLabels={regionLabels}
+              max={4}
+              size="md"
+            />
+          </div>
+
           <p className="mt-4 whitespace-pre-wrap border-t border-border pt-4 text-muted-foreground">
             {gig.description}
           </p>
+
+          {/* Who they are, in the buyer's order of interest: what they say about
+              themselves, what they can do, and how long they have been here. */}
+          {(profile?.bio ||
+            profile?.skills?.length ||
+            profile?.member_since) && (
+            <div className="mt-4 border-t border-border pt-4">
+              {profile?.bio && (
+                <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                  {profile.bio}
+                </p>
+              )}
+              {Array.isArray(profile?.skills) && profile.skills.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {profile.skills.map((s) => (
+                    <span
+                      key={s}
+                      className="rounded-full bg-surface-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground"
+                    >
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {profile?.member_since && (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  {t.memberSince.replace(
+                    "{year}",
+                    String(new Date(profile.member_since).getFullYear()),
+                  )}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* What the starting price covers — the buyer's first question. */}
           {Array.isArray(gig.includes) && gig.includes.length > 0 && (
@@ -166,6 +270,13 @@ export default async function GigDetailPage({
                 <p className="text-2xl font-extrabold text-primary">
                   {money(Number(gig.price))}
                 </p>
+                {/* Both currencies, like everywhere else on Matjar. Making the
+                    buyer convert in their head is friction at the last step. */}
+                {lbpRate > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    {formatLbp(Number(gig.price), lbpRate, lang)}
+                  </p>
+                )}
               </div>
             )}
             {isOwn ? (
@@ -219,7 +330,44 @@ export default async function GigDetailPage({
             {t.portfolioLink}
           </a>
         )}
+
+        {/* Somewhere to go that isn't back. A buyer who bounces off one listing
+            usually still wants the job done. */}
+        {related.length > 0 && (
+          <div className="mt-10">
+            <h2 className="text-lg font-extrabold tracking-tight">
+              {t.relatedTitle}
+            </h2>
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {related.map((g) => (
+                <GigCard
+                  key={g.id}
+                  gig={g}
+                  lang={lang as Locale}
+                  dict={dict}
+                  todayIso={todayIso}
+                  lbpRate={lbpRate}
+                  regionLabels={regionLabels}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </Container>
+
+      {/* Mobile only. Nearly every visitor is on a phone, and the contact button
+          sat at the end of a long page — reachable only by deciding to look for
+          it. Here it is in reach from anywhere in the listing. Desktop keeps the
+          inline button; a bar there would be noise. */}
+      {!isOwn && (
+        <div className="sticky bottom-0 z-30 border-t border-border bg-surface/95 p-3 backdrop-blur-sm sm:hidden">
+          <ContactFreelancerButton
+            freelancerId={gig.freelancer_id}
+            lang={lang as Locale}
+            dict={dict}
+          />
+        </div>
+      )}
     </div>
   );
 }

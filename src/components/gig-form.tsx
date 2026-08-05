@@ -67,6 +67,7 @@ export function GigForm({
         includes: includes.length ? includes : null,
         revisions: revisionsRaw === "" ? null : Number(revisionsRaw),
         portfolio_link: link || null,
+        available_until: String(form.get("available_until") ?? "") || null,
       })
       .select("id")
       .single();
@@ -112,7 +113,14 @@ export function GigForm({
         <Field label={t.deliveryDays} htmlFor="delivery_days">
           <Input id="delivery_days" name="delivery_days" type="number" min="1" step="1" />
         </Field>
+        {/* Dated on purpose. "Available now" set once and forgotten becomes a
+            lie within a week, and a badge nobody believes costs more than no
+            badge — so it lapses instead of needing to be withdrawn. */}
+        <Field label={t.availableUntil} htmlFor="available_until">
+          <Input id="available_until" name="available_until" type="date" />
+        </Field>
       </div>
+      <p className="-mt-3 text-xs text-muted-foreground">{t.availableUntilHint}</p>
       <Field label={t.description} htmlFor="description" required>
         <Textarea id="description" name="description" rows={5} required placeholder={t.descriptionPlaceholder} />
       </Field>
