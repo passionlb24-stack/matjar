@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
+import { usePathname } from "next/navigation";
 import { Moon, Sun } from "lucide-react";
 
 // Light/dark toggle. Sets data-theme on <html> (which flips the token palette in
@@ -38,7 +39,23 @@ function isDarkNow(): boolean {
   return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
 }
 
+// The button carries no visible text, so these labels are the only thing a
+// screen reader — or anyone hovering — gets. They were hardcoded Arabic, which
+// meant every English page shipped an Arabic control name.
+//
+// The locale comes from the path rather than a prop because this button is
+// mounted from five places (both layouts, both mobile menus, the site header),
+// and every route in the app is locale-prefixed, so the path already knows.
+const LABELS = {
+  ar: { toLight: "الوضع الفاتح", toDark: "الوضع الداكن" },
+  en: { toLight: "Light mode", toDark: "Dark mode" },
+} as const;
+
 export function ThemeToggle({ className = "" }: { className?: string }) {
+  // "/en/merchant/..." → en; anything else (including "/") falls back to the
+  // primary locale, matching how the rest of the app treats an absent prefix.
+  const lang = usePathname()?.split("/")[1] === "en" ? "en" : "ar";
+  const t = LABELS[lang];
   // Light on the server: the markup has to match what renders before the
   // no-flash script has had a chance to touch it.
   const isDark = useSyncExternalStore(subscribe, isDarkNow, () => false);
@@ -58,8 +75,8 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
     <button
       type="button"
       onClick={toggle}
-      aria-label={isDark ? "الوضع الفاتح" : "الوضع الداكن"}
-      title={isDark ? "الوضع الفاتح" : "الوضع الداكن"}
+      aria-label={isDark ? t.toLight : t.toDark}
+      title={isDark ? t.toLight : t.toDark}
       // 36px visual, 44px hit area (WCAG 2.5.5) via a transparent outset.
       className={`relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors after:absolute after:left-1/2 after:top-1/2 after:h-11 after:w-11 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] hover:bg-surface-muted hover:text-foreground active:scale-95 ${className}`}
     >
