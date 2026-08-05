@@ -56,7 +56,15 @@ export function CountUp({
 
   return (
     <span ref={ref} className={className}>
-      {n.toLocaleString(locale === "ar" ? "ar-EG" : "en-US")}
+      {/* ar-EG renders Arabic-Indic digits (١٢٣). Every price, order id and
+          stat elsewhere in the app renders Latin digits, so these counters
+          were the only place on the site showing a different numeral system —
+          on the home page, directly above prices that disagreed with them.
+          The -u-nu-latn extension pins the numbering system explicitly: plain
+          "ar" happens to give Latin digits on current ICU, but that is a CLDR
+          default that has changed before and is not the same in every
+          browser. */}
+      {n.toLocaleString(locale === "ar" ? "ar-u-nu-latn" : "en-US")}
       {suffix}
     </span>
   );
