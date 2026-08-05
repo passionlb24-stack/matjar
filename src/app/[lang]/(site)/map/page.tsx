@@ -67,7 +67,7 @@ export default async function MapPage({
           {mapStores.length ? (
             <StoreMapClient stores={mapStores} lang={l} />
           ) : (
-            <div className="rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
+            <div className="rounded-2xl border border-dashed border-border py-10 sm:py-16 text-center text-muted-foreground">
               {dict.map.empty}
             </div>
           )}

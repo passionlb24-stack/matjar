@@ -12,7 +12,7 @@ export function HomeFaq({ dict }: { dict: Dictionary }) {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section className="py-14 sm:py-20">
+    <section className="py-10 sm:py-20">
       <Container>
         <div className="mb-8 text-center">
           <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-primary">

@@ -21,7 +21,7 @@ const ICONS: LucideIcon[] = [ClipboardList, CalendarCheck, Users, BarChart3, Box
 export function BusinessOs({ lang, dict }: { lang: Locale; dict: Dictionary }) {
   const t = dict.businessOs;
   return (
-    <section className="border-y border-border bg-surface-muted/30 py-14 sm:py-20">
+    <section className="border-y border-border bg-surface-muted/30 py-10 sm:py-20">
       <Container>
         <div className="mx-auto max-w-2xl text-center">
           <span className="text-xs font-bold uppercase tracking-[0.18em] text-primary">{t.kicker}</span>

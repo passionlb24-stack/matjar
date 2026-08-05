@@ -257,7 +257,7 @@ export function StoreProductsSection({
             </>
           )
         ) : (
-          <div className="rounded-2xl border border-dashed border-border py-14 text-center text-muted-foreground">
+          <div className="rounded-2xl border border-dashed border-border py-10 sm:py-14 text-center text-muted-foreground">
             {surface === "appointment"
               ? dict.store.noServices
               : dict.store.noProducts}

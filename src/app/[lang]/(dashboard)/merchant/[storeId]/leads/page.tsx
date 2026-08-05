@@ -123,7 +123,7 @@ export default async function StoreLeadsPage({
             ))}
           </div>
         ) : (
-          <div className="mt-8 rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
+          <div className="mt-8 rounded-2xl border border-dashed border-border py-10 sm:py-16 text-center text-muted-foreground">
             {t.empty}
           </div>
         )}

@@ -55,7 +55,7 @@ export function SiteFooter({ lang, dict }: { lang: Locale; dict: Dictionary }) {
 
   return (
     <footer className="border-t border-border bg-surface print:hidden">
-      <Container className="py-14">
+      <Container className="py-10 sm:py-14">
         <div className="grid gap-10 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr]">
           {/* Brand + app */}
           <div>

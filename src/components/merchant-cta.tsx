@@ -5,7 +5,7 @@ import { Container } from "@/components/ui/container";
 
 export function MerchantCta({ lang, dict }: { lang: Locale; dict: Dictionary }) {
   return (
-    <section className="py-14 sm:py-16">
+    <section className="py-10 sm:py-16">
       <Container>
         <div
           data-animate

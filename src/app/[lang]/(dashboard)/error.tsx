@@ -18,7 +18,7 @@ export default function DashboardError({
   }, [error]);
 
   return (
-    <div className="py-16">
+    <div className="py-10 sm:py-16">
       <Container className="max-w-md text-center">
         <h1 className="text-2xl font-extrabold">حدث خطأ ما</h1>
         <p className="mt-2 text-muted-foreground">

@@ -384,7 +384,7 @@ export function ExploreClient({
             ))}
           </div>
         ) : (
-          <div className="mt-10 rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
+          <div className="mt-10 rounded-2xl border border-dashed border-border py-10 sm:py-16 text-center text-muted-foreground">
             {dict.explore.empty}
           </div>
         )}

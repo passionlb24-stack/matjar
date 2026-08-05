@@ -9,7 +9,7 @@ import { Container } from "@/components/ui/container";
 // Each links into /explore filtered by group.
 export function CategoryGrid({ lang, dict }: { lang: Locale; dict: Dictionary }) {
   return (
-    <section className="py-14 sm:py-16">
+    <section className="py-10 sm:py-16">
       <Container>
         <div className="mb-8 text-center">
           <h2 className="text-3xl font-extrabold tracking-tight">

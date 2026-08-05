@@ -220,7 +220,7 @@ export function MarketCityManager({
 
         <div className="mt-6 space-y-2">
           {cities.length === 0 && editingId !== "new" && (
-            <div className="rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
+            <div className="rounded-2xl border border-dashed border-border py-10 sm:py-16 text-center text-muted-foreground">
               {t.empty}
             </div>
           )}

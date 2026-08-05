@@ -111,7 +111,7 @@ export function ForYouStrip({
       : "Stores we think you'll love, based on who you follow and order from.");
 
   return (
-    <section className="py-14 sm:py-16">
+    <section className="py-10 sm:py-16">
       <Container>
         <div className="mb-8">
           <h2 className="text-3xl font-extrabold tracking-tight">{title}</h2>

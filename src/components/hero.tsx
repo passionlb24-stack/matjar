@@ -83,7 +83,7 @@ export function Hero({
         </div>
       ))}
 
-      <Container className="relative py-16 text-center sm:py-20 lg:py-24">
+      <Container className="relative py-10 sm:py-16 text-center sm:py-20 lg:py-24">
         <div data-animate className="mx-auto max-w-3xl">
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary-soft/80 px-4 py-1.5 text-sm font-semibold text-primary shadow-xs backdrop-blur-sm">
             <span className="relative flex h-2 w-2">

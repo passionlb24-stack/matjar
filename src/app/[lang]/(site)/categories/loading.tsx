@@ -9,7 +9,7 @@ export default function CategoriesLoading() {
       <Container>
         <Skeleton className="h-9 w-40" />
       </Container>
-      <section className="py-14 sm:py-16">
+      <section className="py-10 sm:py-16">
         <Container>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
             {Array.from({ length: 9 }).map((_, i) => (

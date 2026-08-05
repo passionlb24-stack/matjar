@@ -47,7 +47,7 @@ export default async function TrackDeliveryPage({
 
   if (!tracking) {
     return (
-      <div className="py-16">
+      <div className="py-10 sm:py-16">
         <Container className="max-w-lg">
           <h1 className="text-2xl font-extrabold tracking-tight">{t.title}</h1>
           <p className="mt-3 text-muted-foreground">{t.notFound}</p>

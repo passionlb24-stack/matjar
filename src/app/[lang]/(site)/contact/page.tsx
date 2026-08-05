@@ -31,7 +31,7 @@ export default async function ContactPage({
   const dict = await getDictionary(lang);
 
   return (
-    <div className="py-14">
+    <div className="py-10 sm:py-14">
       <Container className="max-w-2xl">
         <div data-animate>
           <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
