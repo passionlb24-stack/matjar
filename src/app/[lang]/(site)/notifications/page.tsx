@@ -235,7 +235,7 @@ export default async function NotificationsPage({
                       : t === "store_new"
                         ? dict.notifications.storeNew
                         : t === "pro_request"
-                          ? `${dict.notifications.proRequest}${n.data?.store_name ? " · " + n.data.store_name : ""}`
+                          ? `${dict.notifications.proRequestAdmin}${n.data?.store_name ? " · " + n.data.store_name : ""}`
                           : t === "leader_submission"
                             ? `${dict.notifications.leaderSubmission}${n.data?.name ? " · " + n.data.name : ""}`
                             : t;
