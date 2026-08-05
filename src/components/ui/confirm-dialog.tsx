@@ -51,7 +51,12 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!opts) return;
-    confirmBtnRef.current?.focus();
+    // Open on Cancel, never Confirm. Every caller of this dialog is destructive
+    // (delete a product, a branch, a listing), and a dialog that opens with
+    // Confirm focused turns a stray Enter — the key that just submitted the form
+    // behind it — into the deletion itself. The safe default has to be the one
+    // that costs nothing when pressed by accident.
+    cancelBtnRef.current?.focus();
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
         settle(false);
