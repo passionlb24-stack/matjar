@@ -79,7 +79,7 @@ export function GigCard({
         {/* The portfolio is the strongest thing a new freelancer has; say how
             deep it goes before the shopper has to open the page to find out. */}
         {samples > 1 && (
-          <span className="absolute bottom-2 start-2 rounded-full bg-foreground/70 px-2 py-0.5 text-[11px] font-bold text-surface backdrop-blur-sm">
+          <span className="absolute bottom-2 start-2 rounded-full bg-foreground/70 px-2 py-0.5 text-xs font-bold text-surface backdrop-blur-sm">
             {fill((dict.freelance.trust as unknown as Record<string, string> | undefined)?.samples, "{count}", { count: samples })}
           </span>
         )}
@@ -143,14 +143,14 @@ export function GigCard({
           <span>
             {gig.price != null ? (
               <>
-                <span className="block text-[11px] font-semibold text-muted-foreground">
+                <span className="block text-xs font-semibold text-muted-foreground">
                   {t.from}
                 </span>
                 <span className="block text-lg font-extrabold tabular-nums">
                   {formatUsd(Number(gig.price))}
                 </span>
                 {lbpRate > 0 && (
-                  <span className="block text-[11px] text-muted-foreground">
+                  <span className="block text-xs text-muted-foreground">
                     {formatLbp(Number(gig.price), lbpRate, lang)}
                   </span>
                 )}
