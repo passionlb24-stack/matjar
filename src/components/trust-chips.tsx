@@ -77,7 +77,7 @@ export function TrustChips({
   const chips = trustChips(gig, todayIso, max);
   if (!chips.length) return null;
 
-  const pad = size === "md" ? "px-2.5 py-1 text-xs" : "px-2 py-0.5 text-[11px]";
+  const pad = size === "md" ? "px-2.5 py-1 text-xs" : "px-2 py-0.5 text-xs";
 
   return (
     <div className="flex flex-wrap gap-1.5">

@@ -160,10 +160,11 @@ export function AdminNav({
             empty={dict.admin.jumpToEmpty}
           />
         </div>
-        {/* Wraps rather than scrolling sideways. With 23 sections the strip was
-            wider than any screen, so switching meant dragging past every label
-            you did not want. Two short rows beat one row you have to travel. */}
-        <nav className="flex flex-wrap items-stretch gap-x-2 gap-y-3 py-2.5">
+        {/* Wrapping is a DESKTOP fix. On a 375px screen 23 items in six labelled
+            groups wrap into a wall taller than the content below it, so the
+            phone keeps the scrolling strip — where a swipe is a normal gesture
+            and the palette above is the real shortcut anyway. */}
+        <nav className="flex items-stretch gap-x-2 gap-y-3 overflow-x-auto py-2.5 sm:flex-wrap sm:overflow-x-visible">
           {visibleGroups.map((group, gi) => (
             <Fragment key={group.key}>
               {gi > 0 && (
