@@ -130,7 +130,19 @@ export function ExploreClient({
         });
         // Ignore this response if the query moved on while it was in flight.
         if (latestTermRef.current !== term) return;
-        setAnswer({ term, hits: error ? null : ((data ?? []) as ProductHit[]) });
+        const hits = error ? null : ((data ?? []) as ProductHit[]);
+        setAnswer({ term, hits });
+
+        // Recorded AFTER the debounce, so a term is logged once the visitor has
+        // stopped typing it — not once per keystroke. A zero here is the whole
+        // point: a search that found nothing is demand Matjar cannot serve yet,
+        // and it is the only signal that says which merchant to go and recruit.
+        // Never awaited or surfaced: logging must not slow down or break search.
+        void supabase.rpc("log_search", {
+          p_q: term,
+          p_section: "products",
+          p_results: hits?.length ?? 0,
+        });
       })();
     }, 250);
     return () => clearTimeout(handle);
