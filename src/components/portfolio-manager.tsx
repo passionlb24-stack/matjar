@@ -172,7 +172,7 @@ export function PortfolioManager(props: {
 
       <div className="mt-4 space-y-2">
         {items.length === 0 && !adding && (
-          <div className="rounded-2xl border border-dashed border-border py-14 text-center text-muted-foreground">
+          <div className="rounded-2xl border border-dashed border-border py-10 sm:py-14 text-center text-muted-foreground">
             {t.empty}
           </div>
         )}

@@ -24,7 +24,7 @@ export async function OffersTeaser({
   if (offers.length === 0) return null;
 
   return (
-    <section className="py-14 sm:py-16">
+    <section className="py-10 sm:py-16">
       <Container>
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>

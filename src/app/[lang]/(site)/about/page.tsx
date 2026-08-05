@@ -40,7 +40,7 @@ export default async function AboutPage({
     <div className="pb-16">
       {/* Hero */}
       <div className="border-b border-border bg-surface-muted/30">
-        <Container className="py-14 sm:py-18">
+        <Container className="py-10 sm:py-18">
           <div className="max-w-3xl">
             <span className="text-xs font-bold uppercase tracking-[0.18em] text-primary">{a.kicker}</span>
             <h1 className="mt-4 text-3xl font-extrabold leading-[1.15] tracking-tight sm:text-5xl">{a.title}</h1>

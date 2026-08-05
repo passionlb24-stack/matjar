@@ -37,7 +37,7 @@ export default async function TrustPage({
   return (
     <div className="pb-16">
       <div className="border-b border-border bg-surface-muted/30">
-        <Container className="py-14 sm:py-18">
+        <Container className="py-10 sm:py-18">
           <div className="max-w-3xl">
             <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">
               <ShieldCheck className="h-4 w-4" /> {t.kicker}

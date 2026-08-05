@@ -38,7 +38,7 @@ export default async function MerchantsPage({
     <div className="pb-16">
       {/* Hero */}
       <div className="border-b border-border bg-surface-muted/30">
-        <Container className="py-14 sm:py-20">
+        <Container className="py-10 sm:py-20">
           <div className="mx-auto max-w-2xl text-center">
             <span className="text-xs font-bold uppercase tracking-[0.18em] text-primary">{m.heroKicker}</span>
             <h1 className="mt-4 text-3xl font-extrabold leading-[1.14] tracking-tight sm:text-5xl">{m.heroTitle}</h1>

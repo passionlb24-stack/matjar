@@ -127,7 +127,7 @@ export default async function StoreMembersPage({
         <p className="mt-2 text-muted-foreground">{t.subtitle}</p>
 
         {empty ? (
-          <div className="mt-8 rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
+          <div className="mt-8 rounded-2xl border border-dashed border-border py-10 sm:py-16 text-center text-muted-foreground">
             {t.empty}
           </div>
         ) : (

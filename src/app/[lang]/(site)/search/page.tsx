@@ -39,7 +39,7 @@ export default async function SearchPage({
 
   if (!q) {
     return (
-      <div className="py-16">
+      <div className="py-10 sm:py-16">
         <Container className="max-w-2xl text-center">
           <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-soft text-primary">
             <SearchIcon className="h-7 w-7" />
@@ -70,7 +70,7 @@ export default async function SearchPage({
         </p>
 
         {total === 0 && (
-          <div className="mt-10 rounded-2xl border border-dashed border-border py-16 text-center">
+          <div className="mt-10 rounded-2xl border border-dashed border-border py-10 sm:py-16 text-center">
             <p className="font-bold">{t.empty}</p>
             <p className="mt-2 text-sm text-muted-foreground">{t.emptyHint}</p>
           </div>

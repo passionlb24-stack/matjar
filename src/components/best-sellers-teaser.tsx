@@ -23,7 +23,7 @@ export async function BestSellersTeaser({
   if (products.length === 0) return null;
 
   return (
-    <section className="bg-surface-muted/40 py-14 sm:py-16">
+    <section className="bg-surface-muted/40 py-10 sm:py-16">
       <Container>
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>

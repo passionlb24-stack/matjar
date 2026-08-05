@@ -203,7 +203,7 @@ export default async function StoreOrdersPage({
             canDispatch={canDispatch}
           />
         ) : (
-          <div className="mt-8 rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
+          <div className="mt-8 rounded-2xl border border-dashed border-border py-10 sm:py-16 text-center text-muted-foreground">
             {dict.merchant.noOrders}
           </div>
         )}

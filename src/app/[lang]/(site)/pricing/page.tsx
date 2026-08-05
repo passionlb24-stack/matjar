@@ -69,7 +69,7 @@ export default async function PricingPage({
     );
 
   return (
-    <div className="py-14 sm:py-16">
+    <div className="py-10 sm:py-16">
       <Container>
         <div className="text-center">
           <h1 className="text-4xl font-extrabold tracking-tight">{t.title}</h1>

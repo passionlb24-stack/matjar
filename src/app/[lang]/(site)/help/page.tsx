@@ -45,7 +45,7 @@ export default async function HelpPage({
   };
 
   return (
-    <div className="py-14">
+    <div className="py-10 sm:py-14">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdScript(faqLd) }}
