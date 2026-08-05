@@ -18,7 +18,7 @@ export function StoreCard({
 }: {
   store: FeaturedStore;
   lang: Locale;
-  dict: Dictionary;
+  dict: Pick<Dictionary, "catalog" | "explore" | "featured">;
 }) {
   const Icon = categoryIcons[store.category];
   const cat = dict.catalog[store.category];

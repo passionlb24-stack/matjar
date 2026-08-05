@@ -15,7 +15,7 @@ export function BottomNav({
   signedIn,
 }: {
   lang: Locale;
-  dict: Dictionary;
+  dict: Pick<Dictionary, "tabbar">;
   signedIn: boolean;
 }) {
   const pathname = usePathname();

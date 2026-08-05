@@ -40,7 +40,7 @@ export function MobileMenu({
   lbpRate = 0,
 }: {
   lang: Locale;
-  dict: Dictionary;
+  dict: Pick<Dictionary, "auth" | "bestSellers" | "common" | "dashboard" | "delivery" | "flash" | "freelance" | "jobs" | "map" | "market" | "mobileNav" | "offers" | "pricing" | "wholesale">;
   user: { name: string } | null;
   dashboardHref?: string | null;
   lbpRate?: number;

@@ -7,6 +7,7 @@ import { getStoresForListing } from "@/lib/data/stores";
 import { getUsdLbpRate } from "@/lib/data/settings";
 import { regions, groupKeys, type RegionKey, type GroupKey } from "@/lib/catalog";
 import { ExploreClient } from "@/components/explore-client";
+import { dictSlice } from "@/lib/dict-slice";
 
 export async function generateMetadata({
   params,
@@ -51,7 +52,7 @@ export default async function ExplorePage({
   return (
     <ExploreClient
       lang={lang}
-      dict={dict}
+      dict={dictSlice(dict, ["explore", "groups", "sort", "catalog", "featured"])}
       stores={stores}
       lbpRate={lbpRate}
       initialQuery={q ?? ""}

@@ -27,13 +27,21 @@ import { HowItWorks } from "@/components/how-it-works";
 import { HomeFaq } from "@/components/home-faq";
 import { MerchantCta } from "@/components/merchant-cta";
 import { SectionSkeleton } from "@/components/section-skeleton";
+import { dictSlice } from "@/lib/dict-slice";
 
 // Self-fetching deal section so its DB query streams instead of blocking the
 // whole page (fetches deal + LBP rate only here).
 async function DealSection({ lang, dict }: { lang: Locale; dict: Dictionary }) {
   const [deal, lbpRate] = await Promise.all([getDailyDeal(), getUsdLbpRate()]);
   if (!deal) return null;
-  return <DealOfTheDay deal={deal} lang={lang} dict={dict} lbpRate={lbpRate} />;
+  return (
+    <DealOfTheDay
+      deal={deal}
+      lang={lang}
+      dict={dictSlice(dict, ["deal"])}
+      lbpRate={lbpRate}
+    />
+  );
 }
 
 export async function generateMetadata({
@@ -87,7 +95,10 @@ export default async function Home({
       {/* Per-user "For you" strip. Client island: fetches its own data in the
           browser after load, so it adds no per-user server read and keeps this
           page cacheable. Renders nothing for anon / no-history users. */}
-      <ForYouStrip lang={lang} dict={dict} />
+      <ForYouStrip
+        lang={lang}
+        dict={dictSlice(dict, ["home", "catalog", "explore", "featured"])}
+      />
       <Suspense fallback={<SectionSkeleton cards={4} />}>
         <FeaturedStores lang={lang} dict={dict} />
       </Suspense>
@@ -113,7 +124,7 @@ export default async function Home({
         productCount={counts.products}
       />
       <HowItWorks dict={dict} />
-      <HomeFaq dict={dict} />
+      <HomeFaq dict={dictSlice(dict, ["homeFaq"])} />
       <MerchantCta lang={lang} dict={dict} />
     </>
   );

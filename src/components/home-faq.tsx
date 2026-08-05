@@ -7,7 +7,7 @@ import { Container } from "@/components/ui/container";
 
 // Lightweight accordion FAQ — answers the "what is this / is it safe / how do
 // I start" questions a first-time visitor has, right before the footer.
-export function HomeFaq({ dict }: { dict: Dictionary }) {
+export function HomeFaq({ dict }: { dict: Pick<Dictionary, "homeFaq"> }) {
   const t = dict.homeFaq;
   const [open, setOpen] = useState<number | null>(0);
 

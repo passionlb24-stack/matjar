@@ -13,7 +13,7 @@ export function HeroSearch({
   popular,
 }: {
   lang: Locale;
-  dict: Dictionary;
+  dict: Pick<Dictionary, "hero">;
   popular: string[];
 }) {
   const router = useRouter();

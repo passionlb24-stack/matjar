@@ -1,3 +1,4 @@
+import { dictSlice } from "@/lib/dict-slice";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -89,7 +90,11 @@ export default async function SiteLayout({
         aria-hidden
         className="h-[calc(3.5rem+env(safe-area-inset-bottom))] lg:hidden"
       />
-      <BottomNav lang={lang} dict={dict} signedIn={!!user} />
+      <BottomNav
+        lang={lang}
+        dict={dictSlice(dict, ["tabbar"])}
+        signedIn={!!user}
+      />
     </>
   );
 }

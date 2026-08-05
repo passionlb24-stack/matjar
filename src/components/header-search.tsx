@@ -15,7 +15,7 @@ export function HeaderSearch({
   dict,
 }: {
   lang: Locale;
-  dict: Dictionary;
+  dict: Pick<Dictionary, "hero">;
 }) {
   const router = useRouter();
   const [q, setQ] = useState("");

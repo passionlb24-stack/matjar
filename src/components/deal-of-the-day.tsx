@@ -52,7 +52,7 @@ export function DealOfTheDay({
 }: {
   deal: Deal;
   lang: Locale;
-  dict: Dictionary;
+  dict: Pick<Dictionary, "deal">;
   lbpRate: number;
 }) {
   const t = dict.deal;

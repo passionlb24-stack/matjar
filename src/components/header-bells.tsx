@@ -29,7 +29,7 @@ export function HeaderBells({
   unreadMessages,
 }: {
   lang: Locale;
-  dict: Dictionary;
+  dict: Pick<Dictionary, "common">;
   userId: string | null;
   unreadNotifications: number;
   unreadMessages: number;

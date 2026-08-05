@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { dictSlice } from "@/lib/dict-slice";
 import { ShoppingBag, Store, UtensilsCrossed, Home, Briefcase, Car } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -104,7 +105,7 @@ export function Hero({
             {t.subtitle}
           </p>
 
-          <HeroSearch lang={lang} dict={dict} popular={popular} />
+          <HeroSearch lang={lang} dict={dictSlice(dict, ["hero"])} popular={popular} />
 
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
             <Link

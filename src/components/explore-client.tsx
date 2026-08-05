@@ -69,7 +69,7 @@ export function ExploreClient({
   initialRegion = "all",
 }: {
   lang: Locale;
-  dict: Dictionary;
+  dict: Pick<Dictionary, "explore" | "groups" | "sort" | "catalog" | "featured">;
   stores: Store[];
   lbpRate: number;
   initialQuery?: string;

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { dictSlice } from "@/lib/dict-slice";
 import Image from "next/image";
 import { User } from "lucide-react";
 import type { Locale } from "@/i18n/config";
@@ -102,7 +103,7 @@ export function SiteHeader({
           {user && (
             <HeaderBells
               lang={lang}
-              dict={dict}
+              dict={dictSlice(dict, ["common"])}
               userId={userId}
               unreadNotifications={unread}
               unreadMessages={unreadMessages}
@@ -162,14 +163,14 @@ export function SiteHeader({
           )}
           <MobileMenu
             lang={lang}
-            dict={dict}
+            dict={dictSlice(dict, ["auth", "bestSellers", "common", "dashboard", "delivery", "flash", "freelance", "jobs", "map", "market", "mobileNav", "offers", "pricing", "wholesale"])}
             user={user}
             dashboardHref={dashboardHref}
             lbpRate={lbpRate}
           />
         </div>
       </Container>
-      <HeaderSearch lang={lang} dict={dict} />
+      <HeaderSearch lang={lang} dict={dictSlice(dict, ["hero"])} />
     </header>
   );
 }
