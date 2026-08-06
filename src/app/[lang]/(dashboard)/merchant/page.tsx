@@ -63,10 +63,19 @@ export default async function MerchantPage({
       status: string;
       created_at: string;
     }[];
+    // Sales excludes cancelled and rejected. This summed every order ever
+    // placed, so a merchant's headline revenue counted the ones they refused
+    // for being out of stock — and disagreed with store_report, the accounting
+    // page and the best-sellers ranking, all of which already exclude them.
+    // Order counts deliberately still include them: a cancelled order did
+    // happen, it just did not earn anything.
+    const DEAD = new Set(["cancelled", "rejected"]);
     stats = {
       today: orders.filter((o) => new Date(o.created_at) >= startOfDay).length,
       total: orders.length,
-      sales: orders.reduce((s, o) => s + Number(o.total), 0),
+      sales: orders
+        .filter((o) => !DEAD.has(o.status))
+        .reduce((s, o) => s + Number(o.total), 0),
       pending: orders.filter((o) => o.status === "pending").length,
       bookings: bookingCount ?? 0,
     };
