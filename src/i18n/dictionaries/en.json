@@ -1175,6 +1175,8 @@
     "zoneMinWarn": "This area has a minimum order of {n}",
     "belowZoneMin": "Your order is below this delivery area's minimum.",
     "couponAlreadyUsed": "You have used this code before — it is one per customer.",
+    "zoneRequired": "This store delivers by area. Open the store page to pick yours, or choose pickup.",
+    "belowStoreMin": "Your order is below this store's minimum.",
     "modifierNeeded": "Some items need options — open the item and choose before ordering.",
     "deliveryFeeLabel": "Delivery fee",
     "deliveryInstructions": "Delivery instructions (optional)",

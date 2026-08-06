@@ -37,7 +37,9 @@ const fieldClass =
   "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
 
 function formatPrice(price: number) {
-  return price >= 1000 ? `$${Number(price).toLocaleString("en-US")}` : `$${price}`;
+  return price >= 1000
+    ? `$${Number(price).toLocaleString("en-US")}`
+    : `$${price}`;
 }
 
 export function ProductOrder({
@@ -77,9 +79,14 @@ export function ProductOrder({
   const router = useRouter();
   // Apparel variants carry color/size → render a 2-step picker; legacy flat
   // variants (no color/size) keep the single pill row.
-  const structured = variants.length > 0 && variants.some((v) => v.color || v.size);
+  const structured =
+    variants.length > 0 && variants.some((v) => v.color || v.size);
   const colors = structured
-    ? [...new Set(variants.filter((v) => v.color).map((v) => v.color as string))]
+    ? [
+        ...new Set(
+          variants.filter((v) => v.color).map((v) => v.color as string),
+        ),
+      ]
     : [];
   const [variantId, setVariantId] = useState<string | null>(
     structured ? null : (variants[0]?.id ?? null),
@@ -128,8 +135,7 @@ export function ProductOrder({
   // Modifier groups (food): options carry a groupId; ungrouped options are flat
   // add-ons rendered as before. Selection rules (required / min / max) are
   // enforced here for UX and re-enforced server-side in the order RPC.
-  const groupedAddons = (id: string) =>
-    addons.filter((a) => a.groupId === id);
+  const groupedAddons = (id: string) => addons.filter((a) => a.groupId === id);
   const ungroupedAddons = addons.filter((a) => !a.groupId);
   const selectedInGroup = (id: string) =>
     groupedAddons(id).filter((a) => selectedAddons.includes(a.id)).length;
@@ -208,9 +214,25 @@ export function ProductOrder({
       p_idempotency_key: idemKeyRef.current,
     });
     if (error) {
-      const outOfStock = error.message?.includes("insufficient_stock");
+      const msg = error.message ?? "";
+      const outOfStock = msg.includes("insufficient_stock");
+      // This surface orders a single item with no zone picker, no coupon field
+      // and no loyalty toggle, so it used to price the same basket lower than
+      // the store cart did. The server now refuses instead of silently charging
+      // zero delivery or ignoring the store minimum; say which it was, and where
+      // the customer can complete the order properly.
       setOrderError(
-        outOfStock ? dict.store.outOfStock : dict.auth.errorGeneric,
+        outOfStock
+          ? dict.store.outOfStock
+          : msg.includes("zone_required")
+            ? dict.store.zoneRequired
+            : msg.includes("below_store_minimum")
+              ? dict.store.belowStoreMin
+              : msg.includes("below_zone_minimum")
+                ? dict.store.belowZoneMin
+                : msg.includes("coupon_already_used")
+                  ? dict.store.couponAlreadyUsed
+                  : dict.auth.errorGeneric,
       );
       setPlacing(false);
       // Re-sync so the stale in-stock state doesn't linger after a stock error.
@@ -229,7 +251,9 @@ export function ProductOrder({
         <div className="space-y-4">
           {colors.length > 0 && (
             <div>
-              <span className="text-sm font-semibold">{dict.product.selectColor}</span>
+              <span className="text-sm font-semibold">
+                {dict.product.selectColor}
+              </span>
               <div className="mt-2 flex flex-wrap gap-2">
                 {colors.map((c) => {
                   const vs = variants.filter((v) => v.color === c);
@@ -262,10 +286,13 @@ export function ProductOrder({
           )}
           {hasSizeAxis && (
             <div>
-              <span className="text-sm font-semibold">{dict.product.selectSize}</span>
+              <span className="text-sm font-semibold">
+                {dict.product.selectSize}
+              </span>
               <div className="mt-2 flex flex-wrap gap-2">
                 {sizesForColor.map((v) => {
-                  const vOut = !v.is_available || (v.stock != null && v.stock <= 0);
+                  const vOut =
+                    !v.is_available || (v.stock != null && v.stock <= 0);
                   return (
                     <button
                       key={v.id}
@@ -296,17 +323,22 @@ export function ProductOrder({
           )}
           {mustPick && (
             <p className="text-xs font-semibold text-muted-foreground">
-              {hasSizeAxis ? dict.product.pickSizeHint : dict.product.pickColorHint}
+              {hasSizeAxis
+                ? dict.product.pickSizeHint
+                : dict.product.pickColorHint}
             </p>
           )}
         </div>
       ) : (
         variants.length > 0 && (
           <div>
-            <span className="text-sm font-semibold">{dict.product.selectVariant}</span>
+            <span className="text-sm font-semibold">
+              {dict.product.selectVariant}
+            </span>
             <div className="mt-2 flex flex-wrap gap-2">
               {variants.map((v) => {
-                const vOut = !v.is_available || (v.stock != null && v.stock <= 0);
+                const vOut =
+                  !v.is_available || (v.stock != null && v.stock <= 0);
                 return (
                   <button
                     key={v.id}
@@ -314,7 +346,8 @@ export function ProductOrder({
                     disabled={vOut}
                     onClick={() => {
                       setVariantId(v.id);
-                      if (v.stock != null) setQty((q) => Math.min(q, Math.max(1, v.stock!)));
+                      if (v.stock != null)
+                        setQty((q) => Math.min(q, Math.max(1, v.stock!)));
                     }}
                     className={`rounded-xl border px-4 py-2 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
                       variantId === v.id
@@ -370,7 +403,9 @@ export function ProductOrder({
                   <label
                     key={a.id}
                     className={`flex cursor-pointer items-center justify-between rounded-xl border px-4 py-2.5 text-sm transition-colors ${
-                      checked ? "border-primary bg-primary-soft" : "border-border"
+                      checked
+                        ? "border-primary bg-primary-soft"
+                        : "border-border"
                     }`}
                   >
                     <span className="flex items-center gap-2 font-medium">
@@ -465,7 +500,9 @@ export function ProductOrder({
       {!checkingOut && (
         <>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold">{dict.product.quantity}</span>
+            <span className="text-sm font-semibold">
+              {dict.product.quantity}
+            </span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -532,7 +569,9 @@ export function ProductOrder({
           )}
           {fulfillmentOptions.length > 1 && (
             <div>
-              <span className="text-sm font-semibold">{dict.store.fulfillment}</span>
+              <span className="text-sm font-semibold">
+                {dict.store.fulfillment}
+              </span>
               <div className="mt-1.5 grid grid-cols-2 gap-2">
                 {fulfillmentOptions.map((opt) => (
                   <button
@@ -545,7 +584,9 @@ export function ProductOrder({
                         : "border-border text-muted-foreground hover:border-primary/40"
                     }`}
                   >
-                    {opt === "delivery" ? dict.store.delivery : dict.store.pickup}
+                    {opt === "delivery"
+                      ? dict.store.delivery
+                      : dict.store.pickup}
                   </button>
                 ))}
               </div>
@@ -556,20 +597,42 @@ export function ProductOrder({
               <label className="text-sm font-semibold" htmlFor="address">
                 {dict.store.address}
               </label>
-              <input id="address" name="address" type="text" required defaultValue={defaultAddress} placeholder={dict.store.addressPlaceholder} className={fieldClass} />
+              <input
+                id="address"
+                name="address"
+                type="text"
+                required
+                defaultValue={defaultAddress}
+                placeholder={dict.store.addressPlaceholder}
+                className={fieldClass}
+              />
             </div>
           )}
           <div>
             <label className="text-sm font-semibold" htmlFor="phone">
               {dict.store.phone}
             </label>
-            <input id="phone" name="phone" type="tel" inputMode="tel" required placeholder="+961 …" className={fieldClass} />
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              inputMode="tel"
+              required
+              placeholder="+961 …"
+              className={fieldClass}
+            />
           </div>
           <div>
             <label className="text-sm font-semibold" htmlFor="note">
               {dict.store.note}
             </label>
-            <textarea id="note" name="note" rows={2} placeholder={dict.store.notePlaceholder} className={fieldClass} />
+            <textarea
+              id="note"
+              name="note"
+              rows={2}
+              placeholder={dict.store.notePlaceholder}
+              className={fieldClass}
+            />
           </div>
           {orderError && (
             <p className="text-sm font-medium text-danger">{orderError}</p>

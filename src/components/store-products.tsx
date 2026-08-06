@@ -566,11 +566,15 @@ export function StoreProducts({
           ? stockErrorMessage(msg)
           : msg.includes("coupon_already_used")
             ? dict.store.couponAlreadyUsed
-            : msg.includes("below_zone_minimum")
-              ? dict.store.belowZoneMin
-              : msg.includes("modifier_")
-                ? dict.store.modifierNeeded
-                : dict.auth.errorGeneric,
+            : msg.includes("below_store_minimum")
+              ? dict.store.belowStoreMin
+              : msg.includes("zone_required")
+                ? dict.store.zoneRequired
+                : msg.includes("below_zone_minimum")
+                  ? dict.store.belowZoneMin
+                  : msg.includes("modifier_")
+                    ? dict.store.modifierNeeded
+                    : dict.auth.errorGeneric,
       );
       setPlacing(false);
       router.refresh();
