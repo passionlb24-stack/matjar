@@ -57,6 +57,13 @@ export default async function StoreSubscriptionPage({
   // Rank-based: a Business store is also "Pro or higher" — don't show it the
   // upgrade CTA. (planRank: free 0, basic 1, pro 2, business 3.)
   const isPro = planRank(plan) >= 2;
+  /** Anything the merchant is actually paying for — Basic counts. */
+  const isPaid = planRank(plan) >= 1;
+  const planName =
+    ({ basic: t.basic, pro: t.pro, business: t.business } as Record<
+      string,
+      string | undefined
+    >)[plan] ?? t.free;
   const proYearly = annualPrice(PLAN_TIERS.pro, promoState(new Date()).active);
   const trialEndsAt =
     (store as { trial_ends_at: string | null }).trial_ends_at ?? null;
@@ -114,17 +121,23 @@ export default async function StoreSubscriptionPage({
         <div className="mt-6 rounded-2xl border border-border bg-surface p-6">
           <p className="text-sm text-muted-foreground">{t.currentPlan}</p>
           <div className="mt-1 flex flex-wrap items-center gap-2">
+            {/* Name the plan the store is actually on. This read `isPro ? pro
+                : free`, which is a two-way answer to a four-way question: a
+                store paying for Basic was told it was on Free and shown the
+                upgrade pitch, and a Business store was called Pro. Being told
+                you are not paying, on the page where you pay, is the worst
+                place in the product to get this wrong. */}
             <span className="flex items-center gap-1.5 text-2xl font-extrabold">
-              {isPro && <Crown className="h-6 w-6 text-amber-500" />}
-              {isPro ? t.pro : t.free}
+              {isPaid && <Crown className="h-6 w-6 text-amber-500" />}
+              {planName}
             </span>
-            {isPro && (
+            {isPaid && (
               <span className="rounded-full bg-success-soft px-2.5 py-0.5 text-xs font-bold text-success">
                 {t.active}
               </span>
             )}
           </div>
-          {isPro && expiresAt && (
+          {isPaid && expiresAt && (
             <p className="mt-2 text-sm text-muted-foreground">
               {t.expiresOn}: <span className="font-semibold text-foreground">{fmtDate(expiresAt)}</span>
             </p>
@@ -136,7 +149,7 @@ export default async function StoreSubscriptionPage({
 
         {/* Never trialed (older store): offer the self-serve 14-day trial — it
             activates instantly and starts counting, no admin approval. */}
-        {!isPro && trialEndsAt === null && (
+        {!isPaid && trialEndsAt === null && (
           <div className="mt-4 rounded-2xl border border-primary/30 bg-primary/10 p-6">
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-primary">
               <Sparkles className="h-5 w-5" />
