@@ -1,7 +1,7 @@
 "use client";
 import { revalidateProduct, revalidateStore } from "@/lib/cache-actions";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Save, X, Trash2, Plus, Zap } from "lucide-react";
@@ -105,6 +105,14 @@ export function ProductEditForm({
   const [gallery, setGallery] = useState<string[]>(initial.gallery);
   const [adderKey, setAdderKey] = useState(0);
   const [variants, setVariants] = useState<VariantRow[]>(initial.variants);
+  // Stock as it was when this page loaded, by label. Saving must not push a
+  // number back that the merchant never touched: between opening the editor and
+  // pressing save, a customer may have bought one, and re-writing the value from
+  // the form would undo that sale. Compared against on save so only a stock the
+  // merchant actually edited is written.
+  const initialStockByLabel = useRef(
+    new Map(initial.variants.map((v) => [v.label.trim(), v.stock])),
+  );
   // Apparel (retail) uses the color→size builder; reconstruct its grid from the
   // stored variant rows so an existing product edits cleanly.
   const useMatrix = category === "retail";
@@ -199,9 +207,20 @@ export function ProductEditForm({
     }
 
     if (!simplified) {
-      // Replace variants + options wholesale (order_items snapshot name/price,
-      // so they don't reference these rows).
-      await supabase.from("product_variants").delete().eq("product_id", productId);
+      // Variants are reconciled by label, NOT replaced wholesale.
+      //
+      // The old code deleted every row and re-inserted. The comment beside it
+      // said order_items snapshot name and price so nothing references these
+      // rows — true when it was written, and no longer: order_items.variant_id
+      // is a foreign key with ON DELETE SET NULL. So editing a product while an
+      // order was in flight quietly nulled that order's variant_id, and
+      // restore_stock_on_cancel keys off exactly that column — cancelling the
+      // order afterwards put the goods back on products.stock instead of the
+      // variant they actually came from.
+      //
+      // Re-inserting also wrote the stock held in this form since page load,
+      // reverting anything sold in between. Both are avoided by touching only
+      // what changed.
       const sourceVariants = useMatrix
         ? variantsFromGroups(colorGroups)
         : variants;
@@ -216,10 +235,56 @@ export function ProductEditForm({
           stock: v.stock.trim() === "" ? null : Number(v.stock),
           sort_order: i,
         }));
-      if (cleanVariants.length) {
+
+      // Labels whose stock the merchant actually changed in this session.
+      const stockEdited = new Set(
+        sourceVariants
+          .filter(
+            (v) =>
+              v.label.trim() &&
+              v.stock !== (initialStockByLabel.current.get(v.label.trim()) ?? ""),
+          )
+          .map((v) => v.label.trim()),
+      );
+
+      const { data: existingRows } = await supabase
+        .from("product_variants")
+        .select("id, label")
+        .eq("product_id", productId);
+      const existingByLabel = new Map(
+        ((existingRows ?? []) as { id: string; label: string }[]).map((r) => [
+          r.label,
+          r.id,
+        ]),
+      );
+
+      // Only the ones the merchant actually removed.
+      const keptLabels = new Set(cleanVariants.map((v) => v.label));
+      const goneIds = ((existingRows ?? []) as { id: string; label: string }[])
+        .filter((r) => !keptLabels.has(r.label))
+        .map((r) => r.id);
+      if (goneIds.length) {
+        await supabase.from("product_variants").delete().in("id", goneIds);
+      }
+
+      const toInsert = cleanVariants.filter((v) => !existingByLabel.has(v.label));
+      for (const v of cleanVariants) {
+        const id = existingByLabel.get(v.label);
+        if (!id) continue;
+        const patch: Record<string, unknown> = {
+          color: v.color,
+          size: v.size,
+          price: v.price,
+          sort_order: v.sort_order,
+        };
+        if (stockEdited.has(v.label)) patch.stock = v.stock;
+        await supabase.from("product_variants").update(patch).eq("id", id);
+      }
+
+      if (toInsert.length) {
         const { error: variantsError } = await supabase
           .from("product_variants")
-          .insert(cleanVariants);
+          .insert(toInsert);
         if (variantsError) {
           setError(dict.auth.errorGeneric);
           setLoading(false);
