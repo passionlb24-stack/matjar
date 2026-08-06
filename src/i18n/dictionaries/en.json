@@ -893,6 +893,7 @@
     "issuedOn": "Issue date",
     "expiresOn": "Expiry date",
     "doc": "Document image",
+    "docHint": "This image appears on your public store page. Do not upload anything showing your ID number or home address — cover those before photographing it.",
     "verifyUrl": "Verification link (optional)",
     "save": "Save",
     "delete": "Delete",

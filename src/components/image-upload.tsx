@@ -88,12 +88,20 @@ export function ImageUpload({
   value,
   onChange,
   label,
+  hint,
   dict,
 }: {
   folder: string;
   value: string | null;
   onChange: (url: string | null) => void;
   label: string;
+  /**
+   * Shown under the label, before anything is picked. Every file this uploads
+   * goes to the `store-assets` bucket, which is public — so where that is not
+   * obvious from the field itself, say so here rather than letting someone
+   * find out afterwards.
+   */
+  hint?: string;
   /** Optional — enables localized error text; falls back to Arabic if omitted. */
   dict?: Dictionary;
 }) {
@@ -157,6 +165,9 @@ export function ImageUpload({
   return (
     <div>
       <span className="text-sm font-semibold">{label}</span>
+      {hint && (
+        <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+      )}
       <div className="mt-1.5">
         {value ? (
           <div className="relative h-32 w-full overflow-hidden rounded-xl border border-border">

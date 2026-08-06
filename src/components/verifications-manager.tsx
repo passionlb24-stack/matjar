@@ -191,6 +191,13 @@ export function VerificationsManager({
         value={draft.doc_url}
         onChange={(url) => setDraft({ ...draft, doc_url: url })}
         label={t.doc}
+        // Public by design — StoreVerifications renders this as a thumbnail on
+        // the storefront, as evidence a shopper can look at. The merchant had
+        // no way to know that: the field said "Document image" and nothing
+        // else, while the file most likely to be photographed for it — a
+        // Lebanese commercial registration — usually carries the owner's full
+        // name, ID number and home address.
+        hint={t.docHint}
       />
       <div>
         <label className={labelClass}>{t.verifyUrl}</label>
