@@ -191,6 +191,11 @@ export function OrdersFilter({
                       status={order.status}
                       labels={dict.orders.status}
                       errorLabel={dict.auth.errorGeneric}
+                      confirmLabels={{
+                        message: dict.orders.confirmStatusDestructive,
+                        confirm: dict.common.confirm,
+                        cancel: dict.common.cancel,
+                      }}
                     />
                   </span>
                 </div>

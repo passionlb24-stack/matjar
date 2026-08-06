@@ -2455,6 +2455,7 @@
     "deliveryFeeLabel": "Delivery",
     "changeForLabel": "Change for",
     "scheduledFor": "Scheduled for",
+    "confirmStatusDestructive": "Move this order to \"{status}\"? The stock goes back and the customer is notified.",
     "assign": {
       "assignee": "Handled by",
       "unassigned": "Unassigned",

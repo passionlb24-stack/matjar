@@ -2455,6 +2455,7 @@
     "deliveryFeeLabel": "توصيل",
     "changeForLabel": "فكة لـ",
     "scheduledFor": "مجدوَل لـ",
+    "confirmStatusDestructive": "بدك تحوّل هالطلب لـ«{status}»؟ الكمية بترجع عالمخزون، والزبون بيوصلو إشعار.",
     "assign": {
       "assignee": "المسؤول",
       "unassigned": "غير معيَّن",
