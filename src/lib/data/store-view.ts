@@ -75,6 +75,12 @@ export type StoreView = {
     sectionId?: string | null;
     /** "product" = sold via cart, "service" = booked. A store may have both. */
     itemKind?: "product" | "service";
+    /**
+     * Has priced/stocked variants, so it cannot be quick-added from the grid —
+     * the cart carries no variant and would sell it at the base price against
+     * the wrong stock counter. The grid sends these to the product page.
+     */
+    hasVariants?: boolean;
     isBundle?: boolean;
     includes?: { name: string; nameEn: string | null; quantity: number }[];
   }[];
@@ -144,6 +150,25 @@ async function fetchStoreView(
       });
     }
   }
+  // Which products carry variants. The storefront cart is keyed by product id
+  // alone, so it has nowhere to put a variant: quick-adding one of these would
+  // charge the base price and decrement products.stock, while the real price
+  // and the real stock both live on the variant row. The grid uses this to send
+  // those products to their own page instead, where the picker exists.
+  const variantProductIds = new Set<string>();
+  if ((prods ?? []).length) {
+    const { data: vars } = await supabase
+      .from("product_variants")
+      .select("product_id")
+      .in(
+        "product_id",
+        (prods ?? []).map((p) => p.id as string),
+      );
+    for (const v of (vars ?? []) as { product_id: string }[]) {
+      variantProductIds.add(v.product_id);
+    }
+  }
+
   // Storefront sections: the store groups its catalog into named sections
   // (menu groups / collections / service groups). None → flat list.
   const { data: sects } = await supabase
@@ -241,6 +266,7 @@ async function fetchStoreView(
       sectionId: (p.section_id as string | null) ?? null,
       itemKind: ((p.item_kind as string | null) ?? "product") as "product" | "service",
       isBundle: (p.is_bundle as boolean | null) ?? false,
+      hasVariants: variantProductIds.has(p.id as string),
       includes: includesByBundle[p.id as string] ?? undefined,
     })),
   };

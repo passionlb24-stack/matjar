@@ -1180,6 +1180,7 @@
     "changeCustom": "Other amount",
     "noMatches": "No results match the selected filters.",
     "soldOut": "Sold out",
+    "chooseOption": "Choose an option",
     "otherSection": "Other",
     "bundleIncludes": "Includes:",
     "fieldRequired": "Please fill in “{field}”",

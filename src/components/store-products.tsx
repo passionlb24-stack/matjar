@@ -45,6 +45,14 @@ type Product = {
   flashEnd?: string | null;
   stock?: number | null;
   sectionId?: string | null;
+  /**
+   * Has variants, so it must not be quick-added. `cart` is keyed by product id
+   * alone and every p_items entry it builds omits variant_id — the server would
+   * charge the base price and decrement products.stock, while the price and the
+   * stock that matter both live on the variant. These go to the product page,
+   * which has the picker.
+   */
+  hasVariants?: boolean;
   isBundle?: boolean;
   includes?: { name: string; nameEn: string | null; quantity: number }[];
 };
@@ -654,6 +662,13 @@ export function StoreProducts({
                       <span className="w-full rounded-lg bg-surface-muted px-3.5 py-2 text-center text-sm font-bold text-muted-foreground">
                         {dict.store.soldOut}
                       </span>
+                    ) : p.hasVariants ? (
+                      <Link
+                        href={`/${lang}/product/${p.id}`}
+                        className="w-full rounded-lg bg-primary px-3.5 py-2 text-center text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                      >
+                        {dict.store.chooseOption}
+                      </Link>
                     ) : qty > 0 ? (
                       <Stepper id={p.id} qty={qty} />
                     ) : (
@@ -703,6 +718,13 @@ export function StoreProducts({
                   <span className="shrink-0 rounded-lg bg-surface-muted px-3.5 py-2 text-sm font-bold text-muted-foreground">
                     {dict.store.soldOut}
                   </span>
+                ) : p.hasVariants ? (
+                  <Link
+                    href={`/${lang}/product/${p.id}`}
+                    className="shrink-0 rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                  >
+                    {dict.store.chooseOption}
+                  </Link>
                 ) : qty > 0 ? (
                   <Stepper id={p.id} qty={qty} />
                 ) : (
