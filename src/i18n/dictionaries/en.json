@@ -1518,6 +1518,7 @@
       "errName": "Name is empty",
       "errPrice": "Price is missing or not a number",
       "errDiscount": "Sale price is not a number",
+      "errCost": "Cost is not a number",
       "errStock": "Quantity is not a number"
     },
     "products": {

@@ -229,6 +229,7 @@ export function ProductImportClient({
     errName: t.errName,
     errPrice: t.errPrice,
     errDiscount: t.errDiscount,
+    errCost: t.errCost,
     errStock: t.errStock,
   };
 

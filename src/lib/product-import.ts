@@ -12,6 +12,7 @@ export type ImportKey =
   | "price"
   | "stock"
   | "discount_price"
+  | "cost"
   | "section"
   | "brand"
   | "description"
@@ -34,6 +35,11 @@ export const IMPORT_COLUMNS: ColumnSpec[] = [
   { key: "price", ar: "السعر", en: "Price", required: true },
   { key: "stock", ar: "الكمية", en: "Quantity" },
   { key: "discount_price", ar: "سعر التخفيض", en: "Sale price" },
+  // Cost of goods. Optional, and never shown to a customer — but a merchant
+  // importing a catalogue of 200 rows is the one moment they will not mind
+  // typing it, and cost_at_sale can only be snapshotted from a value that is
+  // already on the row when the sale happens.
+  { key: "cost", ar: "كلفة الشراء", en: "Cost" },
   { key: "section", ar: "القسم", en: "Section" },
   { key: "brand", ar: "الماركة", en: "Brand" },
   { key: "description", ar: "الوصف", en: "Description" },
@@ -94,6 +100,7 @@ export type RowError =
   | "errName"
   | "errPrice"
   | "errDiscount"
+  | "errCost"
   | "errStock";
 
 /**
@@ -120,6 +127,8 @@ export function validateRow(row: RawRow): RowError | null {
   if (price === null || price < 0) return "errPrice";
   if ((row.discount_price ?? "").trim() !== "" && parseNumericCell(row.discount_price) === null)
     return "errDiscount";
+  if ((row.cost ?? "").trim() !== "" && parseNumericCell(row.cost) === null)
+    return "errCost";
   if ((row.stock ?? "").trim() !== "" && parseNumericCell(row.stock) === null)
     return "errStock";
   return null;
