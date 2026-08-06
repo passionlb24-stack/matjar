@@ -117,6 +117,13 @@ export function ProductForm({
             : null,
         price: Number(form.get("price")) || 0,
         discount_price: Number(form.get("discount_price")) || null,
+        // Empty stays NULL rather than becoming 0: store_margin_report()
+        // distinguishes "no cost recorded" from "cost is zero" to compute its
+        // coverage figure, and a 0 would silently report 100% margin.
+        cost:
+          String(form.get("cost") ?? "").trim() === ""
+            ? null
+            : Number(form.get("cost")),
         description: String(form.get("description")) || null,
         description_en: String(form.get("description_en") ?? "").trim() || null,
         image_url: imageUrl,
@@ -350,6 +357,20 @@ export function ProductForm({
             {p.discountPrice}
           </label>
           <input id="discount_price" name="discount_price" type="number" min="0" step="0.01" placeholder="0" className={field} />
+        </div>
+        {/* Cost of goods. 0210 added products.cost and snapshots it onto each
+            sale as cost_at_sale, and store_margin_report() has been reporting
+            coverage against it — but nothing ever wrote the column, so every
+            product read 0 of 38 and "profit" was really just revenue. The
+            snapshot is taken at sale time, so a day sold without a cost is a
+            day whose margin can never be reconstructed; this needs to exist
+            before the catalogue grows, not after. */}
+        <div>
+          <label className={label} htmlFor="cost">
+            {p.cost}
+          </label>
+          <input id="cost" name="cost" type="number" min="0" step="0.01" placeholder="0" className={field} />
+          <p className="mt-1 text-xs text-muted-foreground">{p.costHint}</p>
         </div>
         {!simple && (
           <div>

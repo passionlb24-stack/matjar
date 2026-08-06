@@ -1551,6 +1551,8 @@
       "noSection": "No section",
       "price": "Price ($)",
       "discountPrice": "Discounted price ($) — optional",
+      "cost": "Cost price ($) — optional",
+      "costHint": "What you paid per unit. Never shown to customers — it is only used to work out your real profit in reports.",
       "dealToday": "Feature this product as the home-page Deal of the Day",
       "description": "Description",
       "descriptionPlaceholder": "Product details (optional)",
