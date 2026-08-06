@@ -488,6 +488,8 @@
     },
     "tagline": "Your business, run from one place",
     "viewPublic": "View your page",
+    "storePending": "Your store is under review",
+    "storePendingHint": "Nobody can see your page yet. Get your products ready — we will tell you the moment it is approved, and you will have a link to share.",
     "itemsHint": "published items",
     "groups": {
       "daily": "Daily operations",

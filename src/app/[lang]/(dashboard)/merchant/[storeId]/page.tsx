@@ -2,7 +2,7 @@ import { requestNow } from "@/lib/now";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight, ExternalLink, BarChart3, Sun } from "lucide-react";
+import { ChevronRight, ExternalLink, BarChart3, Sun, Clock } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -106,7 +106,7 @@ export default async function StoreOsHomePage({
   const { data: store } = await supabase
     .from("stores")
     .select(
-      "id, name, slug, accent_color, owner_id, short_code, plan, trial_ends_at, logo_url, cover_url, description, opening_hours, whatsapp, business_types(slug, name_ar, name_en)",
+      "id, name, slug, status, accent_color, owner_id, short_code, plan, trial_ends_at, logo_url, cover_url, description, opening_hours, whatsapp, business_types(slug, name_ar, name_en)",
     )
     .eq("id", storeId)
     .maybeSingle();
@@ -115,6 +115,7 @@ export default async function StoreOsHomePage({
   const s = store as unknown as {
     name: string;
     slug: string | null;
+    status: string;
     accent_color: string | null;
     owner_id: string;
     short_code: string;
@@ -129,6 +130,8 @@ export default async function StoreOsHomePage({
   };
   const category = (s.business_types?.slug as CategoryKey) ?? "retail";
   const sector = getSector(category);
+  /** Nothing public exists for this store yet — no page, no shareable link. */
+  const isPending = s.status !== "active";
   const typeName =
     (lang === "ar" ? s.business_types?.name_ar : s.business_types?.name_en) ??
     "";
@@ -880,13 +883,25 @@ export default async function StoreOsHomePage({
                   )}
                 </p>
               </div>
-              <Link
-                href={`/${lang}/store/${storeId}`}
-                className="flex shrink-0 items-center gap-1.5 rounded-xl border border-border bg-surface/80 px-4 py-2 text-sm font-bold backdrop-blur transition-colors hover:border-primary hover:text-primary"
-              >
-                <ExternalLink className="h-4 w-4" />
-                {dict.os.viewPublic}
-              </Link>
+              {/* stores_select only exposes rows with status='active', so a
+                  store still in review has no public page at all — this link
+                  led to a 404 and the share/QR tools beside it minted codes
+                  pointing at the same nothing. A merchant who printed one on a
+                  shopfront had no way to find out. */}
+              {isPending ? (
+                <span className="flex shrink-0 items-center gap-1.5 rounded-xl border border-warning/30 bg-warning-soft px-4 py-2 text-sm font-bold text-warning">
+                  <Clock className="h-4 w-4" />
+                  {dict.os.storePending}
+                </span>
+              ) : (
+                <Link
+                  href={`/${lang}/store/${storeId}`}
+                  className="flex shrink-0 items-center gap-1.5 rounded-xl border border-border bg-surface/80 px-4 py-2 text-sm font-bold backdrop-blur transition-colors hover:border-primary hover:text-primary"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  {dict.os.viewPublic}
+                </Link>
+              )}
             </div>
 
             {quickActions.length > 0 && (
@@ -920,8 +935,21 @@ export default async function StoreOsHomePage({
             ))}
           </div>
 
+          {/* The share card hands over a QR and a short link meant for a
+              shopfront or a receipt. Until the store is approved both resolve
+              to nothing, so it stays hidden rather than inviting the merchant
+              to print a dead link. */}
           <div className="mt-8">
-            <StoreShareCard code={s.short_code} baseUrl={SITE_URL} dict={dict} />
+            {isPending ? (
+              <div className="rounded-2xl border border-dashed border-warning/40 bg-warning-soft/40 p-5 text-center">
+                <p className="font-bold text-warning">{dict.os.storePending}</p>
+                <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
+                  {dict.os.storePendingHint}
+                </p>
+              </div>
+            ) : (
+              <StoreShareCard code={s.short_code} baseUrl={SITE_URL} dict={dict} />
+            )}
           </div>
         </div>
       </Container>
