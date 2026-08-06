@@ -1913,6 +1913,23 @@
     "jumpToPlaceholder": "Type a section name…",
     "jumpToEmpty": "No section by that name.",
     "subtitle": "Review new stores and approve or reject them.",
+    "leaders": {
+      "title": "Business leaders",
+      "subtitle": "Review submitted profiles and publish, hide or delete them. {total} profiles · {drafts} awaiting review.",
+      "empty": "No business leaders yet",
+      "feature": "Feature",
+      "unfeature": "Unfeature",
+      "verify": "Verify",
+      "unverify": "Unverify",
+      "hide": "Hide",
+      "publish": "Publish",
+      "badgePublished": "Published",
+      "badgeDraft": "Awaiting review",
+      "badgeFeatured": "Featured",
+      "badgePartial": "Partly verified",
+      "delete": "Delete",
+      "confirmDelete": "Delete this profile permanently?"
+    },
     "queue": {
       "title": "What needs you today",
       "clear": "Nothing waiting — all clear.",

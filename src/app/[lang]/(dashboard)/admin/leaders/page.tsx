@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Crown } from "lucide-react";
 import { isLocale } from "@/i18n/config";
+import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdminSection } from "@/lib/admin-guard";
 import { Container } from "@/components/ui/container";
@@ -35,6 +36,8 @@ export default async function AdminLeadersPage({
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
   await requireAdminSection("leaders", lang);
+  const dict = await getDictionary(lang);
+  const t = dict.admin.leaders;
 
   const supabase = await createClient();
   const { data } = await supabase
@@ -55,12 +58,14 @@ export default async function AdminLeadersPage({
       <Container>
         <PageHeader
           icon={Crown}
-          title="إدارة رجال الأعمال"
-          subtitle={`راجِع الملفات المُرسَلة وانشرها أو أخفِها أو احذفها. ${rows.length} ملف · ${draftCount} بانتظار المراجعة.`}
+          title={t.title}
+          subtitle={t.subtitle
+            .replace("{total}", String(rows.length))
+            .replace("{drafts}", String(draftCount))}
         />
 
         {rows.length === 0 ? (
-          <EmptyState icon={Crown} title="لا يوجد رجال أعمال بعد" />
+          <EmptyState icon={Crown} title={t.empty} />
         ) : (
           <Card data-animate>
             <div className="divide-y divide-border">
@@ -86,21 +91,21 @@ export default async function AdminLeadersPage({
                         <span className="font-semibold">{r.name}</span>
                         {r.published ? (
                           <Badge variant="success" size="sm">
-                            منشور
+                            {t.badgePublished}
                           </Badge>
                         ) : (
                           <Badge variant="warning" size="sm">
-                            بانتظار المراجعة
+                            {t.badgeDraft}
                           </Badge>
                         )}
                         {r.featured && (
                           <Badge variant="primary" size="sm">
-                            مميّز
+                            {t.badgeFeatured}
                           </Badge>
                         )}
                         {r.verification_status === "partially_verified" && (
                           <Badge variant="neutral" size="sm">
-                            تحقّق جزئي
+                            {t.badgePartial}
                           </Badge>
                         )}
                       </div>
@@ -122,6 +127,19 @@ export default async function AdminLeadersPage({
                     published={r.published}
                     featured={r.featured}
                     verificationStatus={r.verification_status}
+                    labels={{
+                      feature: t.feature,
+                      unfeature: t.unfeature,
+                      verify: t.verify,
+                      unverify: t.unverify,
+                      hide: t.hide,
+                      publish: t.publish,
+                      delete: t.delete,
+                      confirmDelete: t.confirmDelete,
+                      confirm: dict.common.confirm,
+                      cancel: dict.common.cancel,
+                      error: dict.auth.errorGeneric,
+                    }}
                   />
                 </div>
               ))}

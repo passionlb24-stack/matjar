@@ -17,11 +17,32 @@ export function AdminLeaderActions({
   published,
   featured,
   verificationStatus,
+  labels,
 }: {
   id: string;
   published: boolean;
   featured: boolean;
   verificationStatus: string | null;
+  /**
+   * Passed in rather than read off a whole Dictionary. Every string in this
+   * island used to be a hardcoded Arabic literal, so the section rendered in
+   * Arabic inside /en — and in a different register from the rest of the
+   * product, since it was written straight into JSX rather than through the
+   * dictionary where the Lebanese voice is kept consistent.
+   */
+  labels: {
+    feature: string;
+    unfeature: string;
+    verify: string;
+    unverify: string;
+    confirmDelete: string;
+    hide: string;
+    publish: string;
+    delete: string;
+    confirm: string;
+    cancel: string;
+    error: string;
+  };
 }) {
   const router = useRouter();
   const confirm = useConfirm();
@@ -37,7 +58,7 @@ export function AdminLeaderActions({
       .eq("id", id);
     setBusy(false);
     if (error) {
-      notifyError("حدث خطأ. حاوِل مرة أخرى.");
+      notifyError(labels.error);
       return;
     }
     void logAdminAction(next ? "featured" : "unfeatured", "leader", id);
@@ -53,7 +74,7 @@ export function AdminLeaderActions({
       .eq("id", id);
     setBusy(false);
     if (error) {
-      notifyError("حدث خطأ. حاوِل مرة أخرى.");
+      notifyError(labels.error);
       return;
     }
     void logAdminAction(next ? "verified" : "unverified", "leader", id);
@@ -69,7 +90,7 @@ export function AdminLeaderActions({
       .eq("id", id);
     setBusy(false);
     if (error) {
-      notifyError("حدث خطأ. حاوِل مرة أخرى.");
+      notifyError(labels.error);
       return;
     }
     void logAdminAction(nextPublished ? "published" : "hidden", "leader", id);
@@ -79,9 +100,9 @@ export function AdminLeaderActions({
   async function remove() {
     if (
       !(await confirm({
-        message: "هل أنت متأكد من حذف هذا الملف نهائيًا؟",
-        confirmLabel: "تأكيد",
-        cancelLabel: "إلغاء",
+        message: labels.confirmDelete,
+        confirmLabel: labels.confirm,
+        cancelLabel: labels.cancel,
         danger: true,
       }))
     )
@@ -93,7 +114,7 @@ export function AdminLeaderActions({
       .eq("id", id);
     setBusy(false);
     if (error) {
-      notifyError("حدث خطأ. حاوِل مرة أخرى.");
+      notifyError(labels.error);
       return;
     }
     void logAdminAction("deleted", "leader", id);
@@ -109,7 +130,7 @@ export function AdminLeaderActions({
         disabled={busy}
         leftIcon={<Star className="h-4 w-4" />}
       >
-        {featured ? "إلغاء التمييز" : "تمييز"}
+        {featured ? labels.unfeature : labels.feature}
       </Button>
       <Button
         size="sm"
@@ -118,7 +139,7 @@ export function AdminLeaderActions({
         disabled={busy}
         leftIcon={<BadgeCheck className="h-4 w-4" />}
       >
-        {verified ? "إلغاء التوثيق" : "توثيق"}
+        {verified ? labels.unverify : labels.verify}
       </Button>
       {published ? (
         <Button
@@ -128,7 +149,7 @@ export function AdminLeaderActions({
           disabled={busy}
           leftIcon={<EyeOff className="h-4 w-4" />}
         >
-          إخفاء
+          {labels.hide}
         </Button>
       ) : (
         <Button
@@ -138,7 +159,7 @@ export function AdminLeaderActions({
           disabled={busy}
           leftIcon={<Check className="h-4 w-4" />}
         >
-          نشر
+          {labels.publish}
         </Button>
       )}
       <Button
@@ -149,7 +170,7 @@ export function AdminLeaderActions({
         leftIcon={<Trash2 className="h-4 w-4" />}
         className="!text-danger !border-danger/30 hover:!bg-danger/5"
       >
-        حذف
+        {labels.delete}
       </Button>
     </div>
   );
