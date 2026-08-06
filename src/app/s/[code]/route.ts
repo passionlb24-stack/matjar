@@ -8,7 +8,15 @@ export async function GET(
 ) {
   const { code } = await params;
   const clean = code.replace(/[^0-9a-f]/gi, "").toLowerCase().slice(0, 8);
-  const home = new URL("/ar", request.url);
+
+  // Carry the query through the redirect. This link is the offline-to-online
+  // hop — it goes on posters, receipts and shop windows as a QR target — so the
+  // ?utm_* that says which poster worked, and the ?ref= that credits a
+  // referrer, arrive here and nowhere else. Rebuilding the destination with
+  // `new URL(...)` alone dropped both, which left every printed campaign
+  // unmeasurable after the fact: the visit was recorded, its source never was.
+  const search = new URL(request.url).search;
+  const home = new URL(`/ar${search}`, request.url);
   if (clean.length < 4) return Response.redirect(home, 302);
 
   const supabase = await createClient();
@@ -22,7 +30,7 @@ export async function GET(
 
   if (!data) return Response.redirect(home, 302);
   return Response.redirect(
-    new URL(`/ar/store/${(data as { id: string }).id}`, request.url),
+    new URL(`/ar/store/${(data as { id: string }).id}${search}`, request.url),
     302,
   );
 }

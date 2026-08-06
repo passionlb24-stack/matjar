@@ -177,9 +177,16 @@ export function ListingForm({
                 </span>
               )}
               <div className="absolute inset-x-0 bottom-0 flex justify-center gap-0.5 bg-black/40 py-0.5">
-                <button type="button" onClick={() => move(i, -1)} className="text-white"><ArrowLeft className="h-3.5 w-3.5" /></button>
-                <button type="button" onClick={() => makeMain(i)} title={t.makeMain} className="text-white"><Star className="h-3.5 w-3.5" /></button>
-                <button type="button" onClick={() => move(i, 1)} className="text-white"><ArrowRight className="h-3.5 w-3.5" /></button>
+                {/* rtl:rotate-180 because these move a photo through the strip,
+                    and the strip itself flips: in Arabic "earlier" is to the
+                    right. Unflipped, both arrows pointed at the position they
+                    would move the photo away from. They were also the only
+                    unlabelled controls here — icon-only buttons with no name
+                    for a screen reader, and no tooltip for anyone unsure which
+                    direction "earlier" is. */}
+                <button type="button" onClick={() => move(i, -1)} title={t.moveEarlier} aria-label={t.moveEarlier} className="text-white"><ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" /></button>
+                <button type="button" onClick={() => makeMain(i)} title={t.makeMain} aria-label={t.makeMain} className="text-white"><Star className="h-3.5 w-3.5" /></button>
+                <button type="button" onClick={() => move(i, 1)} title={t.moveLater} aria-label={t.moveLater} className="text-white"><ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" /></button>
               </div>
               <button
                 type="button"

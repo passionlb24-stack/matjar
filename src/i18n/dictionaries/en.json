@@ -3483,6 +3483,8 @@
       "images": "Images (first = main)",
       "imagesHint": "Drag to reorder. The first image is the main one.",
       "makeMain": "Make main",
+      "moveEarlier": "Move earlier",
+      "moveLater": "Move later",
       "saveDraft": "Save as draft",
       "preview": "Preview",
       "previewTitle": "Listing preview",
