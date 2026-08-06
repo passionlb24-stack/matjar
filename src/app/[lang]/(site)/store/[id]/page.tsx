@@ -176,7 +176,11 @@ export default async function StorePage({
         supabase
           .from("store_verifications")
           .select(
-            "id, kind, title, issuer, number, issued_on, expires_on, doc_url, verify_url, status",
+            // doc_url is deliberately not selected: the scanned document is for
+            // the admin review queue, not the storefront. Leaving it out of the
+            // query means it never reaches the browser at all, rather than
+            // being fetched and then simply not drawn.
+            "id, kind, title, issuer, number, issued_on, expires_on, verify_url, status",
           )
           .eq("store_id", id)
           .neq("status", "rejected")

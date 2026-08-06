@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { BadgeCheck, ShieldCheck, ExternalLink } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -11,7 +10,6 @@ export type StoreVerification = {
   number: string | null;
   issued_on: string | null;
   expires_on: string | null;
-  doc_url: string | null;
   verify_url: string | null;
   status: string;
 };
@@ -20,6 +18,14 @@ export type StoreVerification = {
 // deliberately distinct: uploaded documents are shown as "provided by the
 // business — not reviewed" (self-declared, no endorsement), while an
 // admin-reviewed document is marked "verified". Rejected docs are hidden.
+//
+// The scanned document itself is NOT shown, and doc_url is deliberately absent
+// from this type so it cannot be reintroduced by accident. It used to render as
+// a thumbnail linking to the full-resolution original — and the document people
+// actually photograph for this, a Lebanese commercial registration, routinely
+// carries the owner's ID number and home address. What a shopper needs is the
+// claim and who checked it; the paperwork behind it is for the admin review
+// queue, not the storefront.
 export function StoreVerifications({
   verifications,
   dict,
@@ -57,16 +63,16 @@ export function StoreVerifications({
               key={v.id}
               className="flex gap-3 rounded-2xl border border-border bg-surface p-4"
             >
-              {v.doc_url && (
-                <Image
-                  src={v.doc_url}
-                  alt=""
-                  width={64}
-                  height={64}
-                  className="h-16 w-16 shrink-0 rounded-lg border border-border object-cover"
-                  sizes="64px"
-                />
-              )}
+              <span
+                aria-hidden
+                className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-muted text-muted-foreground"
+              >
+                {verified ? (
+                  <ShieldCheck className="h-7 w-7 text-success" />
+                ) : (
+                  <BadgeCheck className="h-7 w-7" />
+                )}
+              </span>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs font-bold text-muted-foreground">

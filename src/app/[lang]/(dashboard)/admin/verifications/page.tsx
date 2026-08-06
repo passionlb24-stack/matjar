@@ -19,7 +19,7 @@ type VerificationRow = {
   number: string | null;
   issued_on: string | null;
   expires_on: string | null;
-  doc_url: string | null;
+  store_verification_docs: { doc_url: string } | null;
   verify_url: string | null;
   created_at: string;
   stores: { name: string } | null;
@@ -40,12 +40,20 @@ export default async function AdminVerificationsPage({
   const { data } = await supabase
     .from("store_verifications")
     .select(
-      "id, kind, title, issuer, number, issued_on, expires_on, doc_url, verify_url, created_at, stores(name)",
+      "id, kind, title, issuer, number, issued_on, expires_on, verify_url, created_at, stores(name), store_verification_docs(doc_url)",
     )
     .eq("status", "submitted")
     .order("created_at", { ascending: true });
 
-  const rows = (data ?? []) as unknown as VerificationRow[];
+  // Same normalisation as the merchant page: PostgREST types a one-to-one embed
+  // as an array, so accept either shape and settle on one nullable object.
+  const rows = ((data ?? []) as unknown as Record<string, unknown>[]).map((r) => {
+    const embed = r.store_verification_docs;
+    return {
+      ...r,
+      store_verification_docs: (Array.isArray(embed) ? embed[0] : embed) ?? null,
+    };
+  }) as unknown as VerificationRow[];
   const kindLabel = (kind: string) =>
     t.kinds[kind as keyof typeof t.kinds] ?? kind;
 
@@ -106,9 +114,9 @@ export default async function AdminVerificationsPage({
                     </div>
 
                     <div className="flex flex-wrap items-center gap-4 pt-1">
-                      {r.doc_url && (
+                      {r.store_verification_docs?.doc_url && (
                         <a
-                          href={r.doc_url}
+                          href={r.store_verification_docs.doc_url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"

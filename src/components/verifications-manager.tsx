@@ -21,7 +21,8 @@ export type Verification = {
   number: string | null;
   issued_on: string | null;
   expires_on: string | null;
-  doc_url: string | null;
+  /** Embedded from store_verification_docs — the merchant may see their own. */
+  store_verification_docs: { doc_url: string } | null;
   verify_url: string | null;
   status: string;
 };
@@ -91,17 +92,31 @@ export function VerificationsManager({
     const supabase = createClient();
     // status is intentionally omitted — it defaults to 'submitted' and stays
     // merchant-controlled; only admins may set 'verified'.
-    const { error } = await supabase.from("store_verifications").insert({
-      store_id: storeId,
-      kind: draft.kind,
-      title: draft.title.trim(),
-      issuer: draft.issuer.trim() || null,
-      number: draft.number.trim() || null,
-      issued_on: draft.issued_on || null,
-      expires_on: draft.expires_on || null,
-      doc_url: draft.doc_url,
-      verify_url: draft.verify_url.trim() || null,
-    });
+    const { data: created, error } = await supabase
+      .from("store_verifications")
+      .insert({
+        store_id: storeId,
+        kind: draft.kind,
+        title: draft.title.trim(),
+        issuer: draft.issuer.trim() || null,
+        number: draft.number.trim() || null,
+        issued_on: draft.issued_on || null,
+        expires_on: draft.expires_on || null,
+        verify_url: draft.verify_url.trim() || null,
+      })
+      .select("id")
+      .single();
+    // The scan lands in its own table, which no public policy can read — the
+    // claim is for shoppers, the paperwork is for the review queue. Written
+    // second, so a failure here leaves a verification without its document
+    // rather than a document with no verification to hang off.
+    if (!error && created && draft.doc_url) {
+      await supabase.from("store_verification_docs").insert({
+        verification_id: (created as { id: string }).id,
+        store_id: storeId,
+        doc_url: draft.doc_url,
+      });
+    }
     setBusy(false);
     if (error) {
       notifyError(dict.auth.errorGeneric);
@@ -249,9 +264,9 @@ export function VerificationsManager({
             key={v.id}
             className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3"
           >
-            {v.doc_url ? (
+            {v.store_verification_docs?.doc_url ? (
               <Image
-                src={v.doc_url}
+                src={v.store_verification_docs.doc_url}
                 alt=""
                 width={56}
                 height={56}

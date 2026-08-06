@@ -40,11 +40,22 @@ export default async function StoreVerificationsPage({
   const { data: rowsData } = await supabase
     .from("store_verifications")
     .select(
-      "id, kind, title, issuer, number, issued_on, expires_on, doc_url, verify_url, status",
+      "id, kind, title, issuer, number, issued_on, expires_on, verify_url, status, store_verification_docs(doc_url)",
     )
     .eq("store_id", storeId)
     .order("created_at", { ascending: false });
-  const verifications = (rowsData ?? []) as Verification[];
+  // PostgREST types an embed as an array even where the foreign key is the
+  // child's primary key and only one row can ever match, and it returns an
+  // object in that case. Normalise both shapes to one nullable object.
+  const verifications = ((rowsData ?? []) as unknown as Record<string, unknown>[]).map(
+    (r) => {
+      const embed = r.store_verification_docs;
+      return {
+        ...r,
+        store_verification_docs: (Array.isArray(embed) ? embed[0] : embed) ?? null,
+      };
+    },
+  ) as unknown as Verification[];
 
   return (
     <div className="py-10">
