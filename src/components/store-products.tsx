@@ -4,7 +4,14 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Minus, Plus, ShoppingCart, MessageCircle, Check, Zap } from "lucide-react";
+import {
+  Minus,
+  Plus,
+  ShoppingCart,
+  MessageCircle,
+  Check,
+  Zap,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -326,7 +333,9 @@ export function StoreProducts({
 
   // Delivery fee preview (display only — the RPC recomputes authoritatively).
   const selectedZone =
-    fulfillment === "delivery" ? (zones.find((z) => z.id === zoneId) ?? null) : null;
+    fulfillment === "delivery"
+      ? (zones.find((z) => z.id === zoneId) ?? null)
+      : null;
   const deliveryFee = selectedZone
     ? selectedZone.freeOver != null && finalTotal >= selectedZone.freeOver
       ? 0
@@ -364,8 +373,7 @@ export function StoreProducts({
     });
     setCouponBusy(false);
     const row = (Array.isArray(data) ? data[0] : data) as
-      | { valid: boolean; discount: number; reason: string }
-      | undefined;
+      { valid: boolean; discount: number; reason: string } | undefined;
     if (error || !row || !row.valid) {
       const reasons: Record<string, string> = {
         invalid: dict.store.couponInvalid,
@@ -373,7 +381,9 @@ export function StoreProducts({
         used_up: dict.store.couponUsedUp,
         min_order: dict.store.couponMinOrder,
       };
-      setCouponMsg(reasons[row?.reason ?? "invalid"] ?? dict.store.couponInvalid);
+      setCouponMsg(
+        reasons[row?.reason ?? "invalid"] ?? dict.store.couponInvalid,
+      );
       setAppliedCode(null);
       setCouponDiscount(0);
       return;
@@ -501,13 +511,15 @@ export function StoreProducts({
         setOrderError(
           msg.includes("insufficient_stock")
             ? stockErrorMessage(msg)
-            : msg.includes("rate_limited")
-              ? dict.store.tooManyOrders
-              : msg.includes("below_zone_minimum")
-                ? dict.store.belowZoneMin
-                : msg.includes("modifier_")
-                  ? dict.store.modifierNeeded
-                  : dict.auth.errorGeneric,
+            : msg.includes("coupon_already_used")
+              ? dict.store.couponAlreadyUsed
+              : msg.includes("rate_limited")
+                ? dict.store.tooManyOrders
+                : msg.includes("below_zone_minimum")
+                  ? dict.store.belowZoneMin
+                  : msg.includes("modifier_")
+                    ? dict.store.modifierNeeded
+                    : dict.auth.errorGeneric,
         );
         router.refresh();
         return;
@@ -552,11 +564,13 @@ export function StoreProducts({
       setOrderError(
         msg.includes("insufficient_stock")
           ? stockErrorMessage(msg)
-          : msg.includes("below_zone_minimum")
-            ? dict.store.belowZoneMin
-            : msg.includes("modifier_")
-              ? dict.store.modifierNeeded
-              : dict.auth.errorGeneric,
+          : msg.includes("coupon_already_used")
+            ? dict.store.couponAlreadyUsed
+            : msg.includes("below_zone_minimum")
+              ? dict.store.belowZoneMin
+              : msg.includes("modifier_")
+                ? dict.store.modifierNeeded
+                : dict.auth.errorGeneric,
       );
       setPlacing(false);
       router.refresh();
@@ -623,7 +637,11 @@ export function StoreProducts({
       <div
         className={`flex items-center justify-center bg-gradient-to-br ${style.cover} ${isGrid ? `${isShowcase ? "h-56" : "h-40"} w-full` : "h-16 w-16 shrink-0 rounded-xl"}`}
       >
-        <Icon className={isGrid ? "h-10 w-10 text-black/20" : "h-7 w-7 text-black/20"} />
+        <Icon
+          className={
+            isGrid ? "h-10 w-10 text-black/20" : "h-7 w-7 text-black/20"
+          }
+        />
       </div>
     );
   }
@@ -643,112 +661,126 @@ export function StoreProducts({
         {list.map((p) => {
           const qty = cart[p.id] ?? 0;
           return (
-            <div key={p.id} className="sf-card group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
-                <Card p={p} />
-                <div className="flex flex-1 flex-col p-4">
-                  <Link
-                    href={`/${lang}/product/${p.id}`}
-                    className="font-bold leading-tight transition-colors hover:text-primary"
-                  >
-                    {localized(p.name, p.nameEn, lang)}
-                  </Link>
-                  {attributeSummary(category, p.attributes, lang) && (
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {attributeSummary(category, p.attributes, lang)}
-                    </p>
-                  )}
-                  <BundleIncludes p={p} lang={lang} label={dict.store.bundleIncludes} />
-                  <p className="mt-1">
-                    <PriceTag p={p} />
+            <div
+              key={p.id}
+              className="sf-card group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <Card p={p} />
+              <div className="flex flex-1 flex-col p-4">
+                <Link
+                  href={`/${lang}/product/${p.id}`}
+                  className="font-bold leading-tight transition-colors hover:text-primary"
+                >
+                  {localized(p.name, p.nameEn, lang)}
+                </Link>
+                {attributeSummary(category, p.attributes, lang) && (
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {attributeSummary(category, p.attributes, lang)}
                   </p>
-                  {p.stock != null && p.stock > 0 && p.stock <= 5 && (
-                    <p className="mt-1 text-xs font-bold text-warning">
-                      {dict.store.onlyLeft.replace("{n}", String(p.stock))}
-                    </p>
-                  )}
-                  <div className="mt-3 flex justify-end">
-                    {p.stock != null && p.stock <= 0 ? (
-                      <span className="w-full rounded-lg bg-surface-muted px-3.5 py-2 text-center text-sm font-bold text-muted-foreground">
-                        {dict.store.soldOut}
-                      </span>
-                    ) : p.hasVariants ? (
-                      <Link
-                        href={`/${lang}/product/${p.id}`}
-                        className="w-full rounded-lg bg-primary px-3.5 py-2 text-center text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-                      >
-                        {dict.store.chooseOption}
-                      </Link>
-                    ) : qty > 0 ? (
-                      <Stepper id={p.id} qty={qty} />
-                    ) : (
-                      <button
-                        onClick={() => setQty(p.id, 1)}
-                        className="w-full rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-                      >
-                        {addLabel}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {list.map((p) => {
-            const qty = cart[p.id] ?? 0;
-            return (
-              <div key={p.id} className="sf-card flex items-center gap-4 rounded-2xl border border-border bg-surface p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
-                <Card p={p} />
-                <div className="min-w-0 flex-1">
-                  <Link
-                    href={`/${lang}/product/${p.id}`}
-                    className="block truncate font-bold transition-colors hover:text-primary"
-                  >
-                    {localized(p.name, p.nameEn, lang)}
-                  </Link>
-                  {attributeSummary(category, p.attributes, lang) && (
-                    <p className="truncate text-xs text-muted-foreground">
-                      {attributeSummary(category, p.attributes, lang)}
-                    </p>
-                  )}
-                  <BundleIncludes p={p} lang={lang} label={dict.store.bundleIncludes} />
-                  <p className="mt-0.5 text-sm">
-                    <PriceTag p={p} />
-                    {p.stock != null && p.stock > 0 && p.stock <= 5 && (
-                      <span className="ms-2 text-xs font-bold text-warning">
-                        {dict.store.onlyLeft.replace("{n}", String(p.stock))}
-                      </span>
-                    )}
-                  </p>
-                </div>
-                {p.stock != null && p.stock <= 0 ? (
-                  <span className="shrink-0 rounded-lg bg-surface-muted px-3.5 py-2 text-sm font-bold text-muted-foreground">
-                    {dict.store.soldOut}
-                  </span>
-                ) : p.hasVariants ? (
-                  <Link
-                    href={`/${lang}/product/${p.id}`}
-                    className="shrink-0 rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-                  >
-                    {dict.store.chooseOption}
-                  </Link>
-                ) : qty > 0 ? (
-                  <Stepper id={p.id} qty={qty} />
-                ) : (
-                  <button
-                    onClick={() => setQty(p.id, 1)}
-                    className="shrink-0 rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-                  >
-                    {addLabel}
-                  </button>
                 )}
+                <BundleIncludes
+                  p={p}
+                  lang={lang}
+                  label={dict.store.bundleIncludes}
+                />
+                <p className="mt-1">
+                  <PriceTag p={p} />
+                </p>
+                {p.stock != null && p.stock > 0 && p.stock <= 5 && (
+                  <p className="mt-1 text-xs font-bold text-warning">
+                    {dict.store.onlyLeft.replace("{n}", String(p.stock))}
+                  </p>
+                )}
+                <div className="mt-3 flex justify-end">
+                  {p.stock != null && p.stock <= 0 ? (
+                    <span className="w-full rounded-lg bg-surface-muted px-3.5 py-2 text-center text-sm font-bold text-muted-foreground">
+                      {dict.store.soldOut}
+                    </span>
+                  ) : p.hasVariants ? (
+                    <Link
+                      href={`/${lang}/product/${p.id}`}
+                      className="w-full rounded-lg bg-primary px-3.5 py-2 text-center text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                    >
+                      {dict.store.chooseOption}
+                    </Link>
+                  ) : qty > 0 ? (
+                    <Stepper id={p.id} qty={qty} />
+                  ) : (
+                    <button
+                      onClick={() => setQty(p.id, 1)}
+                      className="w-full rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                    >
+                      {addLabel}
+                    </button>
+                  )}
+                </div>
               </div>
-            );
-          })}
-        </div>
-      );
+            </div>
+          );
+        })}
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {list.map((p) => {
+          const qty = cart[p.id] ?? 0;
+          return (
+            <div
+              key={p.id}
+              className="sf-card flex items-center gap-4 rounded-2xl border border-border bg-surface p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <Card p={p} />
+              <div className="min-w-0 flex-1">
+                <Link
+                  href={`/${lang}/product/${p.id}`}
+                  className="block truncate font-bold transition-colors hover:text-primary"
+                >
+                  {localized(p.name, p.nameEn, lang)}
+                </Link>
+                {attributeSummary(category, p.attributes, lang) && (
+                  <p className="truncate text-xs text-muted-foreground">
+                    {attributeSummary(category, p.attributes, lang)}
+                  </p>
+                )}
+                <BundleIncludes
+                  p={p}
+                  lang={lang}
+                  label={dict.store.bundleIncludes}
+                />
+                <p className="mt-0.5 text-sm">
+                  <PriceTag p={p} />
+                  {p.stock != null && p.stock > 0 && p.stock <= 5 && (
+                    <span className="ms-2 text-xs font-bold text-warning">
+                      {dict.store.onlyLeft.replace("{n}", String(p.stock))}
+                    </span>
+                  )}
+                </p>
+              </div>
+              {p.stock != null && p.stock <= 0 ? (
+                <span className="shrink-0 rounded-lg bg-surface-muted px-3.5 py-2 text-sm font-bold text-muted-foreground">
+                  {dict.store.soldOut}
+                </span>
+              ) : p.hasVariants ? (
+                <Link
+                  href={`/${lang}/product/${p.id}`}
+                  className="shrink-0 rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                >
+                  {dict.store.chooseOption}
+                </Link>
+              ) : qty > 0 ? (
+                <Stepper id={p.id} qty={qty} />
+              ) : (
+                <button
+                  onClick={() => setQty(p.id, 1)}
+                  className="shrink-0 rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                >
+                  {addLabel}
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
   }
 
   // Per-field selectable values: select fields use their fixed options; text/
@@ -761,7 +793,9 @@ export function StoreProducts({
       if (v && !seen.has(v)) seen.set(v, v);
     }
     return [...seen.keys()]
-      .sort((a, b) => (f.type === "number" ? Number(a) - Number(b) : a.localeCompare(b)))
+      .sort((a, b) =>
+        f.type === "number" ? Number(a) - Number(b) : a.localeCompare(b),
+      )
       .map((v) => ({ value: v, ar: v, en: v }));
   }
 
@@ -772,7 +806,9 @@ export function StoreProducts({
   });
 
   // Only worth showing when this sector has filterable fields with real values.
-  const shownFilterFields = filterFields.filter((f) => fieldChoices(f).length > 0);
+  const shownFilterFields = filterFields.filter(
+    (f) => fieldChoices(f).length > 0,
+  );
 
   // Group for display when the store defined sections; otherwise one flat list
   // (no headers, no regression). Cart/total logic still uses the full `products`.
@@ -884,7 +920,10 @@ export function StoreProducts({
               <p className="text-xs font-semibold text-muted-foreground">
                 {dict.os.track.orderRef}
               </p>
-              <p dir="ltr" className="mt-0.5 select-all text-xl font-extrabold tracking-wider">
+              <p
+                dir="ltr"
+                className="mt-0.5 select-all text-xl font-extrabold tracking-wider"
+              >
                 #{placedOrderId.slice(0, 8)}
               </p>
               <p className="mt-1.5 text-xs text-muted-foreground">
@@ -928,7 +967,8 @@ export function StoreProducts({
             </p>
           )}
         </div>
-      ) : items.length > 0 &&
+      ) : (
+        items.length > 0 &&
         (checkingOut ? (
           <form
             onSubmit={confirmOrder}
@@ -953,7 +993,9 @@ export function StoreProducts({
                 </button>
               </div>
               {couponMsg && (
-                <p className="mt-1 text-sm font-medium text-danger">{couponMsg}</p>
+                <p className="mt-1 text-sm font-medium text-danger">
+                  {couponMsg}
+                </p>
               )}
               {appliedCode && (
                 <p className="mt-1 text-sm font-semibold text-primary">
@@ -987,7 +1029,9 @@ export function StoreProducts({
 
             {/* Totals */}
             <div className="space-y-1 border-t border-border pt-3 text-sm">
-              {(couponDiscount > 0 || pointsDiscount > 0 || deliveryFee > 0) && (
+              {(couponDiscount > 0 ||
+                pointsDiscount > 0 ||
+                deliveryFee > 0) && (
                 <div className="flex justify-between text-muted-foreground">
                   <span>{dict.store.subtotal}</span>
                   <span>{formatPrice(total)}</span>
@@ -1032,7 +1076,9 @@ export function StoreProducts({
             </p>
             {fulfillmentOptions.length > 1 && (
               <div>
-                <span className="text-sm font-semibold">{dict.store.fulfillment}</span>
+                <span className="text-sm font-semibold">
+                  {dict.store.fulfillment}
+                </span>
                 <div className="mt-1.5 grid grid-cols-2 gap-2">
                   {fulfillmentOptions.map((opt) => (
                     <button
@@ -1045,7 +1091,9 @@ export function StoreProducts({
                           : "border-border text-muted-foreground hover:border-primary/40"
                       }`}
                     >
-                      {opt === "delivery" ? dict.store.delivery : dict.store.pickup}
+                      {opt === "delivery"
+                        ? dict.store.delivery
+                        : dict.store.pickup}
                     </button>
                   ))}
                 </div>
@@ -1075,12 +1123,14 @@ export function StoreProducts({
               <div className="space-y-1 rounded-xl bg-surface-muted/60 px-4 py-3 text-sm text-muted-foreground">
                 {prepTime && (
                   <p>
-                    <span className="font-semibold">{dict.store.prep}:</span> {prepTime}
+                    <span className="font-semibold">{dict.store.prep}:</span>{" "}
+                    {prepTime}
                   </p>
                 )}
                 {paymentNote && (
                   <p>
-                    <span className="font-semibold">{dict.store.payment}:</span> {paymentNote}
+                    <span className="font-semibold">{dict.store.payment}:</span>{" "}
+                    {paymentNote}
                   </p>
                 )}
               </div>
@@ -1112,14 +1162,15 @@ export function StoreProducts({
                 </select>
                 {selectedZone && (
                   <div className="mt-1.5 space-y-0.5 text-xs text-muted-foreground">
-                    {selectedZone.etaMin != null && selectedZone.etaMax != null && (
-                      <p>
-                        ⏱️{" "}
-                        {dict.store.zoneEta
-                          .replace("{min}", String(selectedZone.etaMin))
-                          .replace("{max}", String(selectedZone.etaMax))}
-                      </p>
-                    )}
+                    {selectedZone.etaMin != null &&
+                      selectedZone.etaMax != null && (
+                        <p>
+                          ⏱️{" "}
+                          {dict.store.zoneEta
+                            .replace("{min}", String(selectedZone.etaMin))
+                            .replace("{max}", String(selectedZone.etaMax))}
+                        </p>
+                      )}
                     {selectedZone.freeOver != null && deliveryFee > 0 && (
                       <p>
                         🚚{" "}
@@ -1245,7 +1296,14 @@ export function StoreProducts({
                 <label className="text-sm font-semibold" htmlFor="name">
                   {dict.store.name}
                 </label>
-                <input id="name" name="name" type="text" required placeholder={dict.store.namePlaceholder} className={fieldClass} />
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  required
+                  placeholder={dict.store.namePlaceholder}
+                  className={fieldClass}
+                />
               </div>
             )}
             <div>
@@ -1273,7 +1331,13 @@ export function StoreProducts({
               <label className="text-sm font-semibold" htmlFor="note">
                 {dict.store.note}
               </label>
-              <textarea id="note" name="note" rows={2} placeholder={dict.store.notePlaceholder} className={fieldClass} />
+              <textarea
+                id="note"
+                name="note"
+                rows={2}
+                placeholder={dict.store.notePlaceholder}
+                className={fieldClass}
+              />
             </div>
             {/* Merchant-defined custom fields (gift note, floor number, …). */}
             {checkoutFields.map((f) => {
@@ -1283,7 +1347,10 @@ export function StoreProducts({
               const lbl = localized(f.label, f.labelEn, lang);
               return (
                 <div key={f.id}>
-                  <label className="text-sm font-semibold" htmlFor={`cf_${f.id}`}>
+                  <label
+                    className="text-sm font-semibold"
+                    htmlFor={`cf_${f.id}`}
+                  >
                     {lbl}
                     {f.required && <span className="ms-1 text-danger">*</span>}
                   </label>
@@ -1373,7 +1440,9 @@ export function StoreProducts({
         ) : (
           <div className="sticky bottom-4 mt-6 flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface p-4 shadow-lg">
             <div>
-              <p className="text-sm text-muted-foreground">{dict.store.yourOrder}</p>
+              <p className="text-sm text-muted-foreground">
+                {dict.store.yourOrder}
+              </p>
               <p className="text-lg font-extrabold">
                 {dict.store.total}: {formatPrice(total)}
               </p>
@@ -1387,7 +1456,9 @@ export function StoreProducts({
                   className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white transition-colors hover:bg-emerald-700"
                 >
                   <MessageCircle className="h-4 w-4" />
-                  <span className="hidden sm:inline">{dict.store.orderWhatsapp}</span>
+                  <span className="hidden sm:inline">
+                    {dict.store.orderWhatsapp}
+                  </span>
                 </a>
               )}
               <button
@@ -1406,7 +1477,8 @@ export function StoreProducts({
               </button>
             </div>
           </div>
-        ))}
+        ))
+      )}
     </div>
   );
 }

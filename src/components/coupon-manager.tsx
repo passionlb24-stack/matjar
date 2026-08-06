@@ -21,6 +21,7 @@ export type Coupon = {
   max_uses: number | null;
   used_count: number;
   is_active: boolean;
+  once_per_customer: boolean;
 };
 
 type Draft = {
@@ -31,6 +32,7 @@ type Draft = {
   expires_at: string;
   max_uses: string;
   is_active: boolean;
+  once_per_customer: boolean;
 };
 
 const empty: Draft = {
@@ -41,6 +43,7 @@ const empty: Draft = {
   expires_at: "",
   max_uses: "",
   is_active: true,
+  once_per_customer: false,
 };
 
 // Shared control styling from the UI library, plus the label gap this form uses.
@@ -76,6 +79,7 @@ export function CouponManager({
       expires_at: c.expires_at ? c.expires_at.slice(0, 10) : "",
       max_uses: c.max_uses != null ? String(c.max_uses) : "",
       is_active: c.is_active,
+      once_per_customer: c.once_per_customer ?? false,
     });
     setEditingId(c.id);
   }
@@ -102,6 +106,7 @@ export function CouponManager({
       expires_at: draft.expires_at === "" ? null : draft.expires_at,
       max_uses: draft.max_uses.trim() === "" ? null : Number(draft.max_uses),
       is_active: draft.is_active,
+      once_per_customer: draft.once_per_customer,
     };
     const { error } =
       editingId === "new"
@@ -178,6 +183,13 @@ export function CouponManager({
         <label className="flex items-center gap-2 self-end text-sm font-semibold">
           <input type="checkbox" checked={draft.is_active} onChange={(e) => setDraft({ ...draft, is_active: e.target.checked })} className="h-4 w-4 accent-primary" />
           {t.active}
+        </label>
+        {/* max_uses caps the code across everyone; this caps it per person.
+            Without it, a "10% off, 100 uses" code is one customer's standing
+            discount rather than a hundred customers' first order. */}
+        <label className="flex items-center gap-2 self-end text-sm font-semibold">
+          <input type="checkbox" checked={draft.once_per_customer} onChange={(e) => setDraft({ ...draft, once_per_customer: e.target.checked })} className="h-4 w-4 accent-primary" />
+          {t.oncePerCustomer}
         </label>
       </div>
       <div className="flex gap-2">

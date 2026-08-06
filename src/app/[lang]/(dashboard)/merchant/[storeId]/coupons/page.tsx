@@ -45,7 +45,7 @@ export default async function StoreCouponsPage({
 
   const { data: couponsData } = await supabase
     .from("coupons")
-    .select("id, code, type, value, min_order, expires_at, max_uses, used_count, is_active")
+    .select("id, code, type, value, min_order, expires_at, max_uses, used_count, is_active, once_per_customer")
     .eq("store_id", storeId)
     .order("created_at", { ascending: false });
   const coupons = (couponsData ?? []) as Coupon[];
