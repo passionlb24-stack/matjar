@@ -53,7 +53,13 @@ export default async function AdminOrdersPage({
   // Platform-wide money totals + order count, aggregated server-side (super_admin
   // gated). Fetching the whole ledger and reducing in JS silently truncated past
   // PostgREST's 1000-row cap, so totals read low at scale.
-  const { data: report } = await supabase.rpc("admin_orders_report");
+  // If the RPC fails, say so. `report ?? {}` followed by `?? 0` turned any
+  // failure into a confident "$0 collected · 0 orders", which reads as a real
+  // answer — a quiet day — rather than as no answer at all. An admin cannot
+  // tell those apart, and $0 is the more dangerous of the two to believe.
+  const { data: report, error: reportError } = await supabase.rpc(
+    "admin_orders_report",
+  );
   const summary = (report ?? {}) as {
     collected?: number;
     refunded?: number;
@@ -64,6 +70,8 @@ export default async function AdminOrdersPage({
   const refunded = Number(summary.refunded ?? 0);
   const net = Number(summary.net ?? 0);
   const orderCount = summary.order_count ?? 0;
+  /** An em dash instead of a number when the figure is genuinely unknown. */
+  const kpi = (formatted: string) => (reportError ? "—" : formatted);
 
   const { data } = await supabase
     .from("orders")
@@ -133,22 +141,22 @@ export default async function AdminOrdersPage({
           <StatGrid>
             <Stat
               label={t.totalCollected}
-              value={money(collected)}
+              value={kpi(money(collected))}
               icon={<TrendingUp className="text-success" />}
             />
             <Stat
               label={t.totalRefunded}
-              value={money(refunded)}
+              value={kpi(money(refunded))}
               icon={<Undo2 className="text-danger" />}
             />
             <Stat
               label={t.netRevenue}
-              value={money(net)}
+              value={kpi(money(net))}
               icon={<Coins />}
             />
             <Stat
               label={t.orderCount}
-              value={(orderCount ?? 0).toLocaleString("en-US")}
+              value={kpi((orderCount ?? 0).toLocaleString("en-US"))}
               icon={<Receipt className="text-primary" />}
             />
           </StatGrid>
