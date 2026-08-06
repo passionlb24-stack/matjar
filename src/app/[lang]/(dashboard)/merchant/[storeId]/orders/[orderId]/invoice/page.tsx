@@ -137,7 +137,7 @@ export default async function OrderInvoicePage({
               </p>
               {order.phone && (
                 <p className="text-muted-foreground" dir="ltr">
-                  {order.phone}
+                  <span dir="ltr">{order.phone}</span>
                 </p>
               )}
               {order.address && (

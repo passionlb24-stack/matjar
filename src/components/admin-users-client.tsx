@@ -198,7 +198,12 @@ export function AdminUsersClient({
                             )}
                           </div>
                           <p className="mt-0.5 text-sm text-muted-foreground">
-                            {u.phone ? `${u.phone} · ` : ""}
+                            {u.phone ? (
+                              <>
+                                <span dir="ltr">{u.phone}</span>
+                                {" · "}
+                              </>
+                            ) : null}
                             {t.joined} {fmtDate(u.created_at)}
                           </p>
                         </div>

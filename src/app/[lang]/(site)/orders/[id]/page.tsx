@@ -210,7 +210,7 @@ export default async function OrderDetailPage({
           {order.phone && (
             <p className="flex items-center gap-2">
               <Phone className="h-4 w-4 shrink-0 text-primary" />
-              {order.phone}
+              <span dir="ltr">{order.phone}</span>
             </p>
           )}
           {order.customer_note && (

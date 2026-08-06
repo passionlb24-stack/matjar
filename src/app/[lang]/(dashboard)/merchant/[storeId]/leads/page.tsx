@@ -102,7 +102,7 @@ export default async function StoreLeadsPage({
                       className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
                     >
                       <Phone className="h-3.5 w-3.5" />
-                      {l.phone}
+                      <span dir="ltr">{l.phone}</span>
                     </a>
                     {l.message && (
                       <p className="mt-1.5 text-sm text-muted-foreground">

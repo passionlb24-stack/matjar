@@ -183,7 +183,7 @@ export default async function StoreBookingsPage({
                                 className="inline-flex items-center gap-1 font-semibold text-success hover:underline"
                               >
                                 <MessageCircle className="h-3.5 w-3.5" />
-                                {b.phone}
+                                <span dir="ltr">{b.phone}</span>
                               </a>
                               <a
                                 href={`tel:${b.phone}`}

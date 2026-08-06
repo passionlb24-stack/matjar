@@ -215,7 +215,7 @@ export function AddressManager({
                 </p>
                 {a.phone && (
                   <p className="mt-0.5 text-sm text-muted-foreground" dir="ltr">
-                    {a.phone}
+                    <span dir="ltr">{a.phone}</span>
                   </p>
                 )}
               </div>

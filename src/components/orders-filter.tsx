@@ -231,7 +231,12 @@ export function OrdersFilter({
                     {order.fulfillment === "delivery"
                       ? dict.store.delivery
                       : dict.store.pickup}
-                    {order.phone ? ` · ${order.phone}` : ""}
+                    {order.phone ? (
+                      <>
+                        {" · "}
+                        <span dir="ltr">{order.phone}</span>
+                      </>
+                    ) : null}
                     {order.delivery_fee != null &&
                       Number(order.delivery_fee) > 0 && (
                         <span className="ms-2 font-semibold text-foreground">

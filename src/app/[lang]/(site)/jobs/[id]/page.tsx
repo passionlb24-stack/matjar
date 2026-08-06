@@ -248,7 +248,7 @@ export default async function JobDetailPage({
                           dir="ltr"
                         >
                           <Phone className="h-4 w-4" />
-                          {a.phone}
+                          <span dir="ltr">{a.phone}</span>
                         </a>
                       )}
                       {a.cv_url && (

@@ -121,7 +121,7 @@ export default async function StoreStaysPage({
                       className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
                     >
                       <Phone className="h-3.5 w-3.5" />
-                      {s.phone}
+                      <span dir="ltr">{s.phone}</span>
                     </a>
                     {s.notes && (
                       <p className="mt-1.5 text-sm text-muted-foreground">

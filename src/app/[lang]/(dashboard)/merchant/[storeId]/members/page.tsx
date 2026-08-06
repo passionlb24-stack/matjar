@@ -98,7 +98,7 @@ export default async function StoreMembersPage({
             className="mt-0.5 inline-flex items-center gap-1 text-sm text-primary hover:underline"
           >
             <Phone className="h-3.5 w-3.5" />
-            {phone}
+            <span dir="ltr">{phone}</span>
           </a>
         )}
       </div>

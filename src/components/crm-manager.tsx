@@ -380,7 +380,7 @@ export function CrmManager({
                       <span className="block truncate font-bold">{c.name}</span>
                       {c.phone && (
                         <span dir="ltr" className="block text-sm text-muted-foreground">
-                          {c.phone}
+                          <span dir="ltr">{c.phone}</span>
                         </span>
                       )}
                     </span>
