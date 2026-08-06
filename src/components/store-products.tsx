@@ -229,6 +229,8 @@ export function StoreProducts({
   // Answers to the merchant's custom checkout fields, keyed by field id.
   const [cfAnswers, setCfAnswers] = useState<Record<string, string>>({});
   const [orderPlaced, setOrderPlaced] = useState(false);
+  /** waUrl captured at the moment of success — see where it is set. */
+  const [placedWaUrl, setPlacedWaUrl] = useState<string | null>(null);
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
   const fulfillmentOptions = (["delivery", "pickup"] as const).filter((o) =>
     o === "delivery" ? acceptsDelivery : acceptsPickup,
@@ -566,6 +568,13 @@ export function StoreProducts({
     idemKeyRef.current = "";
     setPlacing(false);
     setCheckingOut(false);
+    // Freeze the WhatsApp message before the cart goes. waUrl is derived from
+    // `items`, which is derived from `cart` — so clearing the cart on the very
+    // next line emptied it, and the confirmation screen's "tell the merchant"
+    // button silently never rendered. That button is the whole reason this
+    // screen exists rather than a redirect: a merchant who does not watch the
+    // dashboard learns about the order from it.
+    setPlacedWaUrl(waUrl);
     setOrderPlaced(true);
     setCart({}); // clears persisted cart via the storage effect
     router.refresh();
@@ -864,10 +873,29 @@ export function StoreProducts({
           <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
             {dict.store.orderPlacedNote}
           </p>
+          {/* The reference, as text a customer can keep. The tracking link
+              below only helps someone who still has the tab; a cash-on-delivery
+              buyer who closes it had nothing at all to quote — no number, no
+              email, no SMS. This is the same 8 characters the merchant sees on
+              their orders screen, so reading it down the phone actually
+              resolves to the same order. */}
+          {placedOrderId && (
+            <div className="mx-auto mt-4 max-w-xs rounded-xl border border-border bg-surface px-4 py-3">
+              <p className="text-xs font-semibold text-muted-foreground">
+                {dict.os.track.orderRef}
+              </p>
+              <p dir="ltr" className="mt-0.5 select-all text-xl font-extrabold tracking-wider">
+                #{placedOrderId.slice(0, 8)}
+              </p>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                {dict.os.track.orderRefHint}
+              </p>
+            </div>
+          )}
           <div className="mt-5 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
-            {waUrl && (
+            {placedWaUrl && (
               <a
-                href={waUrl}
+                href={placedWaUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-700"

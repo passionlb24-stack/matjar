@@ -588,7 +588,9 @@
       "orderAt": "Your order from",
       "placedOn": "on",
       "trackLink": "Track your order",
-      "saveLink": "Save this link to follow your order later 👇"
+      "saveLink": "Save this link to follow your order later 👇",
+      "orderRef": "Your order number",
+      "orderRefHint": "Screenshot it or write it down. The store sees this same number — quote it if you call them."
     },
     "invoice": {
       "title": "Invoice",
