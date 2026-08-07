@@ -1438,7 +1438,14 @@
       "label": "Permissions",
       "orders": "Orders",
       "products": "Products",
-      "bookings": "Bookings"
+      "bookings": "Bookings",
+      "inventory": "Inventory",
+      "customers": "Customers",
+      "pos": "Point of sale",
+      "suppliers": "Suppliers",
+      "expenses": "Expenses",
+      "classes": "Classes",
+      "tasks": "Tasks"
     },
     "staffNotFound": "No user found with that email — they need an account first.",
     "staffSelf": "You can't add yourself.",

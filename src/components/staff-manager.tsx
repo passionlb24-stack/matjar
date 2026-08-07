@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
-type Perms = { orders: boolean; products: boolean; bookings: boolean };
+type Perms = Record<(typeof PERM_KEYS)[number], boolean>;
 type Staff = {
   id: string;
   email: string | null;
@@ -18,16 +18,33 @@ type Staff = {
   permissions: Record<string, boolean> | null;
 };
 
-const PERM_KEYS = ["orders", "products", "bookings"] as const;
+// Every permission RLS actually enforces, so an owner can grant what the
+// database checks. This listed three; staff_can() is called with ten across the
+// policies, and the seven missing here could never be granted to anyone — the
+// areas they guard were closed to all staff permanently, with no way for the
+// owner to open them and nothing anywhere saying so.
+//
+// The three that already existed stay first on purpose, so an owner's muscle
+// memory still lands on the same toggles.
+const PERM_KEYS = [
+  "orders",
+  "products",
+  "bookings",
+  "inventory",
+  "customers",
+  "pos",
+  "suppliers",
+  "expenses",
+  "classes",
+  "tasks",
+] as const;
 
 function normalize(p: Record<string, boolean> | null): Perms {
   // Default missing keys to false so the toggle matches enforcement, which
   // coalesces a missing permission to false (staff_can, items/pos pages).
-  return {
-    orders: p?.orders ?? false,
-    products: p?.products ?? false,
-    bookings: p?.bookings ?? false,
-  };
+  return Object.fromEntries(
+    PERM_KEYS.map((k) => [k, p?.[k] ?? false]),
+  ) as Perms;
 }
 
 export function StaffManager({
