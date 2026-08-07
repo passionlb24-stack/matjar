@@ -535,7 +535,7 @@ export function StoreProducts({
     // Server-side pricing: the RPC recomputes every price from the live
     // catalog (never trusting the client), applies the coupon, and the stock
     // guard fires inside the same transaction.
-    const { error } = await supabase.rpc("place_customer_order", {
+    const { data: orderId, error } = await supabase.rpc("place_customer_order", {
       p_store_id: storeId,
       p_phone: String(form.get("phone") ?? ""),
       p_address: String(form.get("address") ?? ""),
@@ -559,8 +559,15 @@ export function StoreProducts({
       p_idempotency_key: idemKeyRef.current || null,
       p_custom_fields: customFields,
     });
-    if (error) {
-      const msg = error.message ?? "";
+    // `!orderId` matters as much as `error`. place_customer_order returns the
+    // new order's uuid, but its idempotency branch re-selects the existing row
+    // and returns whatever that finds — so a lost race, or a key that matched
+    // nothing, returns NULL with no error at all. Reading only `error` turned
+    // that into a confirmation screen, a cleared cart and a customer waiting
+    // for an order that was never placed. The guest path opposite already
+    // checked this; the signed-in one did not.
+    if (error || !orderId) {
+      const msg = error?.message ?? "";
       setOrderError(
         msg.includes("insufficient_stock")
           ? stockErrorMessage(msg)
@@ -586,6 +593,10 @@ export function StoreProducts({
     idemKeyRef.current = "";
     setPlacing(false);
     setCheckingOut(false);
+    // A signed-in customer gets the same visible reference a guest does. They
+    // can also find the order under /orders, but the number is what they read
+    // out on the phone, and it is the one the merchant sees.
+    setPlacedOrderId(orderId as string);
     // Freeze the WhatsApp message before the cart goes. waUrl is derived from
     // `items`, which is derived from `cart` — so clearing the cart on the very
     // next line emptied it, and the confirmation screen's "tell the merchant"

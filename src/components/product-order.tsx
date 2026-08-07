@@ -191,7 +191,7 @@ export function ProductOrder({
     if (!idemKeyRef.current) idemKeyRef.current = crypto.randomUUID();
     // Server-side pricing: the RPC re-reads product/variant/add-on prices from
     // the catalog and enforces stock (incl. per-variant) in one transaction.
-    const { error } = await supabase.rpc("place_customer_order", {
+    const { data: orderId, error } = await supabase.rpc("place_customer_order", {
       p_store_id: storeId,
       p_phone: String(form.get("phone") ?? ""),
       p_address: String(form.get("address") ?? ""),
@@ -213,8 +213,11 @@ export function ProductOrder({
           : undefined,
       p_idempotency_key: idemKeyRef.current,
     });
-    if (error) {
-      const msg = error.message ?? "";
+    // A NULL id is a failure with no error attached — see the note on the same
+    // check in store-products.tsx. Here it would have redirected the customer
+    // to an orders list that does not contain their order.
+    if (error || !orderId) {
+      const msg = error?.message ?? "";
       const outOfStock = msg.includes("insufficient_stock");
       // This surface orders a single item with no zone picker, no coupon field
       // and no loyalty toggle, so it used to price the same basket lower than
