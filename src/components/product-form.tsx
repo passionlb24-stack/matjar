@@ -66,15 +66,24 @@ export function ProductForm({
   const [inClearance, setInClearance] = useState(false);
   const [inMarket, setInMarket] = useState(false);
   const attrFields = categoryAttributes[category] ?? [];
+  // The sector picks the DEFAULT, not the ceiling.
+  //
+  // A booking store can also sell goods (a vet selling pet food, a salon
+  // selling hair products) — that already worked. What did not: a shop in any
+  // other sector could never add a service, because `isService` was gated on
+  // `bookable` as well as the toggle, and the toggle only rendered for booking
+  // sectors. A boutique offering alterations, a phone shop offering repairs and
+  // a bakery taking cake orders all had nowhere to put them.
+  //
+  // The storefront was already built for this: the product page derives its
+  // booking CTA from `product.itemKind === "service"`, explicitly "decided by
+  // the ITEM, not the sector". Only this form disagreed.
   const bookable =
     sectorHasTeam(category) || category === "services" || category === "healthcare";
-  // A booking store can also sell goods (a vet selling pet food, a salon selling
-  // hair products). The merchant picks per item; before this, everything in such
-  // a store became a bookable service and none of it could be ordered.
   const [itemKind, setItemKind] = useState<"product" | "service">(
     bookable ? "service" : "product",
   );
-  const isService = bookable && itemKind === "service";
+  const isService = itemKind === "service";
   // Only a service gets the trimmed form; a product needs the full field set
   // (stock, variants, offers) even inside a booking-sector store.
   const simple = simplified && isService;
@@ -235,9 +244,10 @@ export function ProductForm({
     >
       <h3 className="font-bold">{bookable ? p.addItem : addLabel}</h3>
 
-      {/* Booking sectors can also stock goods — the merchant says which this is,
-          and the form (and the storefront) follow. */}
-      {bookable && (
+      {/* Shown for every sector. The sector decides which side is preselected,
+          not which sides exist — a boutique that also does alterations, or a
+          phone shop that also does repairs, has to be able to say so. */}
+      {(
         <div>
           <span className={label}>{p.itemKindLabel}</span>
           <div className="mt-1.5 flex gap-2">

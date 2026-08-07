@@ -55,6 +55,8 @@ export type SectionOption = { id: string; name: string; name_en: string | null }
 export type ProductInitial = {
   name: string;
   brand: string;
+  /** What this item is. Not editable here — set when it was created. */
+  itemKind: "product" | "service";
   bookingMode: string;
   durationMinutes: string;
   bufferMinutes: string;
@@ -135,8 +137,15 @@ export function ProductEditForm({
   const [sectionId, setSectionId] = useState<string>(initial.sectionId);
   const [bookMode, setBookMode] = useState<string>(initial.bookingMode);
   const attrFields = categoryAttributes[category] ?? [];
+  // Booking settings follow the ITEM, not just the sector. A service can now be
+  // created in any sector (a boutique's alterations, a phone shop's repairs),
+  // and it still needs its duration and slot rules — gating this on the sector
+  // alone left those items uneditable, with the fields simply absent.
   const bookable =
-    sectorHasTeam(category) || category === "services" || category === "healthcare";
+    sectorHasTeam(category) ||
+    category === "services" ||
+    category === "healthcare" ||
+    initial.itemKind === "service";
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

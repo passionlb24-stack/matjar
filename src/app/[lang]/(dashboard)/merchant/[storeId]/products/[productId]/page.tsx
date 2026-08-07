@@ -49,7 +49,7 @@ export default async function EditProductPage({
 
   const { data: product } = await supabase
     .from("products")
-    .select("id, store_id, name, name_en, brand, price, discount_price, description, description_en, image_url, gallery, stock, section_id, attributes, deal_date, flash_price, flash_start, flash_end, booking_allocation_mode, duration_minutes, buffer_minutes, capacity_per_slot")
+    .select("id, store_id, name, name_en, brand, price, discount_price, description, description_en, image_url, gallery, stock, section_id, attributes, deal_date, flash_price, flash_start, flash_end, item_kind, booking_allocation_mode, duration_minutes, buffer_minutes, capacity_per_slot")
     .eq("id", productId)
     .eq("store_id", storeId)
     .is("deleted_at", null)
@@ -94,6 +94,7 @@ export default async function EditProductPage({
   const initial: ProductInitial = {
     name: (product.name as string) ?? "",
     brand: (product.brand as string | null) ?? "",
+    itemKind: ((product.item_kind as string | null) ?? "product") as "product" | "service",
     bookingMode: (product.booking_allocation_mode as string | null) ?? "",
     durationMinutes:
       product.duration_minutes != null ? String(product.duration_minutes) : "",
