@@ -19,12 +19,15 @@ import {
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-type OrderRow = {
+/** One already-grouped customer, as store_customer_order_totals returns it. */
+type CustomerTotals = {
+  customer_key: string;
   customer_id: string | null;
   customer_name: string | null;
   phone: string | null;
-  total: number;
-  created_at: string;
+  order_count: number;
+  total_spent: number;
+  last_order: string | null;
 };
 
 // CRM module of the Business OS: the merchant's customer book + customers
@@ -93,10 +96,11 @@ export default async function StoreCustomersPage({
       .select("id, name, phone, notes, status, follow_up_on")
       .eq("store_id", storeId)
       .order("created_at", { ascending: false }),
-    supabase
-      .from("orders")
-      .select("customer_id, customer_name, phone, total, created_at")
-      .eq("store_id", storeId),
+    // Aggregated in the database. This used to pull every order for the store
+    // and add them up here, which PostgREST silently truncates at 1000 rows —
+    // so past a thousand orders every customer's lifetime spend was wrong, and
+    // wrong quietly, with a plausible number in its place.
+    supabase.rpc("store_customer_order_totals", { p_store_id: storeId }),
     // Booking customers too — a padel/clinic customer who only booked (never
     // ordered) must still appear here with their name + phone.
     supabase
@@ -113,27 +117,17 @@ export default async function StoreCustomersPage({
     balances[r.uid] = Number(r.balance);
   });
 
-  // Aggregate order rows into unique customers (guest orders group by phone).
+  // One row per customer, already grouped and summed by the RPC.
   const map = new Map<string, DerivedCustomer>();
-  ((ordersData ?? []) as OrderRow[]).forEach((o) => {
-    const key = o.customer_id ?? o.phone ?? "anon";
-    const c =
-      map.get(key) ??
-      {
-        name: null,
-        phone: null,
-        count: 0,
-        total: 0,
-        customerId: null,
-        lastOrder: null,
-      };
-    c.count += 1;
-    c.total += Number(o.total);
-    if (!c.name && o.customer_name) c.name = o.customer_name;
-    if (!c.phone && o.phone) c.phone = o.phone;
-    if (!c.customerId && o.customer_id) c.customerId = o.customer_id;
-    if (!c.lastOrder || o.created_at > c.lastOrder) c.lastOrder = o.created_at;
-    map.set(key, c);
+  ((ordersData ?? []) as CustomerTotals[]).forEach((r) => {
+    map.set(r.customer_key, {
+      name: r.customer_name,
+      phone: r.phone,
+      count: r.order_count,
+      total: Number(r.total_spent),
+      customerId: r.customer_id,
+      lastOrder: r.last_order,
+    });
   });
   // Fold booking customers into the same map (no order revenue, but they're
   // real customers with a name + phone the merchant needs).
