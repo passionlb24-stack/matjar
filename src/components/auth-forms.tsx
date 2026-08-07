@@ -125,7 +125,27 @@ function GoogleIcon() {
 // "Continue with Google" via Supabase OAuth. Requires the Google provider to be
 // enabled in the Supabase dashboard (with Google Cloud OAuth credentials) and
 // the /{lang}/callback URL added to the allowed redirect URLs.
+//
+// Hidden unless NEXT_PUBLIC_GOOGLE_AUTH_ENABLED is "true", because none of that
+// setup is visible from here and the failure is brutal: signInWithOAuth does not
+// reject when the provider is off — it navigates the browser to Supabase, which
+// answers with raw JSON on its own domain:
+//
+//   {"code":400,"error_code":"validation_failed",
+//    "msg":"Unsupported provider: provider is not enabled"}
+//
+// A customer who taps it lands on a white page of JSON at a supabase.co address,
+// with no way back and nothing suggesting the site still works. Better to offer
+// only what is actually wired up. Flip the flag once Google is enabled.
+const GOOGLE_ENABLED =
+  process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true";
+
 function GoogleButton({ lang, dict }: { lang: Locale; dict: Dictionary }) {
+  if (!GOOGLE_ENABLED) return null;
+  return <GoogleButtonInner lang={lang} dict={dict} />;
+}
+
+function GoogleButtonInner({ lang, dict }: { lang: Locale; dict: Dictionary }) {
   const [loading, setLoading] = useState(false);
   async function onClick() {
     setLoading(true);
