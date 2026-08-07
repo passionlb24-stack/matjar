@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { MapPin, Phone, StickyNote, Store as StoreIcon } from "lucide-react";
+import { MapPin, Phone, StickyNote, Store as StoreIcon, Download } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -36,7 +36,7 @@ export default async function OrderDetailPage({
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, status, subtotal, discount, total, delivery_fee, fulfillment, address, phone, customer_note, custom_fields, created_at, customer_id, store_id, stores(name), order_items(name, unit_price, quantity, product_id)",
+      "id, status, subtotal, discount, total, delivery_fee, fulfillment, address, phone, customer_note, custom_fields, created_at, customer_id, store_id, stores(name), order_items(id, name, unit_price, quantity, product_id, products(item_kind))",
     )
     .eq("id", id)
     .maybeSingle();
@@ -58,10 +58,12 @@ export default async function OrderDetailPage({
     store_id: string;
     stores: { name: string } | null;
     order_items: {
+      id: string;
       name: string;
       unit_price: number;
       quantity: number;
       product_id: string | null;
+      products: { item_kind: string | null } | null;
     }[];
   } | null;
 
@@ -164,12 +166,30 @@ export default async function OrderDetailPage({
           <h2 className="mb-3 font-bold">{t.items}</h2>
           <div className="space-y-2">
             {order.order_items.map((it, i) => (
-              <div key={i} className="flex items-center justify-between text-sm">
-                <span>
+              <div key={i} className="flex items-center justify-between gap-3 text-sm">
+                <span className="min-w-0">
                   {it.name}{" "}
                   <span className="text-muted-foreground">×{it.quantity}</span>
+                  {/* A digital item has nothing to deliver by hand, so its
+                      delivery IS this link. It points at the download route,
+                      which re-checks the buyer and the order state server-side
+                      before signing anything — the button appearing is not the
+                      permission, only the way to ask. Hidden while the order is
+                      pending, because the merchant releases it by accepting. */}
+                  {it.products?.item_kind === "digital" &&
+                    order.status !== "pending" &&
+                    order.status !== "cancelled" &&
+                    order.status !== "rejected" && (
+                      <a
+                        href={`/${lang}/download/${it.id}`}
+                        className="ms-2 inline-flex items-center gap-1 rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary-hover print:hidden"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        {t.download}
+                      </a>
+                    )}
                 </span>
-                <span className="font-semibold">
+                <span className="shrink-0 font-semibold">
                   {formatUsd(it.unit_price * it.quantity)}
                 </span>
               </div>

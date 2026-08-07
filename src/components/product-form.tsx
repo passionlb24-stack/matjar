@@ -12,6 +12,7 @@ import type { CategoryKey } from "@/lib/catalog";
 import { categoryAttributes } from "@/lib/attributes";
 import { sectorHasTeam } from "@/lib/sectors";
 import { ImageUpload } from "@/components/image-upload";
+import { DigitalFileUpload, type DigitalFile } from "@/components/digital-file-upload";
 import { fieldClass } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import {
@@ -80,10 +81,12 @@ export function ProductForm({
   // the ITEM, not the sector". Only this form disagreed.
   const bookable =
     sectorHasTeam(category) || category === "services" || category === "healthcare";
-  const [itemKind, setItemKind] = useState<"product" | "service">(
+  const [itemKind, setItemKind] = useState<"product" | "service" | "digital">(
     bookable ? "service" : "product",
   );
   const isService = itemKind === "service";
+  const isDigital = itemKind === "digital";
+  const [digitalFile, setDigitalFile] = useState<DigitalFile | null>(null);
   // Only a service gets the trimmed form; a product needs the full field set
   // (stock, variants, offers) even inside a booking-sector store.
   const simple = simplified && isService;
@@ -94,6 +97,13 @@ export function ProductForm({
     setLoading(true);
     setError(null);
     const form = new FormData(formEl);
+    // A digital product with no file is a customer paying for nothing, and the
+    // failure would only surface after the sale — refuse it here instead.
+    if (isDigital && !digitalFile) {
+      setError(p.digitalFileNeeded);
+      setLoading(false);
+      return;
+    }
     const supabase = createClient();
     const attributes: Record<string, string> = {};
     attrFields.forEach((f) => {
@@ -109,7 +119,10 @@ export function ProductForm({
         name: String(form.get("name")),
         name_en: String(form.get("name_en") ?? "").trim() || null,
         brand: String(form.get("brand") ?? "").trim() || null,
-        item_kind: isService ? "service" : "product",
+        item_kind: itemKind,
+        digital_path: isDigital ? (digitalFile?.path ?? null) : null,
+        digital_name: isDigital ? (digitalFile?.name ?? null) : null,
+        digital_size: isDigital ? (digitalFile?.size ?? null) : null,
         booking_allocation_mode: isService ? bookMode || null : null,
         duration_minutes:
           isService && Number(form.get("duration_minutes")) > 0
@@ -137,7 +150,9 @@ export function ProductForm({
         description_en: String(form.get("description_en") ?? "").trim() || null,
         image_url: imageUrl,
         gallery,
-        stock: stockRaw === "" ? null : Number(stockRaw),
+        // A file does not run out. Forcing NULL keeps a digital item from
+        // ever rendering as sold out because someone typed a number once.
+        stock: isDigital || stockRaw === "" ? null : Number(stockRaw),
         attributes,
         section_id: sectionId || null,
         in_offers: inOffers,
@@ -251,26 +266,48 @@ export function ProductForm({
         <div>
           <span className={label}>{p.itemKindLabel}</span>
           <div className="mt-1.5 flex gap-2">
-            {(["service", "product"] as const).map((k) => (
+            {(["service", "product", "digital"] as const).map((k) => (
               <button
                 key={k}
                 type="button"
                 onClick={() => setItemKind(k)}
                 aria-pressed={itemKind === k}
-                className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-bold transition-colors ${
+                className={`flex-1 rounded-xl border px-3 py-2.5 text-sm font-bold transition-colors ${
                   itemKind === k
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border bg-surface text-muted-foreground hover:border-primary/40"
                 }`}
               >
-                {k === "service" ? p.kindService : p.kindProduct}
+                {k === "service"
+                  ? p.kindService
+                  : k === "product"
+                    ? p.kindProduct
+                    : p.kindDigital}
               </button>
             ))}
           </div>
           <p className="mt-1.5 text-xs text-muted-foreground">
-            {itemKind === "service" ? p.kindServiceHint : p.kindProductHint}
+            {itemKind === "service"
+              ? p.kindServiceHint
+              : itemKind === "product"
+                ? p.kindProductHint
+                : p.kindDigitalHint}
           </p>
         </div>
+      )}
+
+      {isDigital && (
+        <DigitalFileUpload
+          storeId={storeId}
+          value={digitalFile}
+          onChange={setDigitalFile}
+          label={p.digitalFile}
+          hint={p.digitalFileHint}
+          uploadingLabel={p.digitalUploading}
+          replaceLabel={p.digitalReplace}
+          tooLargeLabel={p.digitalTooLarge}
+          failedLabel={dict.auth.errorGeneric}
+        />
       )}
 
       <ImageUpload
