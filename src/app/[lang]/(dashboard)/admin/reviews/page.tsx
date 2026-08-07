@@ -88,6 +88,8 @@ export default async function AdminReviewsPage({
                     label={t.delete}
                     confirmLabel={dict.admin.confirmDeleteReview}
                     errorLabel={dict.auth.errorGeneric}
+                    okLabel={dict.common.confirm}
+                    cancelLabel={dict.common.cancel}
                   />
                 </div>
               ))}

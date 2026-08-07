@@ -16,7 +16,10 @@ export function ProductRowActions({
   hideLabel,
   deleteLabel,
   confirmLabel,
+
   errorLabel,
+  okLabel,
+  cancelLabel,
 }: {
   productId: string;
   storeId: string;
@@ -26,6 +29,13 @@ export function ProductRowActions({
   deleteLabel: string;
   confirmLabel: string;
   errorLabel: string;
+  /**
+   * Button labels for the confirm dialog. These were the Arabic literals
+   * "تأكيد" / "إلغاء", so an English admin was asked to approve an
+   * irreversible action with two buttons they could not read.
+   */
+  okLabel: string;
+  cancelLabel: string;
 }) {
   const router = useRouter();
   const confirm = useConfirm();
@@ -51,8 +61,8 @@ export function ProductRowActions({
     if (
       !(await confirm({
         message: confirmLabel,
-        confirmLabel: "تأكيد",
-        cancelLabel: "إلغاء",
+        confirmLabel: okLabel,
+        cancelLabel: cancelLabel,
         danger: true,
       }))
     )
@@ -81,7 +91,11 @@ export function ProductRowActions({
         title={isAvailable ? hideLabel : showLabel}
         className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground disabled:opacity-60"
       >
-        {isAvailable ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+        {isAvailable ? (
+          <Eye className="h-4 w-4" />
+        ) : (
+          <EyeOff className="h-4 w-4" />
+        )}
       </button>
       <button
         onClick={remove}

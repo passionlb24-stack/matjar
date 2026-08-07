@@ -88,8 +88,7 @@ export default async function StoreItemsPage({
       .maybeSingle();
     const perms =
       (staffRow?.permissions as Record<string, boolean> | null) ?? {};
-    if (!(perms.products ?? false))
-      redirect(`/${lang}/merchant/${storeId}`);
+    if (!(perms.products ?? false)) redirect(`/${lang}/merchant/${storeId}`);
   }
 
   const { data } = await supabase
@@ -214,6 +213,8 @@ export default async function StoreItemsPage({
                       deleteLabel={dict.merchant.products.delete}
                       confirmLabel={dict.merchant.products.confirmDelete}
                       errorLabel={dict.common.actionFailed}
+                      okLabel={dict.common.confirm}
+                      cancelLabel={dict.common.cancel}
                     />
                   </div>
                 ))}

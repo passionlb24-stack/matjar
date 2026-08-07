@@ -15,13 +15,23 @@ export function AdminStoreActions({
   approveLabel,
   rejectLabel,
   confirmRejectLabel,
+
   errorLabel,
+  okLabel,
+  cancelLabel,
 }: {
   storeId: string;
   approveLabel: string;
   rejectLabel: string;
   confirmRejectLabel: string;
   errorLabel: string;
+  /**
+   * Button labels for the confirm dialog. These were the Arabic literals
+   * "تأكيد" / "إلغاء", so an English admin was asked to approve an
+   * irreversible action with two buttons they could not read.
+   */
+  okLabel: string;
+  cancelLabel: string;
 }) {
   const router = useRouter();
   const confirm = useConfirm();
@@ -32,8 +42,8 @@ export function AdminStoreActions({
       status === "rejected" &&
       !(await confirm({
         message: confirmRejectLabel,
-        confirmLabel: "تأكيد",
-        cancelLabel: "إلغاء",
+        confirmLabel: okLabel,
+        cancelLabel: cancelLabel,
         danger: true,
       }))
     )

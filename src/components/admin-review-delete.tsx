@@ -13,12 +13,22 @@ export function AdminReviewDelete({
   reviewId,
   label,
   confirmLabel,
+
   errorLabel,
+  okLabel,
+  cancelLabel,
 }: {
   reviewId: string;
   label: string;
   confirmLabel: string;
   errorLabel: string;
+  /**
+   * Button labels for the confirm dialog. These were the Arabic literals
+   * "تأكيد" / "إلغاء", so an English admin was asked to approve an
+   * irreversible action with two buttons they could not read.
+   */
+  okLabel: string;
+  cancelLabel: string;
 }) {
   const router = useRouter();
   const confirm = useConfirm();
@@ -28,8 +38,8 @@ export function AdminReviewDelete({
     if (
       !(await confirm({
         message: confirmLabel,
-        confirmLabel: "تأكيد",
-        cancelLabel: "إلغاء",
+        confirmLabel: okLabel,
+        cancelLabel: cancelLabel,
         danger: true,
       }))
     )

@@ -1,5 +1,12 @@
 import { notFound } from "next/navigation";
-import { ShieldCheck, Star, Store as StoreIcon, Clock, Users, Receipt } from "lucide-react";
+import {
+  ShieldCheck,
+  Star,
+  Store as StoreIcon,
+  Clock,
+  Users,
+  Receipt,
+} from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -148,6 +155,8 @@ export default async function AdminOverviewPage({
                         rejectLabel={dict.admin.reject}
                         confirmRejectLabel={dict.admin.confirmReject}
                         errorLabel={dict.auth.errorGeneric}
+                        okLabel={dict.common.confirm}
+                        cancelLabel={dict.common.cancel}
                       />
                     </CardBody>
                   </Card>
@@ -194,6 +203,8 @@ export default async function AdminOverviewPage({
                         label={dict.admin.deleteReview}
                         confirmLabel={dict.admin.confirmDeleteReview}
                         errorLabel={dict.auth.errorGeneric}
+                        okLabel={dict.common.confirm}
+                        cancelLabel={dict.common.cancel}
                       />
                     </div>
                   ))}
