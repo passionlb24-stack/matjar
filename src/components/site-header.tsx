@@ -74,6 +74,10 @@ export function SiteHeader({
               items={[
                 { href: `/${lang}/jobs`, label: dict.jobs.title },
                 { href: `/${lang}/freelance`, label: dict.freelance.title },
+                // Beside freelance on purpose, and deliberately not the same
+                // thing: that one is remote and digital, this one comes to your
+                // house.
+                { href: `/${lang}/crafts`, label: dict.crafts.title },
                 { href: `/${lang}/wholesale`, label: dict.wholesale.title },
                 { href: `/${lang}/delivery`, label: dict.delivery.title },
               ]}
