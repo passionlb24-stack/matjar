@@ -10,6 +10,7 @@ export const ADMIN_SECTIONS = [
   "delivery",
   "jobs",
   "freelance",
+  "crafts",
   "wholesale",
   "leaders",
   "academy",

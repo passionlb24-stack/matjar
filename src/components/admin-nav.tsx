@@ -27,6 +27,7 @@ import {
   GraduationCap,
   Zap,
   FileText,
+  Wrench,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -43,6 +44,7 @@ const icons = {
   jobs: Briefcase,
   freelance: Palette,
   wholesale: PackageOpen,
+  crafts: Wrench,
   leaders: Crown,
   academy: GraduationCap,
   reviews: Star,
@@ -81,6 +83,7 @@ const GROUPS: { key: string; items: { key: NavKey; path: string }[] }[] = [
     items: [
       { key: "jobs", path: "/jobs" },
       { key: "freelance", path: "/freelance" },
+      { key: "crafts", path: "/crafts" },
       { key: "wholesale", path: "/wholesale" },
       { key: "leaders", path: "/leaders" },
       { key: "academy", path: "/academy" },

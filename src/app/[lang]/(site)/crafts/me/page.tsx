@@ -11,6 +11,10 @@ import {
   type CraftService,
 } from "@/components/crafts/craft-services-manager";
 import { CraftRequestsList } from "@/components/crafts/craft-requests-list";
+import {
+  CraftWorksManager,
+  type CraftWork,
+} from "@/components/crafts/craft-works-manager";
 
 // The tradesman's own screen.
 //
@@ -39,7 +43,8 @@ export default async function CraftMePage({
     .select(
       `id, name, headline, status, verified, rating_avg, rating_count,
        completed_count,
-       craft_services(id, name, description, pricing_type, price, sort_order)`,
+       craft_services(id, name, description, pricing_type, price, sort_order),
+       craft_works(id, title, image_url, sort_order)`,
     )
     .eq("user_id", user.id)
     .maybeSingle();
@@ -57,6 +62,7 @@ export default async function CraftMePage({
     rating_count: number | null;
     completed_count: number | null;
     craft_services: CraftService[];
+    craft_works: CraftWork[];
   };
 
   const { data: requestRows } = await supabase
@@ -207,6 +213,29 @@ export default async function CraftMePage({
               needName: t.svcNeedName,
               error: dict.auth.errorGeneric,
               types: typeLabels,
+            }}
+          />
+        </section>
+
+        <section className="mt-6">
+          <CraftWorksManager
+            providerId={p.id}
+            works={(p.craft_works ?? [])
+              .slice()
+              .sort((a, b) => a.sort_order - b.sort_order)}
+            dict={dict}
+            labels={{
+              title: t.meWorks,
+              body: t.meWorksBody,
+              photo: t.workPhoto,
+              photoHint: t.workPhotoHint,
+              caption: t.workCaption,
+              captionPlaceholder: t.workCaptionPlaceholder,
+              add: t.workAdd,
+              adding: t.workAdding,
+              remove: t.workRemove,
+              needPhoto: t.workNeedPhoto,
+              error: dict.auth.errorGeneric,
             }}
           />
         </section>

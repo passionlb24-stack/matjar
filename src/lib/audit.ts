@@ -39,6 +39,7 @@ export type AuditEntity =
   | "review"
   | "verification"
   | "leader"
+  | "craft_provider"
   | "user"
   | "business_type"
   | "market_category"

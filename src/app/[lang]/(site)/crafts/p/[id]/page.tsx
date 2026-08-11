@@ -46,7 +46,8 @@ async function loadProvider(id: string) {
        craft_provider_trades(trades(slug, name_ar, name_en, icon)),
        craft_provider_areas(lb_areas(slug, name_ar, name_en)),
        craft_services(id, name, description, pricing_type, price, duration_minutes, sort_order),
-       craft_works(id, title, image_url, sort_order)`,
+       craft_works(id, title, image_url, sort_order),
+       craft_reviews(id, rating, comment, customer_name, created_at)`,
     )
     .eq("id", id)
     .maybeSingle();
@@ -129,6 +130,19 @@ export default async function CraftProviderPage({ params }: { params: Params }) 
     image_url: string;
     sort_order: number;
   }[]).sort((a, b) => a.sort_order - b.sort_order);
+
+  // Newest first, and only the ones that said something — a wall of bare stars
+  // adds nothing the average above already says.
+  const reviews = ((p.craft_reviews ?? []) as {
+    id: string;
+    rating: number;
+    comment: string | null;
+    customer_name: string | null;
+    created_at: string;
+  }[])
+    .filter((r) => (r.comment ?? "").trim().length > 0)
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))
+    .slice(0, 20);
 
   const base = (p.lb_areas as { name_ar: string; name_en: string } | null) ?? null;
   const rating = Number(p.rating_avg ?? 0);
@@ -351,6 +365,42 @@ export default async function CraftProviderPage({ params }: { params: Params }) 
                     </figcaption>
                   )}
                 </figure>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* What previous customers actually said. Every one of these is tied to
+            a request this tradesman marked completed — there is no way to leave
+            one otherwise, which is why they are worth reading. */}
+        {reviews.length > 0 && (
+          <section className="mt-8">
+            <h2 className="font-extrabold">{t.reviewsTitle}</h2>
+            <div className="mt-3 space-y-3">
+              {reviews.map((r) => (
+                <div
+                  key={r.id}
+                  className="rounded-2xl border border-border bg-surface p-4"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-bold">
+                      {r.customer_name?.trim() || t.reviewAnonymous}
+                    </span>
+                    <span className="flex items-center gap-1 text-sm font-bold text-warning">
+                      <Star className="h-4 w-4 fill-current" />
+                      {r.rating}
+                    </span>
+                  </div>
+                  <p className="mt-1.5 whitespace-pre-line text-sm text-muted-foreground">
+                    {r.comment}
+                  </p>
+                  <p className="mt-1.5 text-xs text-muted-foreground/70">
+                    {new Date(r.created_at).toLocaleDateString(
+                      ar ? "ar" : "en",
+                      { year: "numeric", month: "short", day: "numeric" },
+                    )}
+                  </p>
+                </div>
               ))}
             </div>
           </section>

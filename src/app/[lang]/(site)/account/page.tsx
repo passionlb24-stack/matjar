@@ -11,6 +11,8 @@ import {
   Sparkles,
   Boxes,
   CircleUser,
+  Wrench,
+  Hammer,
 } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -159,6 +161,7 @@ export default async function AccountPage({
             items: [
               { href: `/${lang}/orders`, label: dict.orders.title, Icon: Package },
               { href: `/${lang}/bookings`, label: dict.booking.myBookings, Icon: CalendarCheck },
+              { href: `/${lang}/crafts/requests`, label: dict.crafts.myRequests, Icon: Wrench },
             ],
           },
           {
@@ -175,6 +178,7 @@ export default async function AccountPage({
               { href: `/${lang}/jobs/mine`, label: dict.jobs.myPostings, Icon: Briefcase },
               { href: `/${lang}/freelance/mine`, label: dict.freelance.myGigs, Icon: Sparkles },
               { href: `/${lang}/wholesale/mine`, label: dict.wholesale.myListings, Icon: Boxes },
+              { href: `/${lang}/crafts/me`, label: dict.crafts.mePanel, Icon: Hammer },
             ],
           },
         ].map((group) => (
