@@ -61,7 +61,7 @@ export default async function StoreHrPage({
       supabase
         .from("store_employees")
         .select(
-          "id, name, phone, job_title, pay_basis, pay_rate, pay_currency, residency_expires_on, status, pin_hash",
+          "id, name, phone, job_title, pay_basis, pay_rate, pay_currency, id_number, residency_expires_on, status, pin_hash",
         )
         .eq("store_id", storeId)
         .eq("status", "active")

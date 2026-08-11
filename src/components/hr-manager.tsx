@@ -10,6 +10,7 @@ import {
   Wallet,
   Calculator,
   CheckCircle2,
+  Pencil,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { notifyError, notifySuccess } from "@/lib/notify";
@@ -25,6 +26,7 @@ export type Employee = {
   pay_basis: "monthly" | "daily" | "hourly";
   pay_rate: number;
   pay_currency: "USD" | "LBP";
+  id_number: string | null;
   residency_expires_on: string | null;
   status: string;
   has_pin: boolean;
@@ -86,6 +88,7 @@ export function HrManager({
   const confirm = useConfirm();
   const [busy, setBusy] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<Employee | null>(null);
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -134,6 +137,62 @@ export function HrManager({
       pay_currency: "USD",
     });
     setAdding(false);
+    router.refresh();
+  }
+
+  // Everything about a person changes: rates go up, papers get renewed, people
+  // leave. Shipping an add-only screen would have meant a rate could never be
+  // corrected and the residency warning could never fire, because nothing could
+  // set the date it reads.
+  async function saveEmployee(e: Employee) {
+    setBusy(e.id);
+    const { error } = await createClient()
+      .from("store_employees")
+      .update({
+        name: e.name.trim(),
+        phone: e.phone?.trim() || null,
+        job_title: e.job_title?.trim() || null,
+        pay_basis: e.pay_basis,
+        pay_rate: Number(e.pay_rate) || 0,
+        pay_currency: e.pay_currency,
+        id_number: e.id_number?.trim() || null,
+        residency_expires_on: e.residency_expires_on || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", e.id);
+    setBusy(null);
+    if (error) {
+      notifyError(labels.error);
+      return;
+    }
+    setEditing(null);
+    router.refresh();
+  }
+
+  // Ending employment, not deleting a person: the payroll they appear on and
+  // the hours they worked have to survive them leaving.
+  async function endEmployment(e: Employee) {
+    const ok = await confirm({
+      message: labels.endConfirm.replace("{n}", e.name),
+      confirmLabel: labels.endYes,
+      cancelLabel: labels.postNo,
+      danger: true,
+    });
+    if (!ok) return;
+    setBusy(e.id);
+    const { error } = await createClient()
+      .from("store_employees")
+      .update({
+        status: "ended",
+        ended_on: new Date().toISOString().slice(0, 10),
+      })
+      .eq("id", e.id);
+    setBusy(null);
+    if (error) {
+      notifyError(labels.error);
+      return;
+    }
+    setEditing(null);
     router.refresh();
   }
 
@@ -389,6 +448,130 @@ export function HrManager({
                   <KeyRound className="h-4 w-4" />
                   {e.has_pin ? labels.pinChange : labels.pinSet}
                 </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={busy === e.id}
+                  onClick={() =>
+                    setEditing(editing?.id === e.id ? null : { ...e })
+                  }
+                >
+                  <Pencil className="h-4 w-4" />
+                  {labels.edit}
+                </Button>
+
+                {editing?.id === e.id && (
+                  <div className="mt-2 grid w-full gap-2 rounded-xl border border-border bg-surface-muted/40 p-3 sm:grid-cols-2">
+                    <input
+                      value={editing.name}
+                      onChange={(ev) =>
+                        setEditing({ ...editing, name: ev.target.value })
+                      }
+                      placeholder={labels.fName}
+                      className={fieldClass}
+                    />
+                    <input
+                      value={editing.phone ?? ""}
+                      onChange={(ev) =>
+                        setEditing({ ...editing, phone: ev.target.value })
+                      }
+                      placeholder={labels.fPhone}
+                      className={fieldClass}
+                      dir="ltr"
+                    />
+                    <input
+                      value={editing.job_title ?? ""}
+                      onChange={(ev) =>
+                        setEditing({ ...editing, job_title: ev.target.value })
+                      }
+                      placeholder={labels.fJob}
+                      className={fieldClass}
+                    />
+                    <select
+                      value={editing.pay_basis}
+                      onChange={(ev) =>
+                        setEditing({
+                          ...editing,
+                          pay_basis: ev.target.value as Employee["pay_basis"],
+                        })
+                      }
+                      className={fieldClass}
+                    >
+                      <option value="monthly">{labels.basisMonthly}</option>
+                      <option value="daily">{labels.basisDaily}</option>
+                      <option value="hourly">{labels.basisHourly}</option>
+                    </select>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={String(editing.pay_rate)}
+                      onChange={(ev) =>
+                        setEditing({
+                          ...editing,
+                          pay_rate: Number(ev.target.value),
+                        })
+                      }
+                      placeholder={labels.fRate}
+                      className={fieldClass}
+                    />
+                    <select
+                      value={editing.pay_currency}
+                      onChange={(ev) =>
+                        setEditing({
+                          ...editing,
+                          pay_currency: ev.target
+                            .value as Employee["pay_currency"],
+                        })
+                      }
+                      className={fieldClass}
+                    >
+                      <option value="USD">USD</option>
+                      <option value="LBP">LBP</option>
+                    </select>
+                    <input
+                      value={editing.id_number ?? ""}
+                      onChange={(ev) =>
+                        setEditing({ ...editing, id_number: ev.target.value })
+                      }
+                      placeholder={labels.fIdNumber}
+                      className={fieldClass}
+                      dir="ltr"
+                    />
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground">
+                        {labels.fResidency}
+                      </label>
+                      <input
+                        type="date"
+                        value={editing.residency_expires_on ?? ""}
+                        onChange={(ev) =>
+                          setEditing({
+                            ...editing,
+                            residency_expires_on: ev.target.value,
+                          })
+                        }
+                        className={fieldClass}
+                        dir="ltr"
+                      />
+                    </div>
+                    <div className="flex flex-wrap gap-2 sm:col-span-2">
+                      <Button
+                        onClick={() => saveEmployee(editing)}
+                        loading={busy === e.id}
+                      >
+                        {labels.save}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => endEmployment(editing)}
+                        disabled={busy === e.id}
+                      >
+                        {labels.endEmployment}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
