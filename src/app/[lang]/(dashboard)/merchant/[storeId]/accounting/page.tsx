@@ -9,6 +9,7 @@ import { getStorePlan } from "@/lib/plan-server";
 import { ProGate } from "@/components/pro-gate";
 import { Container } from "@/components/ui/container";
 import { ExpenseManager, type Expense } from "@/components/expense-manager";
+import { BooksLock } from "@/components/books-lock";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -39,7 +40,7 @@ export default async function AccountingPage({
   if (!canManage) redirect(`/${lang}/merchant`);
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, owner_id")
+    .select("id, name, owner_id, books_locked_until")
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
@@ -169,6 +170,33 @@ export default async function AccountingPage({
         <div className="mt-6">
           <ExpenseManager storeId={storeId} dict={dict} expenses={expenses} />
         </div>
+
+        {/* Owner only: closing a period is not a day-to-day action, and staff
+            should not be able to seal or unseal the books they work in. */}
+        {isOwner && (
+          <div className="mt-6">
+            <BooksLock
+              storeId={storeId}
+              lockedUntil={
+                (store as unknown as { books_locked_until: string | null })
+                  .books_locked_until
+              }
+              labels={{
+                title: dict.os.finance.lockTitle,
+                body: dict.os.finance.lockBody,
+                current: dict.os.finance.lockCurrent,
+                none: dict.os.finance.lockNone,
+                save: dict.os.finance.lockSave,
+                saving: dict.os.finance.lockSaving,
+                saved: dict.os.finance.lockSaved,
+                confirm: dict.os.finance.lockConfirm,
+                confirmYes: dict.common.confirm,
+                confirmNo: dict.common.cancel,
+                error: dict.common.actionFailed,
+              }}
+            />
+          </div>
+        )}
       </Container>
     </div>
   );

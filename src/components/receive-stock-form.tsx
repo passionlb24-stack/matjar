@@ -11,7 +11,12 @@ import { fieldClass } from "@/components/ui/field";
 export type ReceivableProduct = { id: string; name: string };
 export type SupplierOption = { id: string; name: string };
 
-type Line = { product_id: string; qty: string; unit_cost: string };
+type Line = {
+  product_id: string;
+  qty: string;
+  pack: string;
+  unit_cost: string;
+};
 
 // Goods arriving from a supplier, entered once.
 //
@@ -38,7 +43,9 @@ export function ReceiveStockForm({
     notePlaceholder: string;
     product: string;
     qty: string;
+    pack: string;
     unitCost: string;
+    units: string;
     addLine: string;
     remove: string;
     total: string;
@@ -53,15 +60,21 @@ export function ReceiveStockForm({
   const [supplierId, setSupplierId] = useState("");
   const [note, setNote] = useState("");
   const [lines, setLines] = useState<Line[]>([
-    { product_id: "", qty: "", unit_cost: "" },
+    { product_id: "", qty: "", pack: "1", unit_cost: "" },
   ]);
   const [busy, setBusy] = useState(false);
 
   const setLine = (i: number, patch: Partial<Line>) =>
     setLines((prev) => prev.map((l, n) => (n === i ? { ...l, ...patch } : l)));
 
+  // The supplier bills by the thing delivered, so the total is boxes x box
+  // price. The pack size only changes how many sellable units that becomes.
   const total = lines.reduce(
     (sum, l) => sum + (Number(l.qty) || 0) * (Number(l.unit_cost) || 0),
+    0,
+  );
+  const units = lines.reduce(
+    (sum, l) => sum + (Number(l.qty) || 0) * (Number(l.pack) || 1),
     0,
   );
 
@@ -71,6 +84,7 @@ export function ReceiveStockForm({
       .map((l) => ({
         product_id: l.product_id,
         qty: Number(l.qty),
+        pack: Math.max(1, Number(l.pack) || 1),
         // Blank stays null so an unpriced delivery leaves the old cost alone
         // rather than overwriting it with zero.
         unit_cost: l.unit_cost.trim() === "" ? null : Number(l.unit_cost),
@@ -93,7 +107,7 @@ export function ReceiveStockForm({
       return;
     }
     notifySuccess(labels.saved);
-    setLines([{ product_id: "", qty: "", unit_cost: "" }]);
+    setLines([{ product_id: "", qty: "", pack: "1", unit_cost: "" }]);
     setNote("");
     router.refresh();
   }
@@ -173,6 +187,19 @@ export function ReceiveStockForm({
                 className={`${fieldClass} mt-1`}
               />
             </div>
+            <div className="w-24">
+              <label className="text-xs font-semibold text-muted-foreground">
+                {labels.pack}
+              </label>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                value={l.pack}
+                onChange={(e) => setLine(i, { pack: e.target.value })}
+                className={`${fieldClass} mt-1`}
+              />
+            </div>
             <div className="w-28">
               <label className="text-xs font-semibold text-muted-foreground">
                 {labels.unitCost}
@@ -207,7 +234,7 @@ export function ReceiveStockForm({
         onClick={() =>
           setLines((prev) => [
             ...prev,
-            { product_id: "", qty: "", unit_cost: "" },
+            { product_id: "", qty: "", pack: "1", unit_cost: "" },
           ])
         }
         className="mt-2 inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-bold transition-colors hover:border-primary hover:text-primary"
@@ -220,6 +247,11 @@ export function ReceiveStockForm({
         <span className="text-sm font-bold">
           {labels.total}:{" "}
           <span className="tabular-nums text-primary">${total.toFixed(2)}</span>
+          {units > 0 && (
+            <span className="ms-2 font-semibold text-muted-foreground">
+              · {labels.units.replace("{n}", String(units))}
+            </span>
+          )}
         </span>
         <Button onClick={submit} loading={busy}>
           {busy ? labels.saving : labels.submit}
