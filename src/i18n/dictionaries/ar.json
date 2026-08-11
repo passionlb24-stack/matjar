@@ -2483,6 +2483,7 @@
     "scheduledFor": "مجدوَل لـ",
     "download": "نزّل",
     "confirmStatusDestructive": "بدك تحوّل هالطلب لـ«{status}»؟ الكمية بترجع عالمخزون، والزبون بيوصلو إشعار.",
+    "completedIsFinal": "الطلب خلص — ما بينلغى بعد هيك. إذا في غلط، تواصل مع إدارة متجر.",
     "assign": {
       "assignee": "المسؤول",
       "unassigned": "غير معيَّن",

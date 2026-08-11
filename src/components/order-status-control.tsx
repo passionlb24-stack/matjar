@@ -31,6 +31,7 @@ export function OrderStatusControl({
   labels,
   errorLabel,
   confirmLabels,
+  finalNote,
 }: {
   orderId: string;
   status: string;
@@ -38,11 +39,29 @@ export function OrderStatusControl({
   errorLabel?: string;
   /** Omit to keep the old behaviour of committing every change immediately. */
   confirmLabels?: { message: string; confirm: string; cancel: string };
+  /** Shown instead of the control once the order is finished. */
+  finalNote?: string;
 }) {
   const router = useRouter();
   const confirm = useConfirm();
   const [value, setValue] = useState(status);
   const [busy, setBusy] = useState(false);
+
+  // Completed is the end of the road (0246). The database refuses to move it,
+  // so offering the choice here would only produce an error message — and the
+  // damage it used to do was real: stock back for goods already handed over,
+  // loyalty points reversed, the sale erased from the day's takings, and the
+  // customer's right to review it revoked along with the order.
+  if (status === "completed") {
+    return (
+      <span className="flex flex-col gap-0.5 text-sm">
+        <span className="font-semibold">{labels[status] ?? status}</span>
+        {finalNote && (
+          <span className="text-xs text-muted-foreground">{finalNote}</span>
+        )}
+      </span>
+    );
+  }
 
   async function onChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const next = e.target.value;

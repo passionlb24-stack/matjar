@@ -196,6 +196,7 @@ export function OrdersFilter({
                         confirm: dict.common.confirm,
                         cancel: dict.common.cancel,
                       }}
+                      finalNote={dict.orders.completedIsFinal}
                     />
                   </span>
                 </div>
