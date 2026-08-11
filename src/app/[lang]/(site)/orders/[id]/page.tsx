@@ -94,6 +94,20 @@ export default async function OrderDetailPage({
     .order("created_at", { ascending: true });
   const events = (evData ?? []) as OrderEvent[];
 
+  // Money given back. A refund is recorded against the order rather than by
+  // unwinding it (0246/0247), so this is the only place the customer would
+  // ever learn it happened — without it the total on screen still reads as if
+  // they paid in full. RLS lets the order's customer read these rows.
+  const { data: refundRows } = await supabase
+    .from("order_payments")
+    .select("amount, created_at")
+    .eq("order_id", order.id)
+    .eq("kind", "refund");
+  const refunded = (refundRows ?? []).reduce(
+    (sum, r) => sum + Number((r as { amount: number }).amount),
+    0,
+  );
+
   const t = dict.orders;
   const fmtDate = (iso: string) =>
     new Date(iso).toLocaleDateString(lang === "ar" ? "ar" : "en", {
@@ -216,6 +230,18 @@ export default async function OrderDetailPage({
               <span>{t.total}</span>
               <span className="text-primary">{formatUsd(order.total)}</span>
             </div>
+            {refunded > 0 && (
+              <>
+                <div className="flex justify-between font-bold text-danger">
+                  <span>{t.refunded}</span>
+                  <span>-{formatUsd(refunded)}</span>
+                </div>
+                <div className="flex justify-between text-sm font-semibold text-muted-foreground">
+                  <span>{t.netPaid}</span>
+                  <span>{formatUsd(Math.max(0, order.total - refunded))}</span>
+                </div>
+              </>
+            )}
           </div>
         </Card>
 

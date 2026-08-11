@@ -275,6 +275,8 @@ export function OrdersFilter({
                 </div>
                 <OrderPayments
                   orderId={order.id}
+                  orderTotal={Number(order.total ?? 0)}
+                  orderStatus={order.status}
                   payments={order.payments}
                   dict={dict}
                 />

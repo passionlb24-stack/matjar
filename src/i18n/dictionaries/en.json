@@ -2483,7 +2483,9 @@
     "scheduledFor": "Scheduled for",
     "download": "Download",
     "confirmStatusDestructive": "Move this order to \"{status}\"? The stock goes back and the customer is notified.",
-    "completedIsFinal": "This order is finished and can no longer be changed. If something is wrong, contact Matjar support.",
+    "completedIsFinal": "Finished orders cannot be cancelled. To give money back, record a refund below.",
+    "refunded": "Refunded",
+    "netPaid": "Net paid",
     "assign": {
       "assignee": "Handled by",
       "unassigned": "Unassigned",

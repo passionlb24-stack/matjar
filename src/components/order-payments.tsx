@@ -26,10 +26,15 @@ function money(n: number) {
 // and caps amounts) — the client only displays and requests.
 export function OrderPayments({
   orderId,
+  orderTotal,
+  orderStatus,
   payments,
   dict,
 }: {
   orderId: string;
+  /** What the order is worth — the ceiling on a refund once it is completed. */
+  orderTotal: number;
+  orderStatus: string;
   payments: OrderPayment[];
   dict: Dictionary;
 }) {
@@ -49,7 +54,15 @@ export function OrderPayments({
   const refunded = payments
     .filter((p) => p.kind === "refund")
     .reduce((s, p) => s + Number(p.amount), 0);
-  const net = paid - refunded;
+  // A completed order was paid for even when nobody keyed the payment in —
+  // cash arrives at the door, not in the app, and across the whole platform
+  // exactly one payment row has ever been typed. Counting it as unpaid made
+  // every refund fail (0247), which left cancelling the order as the only way
+  // out, which is the thing 0246 just closed.
+  const settled =
+    orderStatus === "completed" ? Math.max(paid, orderTotal) : paid;
+  const net = settled - refunded;
+  const refundable = Math.max(0, settled - refunded);
 
   async function submit() {
     const amt = Number(amount);
@@ -101,7 +114,7 @@ export function OrderPayments({
         </span>
         <span className="flex flex-wrap items-center gap-x-3 gap-y-1 font-semibold">
           <span className="text-success">
-            {t.paid}: {money(paid)}
+            {t.paid}: {money(settled)}
           </span>
           {refunded > 0 && (
             <span className="text-danger">
@@ -167,6 +180,7 @@ export function OrderPayments({
               type="number"
               min="0"
               step="0.01"
+              max={kind === "refund" ? refundable : orderTotal - paid}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"

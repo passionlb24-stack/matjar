@@ -206,6 +206,8 @@ export default async function AdminOrdersPage({
                       </div>
                       <OrderPayments
                         orderId={order.id}
+                        orderTotal={Number(order.total ?? 0)}
+                        orderStatus={order.status}
                         payments={paymentsByOrder.get(order.id) ?? []}
                         dict={dict}
                       />
