@@ -189,6 +189,7 @@ export default async function TradePage({
                   noRating: t.noRating,
                   covers: t.covers,
                   works: t.works,
+                  years: t.years,
                 }}
               />
             ))}

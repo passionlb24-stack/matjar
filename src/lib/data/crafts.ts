@@ -20,10 +20,12 @@ export type AreaRef = { slug: string; name_ar: string; name_en: string };
 export type CraftProvider = {
   id: string;
   name: string;
-  slug: string | null;
-  logo_url: string | null;
+  headline: string | null;
+  photo_url: string | null;
+  kind: "individual" | "business";
   area: string | null;
   region: string | null;
+  years_experience: number | null;
   rating_avg: number | null;
   rating_count: number | null;
   verified: boolean;
@@ -41,6 +43,20 @@ export type TradeGroup = {
   icon: string | null;
   trades: (TradeRef & { group_slug: string })[];
 };
+
+/**
+ * How many providers each trade has, so the landing page can lead with the
+ * trades that can actually answer — and quietly not lead with the empty ones.
+ */
+export async function getTradeCounts(): Promise<Record<string, number>> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("trade_provider_counts");
+  const counts: Record<string, number> = {};
+  for (const row of (data ?? []) as { slug: string; n: number }[]) {
+    counts[row.slug] = row.n;
+  }
+  return counts;
+}
 
 /** The full taxonomy, grouped, for the directory landing page. */
 export async function getTradeGroups(): Promise<TradeGroup[]> {
@@ -90,9 +106,9 @@ export async function getAreasByRegion(): Promise<Record<string, AreaRef[]>> {
   return out;
 }
 
-export async function getTrade(slug: string): Promise<
-  (TradeRef & { group_slug: string }) | null
-> {
+export async function getTrade(
+  slug: string,
+): Promise<(TradeRef & { group_slug: string }) | null> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("trades")
@@ -121,24 +137,4 @@ export async function browseCrafts(opts: {
     p_limit: opts.limit ?? 40,
   });
   return (data ?? []) as CraftProvider[];
-}
-
-/**
- * How many providers each trade has, so the landing page can lead with the
- * trades that can actually answer — and quietly not lead with the empty ones.
- */
-export async function getTradeCounts(): Promise<Record<string, number>> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("store_trades")
-    .select("trade_id, trades(slug)");
-
-  const counts: Record<string, number> = {};
-  for (const row of (data ?? []) as unknown as {
-    trades: { slug: string } | null;
-  }[]) {
-    const slug = row.trades?.slug;
-    if (slug) counts[slug] = (counts[slug] ?? 0) + 1;
-  }
-  return counts;
 }

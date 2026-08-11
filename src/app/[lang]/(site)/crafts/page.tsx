@@ -169,6 +169,7 @@ export default async function CraftsPage({
                     noRating: t.noRating,
                     covers: t.covers,
                     works: t.works,
+                    years: t.years,
                   }}
                 />
               ))}

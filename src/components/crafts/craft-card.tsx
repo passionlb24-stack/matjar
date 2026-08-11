@@ -26,6 +26,7 @@ export function CraftCard({
     noRating: string;
     covers: string;
     works: string;
+    years: string;
   };
 }) {
   const ar = lang === "ar";
@@ -36,12 +37,12 @@ export function CraftCard({
 
   return (
     <Link
-      href={`/${lang}/store/${provider.id}`}
+      href={`/${lang}/crafts/p/${provider.id}`}
       className="group flex gap-3 rounded-2xl border border-border bg-surface p-4 transition-colors hover:border-primary/50"
     >
-      {provider.logo_url ? (
+      {provider.photo_url ? (
         <Image
-          src={provider.logo_url}
+          src={provider.photo_url}
           alt=""
           width={56}
           height={56}
@@ -68,9 +69,9 @@ export function CraftCard({
           )}
         </div>
 
-        {trade && (
+        {(provider.headline || trade) && (
           <p className="mt-0.5 truncate text-sm font-semibold text-muted-foreground">
-            {trade.icon} {ar ? trade.name_ar : trade.name_en}
+            {trade?.icon} {provider.headline || (trade ? (ar ? trade.name_ar : trade.name_en) : "")}
             {provider.trades.length > 1 && (
               <span className="ms-1 font-normal">
                 +{provider.trades.length - 1}
@@ -89,6 +90,12 @@ export function CraftCard({
             </span>
           ) : (
             <span className="text-muted-foreground">{labels.noRating}</span>
+          )}
+
+          {(provider.years_experience ?? 0) > 0 && (
+            <span className="text-muted-foreground">
+              {provider.years_experience} {labels.years}
+            </span>
           )}
 
           {(provider.works_count ?? 0) > 0 && (
