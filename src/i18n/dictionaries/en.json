@@ -3710,6 +3710,19 @@
     "tryAnywhere": "Try clearing the area filter to see all of Lebanon.",
     "showAllAreas": "Show all areas",
     "metaTitle": "{trade} in Lebanon",
-    "metaDesc": "Find a {trade} near you — ratings, service areas and direct contact."
+    "metaDesc": "Find a {trade} near you — ratings, service areas and direct contact.",
+    "manageTitle": "Your trade and coverage",
+    "manageBody": "These two are what let a customer find you: what you do, and how far you travel.",
+    "manageTrades": "What do you do?",
+    "manageAreas": "Where do you go?",
+    "manageSaved": "Saved",
+    "manageNeedTrade": "Pick at least one trade, or you will not appear in search.",
+    "regionNames": {
+      "beirut": "Beirut",
+      "mountLebanon": "Mount Lebanon",
+      "north": "North",
+      "south": "South",
+      "bekaa": "Bekaa"
+    }
   }
 }

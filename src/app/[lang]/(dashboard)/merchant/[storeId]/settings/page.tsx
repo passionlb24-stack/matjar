@@ -15,6 +15,12 @@ import {
 } from "@/components/store-couriers-manager";
 import { TransferOwnership } from "@/components/transfer-ownership";
 import {
+  CraftsProfileManager,
+  type AreaOption,
+  type GroupOption,
+  type TradeOption,
+} from "@/components/crafts/crafts-profile-manager";
+import {
   CheckoutFieldsManager,
   type CheckoutFieldRow,
 } from "@/components/checkout-fields-manager";
@@ -50,9 +56,57 @@ export default async function StoreSettingsPage({
     .eq("owner_id", user.id)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
-  const isHealthcare =
+  const sector =
     (store as unknown as { business_types: { slug: string } | null })
-      .business_types?.slug === "healthcare";
+      .business_types?.slug ?? "";
+  const isHealthcare = sector === "healthcare";
+
+  // Trades and coverage are what decide whether this business appears in
+  // /crafts at all, so the picker is offered to the sectors that directory is
+  // for — and not to a restaurant, where it would be a wall of irrelevant
+  // buttons.
+  const showCrafts = [
+    "contractors",
+    "services",
+    "professional",
+    "automotive",
+  ].includes(sector);
+
+  const [
+    { data: tradeGroupRows },
+    { data: tradeRows },
+    { data: areaRows },
+    { data: myTrades },
+    { data: myAreas },
+  ] = showCrafts
+    ? await Promise.all([
+        supabase
+          .from("trade_groups")
+          .select("slug, name_ar, name_en, icon")
+          .eq("active", true)
+          .order("sort_order"),
+        supabase
+          .from("trades")
+          .select("id, slug, name_ar, name_en, icon, group_slug")
+          .eq("active", true)
+          .order("sort_order"),
+        supabase
+          .from("lb_areas")
+          .select("id, slug, region, name_ar, name_en")
+          .order("sort_order"),
+        supabase.from("store_trades").select("trade_id").eq("store_id", storeId),
+        supabase
+          .from("store_service_areas")
+          .select("area_id")
+          .eq("store_id", storeId),
+      ])
+    : [
+        { data: [] },
+        { data: [] },
+        { data: [] },
+        { data: [] },
+        { data: [] },
+      ];
 
   const { data: zoneData } = await supabase
     .from("store_delivery_zones")
@@ -142,6 +196,38 @@ export default async function StoreSettingsPage({
             isHealthcare={isHealthcare}
           />
         </div>
+        {showCrafts && (
+          <div className="mt-6">
+            <CraftsProfileManager
+              storeId={storeId}
+              lang={lang}
+              groups={(tradeGroupRows ?? []) as GroupOption[]}
+              trades={(tradeRows ?? []) as TradeOption[]}
+              areas={(areaRows ?? []) as AreaOption[]}
+              initialTradeIds={((myTrades ?? []) as { trade_id: string }[]).map(
+                (r) => r.trade_id,
+              )}
+              initialAreaIds={((myAreas ?? []) as { area_id: string }[]).map(
+                (r) => r.area_id,
+              )}
+              labels={{
+                title: dict.crafts.manageTitle,
+                body: dict.crafts.manageBody,
+                tradesLabel: dict.crafts.manageTrades,
+                areasLabel: dict.crafts.manageAreas,
+                save: dict.account.save,
+                saving: dict.account.saving,
+                saved: dict.crafts.manageSaved,
+                needTrade: dict.crafts.manageNeedTrade,
+                error: dict.auth.errorGeneric,
+                regions: dict.crafts.regionNames as unknown as Record<
+                  string,
+                  string
+                >,
+              }}
+            />
+          </div>
+        )}
         <div className="mt-6">
           <DeliveryZonesManager storeId={storeId} dict={dict} initial={zones} />
         </div>
