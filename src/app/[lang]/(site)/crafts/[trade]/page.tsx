@@ -160,6 +160,7 @@ export default async function TradePage({
             [
               ["rating", t.sortRating],
               ["reviews", t.sortReviews],
+              ["completed", t.sortCompleted],
             ] as const
           ).map(([key, label]) => (
             <Link
