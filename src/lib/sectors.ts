@@ -14,6 +14,7 @@ import {
   Wallet,
   Ticket,
   UserCog,
+  Fingerprint,
   CreditCard,
   Settings,
   Pencil,
@@ -76,6 +77,7 @@ export type OsModuleKey =
   | "customers"
   | "campaigns"
   | "staff"
+  | "hr"
   | "automations"
   | "tasks"
   | "inventory"
@@ -130,6 +132,9 @@ export const OS_MODULE_META: Record<
   customers: { Icon: Users, path: "customers", perm: "orders", minPlan: "pro" },
   campaigns: { Icon: Megaphone, path: "campaigns", perm: "orders", minPlan: "business" },
   staff: { Icon: UserCog, path: "staff", ownerOnly: true, minPlan: "pro" },
+  // Owner-only regardless of plan tier: this screen shows every salary in the
+  // shop, and no existing staff permission means "may see what everyone earns".
+  hr: { Icon: Fingerprint, path: "hr", ownerOnly: true, minPlan: "business" },
   automations: { Icon: Zap, path: "automations", perm: "orders", minPlan: "business" },
   tasks: { Icon: ListTodo, path: "tasks", minPlan: "pro" },
   inventory: { Icon: Boxes, path: "inventory", perm: "products", minPlan: "business" },
@@ -183,7 +188,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "customers",
     modules: {
       daily: ["orders", "bookings", "kitchen", "pos", "items", "inventory", "tasks"],
-      people: ["customers", "campaigns", "automations", "staff"],
+      people: ["customers", "campaigns", "automations", "staff", "hr"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
@@ -196,7 +201,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "customers",
     modules: {
       daily: ["orders", "pos", "items", "inventory", "tasks"],
-      people: ["customers", "campaigns", "automations", "staff"],
+      people: ["customers", "campaigns", "automations", "staff", "hr"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
@@ -209,7 +214,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "clients",
     modules: {
       daily: ["requests", "bookings", "portfolio", "items", "tasks"],
-      people: ["customers", "campaigns", "automations", "staff"],
+      people: ["customers", "campaigns", "automations", "staff", "hr"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
@@ -222,7 +227,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "patients",
     modules: {
       daily: ["requests", "bookings", "doctors", "items", "tasks"],
-      people: ["customers", "campaigns", "automations", "staff"],
+      people: ["customers", "campaigns", "automations", "staff", "hr"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
@@ -235,7 +240,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "leads",
     modules: {
       daily: ["leads", "bookings", "items", "tasks"],
-      people: ["customers", "campaigns", "automations", "staff"],
+      people: ["customers", "campaigns", "automations", "staff", "hr"],
       money: MONEY,
       store: STORE,
     },
@@ -251,7 +256,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
       // are viewing/test-drive/offer). No "orders" (always empty) and no separate
       // "requests" inbox.
       daily: ["leads", "items", "tasks"],
-      people: ["customers", "campaigns", "automations", "staff"],
+      people: ["customers", "campaigns", "automations", "staff", "hr"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
@@ -264,7 +269,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "clients",
     modules: {
       daily: ["bookings", "doctors", "items", "tasks"],
-      people: ["customers", "campaigns", "automations", "staff"],
+      people: ["customers", "campaigns", "automations", "staff", "hr"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
@@ -277,7 +282,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "customers",
     modules: {
       daily: ["bookings", "doctors", "memberships", "classes", "members", "items", "tasks"],
-      people: ["customers", "campaigns", "automations", "staff"],
+      people: ["customers", "campaigns", "automations", "staff", "hr"],
       money: MONEY,
       store: STORE,
     },
@@ -290,7 +295,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "customers",
     modules: {
       daily: ["bookings", "resources", "tasks"],
-      people: ["customers", "campaigns", "automations", "staff"],
+      people: ["customers", "campaigns", "automations", "staff", "hr"],
       money: MONEY,
       store: STORE,
     },
@@ -303,7 +308,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "clients",
     modules: {
       daily: ["bookings", "doctors", "courses", "memberships", "members", "items", "tasks"],
-      people: ["customers", "campaigns", "automations", "staff"],
+      people: ["customers", "campaigns", "automations", "staff", "hr"],
       money: MONEY,
       store: STORE,
     },
@@ -316,7 +321,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "clients",
     modules: {
       daily: ["tickets", "items", "tasks"],
-      people: ["customers", "campaigns", "automations", "staff"],
+      people: ["customers", "campaigns", "automations", "staff", "hr"],
       money: MONEY,
       store: STORE,
     },
@@ -329,7 +334,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "customers",
     modules: {
       daily: ["stays", "units", "items", "tasks"],
-      people: ["customers", "campaigns", "automations", "staff"],
+      people: ["customers", "campaigns", "automations", "staff", "hr"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
@@ -342,7 +347,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "customers",
     modules: {
       daily: ["orders", "pos", "items", "inventory", "tasks"],
-      people: ["customers", "campaigns", "automations", "staff"],
+      people: ["customers", "campaigns", "automations", "staff", "hr"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
@@ -355,7 +360,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "clients",
     modules: {
       daily: ["bookings", "doctors", "items", "tasks"],
-      people: ["customers", "campaigns", "automations", "staff"],
+      people: ["customers", "campaigns", "automations", "staff", "hr"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
@@ -368,7 +373,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "clients",
     modules: {
       daily: ["requests", "bookings", "doctors", "tasks"],
-      people: ["customers", "campaigns", "automations", "staff"],
+      people: ["customers", "campaigns", "automations", "staff", "hr"],
       money: MONEY,
       store: STORE,
     },
@@ -381,7 +386,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "clients",
     modules: {
       daily: ["requests", "portfolio", "items", "tasks"],
-      people: ["customers", "campaigns", "automations", "staff"],
+      people: ["customers", "campaigns", "automations", "staff", "hr"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },
@@ -394,7 +399,7 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     customersNoun: "customers",
     modules: {
       daily: ["orders", "items", "inventory", "tasks"],
-      people: ["customers", "campaigns", "automations", "staff"],
+      people: ["customers", "campaigns", "automations", "staff", "hr"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
     },

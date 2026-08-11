@@ -128,6 +128,7 @@ export default async function StoreOsLayout({
     customers: dict.os.nouns[sector.customersNoun],
     campaigns: dict.os.campaigns.link,
     staff: dict.merchant.staffLink,
+    hr: dict.os.hr.title,
     automations: dict.os.automations.link,
     tasks: dict.os.tasks.link,
     inventory: dict.os.inventory.link,
