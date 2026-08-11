@@ -39,6 +39,8 @@ export function StoreCard({
               alt={store.name[lang]}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+              // The merchant's own crop, the same one the store page uses.
+              style={{ objectPosition: `50% ${store.coverPosition ?? 50}%` }}
               sizes="(max-width: 640px) 100vw, 320px"
             />
           ) : (

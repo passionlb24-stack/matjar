@@ -25,6 +25,7 @@ type RecommendedRow = {
   featured_until: string | null;
   logo_url: string | null;
   cover_url: string | null;
+  cover_position?: number | null;
   lat: number | string | null;
   lng: number | string | null;
   hours: unknown;
@@ -54,6 +55,7 @@ function rowToStore(row: RecommendedRow): Store {
       row.featured_until != null && new Date(row.featured_until) > new Date(),
     logoUrl: row.logo_url,
     coverUrl: row.cover_url,
+    coverPosition: row.cover_position ?? 50,
     lat: row.lat != null ? Number(row.lat) : null,
     lng: row.lng != null ? Number(row.lng) : null,
     // Recommendations are stores the user does NOT follow, by definition.

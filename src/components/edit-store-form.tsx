@@ -49,6 +49,7 @@ type Initial = {
   whatsapp: string | null;
   logo_url: string | null;
   cover_url: string | null;
+  cover_position: number | null;
   hours: unknown;
   booking_slot_minutes: number | null;
   instagram: string | null;
@@ -90,6 +91,8 @@ export function EditStoreForm({
   const [error, setError] = useState<string | null>(null);
   const [logo, setLogo] = useState<string | null>(initial.logo_url);
   const [cover, setCover] = useState<string | null>(initial.cover_url);
+  // Vertical focal point of the banner, 0-100 (0245).
+  const [coverPos, setCoverPos] = useState(initial.cover_position ?? 50);
   // Vanity handle: matjarlb.com/<slug>. Sanitised to a-z0-9- as the user types;
   // the DB (migration 0115) is the final authority on format/reserved/uniqueness.
   const [slug, setSlug] = useState(initial.slug ?? "");
@@ -138,6 +141,7 @@ export function EditStoreForm({
         whatsapp: String(form.get("whatsapp")) || null,
         logo_url: logo,
         cover_url: cover,
+        cover_position: coverPos,
         hours: JSON.parse(String(form.get("hours_json") || "{}")),
         booking_slot_minutes:
           Number(form.get("booking_slot_minutes")) || 30,
@@ -180,17 +184,44 @@ export function EditStoreForm({
     >
       <div className="grid gap-4 sm:grid-cols-2">
         <ImageUpload folder={storeId} value={logo} onChange={setLogo} label={dict.merchant.logo} />
-        {/* 3:1, the same shape the banner is cropped to on the store page and
-            on the card in search — so this box is a preview, not a guess. */}
-        <ImageUpload
-          folder={storeId}
-          value={cover}
-          onChange={setCover}
-          label={dict.merchant.cover}
-          hint={dict.merchant.coverHint}
-          aspect="aspect-[3/1]"
-          dict={dict}
-        />
+        {/* 3:1 and the merchant's own crop — the same shape and the same cut
+            the store page and the search card use, so this box is a preview,
+            not a guess. */}
+        <div>
+          <ImageUpload
+            folder={storeId}
+            value={cover}
+            onChange={setCover}
+            label={dict.merchant.cover}
+            hint={dict.merchant.coverHint}
+            aspect="aspect-[3/1]"
+            objectPosition={`50% ${coverPos}%`}
+            dict={dict}
+          />
+          {/* Only worth showing once there is something to reposition. Most
+              uploads are 16:9 or 4:3, so most of them lose a band top and
+              bottom; this decides which band. */}
+          {cover && (
+            <div className="mt-2">
+              <label
+                className="text-xs font-semibold text-muted-foreground"
+                htmlFor="cover_position"
+              >
+                {dict.merchant.coverPosition}
+              </label>
+              <input
+                id="cover_position"
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={coverPos}
+                onChange={(e) => setCoverPos(Number(e.target.value))}
+                className="mt-1 w-full accent-[var(--primary)]"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Storefront theme: a full design system in one tap. The brand color

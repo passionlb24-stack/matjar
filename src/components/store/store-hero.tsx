@@ -88,9 +88,11 @@ export function StoreHero({
           src={store.coverUrl}
           alt={store.name}
           fill
-          // object-center is the default, but it is the whole contract here:
-          // the middle of the photo is the part that survives every screen.
-          className="object-cover object-center"
+          className="object-cover"
+          // Which band survives the crop is the merchant's call, not a guess
+          // (0245). A 16:9 upload loses 41% of its height in a 3:1 frame, and
+          // centring it beheads any banner whose name sits along the top.
+          style={{ objectPosition: `50% ${store.coverPosition ?? 50}%` }}
           sizes="100vw"
           priority
         />

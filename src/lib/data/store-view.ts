@@ -21,12 +21,15 @@ export type StoreView = {
   area: string | null;
   description: string | null;
   announcement?: string | null;
+  /** Live on the platform — NOT opening hours. Read `hours` for open/closed. */
   isOpen: boolean;
   plan?: "free" | "pro";
   rating?: number;
   reviews?: number;
   logoUrl?: string | null;
   coverUrl?: string | null;
+  /** Vertical focal point of the banner, 0-100. See stores.cover_position. */
+  coverPosition?: number;
   hours?: unknown;
   bookingSlotMinutes?: number;
   instagram?: string | null;
@@ -103,7 +106,7 @@ async function fetchStoreView(
   const { data } = await supabase
     .from("stores")
     .select(
-      "name, slug, description, announcement, storefront_theme, area, status, plan, logo_url, cover_url, phone, whatsapp, hours, booking_slot_minutes, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, loyalty_redemption_enabled, loyalty_points_per_unit, accent_color, storefront_layout, lat, lng, business_types(slug)",
+      "name, slug, description, announcement, storefront_theme, area, status, plan, logo_url, cover_url, cover_position, phone, whatsapp, hours, booking_slot_minutes, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, loyalty_redemption_enabled, loyalty_points_per_unit, accent_color, storefront_layout, lat, lng, business_types(slug)",
     )
     .eq("id", id)
     .is("deleted_at", null)
@@ -198,6 +201,7 @@ async function fetchStoreView(
     plan: (data.plan as "free" | "pro" | null) ?? "free",
     logoUrl: (data.logo_url as string | null) ?? null,
     coverUrl: (data.cover_url as string | null) ?? null,
+    coverPosition: Number(data.cover_position ?? 50),
     hours: data.hours as unknown,
     bookingSlotMinutes: (data.booking_slot_minutes as number | null) ?? 30,
     instagram: (data.instagram as string | null) ?? null,

@@ -90,6 +90,7 @@ export function ImageUpload({
   label,
   hint,
   aspect,
+  objectPosition,
   dict,
 }: {
   folder: string;
@@ -110,6 +111,8 @@ export function ImageUpload({
    * generic h-32 box for free-form images.
    */
   aspect?: string;
+  /** CSS object-position for the preview, so it crops where the real one does. */
+  objectPosition?: string;
   /** Optional — enables localized error text; falls back to Arabic if omitted. */
   dict?: Dictionary;
 }) {
@@ -180,7 +183,14 @@ export function ImageUpload({
       <div className="mt-1.5">
         {value ? (
           <div className={`relative ${box} overflow-hidden rounded-xl border border-border`}>
-            <Image src={value} alt="" fill className="object-cover" sizes="400px" />
+            <Image
+              src={value}
+              alt=""
+              fill
+              className="object-cover"
+              style={objectPosition ? { objectPosition } : undefined}
+              sizes="400px"
+            />
             <button
               type="button"
               onClick={() => onChange(null)}

@@ -64,11 +64,11 @@ export function StoreHeader({
               <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
                 {store.name}
               </h1>
-              <span
-                className={`rounded-full px-2.5 py-0.5 text-xs font-bold text-white ${store.isOpen ? "bg-emerald-600" : "bg-muted-foreground"}`}
-              >
-                {store.isOpen ? dict.store.openNow : dict.store.closed}
-              </span>
+              {/* The "مفتوح الآن" pill that used to sit here was reading
+                  store.status === 'active' — platform approval, not opening
+                  hours. It said open at 3am, next to the real hours badge a few
+                  lines below saying closed. One of them had to go, and it was
+                  never going to be the one that reads the clock. */}
               {store.plan === "pro" && <ProBadge />}
               {store.registered && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2.5 py-1 text-xs font-bold text-success">

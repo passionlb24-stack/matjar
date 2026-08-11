@@ -24,6 +24,7 @@ function rowToStore(row: {
   featured_until: string | null;
   logo_url: string | null;
   cover_url: string | null;
+  cover_position?: number | null;
   lat: number | null;
   lng: number | null;
   hours?: unknown;
@@ -54,6 +55,7 @@ function rowToStore(row: {
       row.featured_until != null && new Date(row.featured_until) > new Date(),
     logoUrl: row.logo_url,
     coverUrl: row.cover_url,
+    coverPosition: row.cover_position ?? 50,
     lat: row.lat != null ? Number(row.lat) : null,
     lng: row.lng != null ? Number(row.lng) : null,
   };
@@ -75,7 +77,7 @@ const fetchActiveStores = unstable_cache(
     const supabase = createPublicClient();
     const { data } = await supabase
       .from("stores")
-      .select("id, name, area, region, plan, is_verified, commercial_reg_verified, featured_until, logo_url, cover_url, lat, lng, hours, rating_avg, rating_count, business_types(slug)")
+      .select("id, name, area, region, plan, is_verified, commercial_reg_verified, featured_until, logo_url, cover_url, cover_position, lat, lng, hours, rating_avg, rating_count, business_types(slug)")
       .eq("status", "active")
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
@@ -183,7 +185,7 @@ export async function searchStores(
   let query = supabase
     .from("stores")
     .select(
-      "id, name, area, region, plan, is_verified, logo_url, cover_url, lat, lng, hours, rating_avg, rating_count, business_types(slug)",
+      "id, name, area, region, plan, is_verified, logo_url, cover_url, cover_position, lat, lng, hours, rating_avg, rating_count, business_types(slug)",
     )
     .eq("status", "active")
     .is("deleted_at", null)
@@ -206,7 +208,7 @@ export async function getFeaturedStores(limit = 4): Promise<Store[]> {
   const { data } = await supabase
     .from("stores")
     .select(
-      "id, name, area, region, plan, is_verified, commercial_reg_verified, featured_until, logo_url, cover_url, lat, lng, hours, rating_avg, rating_count, business_types(slug)",
+      "id, name, area, region, plan, is_verified, commercial_reg_verified, featured_until, logo_url, cover_url, cover_position, lat, lng, hours, rating_avg, rating_count, business_types(slug)",
     )
     .eq("status", "active")
     .is("deleted_at", null)

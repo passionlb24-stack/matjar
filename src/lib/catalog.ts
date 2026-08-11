@@ -124,6 +124,8 @@ export type Store = {
   favorited?: boolean;
   logoUrl?: string | null;
   coverUrl?: string | null;
+  /** Vertical focal point of the banner, 0-100 (see stores.cover_position). */
+  coverPosition?: number;
   lat?: number | null;
   lng?: number | null;
   // Active branch locations (multi-branch stores). "Near me" ranks by the
