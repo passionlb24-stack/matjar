@@ -8,6 +8,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import type { CategoryKey } from "@/lib/catalog";
 import { getSector, sectorPrimarySetup } from "@/lib/sectors";
+import { parseHours } from "@/lib/hours";
 import { SITE_URL } from "@/lib/site";
 import { Container } from "@/components/ui/container";
 import { StoreShareCard } from "@/components/store-share-card";
@@ -106,7 +107,7 @@ export default async function StoreOsHomePage({
   const { data: store } = await supabase
     .from("stores")
     .select(
-      "id, name, slug, status, accent_color, owner_id, short_code, plan, trial_ends_at, logo_url, cover_url, description, opening_hours, whatsapp, business_types(slug, name_ar, name_en)",
+      "id, name, slug, status, accent_color, owner_id, short_code, plan, trial_ends_at, logo_url, cover_url, description, hours, whatsapp, business_types(slug, name_ar, name_en)",
     )
     .eq("id", storeId)
     .maybeSingle();
@@ -124,7 +125,7 @@ export default async function StoreOsHomePage({
     logo_url: string | null;
     cover_url: string | null;
     description: string | null;
-    opening_hours: string | null;
+    hours: unknown;
     whatsapp: string | null;
     business_types: { slug: string; name_ar: string; name_en: string } | null;
   };
@@ -575,7 +576,10 @@ export default async function StoreOsHomePage({
     logo: !!s.logo_url,
     cover: !!s.cover_url,
     description: !!s.description?.trim(),
-    hours: !!s.opening_hours?.trim(),
+    // Counts the weekly grid, not the retired free-text box (0244). A merchant
+    // who filled the grid properly was told to go add hours, while one who
+    // typed "9 صباحا" got the tick and the open/closed badge got nothing.
+    hours: !!parseHours(s.hours),
     whatsapp: !!s.whatsapp?.trim(),
     products: itemsCount >= 3,
     brandColor: !!s.accent_color,

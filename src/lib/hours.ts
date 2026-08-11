@@ -1,8 +1,10 @@
 // Structured business hours. Stored on stores.hours as jsonb keyed by JS
 // weekday (0 = Sunday … 6 = Saturday); a missing key means closed that day.
-// A null/empty object means the merchant hasn't configured hours yet — the
-// UI then falls back to the legacy free-text opening_hours field and treats
-// the store as open (never scare customers away on missing data).
+// A null/empty object means the merchant hasn't configured hours yet — the UI
+// then shows no hours at all and treats the store as open (never scare a
+// customer away on missing data). There used to be a free-text opening_hours
+// field standing in for this; it is retired (0244), because a sentence that
+// can disagree with the open/closed badge beside it is worse than silence.
 
 export type DaySpan = { open: string; close: string };
 export type WeekHours = Record<string, DaySpan>;

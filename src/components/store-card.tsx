@@ -27,7 +27,11 @@ export function StoreCard({
 
   return (
     <article className="group relative overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md">
-      <div className={`relative h-32 bg-gradient-to-br ${style.cover}`}>
+      {/* 3:1 — the one banner shape, shared with the store page and the upload
+          box in the merchant form. It used to be a fixed 128px against a
+          variable card width, so the same photo was framed differently here
+          than it was inside the store. */}
+      <div className={`relative aspect-[3/1] bg-gradient-to-br ${style.cover}`}>
         <div className="absolute inset-0 overflow-hidden">
           {store.coverUrl ? (
             <Image

@@ -49,7 +49,6 @@ type Initial = {
   whatsapp: string | null;
   logo_url: string | null;
   cover_url: string | null;
-  opening_hours: string | null;
   hours: unknown;
   booking_slot_minutes: number | null;
   instagram: string | null;
@@ -139,7 +138,6 @@ export function EditStoreForm({
         whatsapp: String(form.get("whatsapp")) || null,
         logo_url: logo,
         cover_url: cover,
-        opening_hours: String(form.get("opening_hours")) || null,
         hours: JSON.parse(String(form.get("hours_json") || "{}")),
         booking_slot_minutes:
           Number(form.get("booking_slot_minutes")) || 30,
@@ -182,7 +180,17 @@ export function EditStoreForm({
     >
       <div className="grid gap-4 sm:grid-cols-2">
         <ImageUpload folder={storeId} value={logo} onChange={setLogo} label={dict.merchant.logo} />
-        <ImageUpload folder={storeId} value={cover} onChange={setCover} label={dict.merchant.cover} />
+        {/* 3:1, the same shape the banner is cropped to on the store page and
+            on the card in search — so this box is a preview, not a guess. */}
+        <ImageUpload
+          folder={storeId}
+          value={cover}
+          onChange={setCover}
+          label={dict.merchant.cover}
+          hint={dict.merchant.coverHint}
+          aspect="aspect-[3/1]"
+          dict={dict}
+        />
       </div>
 
       {/* Storefront theme: a full design system in one tap. The brand color
@@ -470,12 +478,11 @@ export function EditStoreForm({
         initialSlot={initial.booking_slot_minutes ?? 30}
       />
 
-      <div>
-        <label className={labelClass} htmlFor="opening_hours">
-          {dict.merchant.openingHours}
-        </label>
-        <input id="opening_hours" name="opening_hours" type="text" defaultValue={initial.opening_hours ?? ""} placeholder={dict.merchant.openingHoursPlaceholder} className={fieldClass} />
-      </div>
+      {/* There used to be a free-text "ساعات العمل" box sitting right under the
+          grid above, asking the same question a second time. Eight merchants
+          answered both, three of them differently — and the open/closed badge
+          follows the grid, so the sentence was quietly contradicting the badge
+          next to it. One question, one answer. (0244) */}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>

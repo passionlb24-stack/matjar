@@ -89,6 +89,7 @@ export function ImageUpload({
   onChange,
   label,
   hint,
+  aspect,
   dict,
 }: {
   folder: string;
@@ -102,9 +103,17 @@ export function ImageUpload({
    * find out afterwards.
    */
   hint?: string;
+  /**
+   * Tailwind aspect class (e.g. "aspect-[3/1]") for the picker and the preview.
+   * Pass it wherever the image is displayed at a fixed shape elsewhere, so what
+   * the merchant frames here is what everyone else sees. Defaults to the
+   * generic h-32 box for free-form images.
+   */
+  aspect?: string;
   /** Optional — enables localized error text; falls back to Arabic if omitted. */
   dict?: Dictionary;
 }) {
+  const box = aspect ? `${aspect} w-full` : "h-32 w-full";
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -170,7 +179,7 @@ export function ImageUpload({
       )}
       <div className="mt-1.5">
         {value ? (
-          <div className="relative h-32 w-full overflow-hidden rounded-xl border border-border">
+          <div className={`relative ${box} overflow-hidden rounded-xl border border-border`}>
             <Image src={value} alt="" fill className="object-cover" sizes="400px" />
             <button
               type="button"
@@ -186,7 +195,7 @@ export function ImageUpload({
             type="button"
             onClick={onPick}
             disabled={uploading}
-            className="flex h-32 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
+            className={`flex ${box} flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-60`}
           >
             {uploading ? (
               <Loader2 className="h-6 w-6 animate-spin" />

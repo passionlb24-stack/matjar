@@ -147,12 +147,12 @@ export function StoreHeader({
                     </span>
                   );
                 }
-                return store.openingHours ? (
-                  <span className="flex items-center gap-1 rounded-full bg-surface-muted px-2.5 py-1 text-muted-foreground">
-                    <Clock className="h-4 w-4" />
-                    {store.openingHours}
-                  </span>
-                ) : null;
+                // No grid, nothing to say. The free-text fallback that used to
+                // live here is retired (0244) — every store that relied on it
+                // had its sentence folded into the grid, and the box is gone
+                // from the merchant form, so this can no longer be reached by
+                // anything but stale data.
+                return null;
               })()}
             </div>
           </div>

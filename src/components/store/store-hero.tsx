@@ -27,12 +27,23 @@ export function StoreHero({
   lang: Locale;
   variant?: HeroVariant;
 }) {
+  // Heights only apply when there is NO uploaded photo — they are decoration,
+  // and each theme decorates differently.
   const heights: Record<HeroVariant, string> = {
     cover: "h-48 sm:h-60",
     slim: "h-16 sm:h-20",
     poster: "h-40 sm:h-52",
     band: "h-20 sm:h-24",
   };
+
+  // A merchant's banner is 3:1 everywhere: here, on the card in search, and in
+  // the upload box where they framed it. Before this, the same photo was a
+  // 2:1 block on a phone, a 5:1 strip on a laptop, and a 13:1 sliver under the
+  // luxe theme — so a banner that looked right in one place was beheaded in
+  // another. The cap stops the banner eating a wide desktop screen; past
+  // ~1080px it trims top and bottom, which is why the merchant is told to keep
+  // the important part in the middle.
+  const bannerHeight = "h-[33.333vw] max-h-[360px]";
 
   const back = (
     <Container className="pointer-events-none absolute inset-x-0 top-3 z-20">
@@ -68,16 +79,18 @@ export function StoreHero({
 
   return (
     <div
-      className={`relative ${heights[variant]} ${
-        variant === "poster" ? "border-b-4 border-foreground" : ""
-      }`}
+      className={`relative ${
+        store.coverUrl ? bannerHeight : heights[variant]
+      } ${variant === "poster" ? "border-b-4 border-foreground" : ""}`}
     >
       {store.coverUrl ? (
         <Image
           src={store.coverUrl}
           alt={store.name}
           fill
-          className="object-cover"
+          // object-center is the default, but it is the whole contract here:
+          // the middle of the photo is the part that survives every screen.
+          className="object-cover object-center"
           sizes="100vw"
           priority
         />
