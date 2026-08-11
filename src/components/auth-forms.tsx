@@ -179,6 +179,18 @@ function GoogleButtonInner({ lang, dict }: { lang: Locale; dict: Dictionary }) {
   );
 }
 
+/**
+ * Where to go after signing in, when the visitor was already on their way
+ * somewhere. Relative paths only: anything starting with a scheme or `//` is a
+ * link to another site, and honouring it would turn the login page into an open
+ * redirect anyone could point wherever they liked.
+ */
+function safeNext(raw: string | null): string | null {
+  if (!raw) return null;
+  if (!raw.startsWith("/") || raw.startsWith("//")) return null;
+  return raw;
+}
+
 export function LoginForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -203,8 +215,19 @@ export function LoginForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    let dest = `/${lang}`;
-    if (user) {
+    // An explicit destination wins over the role default. Someone who clicked
+    // "list your trade" and was asked to sign in first means to end up back
+    // there — sending them to a dashboard instead loses the intent that brought
+    // them, and they rarely find their way back to it.
+    // Read at submit time from the live URL rather than through
+    // useSearchParams: that hook opts the page out of static rendering unless
+    // it sits behind a Suspense boundary, and this value is only ever needed
+    // inside an event handler.
+    const next = safeNext(
+      new URLSearchParams(window.location.search).get("next"),
+    );
+    let dest = next ?? `/${lang}`;
+    if (!next && user) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")

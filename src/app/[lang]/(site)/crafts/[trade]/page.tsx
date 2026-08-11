@@ -215,7 +215,7 @@ export default async function TradePage({
               action={
                 activeArea
                   ? { href: hrefWith({ area: "" }), label: t.showAllAreas }
-                  : { href: `/${lang}/merchants`, label: t.joinCta }
+                  : { href: `/${lang}/crafts/join`, label: t.joinCta }
               }
             />
           </div>

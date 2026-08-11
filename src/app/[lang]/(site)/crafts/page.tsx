@@ -180,7 +180,7 @@ export default async function CraftsPage({
                 icon={Wrench}
                 title={t.emptyTitle}
                 description={t.emptyBody}
-                action={{ href: `/${lang}/merchants`, label: t.joinCta }}
+                action={{ href: `/${lang}/crafts/join`, label: t.joinCta }}
               />
             </div>
           )}
