@@ -256,6 +256,31 @@ export default async function StoreReportsPage({
   // ===== Delivery cost (migration 0213). Same 14-day window as the revenue
   // block above. Cancelled dispatches are excluded — their fee was taken back
   // off the order, so counting them would overstate what couriers actually cost.
+  // Profit, not just takings. store_margin_report() has existed since 0210 and
+  // nothing had ever called it, so a merchant could see what came in but never
+  // what was left. It only counts lines whose cost was known at the moment of
+  // sale and reports the coverage separately, so a half-filled catalogue
+  // understates profit rather than inventing it (0248).
+  const { data: marginData } = await supabase.rpc("store_margin_report", {
+    p_store_id: storeId,
+    p_days: 30,
+  });
+  const m = (marginData ?? {}) as {
+    revenue?: number;
+    cogs?: number;
+    gross_profit?: number;
+    lines_total?: number;
+    lines_no_cost?: number;
+    coverage_pct?: number;
+  };
+  const marginLines = Number(m.lines_total ?? 0);
+  const coverage = Number(m.coverage_pct ?? 0);
+  const grossProfit = Number(m.gross_profit ?? 0);
+  const marginPct =
+    Number(m.revenue ?? 0) > 0
+      ? (grossProfit / Number(m.revenue)) * 100
+      : 0;
+
   const { data: delivery } = await supabase.rpc("store_delivery_report", {
     p_store_id: storeId,
     p_days: 14,
@@ -368,6 +393,51 @@ export default async function StoreReportsPage({
           <Bars title={t.statusBreakdown} rows={statusRows} empty={t.noData} />
           <Bars title={t.topProducts} rows={topProducts} empty={t.noData} />
         </div>
+
+        {/* ===== Profit ===== */}
+        {marginLines > 0 && (
+          <div className="mt-12 border-t border-border pt-8">
+            <h2 className="flex items-center gap-2 text-xl font-extrabold tracking-tight">
+              <TrendingUp className="h-6 w-6 text-primary" />
+              {t.profitTitle}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t.profitSubtitle}
+            </p>
+
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                { label: t.profitRevenue, value: formatPrice(Number(m.revenue ?? 0)) },
+                { label: t.profitCogs, value: formatPrice(Number(m.cogs ?? 0)) },
+                { label: t.profitGross, value: formatPrice(grossProfit) },
+                { label: t.profitMargin, value: marginPct.toFixed(1) + "%" },
+              ].map((k) => (
+                <div
+                  key={k.label}
+                  className="rounded-2xl border border-border bg-surface p-4"
+                >
+                  <p className="text-xs font-semibold text-muted-foreground">
+                    {k.label}
+                  </p>
+                  <p className="mt-1 text-xl font-extrabold tabular-nums">
+                    {k.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Coverage is the honesty line. At 60% these figures describe 60%
+                of what was sold, and a merchant reading them as the whole
+                picture would be wrong in the direction that costs money. */}
+            {coverage < 100 && (
+              <p className="mt-3 rounded-xl bg-warning-soft px-4 py-3 text-xs font-semibold text-warning">
+                {t.profitCoverage
+                  .replace("{pct}", String(coverage))
+                  .replace("{n}", String(Number(m.lines_no_cost ?? 0)))}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* ===== Delivery cost ===== */}
         <div className="mt-12 border-t border-border pt-8">

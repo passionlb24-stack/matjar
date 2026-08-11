@@ -6,6 +6,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { IssueInvoiceButton } from "@/components/issue-invoice-button";
 import { PrintInvoiceButton } from "@/components/print-invoice-button";
 
 const UUID_RE =
@@ -42,7 +43,7 @@ export default async function OrderInvoicePage({
   const [{ data: store }, { data: orderData }] = await Promise.all([
     supabase
       .from("stores")
-      .select("id, name, logo_url, phone, area")
+      .select("id, name, logo_url, phone, area, legal_name, tax_no, commercial_reg_no, legal_address")
       .eq("id", storeId)
       .maybeSingle(),
     supabase
@@ -56,11 +57,46 @@ export default async function OrderInvoicePage({
   ]);
   if (!store || !orderData) redirect(`/${lang}/merchant/${storeId}/orders`);
 
+  // The issued, numbered document — if one exists. Everything on it is frozen
+  // at issue time on purpose: a legal invoice must not silently change when the
+  // store later edits its address or a product price (0248).
+  const { data: invoiceRow } = await supabase
+    .from("store_invoices")
+    .select(
+      "number, legal_name, tax_no, commercial_reg_no, legal_address, customer_name, customer_phone, customer_address, subtotal, discount, delivery_fee, vat_inclusive, tax_rate, tax_amount, total, lines, issued_at",
+    )
+    .eq("order_id", orderId)
+    .is("voided_at", null)
+    .maybeSingle();
+  const inv = invoiceRow as unknown as {
+    number: string;
+    legal_name: string | null;
+    tax_no: string | null;
+    commercial_reg_no: string | null;
+    legal_address: string | null;
+    customer_name: string | null;
+    customer_phone: string | null;
+    customer_address: string | null;
+    subtotal: number;
+    discount: number | null;
+    delivery_fee: number | null;
+    vat_inclusive: boolean;
+    tax_rate: number;
+    tax_amount: number;
+    total: number;
+    lines: { name: string; qty: number; unit_price: number; line_total: number }[];
+    issued_at: string;
+  } | null;
+
   const s = store as unknown as {
     name: string;
     logo_url: string | null;
     phone: string | null;
     area: string | null;
+    legal_name: string | null;
+    tax_no: string | null;
+    commercial_reg_no: string | null;
+    legal_address: string | null;
   };
   const order = orderData as unknown as {
     id: string;
@@ -98,7 +134,22 @@ export default async function OrderInvoicePage({
             <ChevronRight className="h-4 w-4 rtl:rotate-180" />
             {dict.merchant.ordersTitle}
           </Link>
-          <PrintInvoiceButton label={dict.orders.print} />
+          <span className="flex items-center gap-2">
+            {!inv && (
+              <IssueInvoiceButton
+                orderId={orderId}
+                settingsHref={`/${lang}/merchant/${storeId}/settings`}
+                labels={{
+                  issue: t.issue,
+                  issuing: t.issuing,
+                  needsLegalName: t.needsLegalName,
+                  goToSettings: t.goToSettings,
+                  error: dict.common.actionFailed,
+                }}
+              />
+            )}
+            <PrintInvoiceButton label={dict.orders.print} />
+          </span>
         </div>
 
         {/* The receipt itself — clean, black-on-white, PDF-ready. */}
@@ -115,17 +166,40 @@ export default async function OrderInvoicePage({
                 />
               )}
               <div>
-                <h1 className="text-xl font-extrabold">{s.name}</h1>
+                <h1 className="text-xl font-extrabold">
+                  {inv?.legal_name ?? s.name}
+                </h1>
                 <p className="text-sm text-muted-foreground">
-                  {[s.area, s.phone].filter(Boolean).join(" · ")}
+                  {[inv?.legal_address ?? s.area, s.phone]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </p>
+                {inv?.tax_no && (
+                  <p className="text-xs text-muted-foreground" dir="ltr">
+                    {t.taxNo}: {inv.tax_no}
+                  </p>
+                )}
+                {inv?.commercial_reg_no && (
+                  <p className="text-xs text-muted-foreground" dir="ltr">
+                    {t.crNo}: {inv.commercial_reg_no}
+                  </p>
+                )}
               </div>
             </div>
             <div className="text-end">
-              <p className="text-lg font-extrabold">{t.title}</p>
-              <p className="text-sm text-muted-foreground" dir="ltr">
-                #{order.id.slice(0, 8)}
+              <p className="text-lg font-extrabold">
+                {inv ? t.legalTitle : t.title}
               </p>
+              <p className="text-sm text-muted-foreground" dir="ltr">
+                {inv ? inv.number : `#${order.id.slice(0, 8)}`}
+              </p>
+              {/* Until it is issued this is a receipt, not a فاتورة — saying so
+                  is cheaper than a merchant finding out from an inspector. */}
+              {!inv && (
+                <p className="mt-1 text-xs font-semibold text-warning print:hidden">
+                  {t.notIssued}
+                </p>
+              )}
             </div>
           </div>
 
@@ -196,9 +270,22 @@ export default async function OrderInvoicePage({
                 </span>
               </div>
             )}
+            {inv && Number(inv.tax_amount) > 0 && (
+              <div className="flex justify-between text-muted-foreground">
+                <span>
+                  {t.vat} {Number(inv.tax_rate)}%
+                  {inv.vat_inclusive ? ` (${t.vatIncludedShort})` : ""}
+                </span>
+                <span className="tabular-nums">
+                  {money(Number(inv.tax_amount))}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between border-t border-border pt-2 text-base font-extrabold">
               <span>{t.total}</span>
-              <span className="tabular-nums">{money(order.total)}</span>
+              <span className="tabular-nums">
+                {money(inv ? Number(inv.total) : order.total)}
+              </span>
             </div>
           </div>
 

@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Navigation, Loader2, Landmark, ShieldCheck, ChevronDown } from "lucide-react";
+import {
+  Navigation,
+  Loader2,
+  Landmark,
+  ShieldCheck,
+  ChevronDown,
+  FileText,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { revalidateStores } from "@/lib/cache-actions";
 import { getCurrentPosition } from "@/lib/native";
@@ -25,6 +32,12 @@ export type StoreSettings = {
   lng: string;
   commercial_reg_no: string;
   commercial_reg_verified: boolean;
+  legal_name: string;
+  tax_no: string;
+  legal_address: string;
+  invoice_prefix: string;
+  vat_rate: string;
+  vat_inclusive: boolean;
 };
 
 export function StoreSettingsForm({
@@ -48,6 +61,8 @@ export function StoreSettingsForm({
   const [lat, setLat] = useState(initial.lat);
   const [lng, setLng] = useState(initial.lng);
   const [locating, setLocating] = useState(false);
+  // VAT is charged on top by default; some shops quote prices with it already in.
+  const [vatInclusive, setVatInclusive] = useState(initial.vat_inclusive);
   const [geoError, setGeoError] = useState<string | null>(null);
 
   async function useMyLocation() {
@@ -82,6 +97,16 @@ export function StoreSettingsForm({
         booking_cancel_hours:
           Math.max(0, Number(form.get("booking_cancel_hours")) || 0),
         commercial_reg_no: String(form.get("commercial_reg_no") ?? "").trim() || null,
+        // Legal identity + VAT. issue_invoice() refuses to number an invoice
+        // without legal_name, and until now there was no field anywhere in the
+        // app that could set it — which is why zero invoices had ever been
+        // issued despite the whole engine being built (0248).
+        legal_name: String(form.get("legal_name") ?? "").trim() || null,
+        tax_no: String(form.get("tax_no") ?? "").trim() || null,
+        legal_address: String(form.get("legal_address") ?? "").trim() || null,
+        invoice_prefix: String(form.get("invoice_prefix") ?? "").trim().toUpperCase() || null,
+        vat_rate: Math.min(100, Math.max(0, Number(form.get("vat_rate")) || 0)),
+        vat_inclusive: vatInclusive,
         specialties: String(form.get("specialties") ?? "") || null,
         insurance: String(form.get("insurance") ?? "") || null,
         lat: lat.trim() === "" ? null : Number(lat),
@@ -185,6 +210,119 @@ export function StoreSettingsForm({
             {t.regPending}
           </p>
         )}
+      </div>
+
+      {/* Everything a فاتورة نظامية has to carry. The invoice engine has always
+          known how to print these — sequential numbering, VAT inclusive or on
+          top, the customer's copy frozen at issue — but no screen could fill
+          them in, so it refused every invoice and merchants printed a receipt
+          with no number on it instead. */}
+      <div className="rounded-xl border border-border bg-surface-muted/30 p-4">
+        <div className="flex items-center gap-2">
+          <FileText className="h-4 w-4 text-primary" />
+          <span className={labelClass}>{t.invoicing}</span>
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">{t.invoicingHint}</p>
+
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className={labelClass} htmlFor="legal_name">
+              {t.legalName}
+            </label>
+            <input
+              id="legal_name"
+              name="legal_name"
+              type="text"
+              defaultValue={initial.legal_name}
+              placeholder={t.legalNamePlaceholder}
+              className={fieldClass}
+            />
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="tax_no">
+              {t.taxNo}
+            </label>
+            <input
+              id="tax_no"
+              name="tax_no"
+              type="text"
+              defaultValue={initial.tax_no}
+              placeholder={t.taxNoPlaceholder}
+              className={fieldClass}
+              dir="ltr"
+            />
+          </div>
+        </div>
+
+        <label className={`${labelClass} mt-3 block`} htmlFor="legal_address">
+          {t.legalAddress}
+        </label>
+        <input
+          id="legal_address"
+          name="legal_address"
+          type="text"
+          defaultValue={initial.legal_address}
+          placeholder={t.legalAddressPlaceholder}
+          className={fieldClass}
+        />
+
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className={labelClass} htmlFor="vat_rate">
+              {t.vatRate}
+            </label>
+            <input
+              id="vat_rate"
+              name="vat_rate"
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              defaultValue={initial.vat_rate}
+              placeholder="11"
+              className={fieldClass}
+              dir="ltr"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">{t.vatRateHint}</p>
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="invoice_prefix">
+              {t.invoicePrefix}
+            </label>
+            <input
+              id="invoice_prefix"
+              name="invoice_prefix"
+              type="text"
+              maxLength={8}
+              defaultValue={initial.invoice_prefix}
+              placeholder="INV"
+              className={fieldClass}
+              dir="ltr"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              {t.invoicePrefixHint}
+            </p>
+          </div>
+        </div>
+
+        {/* Which way the rate is applied changes what the customer owes, so it
+            is a visible choice rather than a checkbox in a hint. */}
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setVatInclusive(false)}
+            className={toggle(!vatInclusive)}
+          >
+            {t.vatOnTop}
+          </button>
+          <button
+            type="button"
+            onClick={() => setVatInclusive(true)}
+            className={toggle(vatInclusive)}
+          >
+            {t.vatIncluded}
+          </button>
+        </div>
       </div>
 
       {isHealthcare && (

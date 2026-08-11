@@ -45,7 +45,7 @@ export default async function StoreSettingsPage({
   // Owner-only.
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, booking_cancel_hours, specialties, insurance, lat, lng, commercial_reg_no, commercial_reg_verified, business_types(slug)")
+    .select("id, name, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, booking_cancel_hours, specialties, insurance, lat, lng, commercial_reg_no, commercial_reg_verified, legal_name, tax_no, legal_address, invoice_prefix, vat_rate, vat_inclusive, business_types(slug)")
     .eq("id", storeId)
     .eq("owner_id", user.id)
     .maybeSingle();
@@ -88,7 +88,18 @@ export default async function StoreSettingsPage({
     .order("created_at", { ascending: true });
   const checkoutFields = (cfData ?? []) as unknown as CheckoutFieldRow[];
 
+  const st = store as unknown as Record<string, unknown>;
+  const text = (k: string) => (st[k] as string | null) ?? "";
+
   const initial: StoreSettings = {
+    legal_name: text("legal_name"),
+    tax_no: text("tax_no"),
+    legal_address: text("legal_address"),
+    invoice_prefix: text("invoice_prefix"),
+    // 0 is a real answer (a shop below the VAT threshold), so it is shown as 0
+    // rather than blanked into a placeholder that reads like 11.
+    vat_rate: String(st.vat_rate ?? 0),
+    vat_inclusive: Boolean(st.vat_inclusive),
     accepts_delivery: (store as { accepts_delivery: boolean }).accepts_delivery,
     accepts_pickup: (store as { accepts_pickup: boolean }).accepts_pickup,
     min_order:

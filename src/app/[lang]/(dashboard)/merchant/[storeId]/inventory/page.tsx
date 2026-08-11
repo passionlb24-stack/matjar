@@ -13,6 +13,11 @@ import {
   type InventoryProduct,
   type Movement,
 } from "@/components/inventory-manager";
+import {
+  ReceiveStockForm,
+  type ReceivableProduct,
+  type SupplierOption,
+} from "@/components/receive-stock-form";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -66,7 +71,8 @@ export default async function StoreInventoryPage({
     if (!(perms.products ?? false)) redirect(`/${lang}/merchant/${storeId}`);
   }
 
-  const [{ data: productsData }, { data: movementsData }] = await Promise.all([
+  const [{ data: productsData }, { data: movementsData }, { data: supplierData }] =
+    await Promise.all([
     supabase
       .from("products")
       .select("id, name, image_url, stock, low_stock_threshold")
@@ -79,6 +85,13 @@ export default async function StoreInventoryPage({
       .eq("store_id", storeId)
       .order("created_at", { ascending: false })
       .limit(20),
+    // Receiving goods is where cost prices actually get filled in, so the
+    // supplier list belongs on this screen rather than one module away.
+    supabase
+      .from("store_suppliers")
+      .select("id, name")
+      .eq("store_id", storeId)
+      .order("name"),
   ]);
 
   return (
@@ -94,6 +107,33 @@ export default async function StoreInventoryPage({
         <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
           {dict.os.inventory.title}
         </h1>
+
+        <div className="mt-6">
+          <ReceiveStockForm
+            storeId={storeId}
+            suppliers={(supplierData ?? []) as SupplierOption[]}
+            products={(productsData ?? []) as ReceivableProduct[]}
+            labels={{
+              title: dict.os.inventory.receiveTitle,
+              body: dict.os.inventory.receiveBody,
+              supplier: dict.os.inventory.receiveSupplier,
+              noSupplier: dict.os.inventory.receiveNoSupplier,
+              note: dict.os.inventory.receiveNote,
+              notePlaceholder: dict.os.inventory.receiveNotePlaceholder,
+              product: dict.os.inventory.receiveProduct,
+              qty: dict.os.inventory.receiveQty,
+              unitCost: dict.os.inventory.receiveUnitCost,
+              addLine: dict.os.inventory.receiveAddLine,
+              remove: dict.os.inventory.receiveRemove,
+              total: dict.os.inventory.receiveTotal,
+              submit: dict.os.inventory.receiveSubmit,
+              saving: dict.os.inventory.receiveSaving,
+              saved: dict.os.inventory.receiveSaved,
+              needLine: dict.os.inventory.receiveNeedLine,
+              error: dict.common.actionFailed,
+            }}
+          />
+        </div>
 
         <div className="mt-6">
           <InventoryManager
