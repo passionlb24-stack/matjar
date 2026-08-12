@@ -2650,6 +2650,9 @@
     "download": "Download",
     "confirmStatusDestructive": "Move this order to \"{status}\"? The stock goes back and the customer is notified.",
     "completedIsFinal": "Finished orders cannot be cancelled. To give money back, record a refund below.",
+    "manageOrder": "Manage order",
+    "hasPayments": "{n} payment entries",
+    "hasCourier": "Courier active",
     "refunded": "Refunded",
     "netPaid": "Net paid",
     "assign": {

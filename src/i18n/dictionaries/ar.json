@@ -2650,6 +2650,9 @@
     "download": "نزّل",
     "confirmStatusDestructive": "بدك تحوّل هالطلب لـ«{status}»؟ الكمية بترجع عالمخزون، والزبون بيوصلو إشعار.",
     "completedIsFinal": "الطلب خلص وما بينلغى. إذا بدّك ترجّع مصاري للزبون، استعمل «استرجاع» تحت.",
+    "manageOrder": "إدارة الطلب",
+    "hasPayments": "{n} حركة مالية",
+    "hasCourier": "في توصيل",
     "refunded": "مسترجع",
     "netPaid": "الصافي المدفوع",
     "assign": {

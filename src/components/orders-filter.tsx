@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Printer, Search } from "lucide-react";
+import { ChevronDown, Printer, Search } from "lucide-react";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { OrderStatusControl } from "@/components/order-status-control";
 import { OrderPayments, type OrderPayment } from "@/components/order-payments";
@@ -273,42 +273,70 @@ export function OrdersFilter({
                       </p>
                     ))}
                 </div>
-                <OrderPayments
-                  orderId={order.id}
-                  orderTotal={Number(order.total ?? 0)}
-                  orderStatus={order.status}
-                  payments={order.payments}
-                  dict={dict}
-                />
-                {/* Pickup orders never need a courier. */}
-                {order.fulfillment === "delivery" && (
-                  <OrderDispatch
+                {/* The card above is the DECISION layer: who, what, how
+                    much, what state. Everything below is the WORK layer —
+                    payments, courier, notes, assignment — needed on the one
+                    order being handled, noise on the nineteen others. Folded,
+                    with the two facts worth surfacing (money recorded, courier
+                    en route) shown on the fold itself. */}
+                <details className="group mt-3 border-t border-border pt-3">
+                  <summary className="flex cursor-pointer select-none items-center justify-between gap-2 text-sm font-bold text-muted-foreground transition-colors hover:text-foreground">
+                    <span>{dict.orders.manageOrder}</span>
+                    <span className="flex items-center gap-2 text-xs font-semibold">
+                      {order.payments.length > 0 && (
+                        <span className="rounded-full bg-success-soft px-2 py-0.5 text-success">
+                          {dict.orders.hasPayments.replace(
+                            "{n}",
+                            String(order.payments.length),
+                          )}
+                        </span>
+                      )}
+                      {order.delivery && (
+                        <span className="rounded-full bg-info-soft px-2 py-0.5 text-info">
+                          {dict.orders.hasCourier}
+                        </span>
+                      )}
+                      <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+                    </span>
+                  </summary>
+
+                  <OrderPayments
                     orderId={order.id}
-                    lang={lang}
-                    storeId={storeId}
-                    storeName={storeName}
-                    customerName={order.customer_name}
-                    address={order.address}
-                    couriers={couriers}
-                    request={order.delivery}
-                    canDispatch={canDispatch}
+                    orderTotal={Number(order.total ?? 0)}
+                    orderStatus={order.status}
+                    payments={order.payments}
                     dict={dict}
                   />
-                )}
-                <OrderNoteEditor
-                  orderId={order.id}
-                  note={order.store_note}
-                  labels={dict.orders.storeNote}
-                  errorLabel={dict.common.actionFailed}
-                />
-                <OrderAssignTags
-                  orderId={order.id}
-                  assignedTo={order.assigned_to}
-                  tags={order.tags}
-                  team={team}
-                  labels={dict.orders.assign}
-                  errorLabel={dict.common.actionFailed}
-                />
+                  {/* Pickup orders never need a courier. */}
+                  {order.fulfillment === "delivery" && (
+                    <OrderDispatch
+                      orderId={order.id}
+                      lang={lang}
+                      storeId={storeId}
+                      storeName={storeName}
+                      customerName={order.customer_name}
+                      address={order.address}
+                      couriers={couriers}
+                      request={order.delivery}
+                      canDispatch={canDispatch}
+                      dict={dict}
+                    />
+                  )}
+                  <OrderNoteEditor
+                    orderId={order.id}
+                    note={order.store_note}
+                    labels={dict.orders.storeNote}
+                    errorLabel={dict.common.actionFailed}
+                  />
+                  <OrderAssignTags
+                    orderId={order.id}
+                    assignedTo={order.assigned_to}
+                    tags={order.tags}
+                    team={team}
+                    labels={dict.orders.assign}
+                    errorLabel={dict.common.actionFailed}
+                  />
+                </details>
               </div>
             );
           })}
