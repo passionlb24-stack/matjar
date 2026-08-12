@@ -239,6 +239,66 @@ h3,
   letter-spacing: -0.01em;
 }
 
+/* ===== Type scale =====
+   One named class per level, so a page never invents its own combination of
+   size/weight/leading again. Arabic needs more line-height than Latin at the
+   same size — Tajawal/Alexandria carry tall ascenders and vowel marks — so the
+   leading here is tuned for Arabic first and reads fine in English, rather
+   than the reverse. Sizes step down on small screens via the clamp(). */
+.text-display {
+  font-family: var(--font-display), var(--font-tajawal), system-ui, sans-serif;
+  font-size: clamp(2rem, 1.4rem + 2.2vw, 3rem);
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.text-h1 {
+  font-family: var(--font-display), var(--font-tajawal), system-ui, sans-serif;
+  font-size: clamp(1.5rem, 1.2rem + 1.1vw, 1.875rem);
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.text-h2 {
+  font-family: var(--font-display), var(--font-tajawal), system-ui, sans-serif;
+  font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+  line-height: 1.35;
+  font-weight: 700;
+}
+.text-h3 {
+  font-size: 1.125rem;
+  line-height: 1.45;
+  font-weight: 700;
+}
+.text-h4 {
+  font-size: 1rem;
+  line-height: 1.5;
+  font-weight: 700;
+}
+.text-body {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+}
+.text-caption {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+.text-label {
+  font-size: 0.875rem;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+/* Money and figures: always tabular, never letter-spaced, and always LTR so
+   "$1,250.00" and "89,700 ل.ل" read the same inside Arabic sentences. */
+.text-money {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
 ::selection {
   background: var(--primary-soft);
   color: var(--primary-hover);

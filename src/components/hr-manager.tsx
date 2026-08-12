@@ -101,6 +101,12 @@ export function HrManager({
   const [enrolCode, setEnrolCode] = useState<{ id: string; code: string } | null>(
     null,
   );
+  // Inline, not window.prompt: a browser dialog has no currency, no context and
+  // no cancel-safe styling — it reads as a broken page, and money deserves a
+  // labelled field.
+  const [advanceFor, setAdvanceFor] = useState<string | null>(null);
+  const [advanceAmount, setAdvanceAmount] = useState("");
+  const [advanceNote, setAdvanceNote] = useState("");
   const [radius, setRadius] = useState(String(clockRadius));
   const [form, setForm] = useState({
     name: "",
@@ -282,9 +288,7 @@ export function HrManager({
   }
 
   async function addAdvance(employeeId: string, currency: string) {
-    const raw = window.prompt(labels.advancePrompt);
-    if (raw === null) return;
-    const amount = Number(raw);
+    const amount = Number(advanceAmount);
     if (!amount || amount <= 0) return;
     setBusy(employeeId);
     const { error } = await createClient().from("employee_advances").insert({
@@ -292,6 +296,7 @@ export function HrManager({
       employee_id: employeeId,
       amount,
       currency,
+      note: advanceNote.trim() || null,
     });
     setBusy(null);
     if (error) {
@@ -299,6 +304,9 @@ export function HrManager({
       return;
     }
     notifySuccess(labels.advanceSaved);
+    setAdvanceFor(null);
+    setAdvanceAmount("");
+    setAdvanceNote("");
     router.refresh();
   }
 
@@ -524,7 +532,11 @@ export function HrManager({
                   size="sm"
                   variant="outline"
                   disabled={busy === e.id}
-                  onClick={() => addAdvance(e.id, e.pay_currency)}
+                  onClick={() => {
+                    setAdvanceFor(advanceFor === e.id ? null : e.id);
+                    setAdvanceAmount("");
+                    setAdvanceNote("");
+                  }}
                 >
                   <Wallet className="h-4 w-4" />
                   {labels.advance}
@@ -582,6 +594,45 @@ export function HrManager({
                       </li>
                     ))}
                   </ul>
+                )}
+
+                {advanceFor === e.id && (
+                  <div className="mt-2 flex w-full flex-wrap items-end gap-2 rounded-xl border border-border bg-surface-muted/40 p-3">
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground">
+                        {labels.advanceAmount.replace("{c}", e.pay_currency)}
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        step="0.01"
+                        value={advanceAmount}
+                        onChange={(ev) => setAdvanceAmount(ev.target.value)}
+                        className={`${fieldClass} mt-1 max-w-32`}
+                        dir="ltr"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="min-w-32 flex-1">
+                      <label className="text-xs font-semibold text-muted-foreground">
+                        {labels.advanceNote}
+                      </label>
+                      <input
+                        value={advanceNote}
+                        onChange={(ev) => setAdvanceNote(ev.target.value)}
+                        placeholder={labels.advanceNotePlaceholder}
+                        className={`${fieldClass} mt-1`}
+                      />
+                    </div>
+                    <Button
+                      size="sm"
+                      loading={busy === e.id}
+                      disabled={!(Number(advanceAmount) > 0)}
+                      onClick={() => addAdvance(e.id, e.pay_currency)}
+                    >
+                      {labels.save}
+                    </Button>
+                  </div>
                 )}
 
                 {enrolCode?.id === e.id && (
