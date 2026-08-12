@@ -43,7 +43,7 @@ export default async function StoreHrPage({
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, owner_id, short_code, lat, lng")
+    .select("id, name, owner_id, short_code, lat, lng, clock_radius_m")
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
@@ -62,7 +62,7 @@ export default async function StoreHrPage({
       supabase
         .from("store_employees")
         .select(
-          "id, name, phone, job_title, pay_basis, pay_rate, pay_currency, id_number, residency_expires_on, status, pin_hash",
+          "id, name, phone, job_title, pay_basis, pay_rate, pay_currency, id_number, residency_expires_on, status, employee_devices(id, label, last_used_at)",
         )
         .eq("store_id", storeId)
         .eq("status", "active")
@@ -86,15 +86,13 @@ export default async function StoreHrPage({
     ((openShifts ?? []) as { employee_id: string }[]).map((r) => r.employee_id),
   );
 
-  // pin_hash never leaves the server — the screen only needs to know whether
-  // one exists, so it can say "set" or "change".
   const employees: Employee[] = (
-    (empData ?? []) as unknown as (Omit<Employee, "has_pin" | "on_shift"> & {
-      pin_hash: string | null;
+    (empData ?? []) as unknown as (Omit<Employee, "on_shift"> & {
+      employee_devices: Employee["devices"];
     })[]
-  ).map(({ pin_hash, ...e }) => ({
+  ).map(({ employee_devices, ...e }) => ({
     ...e,
-    has_pin: pin_hash != null,
+    devices: employee_devices ?? [],
     on_shift: onShift.has(e.id),
   }));
 
@@ -129,10 +127,12 @@ export default async function StoreHrPage({
             storeId={storeId}
             residencyCutoff={cutoff}
             clockLink={`${SITE_URL}/${lang}/clock/${(store as unknown as { short_code: string }).short_code}`}
+            clockRadius={
+              (store as unknown as { clock_radius_m: number }).clock_radius_m
+            }
             storeHasPin={
               (store as unknown as { lat: number | null }).lat != null
             }
-            clockHref={`/${lang}/merchant/${storeId}/hr/clock`}
             employees={employees}
             runs={runs}
             labels={{ ...t, error: dict.common.actionFailed, save: t.save }}

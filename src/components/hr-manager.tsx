@@ -6,7 +6,6 @@ import {
   UserPlus,
   LogIn,
   LogOut,
-  KeyRound,
   Wallet,
   Calculator,
   CheckCircle2,
@@ -32,8 +31,8 @@ export type Employee = {
   id_number: string | null;
   residency_expires_on: string | null;
   status: string;
-  has_pin: boolean;
   on_shift: boolean;
+  devices?: { id: string; label: string | null; last_used_at: string | null }[];
 };
 
 export type PayrollLine = {
@@ -72,19 +71,19 @@ function money(n: number, c: string) {
 // 6am: the whole job is "who is here, who took money, what do I owe".
 export function HrManager({
   storeId,
-  clockHref,
   clockLink,
   storeHasPin,
+  clockRadius,
   residencyCutoff,
   employees,
   runs,
   labels,
 }: {
   storeId: string;
-  clockHref: string;
   /** Public link the employee opens on their own phone. */
   clockLink: string;
   storeHasPin: boolean;
+  clockRadius: number;
   /** ISO date 30 days out, computed on the server — reading the clock during
    *  render is impure and React rightly refuses it. */
   residencyCutoff: string;
@@ -102,6 +101,7 @@ export function HrManager({
   const [enrolCode, setEnrolCode] = useState<{ id: string; code: string } | null>(
     null,
   );
+  const [radius, setRadius] = useState(String(clockRadius));
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -150,6 +150,43 @@ export function HrManager({
       pay_currency: "USD",
     });
     setAdding(false);
+    router.refresh();
+  }
+
+  async function unlinkDevice(deviceId: string, name: string) {
+    const ok = await confirm({
+      message: labels.unlinkConfirm.replace("{n}", name),
+      confirmLabel: labels.unlink,
+      cancelLabel: labels.postNo,
+      danger: true,
+    });
+    if (!ok) return;
+    setBusy(deviceId);
+    const { error } = await createClient()
+      .from("employee_devices")
+      .delete()
+      .eq("id", deviceId);
+    setBusy(null);
+    if (error) {
+      notifyError(labels.error);
+      return;
+    }
+    notifySuccess(labels.unlinked);
+    router.refresh();
+  }
+
+  async function saveRadius() {
+    setBusy("radius");
+    const { error } = await createClient()
+      .from("stores")
+      .update({ clock_radius_m: Math.max(20, Math.min(2000, Number(radius) || 150)) })
+      .eq("id", storeId);
+    setBusy(null);
+    if (error) {
+      notifyError(labels.error);
+      return;
+    }
+    notifySuccess(labels.radiusSaved);
     router.refresh();
   }
 
@@ -244,25 +281,6 @@ export function HrManager({
     router.refresh();
   }
 
-  async function setPin(employeeId: string) {
-    const pin = window.prompt(labels.pinPrompt);
-    if (pin === null) return;
-    setBusy(employeeId);
-    const { error } = await createClient().rpc("set_employee_pin", {
-      p_employee_id: employeeId,
-      p_pin: pin.trim(),
-    });
-    setBusy(null);
-    if (error) {
-      notifyError(
-        (error.message ?? "").includes("bad_pin") ? labels.pinBad : labels.error,
-      );
-      return;
-    }
-    notifySuccess(labels.pinSaved);
-    router.refresh();
-  }
-
   async function addAdvance(employeeId: string, currency: string) {
     const raw = window.prompt(labels.advancePrompt);
     if (raw === null) return;
@@ -333,12 +351,6 @@ export function HrManager({
           <span className="flex items-center gap-2">
             {/* The tablet by the door. Only useful once someone has a PIN, so it
                 is a quiet link rather than a headline button. */}
-            <a
-              href={clockHref}
-              className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold transition-colors hover:border-primary hover:text-primary"
-            >
-              {labels.kioskTitle}
-            </a>
             <Button size="sm" variant="outline" onClick={() => setAdding((v) => !v)}>
               <UserPlus className="h-4 w-4" />
               {labels.addEmployee}
@@ -358,6 +370,35 @@ export function HrManager({
             {clockLink}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">{labels.linkHint}</p>
+          <div className="mt-2 flex flex-wrap items-end gap-2">
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">
+                {labels.radius}
+              </label>
+              <input
+                type="number"
+                min="20"
+                max="2000"
+                step="10"
+                value={radius}
+                onChange={(ev) => setRadius(ev.target.value)}
+                className={`${fieldClass} mt-1 max-w-28`}
+                dir="ltr"
+              />
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={saveRadius}
+              loading={busy === "radius"}
+            >
+              {labels.save}
+            </Button>
+            <span className="pb-2 text-xs text-muted-foreground">
+              {labels.radiusHint}
+            </span>
+          </div>
+
           {!storeHasPin && (
             <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-warning-soft px-3 py-2 text-xs font-bold text-warning">
               <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
@@ -492,19 +533,12 @@ export function HrManager({
                   size="sm"
                   variant="outline"
                   disabled={busy === e.id}
-                  onClick={() => setPin(e.id)}
-                >
-                  <KeyRound className="h-4 w-4" />
-                  {e.has_pin ? labels.pinChange : labels.pinSet}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={busy === e.id}
                   onClick={() => makeEnrolCode(e.id)}
                 >
                   <Smartphone className="h-4 w-4" />
-                  {labels.linkPhone}
+                  {(e.devices?.length ?? 0) > 0
+                    ? labels.linkAnother
+                    : labels.linkPhone}
                 </Button>
                 <Button
                   size="sm"
@@ -517,6 +551,38 @@ export function HrManager({
                   <Pencil className="h-4 w-4" />
                   {labels.edit}
                 </Button>
+
+                {/* A lost phone has to be removable, or a stolen one clocks in
+                    forever. Ending employment already blocks the punch; this is
+                    for the phone that goes missing while someone still works
+                    here. */}
+                {(e.devices?.length ?? 0) > 0 && (
+                  <ul className="mt-1 w-full space-y-1">
+                    {e.devices!.map((d) => (
+                      <li
+                        key={d.id}
+                        className="flex items-center justify-between gap-2 rounded-lg bg-surface-muted/50 px-2.5 py-1.5 text-xs"
+                      >
+                        <span className="truncate text-muted-foreground">
+                          <Smartphone className="me-1 inline h-3 w-3" />
+                          {d.label?.slice(0, 40) ?? labels.aPhone}
+                          {d.last_used_at && (
+                            <span className="ms-1">
+                              · {d.last_used_at.slice(0, 10)}
+                            </span>
+                          )}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => unlinkDevice(d.id, e.name)}
+                          className="shrink-0 font-bold text-danger hover:underline"
+                        >
+                          {labels.unlink}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
 
                 {enrolCode?.id === e.id && (
                   <div className="mt-2 w-full rounded-xl border border-primary/30 bg-primary-soft p-3 text-center">
