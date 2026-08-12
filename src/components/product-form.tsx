@@ -310,6 +310,12 @@ export function ProductForm({
         />
       )}
 
+      <div aria-hidden className="flex items-center gap-3 pt-3">
+        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          {p.secPhotos}
+        </span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
       <ImageUpload
         folder={storeId}
         value={imageUrl}
@@ -354,6 +360,12 @@ export function ProductForm({
         </div>
       </div>
 
+      <div aria-hidden className="flex items-center gap-3 pt-3">
+        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          {p.secBasics}
+        </span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
       <div>
         <label className={label} htmlFor="name">
           {p.name}
@@ -392,6 +404,12 @@ export function ProductForm({
           </select>
         </div>
       )}
+      <div aria-hidden className="flex items-center gap-3 pt-3">
+        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          {p.secPricing}
+        </span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
       <div className={`grid gap-4 ${simple ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
         <div>
           <label className={label} htmlFor="price">
@@ -435,6 +453,12 @@ export function ProductForm({
         <textarea id="description" name="description" rows={2} placeholder={p.descriptionPlaceholder} className={field} />
       </div>
 
+      <div aria-hidden className="flex items-center gap-3 pt-3">
+        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          {p.secAdvanced}
+        </span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
       {/* Optional English overrides — shown to customers browsing in English. */}
       <div className="rounded-xl border border-border/70 p-4">
         <span className={label}>{p.englishOptional}</span>
