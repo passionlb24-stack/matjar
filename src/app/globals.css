@@ -92,6 +92,16 @@
 
   /* Signature easing — a gentle overshoot for entrances/hovers. */
   --ease-out-back: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ===== Mobile app metrics =====
+     Named once so sticky bars, sheets and page gutters stop guessing at each
+     other. --m-tabbar-h is the visible bar only; the safe-area inset is added
+     on top by the nav itself, so anything sitting above it must use both. */
+  --m-page-x: 1rem;
+  --m-header-h: 3.5rem;
+  --m-tabbar-h: 3.5rem;
+  --m-sticky-gap: 0.75rem;
+  --m-touch: 2.75rem;
 }
 
 /* Entrance motion. Add `data-animate` to a container and its direct children

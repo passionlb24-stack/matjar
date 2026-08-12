@@ -33,7 +33,26 @@
     "rateLimited": "Too many attempts in a short time. Please wait a moment and try again.",
     "back": "Back"
   },
+  "activity": {
+    "title": "My activity",
+    "subtitle": "Everything you started — orders, bookings, service requests and inquiries.",
+    "all": "All",
+    "orders": "Orders",
+    "bookings": "Bookings",
+    "crafts": "Service requests",
+    "leads": "Inquiries",
+    "kind_order": "Order",
+    "kind_booking": "Booking",
+    "kind_craft": "Service request",
+    "kind_lead": "Inquiry",
+    "needsYou": "Needs you",
+    "emptyTitle": "Nothing here yet",
+    "emptyBody": "Your first order or booking will show up here so you can follow it.",
+    "emptyCta": "Browse stores"
+  },
   "tabbar": {
+    "activity": "My activity",
+    "favorites": "Saved",
     "home": "Home",
     "explore": "Explore",
     "market": "Market",
