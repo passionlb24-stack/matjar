@@ -622,6 +622,7 @@
       "kioskIn": "Welcome — you are clocked in",
       "kioskOut": "Clocked out — see you tomorrow",
       "kioskBad": "Wrong PIN.",
+      "kioskLocked": "Too many wrong attempts. Wait 10 minutes or ask the owner to record it.",
       "kioskEmpty": "Nobody has a PIN yet. The owner sets them from the people screen."
     },
     "inventory": {

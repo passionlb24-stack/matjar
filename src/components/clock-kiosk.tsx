@@ -69,7 +69,17 @@ export function ClockKiosk({
       setMsg({ ok: false, text: labels.kioskBad });
       return;
     }
+    // A wrong PIN comes back as an outcome, not an exception: raising would roll
+    // back the failed-attempt row that the lockout counts (0259).
     const action = (data as { action?: string } | null)?.action;
+    if (action === "bad_pin") {
+      setMsg({ ok: false, text: labels.kioskBad });
+      return;
+    }
+    if (action === "locked") {
+      setMsg({ ok: false, text: labels.kioskLocked });
+      return;
+    }
     setMsg({
       ok: true,
       text: action === "out" ? labels.kioskOut : labels.kioskIn,
