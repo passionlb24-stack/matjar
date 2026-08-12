@@ -35,6 +35,7 @@ import { ProductMiniCard } from "@/components/product-mini-card";
 import { Container } from "@/components/ui/container";
 import { ProductGallery } from "@/components/product-gallery";
 import { ProductOrder } from "@/components/product-order";
+import { ProductBuyBar } from "@/components/product-buy-bar";
 import { WishlistButton } from "@/components/wishlist-button";
 import { ShareButton } from "@/components/share-button";
 import { ProductStoryCard } from "@/components/product-story-card";
@@ -346,7 +347,10 @@ export default async function ProductPage({
               </div>
             )}
 
-            <div className="mt-6 rounded-2xl border border-border bg-surface p-5">
+            <div
+              id="buy-box"
+              className="mt-6 rounded-2xl border border-border bg-surface p-5"
+            >
               {isBooking ? (
                 /* A service page used to dead-end on a bare "visit store" link:
                    no idea what happens next, and the customer landed at the top
@@ -471,6 +475,19 @@ export default async function ProductPage({
               ))}
             </div>
           </section>
+        )}
+
+        {/* Mobile: the price and CTA follow the thumb once the buy box
+            scrolls away. Booking products keep their own deep-link CTA. */}
+        {!isBooking && (
+          <ProductBuyBar
+            targetId="buy-box"
+            price={formatPrice(basePrice)}
+            compareAt={compareAt != null ? formatPrice(compareAt) : null}
+            label={dict.product.backToBuy}
+            soldOut={soldOut}
+            soldOutLabel={dict.product.outOfStock}
+          />
         )}
 
         <ProductReviews
