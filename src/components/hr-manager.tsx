@@ -11,6 +11,9 @@ import {
   Calculator,
   CheckCircle2,
   Pencil,
+  Smartphone,
+  Link2,
+  AlertTriangle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { notifyError, notifySuccess } from "@/lib/notify";
@@ -70,6 +73,8 @@ function money(n: number, c: string) {
 export function HrManager({
   storeId,
   clockHref,
+  clockLink,
+  storeHasPin,
   residencyCutoff,
   employees,
   runs,
@@ -77,6 +82,9 @@ export function HrManager({
 }: {
   storeId: string;
   clockHref: string;
+  /** Public link the employee opens on their own phone. */
+  clockLink: string;
+  storeHasPin: boolean;
   /** ISO date 30 days out, computed on the server — reading the clock during
    *  render is impure and React rightly refuses it. */
   residencyCutoff: string;
@@ -89,6 +97,11 @@ export function HrManager({
   const [busy, setBusy] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Employee | null>(null);
+  // The six digits are shown once and not stored anywhere readable, so they live
+  // in component state until the owner has read them out.
+  const [enrolCode, setEnrolCode] = useState<{ id: string; code: string } | null>(
+    null,
+  );
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -138,6 +151,22 @@ export function HrManager({
     });
     setAdding(false);
     router.refresh();
+  }
+
+  // One phone, one person. The code is single-use and dies in ten minutes, so
+  // the owner reads it out while the person is standing there rather than
+  // sending it ahead.
+  async function makeEnrolCode(employeeId: string) {
+    setBusy(employeeId);
+    const { data, error } = await createClient().rpc("create_enrolment_code", {
+      p_employee_id: employeeId,
+    });
+    setBusy(null);
+    if (error || !data) {
+      notifyError(labels.error);
+      return;
+    }
+    setEnrolCode({ id: employeeId, code: String(data) });
   }
 
   // Everything about a person changes: rates go up, papers get renewed, people
@@ -317,6 +346,26 @@ export function HrManager({
           </span>
         </div>
 
+        {/* The link that makes any of this reachable. Without a pin on the map
+            the punch is refused server-side, so say that here rather than let
+            the owner discover it from a confused employee. */}
+        <div className="mt-3 rounded-xl border border-border bg-surface-muted/40 p-3">
+          <p className="flex items-center gap-1.5 text-xs font-bold">
+            <Link2 className="h-3.5 w-3.5 text-primary" />
+            {labels.linkTitle}
+          </p>
+          <p className="mt-1 break-all font-mono text-sm text-primary" dir="ltr">
+            {clockLink}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">{labels.linkHint}</p>
+          {!storeHasPin && (
+            <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-warning-soft px-3 py-2 text-xs font-bold text-warning">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              {labels.needStorePin}
+            </p>
+          )}
+        </div>
+
         {adding && (
           <div className="mt-4 grid gap-2 rounded-xl border border-border bg-surface-muted/40 p-3 sm:grid-cols-2">
             <input
@@ -452,6 +501,15 @@ export function HrManager({
                   size="sm"
                   variant="outline"
                   disabled={busy === e.id}
+                  onClick={() => makeEnrolCode(e.id)}
+                >
+                  <Smartphone className="h-4 w-4" />
+                  {labels.linkPhone}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={busy === e.id}
                   onClick={() =>
                     setEditing(editing?.id === e.id ? null : { ...e })
                   }
@@ -459,6 +517,23 @@ export function HrManager({
                   <Pencil className="h-4 w-4" />
                   {labels.edit}
                 </Button>
+
+                {enrolCode?.id === e.id && (
+                  <div className="mt-2 w-full rounded-xl border border-primary/30 bg-primary-soft p-3 text-center">
+                    <p className="text-xs font-semibold text-primary">
+                      {labels.codeFor.replace("{n}", e.name)}
+                    </p>
+                    <p
+                      className="mt-1 text-3xl font-extrabold tracking-[0.3em] text-primary"
+                      dir="ltr"
+                    >
+                      {enrolCode.code}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {labels.codeHint}
+                    </p>
+                  </div>
+                )}
 
                 {editing?.id === e.id && (
                   <div className="mt-2 grid w-full gap-2 rounded-xl border border-border bg-surface-muted/40 p-3 sm:grid-cols-2">

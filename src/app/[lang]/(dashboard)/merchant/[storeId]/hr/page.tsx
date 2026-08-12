@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isBusiness } from "@/lib/plan";
 import { getStorePlan } from "@/lib/plan-server";
 import { ProGate } from "@/components/pro-gate";
+import { SITE_URL } from "@/lib/site";
 import { Container } from "@/components/ui/container";
 import {
   HrManager,
@@ -42,7 +43,7 @@ export default async function StoreHrPage({
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, owner_id")
+    .select("id, name, owner_id, short_code, lat, lng")
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
@@ -127,6 +128,10 @@ export default async function StoreHrPage({
           <HrManager
             storeId={storeId}
             residencyCutoff={cutoff}
+            clockLink={`${SITE_URL}/${lang}/clock/${(store as unknown as { short_code: string }).short_code}`}
+            storeHasPin={
+              (store as unknown as { lat: number | null }).lat != null
+            }
             clockHref={`/${lang}/merchant/${storeId}/hr/clock`}
             employees={employees}
             runs={runs}
