@@ -989,35 +989,73 @@ export function StoreProducts({
             onSubmit={confirmOrder}
             className="mt-6 space-y-4 rounded-2xl border border-border bg-surface p-5 shadow-sm"
           >
-            {/* Coupon */}
+            {/* What is being ordered — before anything asks for input. The
+                customer is about to hand over money for a list they could no
+                longer see; every line links back to the cart via one button
+                instead of trusting memory. */}
             <div>
-              <div className="flex gap-2">
-                <input
-                  value={couponInput}
-                  onChange={(e) => setCouponInput(e.target.value)}
-                  placeholder={dict.store.couponCode}
-                  className={`${fieldClass} mt-0 flex-1 uppercase`}
-                />
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold">
+                  {dict.store.yourOrder}
+                </span>
                 <button
                   type="button"
-                  onClick={applyCoupon}
-                  disabled={couponBusy || !couponInput.trim()}
-                  className="shrink-0 rounded-xl border border-border px-4 py-2.5 text-sm font-bold transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
+                  onClick={() => setCheckingOut(false)}
+                  className="text-sm font-semibold text-primary hover:underline"
                 >
-                  {dict.store.couponApply}
+                  {dict.store.editOrder}
                 </button>
               </div>
-              {couponMsg && (
-                <p className="mt-1 text-sm font-medium text-danger">
-                  {couponMsg}
-                </p>
-              )}
-              {appliedCode && (
-                <p className="mt-1 text-sm font-semibold text-primary">
-                  {appliedCode} ✓
-                </p>
-              )}
+              <ul className="mt-2 space-y-1.5">
+                {items.map((p) => (
+                  <li
+                    key={p.id}
+                    className="flex items-baseline justify-between gap-3 text-sm"
+                  >
+                    <span className="min-w-0 truncate">
+                      <span className="font-semibold">{p.name}</span>
+                      <span className="ms-1.5 text-muted-foreground" dir="ltr">
+                        ×{cart[p.id]}
+                      </span>
+                    </span>
+                    <span className="shrink-0 tabular-nums text-muted-foreground">
+                      {formatPrice(effectivePrice(p) * cart[p.id])}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
+
+            {/* Coupon — most orders have none, so it is a folded question
+                rather than the first field on the page. */}
+            <details className="group rounded-xl border border-border">
+              <summary className="cursor-pointer select-none px-4 py-3 text-sm font-semibold text-muted-foreground transition-colors group-open:text-foreground hover:text-foreground">
+                {appliedCode ? `${appliedCode} ✓` : dict.store.haveCoupon}
+              </summary>
+              <div className="px-4 pb-4">
+                <div className="flex gap-2">
+                  <input
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value)}
+                    placeholder={dict.store.couponCode}
+                    className={`${fieldClass} mt-0 flex-1 uppercase`}
+                  />
+                  <button
+                    type="button"
+                    onClick={applyCoupon}
+                    disabled={couponBusy || !couponInput.trim()}
+                    className="shrink-0 rounded-xl border border-border px-4 py-2.5 text-sm font-bold transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
+                  >
+                    {dict.store.couponApply}
+                  </button>
+                </div>
+                {couponMsg && (
+                  <p className="mt-1 text-sm font-medium text-danger">
+                    {couponMsg}
+                  </p>
+                )}
+              </div>
+            </details>
 
             {/* Loyalty points redemption (store opt-in + customer has points) */}
             {canRedeem && (
@@ -1456,10 +1494,13 @@ export function StoreProducts({
           <div className="sticky bottom-4 mt-6 flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface p-4 shadow-lg">
             <div>
               <p className="text-sm text-muted-foreground">
-                {dict.store.yourOrder}
+                {dict.store.itemsInCart.replace(
+                  "{n}",
+                  String(items.reduce((n, p) => n + cart[p.id], 0)),
+                )}
               </p>
-              <p className="text-lg font-extrabold">
-                {dict.store.total}: {formatPrice(total)}
+              <p className="text-lg font-extrabold tabular-nums">
+                {formatPrice(total)}
               </p>
             </div>
             <div className="flex items-center gap-2">
