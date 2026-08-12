@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, Printer, Search } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { OrderStatusControl } from "@/components/order-status-control";
 import { OrderPayments, type OrderPayment } from "@/components/order-payments";
@@ -342,8 +343,10 @@ export function OrdersFilter({
           })}
         </div>
       ) : (
-        <div className="mt-6 rounded-2xl border border-dashed border-border py-10 sm:py-16 text-center text-muted-foreground">
-          {dict.orders.filter.noMatch}
+        <div className="mt-6">
+          {/* The house empty state, not a bare dashed box — and it offers the
+              one useful next step: clear the filters that produced nothing. */}
+          <EmptyState icon={Search} title={dict.orders.filter.noMatch} />
         </div>
       )}
     </>
