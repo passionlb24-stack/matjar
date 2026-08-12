@@ -365,6 +365,17 @@ select:focus-visible,
     transform: translateY(-12px);
   }
 }
+/* One short pop for a number that just changed (cart count, totals).
+   Feedback, not decoration: the tap that changed it may be a screen away. */
+@keyframes matjar-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.animate-pop {
+  animation: matjar-pop 0.3s var(--ease-out-back);
+}
+
 .animate-float {
   animation: matjar-float 6s ease-in-out infinite;
 }

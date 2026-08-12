@@ -1493,13 +1493,13 @@ export function StoreProducts({
         ) : (
           <div className="sticky bottom-4 mt-6 flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface p-4 shadow-lg">
             <div>
-              <p className="text-sm text-muted-foreground">
+              <p aria-live="polite" className="text-sm text-muted-foreground">
                 {dict.store.itemsInCart.replace(
                   "{n}",
                   String(items.reduce((n, p) => n + cart[p.id], 0)),
                 )}
               </p>
-              <p className="text-lg font-extrabold tabular-nums">
+              <p key={total} className="animate-pop text-lg font-extrabold tabular-nums">
                 {formatPrice(total)}
               </p>
             </div>
