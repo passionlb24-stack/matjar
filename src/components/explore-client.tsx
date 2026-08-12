@@ -10,9 +10,11 @@ import {
   Clock,
   DoorOpen,
   Package,
+  SlidersHorizontal,
   type LucideIcon,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import {
   groupKeys,
@@ -82,6 +84,7 @@ export function ExploreClient({
   const [region, setRegion] = useState<RegionKey | "all">(initialRegion);
   const [query, setQuery] = useState(initialQuery ?? "");
   const [sortMode, setSortMode] = useState<SortMode>("recommended");
+  const [sheet, setSheet] = useState(false);
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(
     null,
   );
@@ -171,6 +174,9 @@ export function ExploreClient({
     }
     setSortMode(mode);
   }
+
+  const activeFilters =
+    (region !== "all" ? 1 : 0) + (sortMode !== "recommended" ? 1 : 0);
 
   const sortOptions: { key: SortMode; label: string; Icon: LucideIcon }[] = [
     { key: "recommended", label: dict.sort.recommended, Icon: Sparkles },
@@ -262,13 +268,16 @@ export function ExploreClient({
       </div>
 
       <Container className="py-8">
-        <div className="flex flex-wrap gap-2">
+        {/* One row that scrolls on a phone, the wrapped grid on desktop. Nine
+            categories wrapping into three rows pushes the results a whole
+            screen down — the thing the customer came for. */}
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden">
           <button
             onClick={() => {
               setGroup("all");
               setCategory("all");
             }}
-            className={`rounded-full border px-4 py-2 text-sm font-semibold transition-all ${chipClass(group === "all" && category === "all")}`}
+            className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-all ${chipClass(group === "all" && category === "all")}`}
           >
             {dict.explore.allCategories}
           </button>
@@ -281,7 +290,7 @@ export function ExploreClient({
                   setGroup(g);
                   setCategory("all");
                 }}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition-all ${chipClass(group === g)}`}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition-all ${chipClass(group === g)}`}
               >
                 <GIcon className="h-4 w-4" />
                 {dict.groups[g].name}
@@ -290,7 +299,38 @@ export function ExploreClient({
           })}
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2">
+        {/* Phones: one bar, one sheet. Region and sort are questions most
+            customers never answer, so they stop occupying two rows of the
+            screen and become a button that says how many are active. */}
+        <div className="mt-3 flex items-center gap-2 lg:hidden">
+          <button
+            type="button"
+            onClick={() => setSheet(true)}
+            className={`inline-flex h-11 items-center gap-2 rounded-full border px-4 text-sm font-bold transition-colors ${chipClass(activeFilters > 0)}`}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            {dict.explore.filters}
+            {activeFilters > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs text-primary-foreground tabular-nums">
+                {activeFilters}
+              </span>
+            )}
+          </button>
+          {activeFilters > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setRegion("all");
+                setSortMode("recommended");
+              }}
+              className="h-11 px-2 text-sm font-semibold text-muted-foreground underline"
+            >
+              {dict.explore.clearFilters}
+            </button>
+          )}
+        </div>
+
+        <div className="mt-3 hidden flex-wrap gap-2 lg:flex">
           <button
             onClick={() => setRegion("all")}
             className={`rounded-full border px-3.5 py-1.5 text-sm transition-colors ${chipClass(region === "all")}`}
@@ -308,7 +348,7 @@ export function ExploreClient({
           ))}
         </div>
 
-        <div className="mt-5">
+        <div className="mt-5 hidden lg:block">
           <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {dict.sort.label}
           </div>
@@ -388,6 +428,81 @@ export function ExploreClient({
             {dict.explore.empty}
           </div>
         )}
+
+      {/* Phones only: the filters the bar hides. Region and sort are radio
+          choices, so each selection closes the sheet — an Apply button for a
+          single-choice list is a second tap for nothing. */}
+      <BottomSheet
+        open={sheet}
+        onClose={() => setSheet(false)}
+        title={dict.explore.filters}
+      >
+        <div className="pb-2">
+          <p className="text-label text-muted-foreground">
+            {dict.explore.allRegions}
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setRegion("all");
+                setSheet(false);
+              }}
+              className={`h-11 rounded-full border px-4 text-sm font-semibold transition-colors ${chipClass(region === "all")}`}
+            >
+              {dict.explore.allRegions}
+            </button>
+            {regions.map((r) => (
+              <button
+                key={r.key}
+                type="button"
+                onClick={() => {
+                  setRegion(r.key);
+                  setSheet(false);
+                }}
+                className={`h-11 rounded-full border px-4 text-sm font-semibold transition-colors ${chipClass(region === r.key)}`}
+              >
+                {r.name[lang]}
+              </button>
+            ))}
+          </div>
+
+          <p className="mt-5 text-label text-muted-foreground">
+            {dict.sort.label}
+          </p>
+          <div className="mt-2 flex flex-col gap-2">
+            {sortOptions.map(({ key, label, Icon }) => {
+              const active = sortMode === key;
+              const isLocating = key === "nearest" && locating;
+              const ChipIcon = isLocating ? Loader2 : Icon;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  disabled={isLocating}
+                  aria-pressed={active}
+                  onClick={() => {
+                    selectSort(key);
+                    // "Nearest" asks the browser for a location; keep the
+                    // sheet open so its spinner and any refusal are visible
+                    // where the tap happened.
+                    if (key !== "nearest") setSheet(false);
+                  }}
+                  className={`flex h-12 items-center gap-2 rounded-xl border px-4 text-sm font-semibold transition-colors disabled:opacity-60 ${chipClass(active)}`}
+                >
+                  <ChipIcon
+                    className={`h-4 w-4 ${isLocating ? "animate-spin" : ""}`}
+                  />
+                  {isLocating ? dict.explore.locating : label}
+                </button>
+              );
+            })}
+          </div>
+          {geoError && (
+            <p className="mt-2 text-sm font-medium text-danger">{geoError}</p>
+          )}
+        </div>
+      </BottomSheet>
       </Container>
     </div>
   );

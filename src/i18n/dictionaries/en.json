@@ -1263,6 +1263,8 @@
     "matchingProducts": "Matching products",
     "allCategories": "All categories",
     "allRegions": "All regions",
+    "filters": "Filters",
+    "clearFilters": "Clear",
     "results": "stores",
     "empty": "No matching results. Try a different filter.",
     "nearest": "Nearest to you",

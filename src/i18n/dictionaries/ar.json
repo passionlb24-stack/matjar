@@ -1263,6 +1263,8 @@
     "matchingProducts": "منتجات مطابقة",
     "allCategories": "كل التصنيفات",
     "allRegions": "كل المناطق",
+    "filters": "فلترة",
+    "clearFilters": "مسح",
     "results": "متجر",
     "empty": "ما في نتائج مطابقة. جرّب فلتر تاني.",
     "nearest": "الأقرب إليك",

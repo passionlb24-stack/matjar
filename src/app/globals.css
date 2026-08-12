@@ -386,6 +386,16 @@ select:focus-visible,
   animation: matjar-pop 0.3s var(--ease-out-back);
 }
 
+/* Bottom sheets rise from the edge they belong to. Short, because a sheet
+   that takes 400ms to arrive feels like a page load, not a surface. */
+@keyframes matjar-sheet {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+.animate-sheet {
+  animation: matjar-sheet 0.22s var(--ease-out-back);
+}
+
 .animate-float {
   animation: matjar-float 6s ease-in-out infinite;
 }
