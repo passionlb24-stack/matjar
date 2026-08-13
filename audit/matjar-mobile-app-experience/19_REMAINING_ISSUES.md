@@ -32,3 +32,34 @@
 | Crafts discovery | 0 live craft providers |
 
 These are content gaps, not code gaps. Building the UI first would ship convincing-looking empty screens.
+
+---
+
+## Two items deliberately NOT done, with reasons
+
+### M-012 — staged checkout
+
+The obvious implementation is one `<form>` with stages hidden by CSS, so
+`FormData` still collects every field and nothing unmounts. That breaks on the
+first submit: this form carries five `required` inputs, and a browser asked to
+report validity on a `display:none` required control throws *"An invalid form
+control is not focusable"* and refuses to submit — silently, from the user’s
+point of view.
+
+Doing it properly means moving validation out of the browser and into the
+component, which is a real change to the order-submit path. Weighed against
+what checkout already does — recap first, fees before the final screen, coupon
+folded, data preserved on error — the remaining gain is ordering, and the
+remaining risk is orders that do not place. Not a trade worth taking at the
+end of a long session on live software.
+
+### M-017 — splitting checkout out of store-products.tsx
+
+Real (1,500 lines of client code on a customer path), but the split means
+relocating interdependent state — cart, coupon, loyalty, zones, custom fields,
+the idempotency key — across a component boundary on the money path. And the
+benefit cannot be measured here: this Next version does not print per-route
+First Load JS in the current configuration, so the win would be asserted, not
+shown.
+
+Do it when a bundle analyser is wired up and the number is visible, not before.
