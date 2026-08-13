@@ -5,6 +5,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { getBestSellers } from "@/lib/data/best-sellers";
 import { localized } from "@/lib/i18n-field";
+import { railOnlyIfEnough } from "@/lib/rail";
 import { Container } from "@/components/ui/container";
 
 function formatPrice(price: number) {
@@ -23,30 +24,40 @@ export async function BestSellersTeaser({
   if (products.length === 0) return null;
 
   return (
-    <section className="bg-surface-muted/40 py-10 sm:py-16">
+    <section
+      // Two best sellers do not make a rail; on phones the section stands down
+      // rather than scroll-teasing a row that ends immediately.
+      className={`bg-surface-muted/40 py-10 sm:py-16 ${railOnlyIfEnough(products.length)}`}
+    >
       <Container>
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>
-            <h2 className="flex items-center gap-2 text-3xl font-extrabold tracking-tight">
+            <h2 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
               <Flame className="h-7 w-7 text-primary" />
               {dict.bestSellers.title}
             </h2>
             <p className="mt-2 text-muted-foreground">{dict.bestSellers.subtitle}</p>
           </div>
+          {/* A rail the customer can only scroll is a dead end without this —
+              so the link is no longer desktop-only. */}
           <Link
             href={`/${lang}/best-sellers`}
-            className="hidden whitespace-nowrap rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold transition-colors hover:border-primary hover:text-primary sm:block"
+            className="shrink-0 whitespace-nowrap rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
           >
             {dict.featured.viewAll}
           </Link>
         </div>
 
-        <div data-animate className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {/* Rail on phones, the four-up grid from `lg`. */}
+        <div
+          data-animate
+          className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-4 lg:overflow-visible lg:px-0 lg:pb-0 [&::-webkit-scrollbar]:hidden"
+        >
           {products.map((p, i) => (
             <Link
               key={p.id}
               href={`/${lang}/product/${p.id}`}
-              className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md"
+              className="group flex w-42 shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md lg:w-auto"
             >
               <div className="relative overflow-hidden">
                 {p.imageUrl ? (

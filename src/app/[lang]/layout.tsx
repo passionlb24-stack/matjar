@@ -8,6 +8,7 @@ import { isLocale, locales, localeDirection } from "@/i18n/config";
 import { SITE_URL } from "@/lib/site";
 import { NativeBridge } from "@/components/native-bridge";
 import { ConfirmProvider } from "@/components/ui/confirm-dialog";
+import { SwRegister } from "@/components/sw-register";
 
 // Tajawal — a modern, premium typeface that covers Arabic and Latin.
 const tajawal = Tajawal({
@@ -110,6 +111,7 @@ export default async function RootLayout({
           />
         </noscript>
         <ConfirmProvider>{children}</ConfirmProvider>
+        <SwRegister />
         <NativeBridge />
         <Analytics />
       </body>

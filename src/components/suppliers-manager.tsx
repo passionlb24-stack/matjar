@@ -11,6 +11,7 @@ import {
   BanknoteArrowDown,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { waLink } from "@/lib/phone";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -36,7 +37,7 @@ function fmt(n: number) {
 }
 
 function waHref(phone: string) {
-  return `https://wa.me/${phone.replace(/[^0-9]/g, "")}`;
+  return waLink(phone) ?? `tel:${phone}`;
 }
 
 // Suppliers module of the Business OS: who supplies you, and the running

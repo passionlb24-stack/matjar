@@ -14,6 +14,10 @@ import {
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import { OS_MODULE_META, type OsModuleKey } from "@/lib/sectors";
+import {
+  MerchantTabBar,
+  type MerchantTab,
+} from "@/components/merchant-tab-bar";
 
 // ===== Matjar Business OS — persistent sidebar =====
 // The Shopify-grade shell around every store page. Desktop: a sticky rail on
@@ -101,6 +105,7 @@ export function MerchantSidebar({
   trialDaysLeft = 0,
   slug,
   nav,
+  tabs,
 }: {
   lang: Locale;
   storeId: string;
@@ -110,6 +115,8 @@ export function MerchantSidebar({
   trialDaysLeft?: number;
   slug: string | null;
   nav: SidebarNav;
+  /** Phone tab bar, derived from the sector in the layout. Empty = none. */
+  tabs?: MerchantTab[];
 }) {
   // During an active trial the plan is "pro" (unlocked), but say so explicitly
   // so the merchant knows it's temporary and counting down.
@@ -285,6 +292,16 @@ export function MerchantSidebar({
           <ExternalLink className="h-4 w-4" aria-hidden />
         </Link>
       </div>
+
+      {/* Phone primary navigation. The drawer below is no longer how a
+          merchant reaches their orders — it is where the long tail lives. */}
+      {tabs && tabs.length > 0 && (
+        <MerchantTabBar
+          tabs={tabs}
+          onMore={() => setOpen(true)}
+          moreLabel={nav.backLabel}
+        />
+      )}
 
       {/* Mobile drawer — always mounted so it can slide, inert when closed.
           overflow-hidden clips the off-canvas panel (translated a full width

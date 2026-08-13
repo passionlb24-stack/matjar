@@ -7,6 +7,10 @@ import { getUsdLbpRate } from "@/lib/data/settings";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { BottomNav } from "@/components/bottom-nav";
+import {
+  getCustomerActivity,
+  countNeedingCustomer,
+} from "@/lib/data/activity";
 import { LogoutButton } from "@/components/logout-button";
 
 // Shared chrome (header + footer) for all public marketing/browse pages.
@@ -31,11 +35,15 @@ export default async function SiteLayout({
   const displayName =
     (user?.user_metadata?.full_name as string | undefined) ?? user?.email ?? "";
 
-  let unread = 0;
+  // Badge on the طلباتي tab: only what the customer must act on. Computed
+  // here because the tab bar lives in this layout and every page renders it.
+  let activityCount = 0;
+  let unread = 0;
   let unreadMessages = 0;
   let dashboardHref: string | null = null;
   let suspended = false;
   if (user) {
+    activityCount = countNeedingCustomer(await getCustomerActivity(lang));
     const { data: profile } = await supabase
       .from("profiles")
       .select("role, is_active")
@@ -94,6 +102,7 @@ export default async function SiteLayout({
         lang={lang}
         dict={dictSlice(dict, ["tabbar"])}
         signedIn={!!user}
+        activityCount={activityCount}
       />
     </>
   );

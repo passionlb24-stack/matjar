@@ -2,6 +2,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { getRestaurants } from "@/lib/data/home";
 import { StoreRail } from "@/components/store-rail";
+import { railOnlyIfEnough } from "@/lib/rail";
 
 // "Restaurants near you" — food-category stores in a rail. Streams inside its
 // own <Suspense> on the homepage; renders nothing if there are no food stores
@@ -18,6 +19,8 @@ export async function RestaurantsRail({
 
   return (
     <StoreRail
+      // One or two restaurants is not a "restaurants near you" row on a phone.
+      className={railOnlyIfEnough(stores.length)}
       stores={stores}
       lang={lang}
       dict={dict}

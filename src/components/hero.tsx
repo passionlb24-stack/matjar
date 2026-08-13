@@ -105,7 +105,14 @@ export function Hero({
             {t.subtitle}
           </p>
 
-          <HeroSearch lang={lang} dict={dictSlice(dict, ["hero"])} popular={popular} />
+          {/* Phones already carry a search entry in the sticky header, which
+              opens a full-screen field with the customer's own history. A
+              second box here is the same destination twice on one screen, and
+              it is the taller of the two. Desktop has no such header field
+              above the fold, so it keeps this one. */}
+          <div className="hidden lg:block">
+            <HeroSearch lang={lang} dict={dictSlice(dict, ["hero"])} popular={popular} />
+          </div>
 
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
             <Link

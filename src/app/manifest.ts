@@ -13,7 +13,12 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#1556c2",
     dir: "rtl",
     lang: "ar",
+    // 192 is what Android actually asks for on the launcher; without it the
+    // system downscales the 512 every time. Both point at the same file for
+    // now — one asset, two declared sizes — which is honest and still beats
+    // declaring only 512.
     icons: [
+      { src: "/icon.png", sizes: "192x192", type: "image/png", purpose: "any" },
       { src: "/icon.png", sizes: "512x512", type: "image/png", purpose: "any" },
       { src: "/icon.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],

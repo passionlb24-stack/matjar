@@ -5,6 +5,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { getOffers } from "@/lib/data/offers";
 import { localized } from "@/lib/i18n-field";
+import { railOnlyIfEnough } from "@/lib/rail";
 import { Container } from "@/components/ui/container";
 
 function formatPrice(price: number) {
@@ -24,30 +25,38 @@ export async function OffersTeaser({
   if (offers.length === 0) return null;
 
   return (
-    <section className="py-10 sm:py-16">
+    <section
+      // Same floor as every other rail: under three offers there is no row.
+      className={`py-10 sm:py-16 ${railOnlyIfEnough(offers.length)}`}
+    >
       <Container>
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>
-            <h2 className="flex items-center gap-2 text-3xl font-extrabold tracking-tight">
+            <h2 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
               <Tag className="h-7 w-7 text-primary" />
               {dict.offers.title}
             </h2>
             <p className="mt-2 text-muted-foreground">{dict.offers.subtitle}</p>
           </div>
+          {/* Reachable on phones now that the row itself is finite. */}
           <Link
             href={`/${lang}/offers`}
-            className="hidden whitespace-nowrap rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold transition-colors hover:border-primary hover:text-primary sm:block"
+            className="shrink-0 whitespace-nowrap rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
           >
             {dict.featured.viewAll}
           </Link>
         </div>
 
-        <div data-animate className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {/* Rail on phones, the four-up grid from `lg`. */}
+        <div
+          data-animate
+          className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-4 lg:overflow-visible lg:px-0 lg:pb-0 [&::-webkit-scrollbar]:hidden"
+        >
           {offers.map((p) => (
             <Link
               key={p.id}
               href={`/${lang}/product/${p.id}`}
-              className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md"
+              className="group flex w-42 shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md lg:w-auto"
             >
               <div className="relative overflow-hidden">
                 {p.imageUrl ? (

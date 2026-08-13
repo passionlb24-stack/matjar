@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#fbfbf9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)" />
+    <title>ما في إنترنت · متجر</title>
+    <style>
+      /* Deliberately self-contained: this page is shown precisely when the
+         network is gone, so it cannot fetch a stylesheet or a font. The colours
+         are the Matjar tokens written out literally, light and dark. */
+      :root {
+        --bg: #fbfbf9;
+        --fg: #0b1620;
+        --muted: #5d6b72;
+        --surface: #ffffff;
+        --border: #e8e8e2;
+        --primary: #1556c2;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0d1117;
+          --fg: #e6edf3;
+          --muted: #9198a1;
+          --surface: #161b22;
+          --border: #2a3038;
+          --primary: #4c8dff;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 1.5rem;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: system-ui, "Segoe UI", Tahoma, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .card {
+        width: 100%;
+        max-width: 22rem;
+        text-align: center;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 1.25rem;
+        padding: 2rem 1.5rem;
+      }
+      img { width: 56px; height: 56px; border-radius: 14px; }
+      h1 { margin: 1rem 0 0; font-size: 1.25rem; line-height: 1.4; }
+      p { margin: 0.5rem 0 0; font-size: 0.9375rem; line-height: 1.7; color: var(--muted); }
+      button {
+        margin-top: 1.5rem;
+        width: 100%;
+        height: 2.75rem;
+        border: 0;
+        border-radius: 0.75rem;
+        background: var(--primary);
+        color: #fff;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      button:active { transform: scale(0.98); }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <img src="/icon.png" alt="" />
+      <h1>ما في إنترنت</h1>
+      <p>
+        تأكّد من الاتصال وجرّب مرّة تانية. طلباتك وحجوزاتك محفوظة — ما بيضيع
+        منّك شي.
+      </p>
+      <button onclick="location.reload()">جرّب مرّة تانية</button>
+    </div>
+  </body>
+</html>

@@ -32,6 +32,8 @@ export type StoreView = {
   coverPosition?: number;
   hours?: unknown;
   bookingSlotMinutes?: number;
+  /** Cancellation window in hours; 0 = cancel anytime. See 0189. */
+  bookingCancelHours?: number;
   instagram?: string | null;
   facebook?: string | null;
   website?: string | null;
@@ -106,7 +108,7 @@ async function fetchStoreView(
   const { data } = await supabase
     .from("stores")
     .select(
-      "name, slug, description, announcement, storefront_theme, area, status, plan, logo_url, cover_url, cover_position, phone, whatsapp, hours, booking_slot_minutes, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, loyalty_redemption_enabled, loyalty_points_per_unit, accent_color, storefront_layout, lat, lng, business_types(slug)",
+      "name, slug, description, announcement, storefront_theme, area, status, plan, logo_url, cover_url, cover_position, phone, whatsapp, hours, booking_slot_minutes, booking_cancel_hours, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, loyalty_redemption_enabled, loyalty_points_per_unit, accent_color, storefront_layout, lat, lng, business_types(slug)",
     )
     .eq("id", id)
     .is("deleted_at", null)
@@ -204,6 +206,7 @@ async function fetchStoreView(
     coverPosition: Number(data.cover_position ?? 50),
     hours: data.hours as unknown,
     bookingSlotMinutes: (data.booking_slot_minutes as number | null) ?? 30,
+    bookingCancelHours: (data.booking_cancel_hours as number | null) ?? 0,
     instagram: (data.instagram as string | null) ?? null,
     facebook: (data.facebook as string | null) ?? null,
     website: (data.website as string | null) ?? null,

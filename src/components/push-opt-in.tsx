@@ -40,7 +40,12 @@ export function PushOptIn({ dict }: { dict: Dictionary }) {
         setState("idle");
         return;
       }
-      const reg = await navigator.serviceWorker.register("/sw.js");
+      // SwRegister already registered it on load; this only waits for it.
+      // Registering here too was how the worker came to exist ONLY for people
+      // who accepted notifications.
+      const reg =
+        (await navigator.serviceWorker.getRegistration()) ??
+        (await navigator.serviceWorker.register("/sw.js"));
       await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,

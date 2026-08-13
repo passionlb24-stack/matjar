@@ -18,6 +18,7 @@ export function StoreRail({
   href,
   seeAll,
   emptyText,
+  className = "",
 }: {
   stores: Store[];
   lang: Locale;
@@ -27,11 +28,14 @@ export function StoreRail({
   href: string;
   seeAll: string;
   emptyText?: string;
+  // Escape hatch for the caller's own visibility rule (see lib/rail.ts) — the
+  // rail itself has no opinion on how few stores is too few.
+  className?: string;
 }) {
   if (!stores.length && !emptyText) return null;
 
   return (
-    <section className="py-8 sm:py-12">
+    <section className={`py-8 sm:py-12 ${className}`}>
       <Container>
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>

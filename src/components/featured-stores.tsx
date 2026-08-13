@@ -2,6 +2,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { getFeaturedStores } from "@/lib/data/stores";
 import { StoreRail } from "@/components/store-rail";
+import { railOnlyIfEnough } from "@/lib/rail";
 
 export async function FeaturedStores({
   lang,
@@ -14,6 +15,9 @@ export async function FeaturedStores({
 
   return (
     <StoreRail
+      // Phones drop the row below three stores — including the "no featured
+      // stores yet" placeholder, which is a dead section on a small screen.
+      className={railOnlyIfEnough(stores.length)}
       stores={stores}
       lang={lang}
       dict={dict}
