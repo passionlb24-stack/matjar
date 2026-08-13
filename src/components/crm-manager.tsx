@@ -288,17 +288,24 @@ export function CrmManager({
               >
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-bold">{c.name}</span>
-                  <span className="text-xs text-muted-foreground" dir="ltr">
+                  <span
+                    className="text-xs tabular-nums text-muted-foreground"
+                    dir="ltr"
+                  >
                     {c.follow_up_on}
                   </span>
                 </span>
+                {/* The WhatsApp button stays 36px so the row does not grow, but
+                    a transparent pseudo carries the hit area to 48px (WCAG
+                    2.5.5). The 12px flex gap absorbs the overhang exactly, so
+                    adjacent targets never overlap. */}
                 {c.phone && (
                   <a
                     href={waHref(c.phone)}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="WhatsApp"
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white transition-colors hover:bg-emerald-700"
+                    className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white transition-colors before:absolute before:-inset-1.5 before:content-[''] hover:bg-emerald-700"
                   >
                     <MessageCircle className="h-4 w-4" />
                   </a>
@@ -306,7 +313,7 @@ export function CrmManager({
                 <button
                   type="button"
                   onClick={() => setFollowUp(c.id, "")}
-                  className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-bold transition-colors hover:border-primary hover:text-primary"
+                  className="relative flex h-9 shrink-0 items-center rounded-lg border border-border px-3 text-xs font-bold transition-colors before:absolute before:-inset-1.5 before:content-[''] hover:border-primary hover:text-primary"
                 >
                   {t.followUpDone}
                 </button>
@@ -380,7 +387,10 @@ export function CrmManager({
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-bold">{c.name}</span>
                       {c.phone && (
-                        <span dir="ltr" className="block text-sm text-muted-foreground">
+                        <span
+                          dir="ltr"
+                          className="block text-sm tabular-nums text-muted-foreground"
+                        >
                           <span dir="ltr">{c.phone}</span>
                         </span>
                       )}
@@ -395,20 +405,25 @@ export function CrmManager({
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
                         aria-label="WhatsApp"
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white transition-colors hover:bg-emerald-700"
+                        className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white transition-colors before:absolute before:-inset-1.5 before:content-[''] hover:bg-emerald-700"
                       >
                         <MessageCircle className="h-4 w-4" />
                       </a>
                     )}
                   </summary>
                   <div className="border-t border-border p-4">
+                    {/* The status pills sit 6px apart, too close to grow the hit
+                        area with a pseudo without the overhangs overlapping and
+                        making taps land on the wrong status. Below lg they get
+                        real 44px height instead; lg:py-1 restores the compact
+                        desktop pill. */}
                     <div className="flex flex-wrap gap-1.5">
                       {(["new", "regular", "vip", "inactive"] as const).map((s) => (
                         <button
                           key={s}
                           type="button"
                           onClick={() => setStatus(c.id, s)}
-                          className={`rounded-full border px-3 py-1 text-xs font-bold transition-colors ${
+                          className={`inline-flex min-h-11 items-center rounded-full border px-3 text-xs font-bold transition-colors lg:min-h-0 lg:py-1 ${
                             c.status === s
                               ? "border-primary bg-primary text-primary-foreground"
                               : "border-border text-muted-foreground hover:border-primary/40"
@@ -426,7 +441,7 @@ export function CrmManager({
                         type="date"
                         defaultValue={c.follow_up_on ?? ""}
                         onChange={(e) => setFollowUp(c.id, e.target.value)}
-                        className="mt-1 block rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+                        className="mt-1 block h-11 rounded-lg border border-border bg-surface px-3 text-sm tabular-nums outline-none focus:border-primary lg:h-auto lg:py-2"
                       />
                     </label>
                     <textarea
@@ -439,7 +454,7 @@ export function CrmManager({
                     <button
                       type="button"
                       onClick={() => remove(c.id)}
-                      className="mt-2 flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-semibold text-danger transition-colors hover:bg-danger-soft"
+                      className="mt-2 flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-danger transition-colors hover:bg-danger-soft lg:min-h-0 lg:py-1"
                     >
                       <Trash2 className="h-4 w-4" />
                       {dict.merchant.products.delete}
@@ -495,8 +510,15 @@ export function CrmManager({
                 key={i}
                 className="rounded-2xl border border-border bg-surface p-4"
               >
-                <div className="flex items-center gap-3">
-                  <span className="min-w-0 flex-1">
+                {/* Four shrink-0 columns on one unwrapped row left the name
+                    about 40px wide on a 360px screen. Below lg the row wraps
+                    and `order` promotes the two fields a merchant actually
+                    decides on — who it is and what they are worth — onto the
+                    first line; points, and the action, drop underneath.
+                    lg:flex-nowrap plus lg:order-none restores the desktop row
+                    exactly. */}
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 lg:flex-nowrap">
+                  <span className="order-1 min-w-0 flex-1 lg:order-none">
                     <span className="flex flex-wrap items-center gap-1.5">
                       <span className="truncate font-bold">
                         {c.name ?? c.phone ?? "—"}
@@ -507,19 +529,27 @@ export function CrmManager({
                         </Badge>
                       ))}
                     </span>
-                    <span className="block text-sm text-muted-foreground">
+                    <span className="block text-sm tabular-nums text-muted-foreground">
                       {c.phone ? <span dir="ltr">{c.phone}</span> : null}
                       {c.phone ? " · " : ""}
                       {c.count} {dict.merchant.ordersCount}
                     </span>
                   </span>
                   {points > 0 && (
-                    <Badge variant="primary" size="sm" className="shrink-0">
-                      <Sparkles className="h-3.5 w-3.5" />
-                      {points.toLocaleString("en-US")} {t.points}
-                    </Badge>
+                    // w-full below lg would stretch the pill itself, so the
+                    // line break lives on a wrapper that lg:contents dissolves.
+                    <span className="order-3 w-full lg:contents">
+                      <Badge
+                        variant="primary"
+                        size="sm"
+                        className="shrink-0 tabular-nums"
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        {points.toLocaleString("en-US")} {t.points}
+                      </Badge>
+                    </span>
                   )}
-                  <span className="shrink-0 font-bold text-primary">
+                  <span className="order-2 shrink-0 font-bold tabular-nums text-primary lg:order-none">
                     {formatPrice(c.total)}
                   </span>
                   {c.phone && !bookPhones.has(c.phone) && (
@@ -527,7 +557,7 @@ export function CrmManager({
                       type="button"
                       disabled={busy}
                       onClick={() => quickAdd(c)}
-                      className="flex shrink-0 items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-bold transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
+                      className="order-4 flex h-11 w-full shrink-0 items-center justify-center gap-1 rounded-lg border border-border px-3 text-xs font-bold transition-colors hover:border-primary hover:text-primary disabled:opacity-60 lg:order-none lg:h-auto lg:w-auto lg:justify-start lg:py-1.5"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       {t.addToBook}
@@ -624,7 +654,7 @@ function RedeemControl({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-bold transition-colors hover:border-primary hover:text-primary"
+        className="mt-2 inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border px-2.5 text-xs font-bold transition-colors hover:border-primary hover:text-primary lg:min-h-0 lg:py-1.5"
       >
         <Gift className="h-3.5 w-3.5" />
         {t.redeem}
@@ -638,7 +668,7 @@ function RedeemControl({
         <span className="mb-1 block text-muted-foreground">
           {t.redeemAmount}
           {enteredPoints > 0 && (
-            <span className="ms-1 font-bold text-primary" dir="ltr">
+            <span className="ms-1 font-bold tabular-nums text-primary" dir="ltr">
               {t.redeemValue} ${discountValue.toLocaleString("en-US", {
                 maximumFractionDigits: 2,
               })}
@@ -652,7 +682,7 @@ function RedeemControl({
           step="1"
           value={points}
           onChange={(e) => setPoints(e.target.value)}
-          className="w-28 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+          className="h-11 w-28 rounded-lg border border-border bg-surface px-3 text-sm tabular-nums outline-none focus:border-primary lg:h-auto lg:py-2"
         />
       </label>
       <label className="min-w-0 flex-1 text-xs font-semibold">
@@ -661,7 +691,7 @@ function RedeemControl({
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder={t.redeemNoteHint}
-          className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+          className="h-11 w-full rounded-lg border border-border bg-surface px-3 text-sm outline-none focus:border-primary lg:h-auto lg:py-2"
         />
       </label>
       <Button

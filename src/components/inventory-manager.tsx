@@ -88,12 +88,12 @@ export function InventoryManager({
       );
     if (p.stock <= p.low_stock_threshold)
       return (
-        <Badge variant="warning" size="sm">
+        <Badge variant="warning" size="sm" className="tabular-nums">
           {t.low} · {p.stock}
         </Badge>
       );
     return (
-      <Badge variant="success" size="sm">
+      <Badge variant="success" size="sm" className="tabular-nums">
         {t.inStock} · {p.stock}
       </Badge>
     );
@@ -130,7 +130,12 @@ export function InventoryManager({
       )}
       <span className="min-w-0 flex-1 font-semibold">{p.name}</span>
       {badge(p)}
-      <div className="flex items-center gap-1.5">
+      {/* Below lg the adjust controls claim their own line. Sharing one 360px
+          row with the thumbnail, name and badge left the name about forty
+          pixels wide — and the name is the field the merchant scans to find
+          the product they are holding. Name + stock badge stay on top; the
+          controls that act on them sit underneath at full width. */}
+      <div className="flex w-full items-center gap-2 lg:w-auto lg:gap-1.5">
         <input
           type="number"
           min="0"
@@ -140,7 +145,7 @@ export function InventoryManager({
             setDrafts((d) => ({ ...d, [p.id]: e.target.value }))
           }
           placeholder={p.stock == null ? t.qty : String(p.stock)}
-          className="w-20 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+          className="h-11 min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 text-sm tabular-nums outline-none focus:border-primary lg:h-auto lg:w-20 lg:flex-none lg:px-2.5 lg:py-1.5"
         />
         <Button
           type="button"
@@ -148,6 +153,7 @@ export function InventoryManager({
           loading={busy === p.id}
           disabled={!(drafts[p.id] ?? "").trim()}
           onClick={() => save(p)}
+          className="h-11 shrink-0 lg:h-9"
         >
           {savedId === p.id ? <Check className="h-4 w-4" /> : t.save}
         </Button>
@@ -183,7 +189,7 @@ export function InventoryManager({
             {movements.map((m, i) => (
               <div
                 key={m.id}
-                className={`flex items-center gap-3 p-3 text-sm ${i > 0 ? "border-t border-border" : ""}`}
+                className={`flex flex-wrap items-center gap-x-3 gap-y-1 p-3 text-sm lg:flex-nowrap ${i > 0 ? "border-t border-border" : ""}`}
               >
                 <span
                   className={`w-12 shrink-0 text-center font-extrabold tabular-nums ${
@@ -196,11 +202,18 @@ export function InventoryManager({
                 <span className="min-w-0 flex-1 truncate font-semibold">
                   {m.products?.name ?? "—"}
                 </span>
-                <span className="shrink-0 text-muted-foreground">
-                  {t.reasons[m.reason]}
-                </span>
-                <span className="shrink-0 text-xs text-muted-foreground">
-                  {fmtDate(m.created_at)}
+                {/* Four columns on a 360px row truncated the product name to a
+                    word or two, so reason and date drop to a second line
+                    indented under it (w-12 + gap-3). lg:contents dissolves this
+                    wrapper above the breakpoint, leaving the desktop row's flex
+                    children exactly as they were. */}
+                <span className="flex w-full items-center gap-3 ps-[3.75rem] lg:contents">
+                  <span className="shrink-0 text-muted-foreground">
+                    {t.reasons[m.reason]}
+                  </span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {fmtDate(m.created_at)}
+                  </span>
                 </span>
               </div>
             ))}
