@@ -1,6 +1,6 @@
 # 19 — Remaining issues after Batch 0
 
-**Status after batches 1, 2, 4, 5 and 6: 10 fixed, 1 partial, 9 open.**
+**Status: 16 fixed, 1 partial, 2 deferred, 1 open.**
 
 | Closed | What shipped |
 |---|---|
@@ -13,11 +13,41 @@
 | M-007 | 12px floor for Arabic |
 | M-008 | Fetch handler with a narrow, private-safe cache |
 | M-009 | Service worker registers for everyone |
+| M-011 | Cart sheet with reachable steppers |
+| M-013 | Confirmation screen stating the amount and what happens next |
+| M-014 | Booking step flow with date/time sheets, the request-vs-confirmation statement and the cancellation window before the button |
+| M-015 | Inventory rows readable at 360px (and the audit's "desktop table" premise corrected) |
+| M-016 | CRM rows readable at 360px (same correction) |
 | M-018 | `ui/bottom-sheet` with focus trap |
+| M-019 | Phone home leads with categories and shops; merchant pitch last; thin rails hidden |
 
 **M-010 is partial**: 192 is now declared, but it points at the same 512 asset and there is still no `apple-icon`. Real assets at real sizes are a design task, not a code one.
 
-**Still open:** M-011 to M-017 (cart sheet, staged checkout, confirmation screen, booking flow, two merchant tables, the store-products bundle split), M-019 (mobile home composition) and M-020 (store coordinates — content, not code).
+**Still open:** M-020 only — store coordinates, which is content the owner enters, not code.
+
+### The audit was wrong about M-015 and M-016
+
+Both rows said these screens "render a desktop table on phones". Neither file
+contains a `<table>`; both already rendered flex rows. The rows were corrected
+in the CSV rather than quietly closed, the same way M-006 was handled when a
+measured finding turned out to be a false positive.
+
+The real defect was different and still real: unwrapped flex rows with
+`shrink-0` siblings, so the only element that could give way was the one with
+`min-w-0` — the name. At 360px the customer name was down to roughly 40px while
+every button beside it kept its full width.
+
+### Known accessibility tradeoff on the phone home page
+
+The mobile sequence comes from CSS `order`, so the DOM order stays desktop
+order and a screen reader on a phone reads the old sequence. The alternative —
+reordering the JSX and restoring desktop with `lg:order-*` — moves the same
+mismatch onto desktop, where keyboard navigation is far more common. Neither
+option is free; this is the one that also honours "desktop must not change".
+Removing the mismatch entirely means agreeing to one section order for both,
+which is a product decision, not a design one.
+
+**Deferred:** M-012 (staged checkout) and M-017 (splitting the store-products bundle) — both want the same file restructured, and neither is worth a second pass through checkout on its own.
 
 ## Decisions that need the product owner, not the designer
 1. **Does `/market` (classifieds) lose its tab?** The proposal folds it into Explore as a segment to free a slot for طلباتي. If classifieds are strategically central, the trade-off changes.
@@ -27,7 +57,7 @@
 ## Data prerequisites that block features
 | Feature | Blocked by |
 |---|---|
-| "الأقرب إليك" on home | 10 of 11 active stores have no coordinates |
+| "الأقرب إليك" on home | 8 of 11 active stores have no coordinates (3 now do, up from 1). All 11 are in the north — Matjar is a Tripoli/north marketplace today, not a national one, and the filters and copy should probably say so. |
 | Profit / margin surfaces | 0 of 46 products carry a cost price |
 | Crafts discovery | 0 live craft providers |
 
