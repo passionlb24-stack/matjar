@@ -56,8 +56,14 @@ export function SiteFooter({ lang, dict }: { lang: Locale; dict: Dictionary }) {
   return (
     <footer className="border-t border-border bg-surface print:hidden">
       <Container className="py-10 sm:py-14">
-        <div className="grid gap-10 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr]">
-          {/* Brand + app */}
+        {/* One column on phones, five from `md`. The app block is a separate
+            cell so the single-column stack can end with it — see below. It is
+            pinned back to column 1 / row 2 at `md`, and the row gap there is
+            the 24px it used to get from its own `mt-6`, so the desktop footer
+            is byte-for-byte where it was. `1fr` on row 2 absorbs any extra
+            height the row-spanning link columns need, keeping row 1 — and so
+            the app block's top edge — exactly under the tagline. */}
+        <div className="grid gap-10 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr] md:grid-rows-[auto_1fr] md:gap-y-6">
           <div>
             <Link href={`/${lang}`} className="flex items-center gap-2">
               <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-hover text-primary-foreground shadow-md">
@@ -70,8 +76,37 @@ export function SiteFooter({ lang, dict }: { lang: Locale; dict: Dictionary }) {
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
               {dict.footer.tagline}
             </p>
+          </div>
 
-            <p className="mt-6 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          {columns.map((col) => (
+            <div key={col.title} className="md:row-span-2">
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
+                {col.title}
+              </h3>
+              {/* Links carry vertical padding so the touch target clears 44px
+                  (WCAG 2.5.5) — measured at 20px before. The negative inline
+                  margin keeps the text where it was, so only the hit area grows. */}
+              <ul className="mt-3 space-y-0.5">
+                {col.links.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="-mx-2 inline-flex min-h-11 items-center px-2 text-sm text-muted-foreground transition-colors hover:text-primary"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          {/* Two "Soon" badges for apps nobody can install yet were the first
+              thing under the brand on a phone — above every link the footer
+              actually exists to serve. Last child, so the mobile stack reaches
+              them only after the navigation. */}
+          <div className="md:col-start-1 md:row-start-2 md:self-start">
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               {dict.footer.appTitle}
             </p>
             <div className="mt-3 flex flex-wrap gap-2.5">
@@ -101,29 +136,6 @@ export function SiteFooter({ lang, dict }: { lang: Locale; dict: Dictionary }) {
               ))}
             </div>
           </div>
-
-          {columns.map((col) => (
-            <div key={col.title}>
-              <h3 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
-                {col.title}
-              </h3>
-              {/* Links carry vertical padding so the touch target clears 44px
-                  (WCAG 2.5.5) — measured at 20px before. The negative inline
-                  margin keeps the text where it was, so only the hit area grows. */}
-              <ul className="mt-3 space-y-0.5">
-                {col.links.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="-mx-2 inline-flex min-h-11 items-center px-2 text-sm text-muted-foreground transition-colors hover:text-primary"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 sm:flex-row">

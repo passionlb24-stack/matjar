@@ -33,9 +33,14 @@ export function WorldsShowcase({ lang, dict }: { lang: Locale; dict: Dictionary 
           </p>
         </div>
 
+        {/* Nine worlds in a two-up grid is five rows — a whole phone screen of
+            navigation before a single store appears. On phones it becomes one
+            snap-scrolling row that bleeds past the Container's gutter, so the
+            clipped ninth card is what says "keep going". Desktop keeps the
+            grid it has: the rail classes all unwind at `lg`. */}
         <div
           data-animate
-          className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4"
+          className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-4 lg:overflow-visible lg:px-0 lg:pb-0 [&::-webkit-scrollbar]:hidden"
         >
           {groupKeys.map((g, i) => {
             const Icon = groupIcons[g];
@@ -44,7 +49,7 @@ export function WorldsShowcase({ lang, dict }: { lang: Locale; dict: Dictionary 
               <Link
                 key={g}
                 href={`/${lang}/explore?group=${g}`}
-                className="group relative overflow-hidden rounded-2xl border border-border bg-surface p-5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg"
+                className="group relative w-40 shrink-0 snap-start overflow-hidden rounded-2xl border border-border bg-surface p-4 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg lg:w-auto lg:p-5"
               >
                 <span
                   className={`flex h-12 w-12 items-center justify-center rounded-2xl shadow-xs transition-transform duration-300 group-hover:scale-110 ${TINTS[i % TINTS.length]}`}
@@ -52,7 +57,7 @@ export function WorldsShowcase({ lang, dict }: { lang: Locale; dict: Dictionary 
                   <Icon className="h-6 w-6" />
                 </span>
                 <h3 className="mt-4 text-base font-extrabold">{grp.name}</h3>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground lg:line-clamp-none">
                   {grp.desc}
                 </p>
                 <ArrowLeft className="absolute end-4 top-5 h-4 w-4 text-muted-foreground opacity-0 transition-all duration-300 group-hover:-translate-x-1 group-hover:opacity-100 ltr:rotate-180" />

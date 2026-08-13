@@ -70,6 +70,7 @@ export default async function Home({
   // data-backed section streams inside its own <Suspense> so a slow query
   // never blocks first paint. Order tells the V2 story: hero → the 8 worlds
   // (breadth) → trending/curated → proof (stats) → how it works → convert.
+  // Phones re-sequence that story in CSS — see the wrapper below.
   return (
     <>
       <script
@@ -85,47 +86,70 @@ export default async function Home({
           ),
         }}
       />
-      <Hero lang={lang} dict={dict} storeCount={counts.stores} />
-      <TrustStrip dict={dict} />
-      <BusinessOs lang={lang} dict={dict} />
-      <WorldsShowcase lang={lang} dict={dict} />
-      <Suspense fallback={null}>
-        <DealSection lang={lang} dict={dict} />
-      </Suspense>
-      {/* Per-user "For you" strip. Client island: fetches its own data in the
-          browser after load, so it adds no per-user server read and keeps this
-          page cacheable. Renders nothing for anon / no-history users. */}
-      <ForYouStrip
-        lang={lang}
-        dict={dictSlice(dict, ["home", "catalog", "explore", "featured"])}
-      />
-      <Suspense fallback={<SectionSkeleton cards={4} />}>
-        <FeaturedStores lang={lang} dict={dict} />
-      </Suspense>
-      <Suspense fallback={null}>
-        <RestaurantsRail lang={lang} dict={dict} />
-      </Suspense>
-      <Suspense fallback={<SectionSkeleton cards={4} />}>
-        <OffersTeaser lang={lang} dict={dict} />
-      </Suspense>
-      <CitiesStrip lang={lang} dict={dict} />
-      <Suspense fallback={<SectionSkeleton cards={4} />}>
-        <BestSellersTeaser lang={lang} dict={dict} />
-      </Suspense>
-      <HomePromoSplit lang={lang} dict={dict} />
-      <ServicesGrid lang={lang} dict={dict} />
-      <Suspense fallback={null}>
-        <LatestJobs lang={lang} dict={dict} />
-      </Suspense>
-      <HomeStats
-        lang={lang}
-        dict={dict}
-        storeCount={counts.stores}
-        productCount={counts.products}
-      />
-      <HowItWorks dict={dict} />
-      <HomeFaq dict={dictSlice(dict, ["homeFaq"])} />
-      <MerchantCta lang={lang} dict={dict} />
+      {/* Phones read this page in a different order than desktop, from the
+          same tree and the same queries. Below `lg` it is a flex column and
+          `order` decides the sequence: categories then the discovery rails sit
+          straight under the header's search, and the merchant pitch drops to
+          the bottom where a shopper is not standing in front of it. At `lg`
+          the wrapper goes back to block flow, `order` stops applying, and
+          source order — untouched below — is what desktop renders. */}
+      <div className="flex flex-col lg:block">
+        <div className="-order-6">
+          <Hero lang={lang} dict={dict} storeCount={counts.stores} />
+        </div>
+        <TrustStrip dict={dict} />
+        <div className="order-1">
+          <BusinessOs lang={lang} dict={dict} />
+        </div>
+        <div className="-order-5">
+          <WorldsShowcase lang={lang} dict={dict} />
+        </div>
+        <Suspense fallback={null}>
+          <DealSection lang={lang} dict={dict} />
+        </Suspense>
+        {/* Per-user "For you" strip. Client island: fetches its own data in the
+            browser after load, so it adds no per-user server read and keeps this
+            page cacheable. Renders nothing for anon / no-history users. */}
+        <ForYouStrip
+          lang={lang}
+          dict={dictSlice(dict, ["home", "catalog", "explore", "featured"])}
+        />
+        <div className="-order-4">
+          <Suspense fallback={<SectionSkeleton cards={4} />}>
+            <FeaturedStores lang={lang} dict={dict} />
+          </Suspense>
+        </div>
+        <div className="-order-1">
+          <Suspense fallback={null}>
+            <RestaurantsRail lang={lang} dict={dict} />
+          </Suspense>
+        </div>
+        <div className="-order-2">
+          <Suspense fallback={<SectionSkeleton cards={4} />}>
+            <OffersTeaser lang={lang} dict={dict} />
+          </Suspense>
+        </div>
+        <CitiesStrip lang={lang} dict={dict} />
+        <div className="-order-3">
+          <Suspense fallback={<SectionSkeleton cards={4} />}>
+            <BestSellersTeaser lang={lang} dict={dict} />
+          </Suspense>
+        </div>
+        <HomePromoSplit lang={lang} dict={dict} />
+        <ServicesGrid lang={lang} dict={dict} />
+        <Suspense fallback={null}>
+          <LatestJobs lang={lang} dict={dict} />
+        </Suspense>
+        <HomeStats
+          lang={lang}
+          dict={dict}
+          storeCount={counts.stores}
+          productCount={counts.products}
+        />
+        <HowItWorks dict={dict} />
+        <HomeFaq dict={dictSlice(dict, ["homeFaq"])} />
+        <MerchantCta lang={lang} dict={dict} />
+      </div>
     </>
   );
 }
