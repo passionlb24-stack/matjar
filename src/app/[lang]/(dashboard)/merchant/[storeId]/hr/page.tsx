@@ -1,7 +1,7 @@
 import { requestNow } from "@/lib/now";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Clock } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -10,6 +10,7 @@ import { getStorePlan } from "@/lib/plan-server";
 import { ProGate } from "@/components/pro-gate";
 import { SITE_URL } from "@/lib/site";
 import { Container } from "@/components/ui/container";
+import { ButtonLink } from "@/components/ui/button";
 import {
   HrManager,
   type Employee,
@@ -121,6 +122,19 @@ export default async function StoreHrPage({
         </Link>
         <h1 className="mt-3 text-3xl font-extrabold tracking-tight">{t.title}</h1>
         <p className="mt-2 text-muted-foreground">{t.subtitle}</p>
+
+        {/* The hours live on their own screen: this one answers "who works here
+            and what do I owe", and the sheet answers "was Tuesday really four
+            hours" — a different question, asked with a row in front of you. */}
+        <ButtonLink
+          href={`/${lang}/merchant/${storeId}/attendance`}
+          variant="outline"
+          size="sm"
+          className="mt-4"
+        >
+          <Clock className="h-4 w-4" />
+          {t.attLink}
+        </ButtonLink>
 
         <div className="mt-6">
           <HrManager
