@@ -1,6 +1,23 @@
 # 19 — Remaining issues after Batch 0
 
-Everything in `MOBILE_ISSUES.csv` is open — Batch 0 changed no application code.
+**Status after batches 1, 2, 4, 5 and 6: 10 fixed, 1 partial, 9 open.**
+
+| Closed | What shipped |
+|---|---|
+| M-001 | Five tabs, طلباتي among them |
+| M-002 | `/activity` reading all four transaction tables |
+| M-003 | Sector-derived merchant tab bar; drawer demoted to overflow |
+| M-004 | Category rail + filter sheet |
+| M-005 | Full-screen search with recents |
+| M-006 | Header hit areas at 44px (one of the four was a false positive) |
+| M-007 | 12px floor for Arabic |
+| M-008 | Fetch handler with a narrow, private-safe cache |
+| M-009 | Service worker registers for everyone |
+| M-018 | `ui/bottom-sheet` with focus trap |
+
+**M-010 is partial**: 192 is now declared, but it points at the same 512 asset and there is still no `apple-icon`. Real assets at real sizes are a design task, not a code one.
+
+**Still open:** M-011 to M-017 (cart sheet, staged checkout, confirmation screen, booking flow, two merchant tables, the store-products bundle split), M-019 (mobile home composition) and M-020 (store coordinates — content, not code).
 
 ## Decisions that need the product owner, not the designer
 1. **Does `/market` (classifieds) lose its tab?** The proposal folds it into Explore as a segment to free a slot for طلباتي. If classifieds are strategically central, the trade-off changes.
