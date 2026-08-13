@@ -24,6 +24,7 @@ import { formatLbp } from "@/lib/currency";
 import { localized } from "@/lib/i18n-field";
 import { groupBySection, type SectionInfo } from "@/lib/sections";
 import { categoryIcons } from "@/components/category-icon";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 
 // Delivery zone (migration 0172): the fee/ETA the customer sees is display
 // only — resolve_delivery_fee recomputes everything server-side at placement.
@@ -233,6 +234,7 @@ export function StoreProducts({
       : dict.store.outOfStock;
   }
   const [checkingOut, setCheckingOut] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
   // Answers to the merchant's custom checkout fields, keyed by field id.
   const [cfAnswers, setCfAnswers] = useState<Record<string, string>>({});
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -614,18 +616,22 @@ export function StoreProducts({
     const atMax = p?.stock != null && qty >= p.stock;
     return (
       <div className="flex items-center gap-2">
+        {/* 32px squares are what the design wants and 44px is what a thumb
+            needs, so the hit area is extended with a transparent pseudo-element
+            rather than growing the buttons. These are the most-tapped controls
+            in the whole shopping flow. */}
         <button
           onClick={() => setQty(id, qty - 1)}
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-border transition-colors hover:bg-surface-muted"
+          className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-border transition-colors before:absolute before:-inset-1.5 before:content-[''] hover:bg-surface-muted"
           aria-label="-"
         >
           <Minus className="h-4 w-4" />
         </button>
-        <span className="w-5 text-center font-bold">{qty}</span>
+        <span className="w-5 text-center font-bold tabular-nums">{qty}</span>
         <button
           onClick={() => setQty(id, qty + 1)}
           disabled={atMax}
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-border transition-colors hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-40"
+          className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-border transition-colors before:absolute before:-inset-1.5 before:content-[''] hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-40"
           aria-label="+"
         >
           <Plus className="h-4 w-4" />
@@ -1492,7 +1498,14 @@ export function StoreProducts({
           </form>
         ) : (
           <div className="sticky bottom-4 mt-6 flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface p-4 shadow-lg">
-            <div>
+            {/* The bar used to state a total for a list the customer could no
+                longer see without committing to checkout. Tapping it now opens
+                the cart itself. */}
+            <button
+              type="button"
+              onClick={() => setCartOpen(true)}
+              className="min-w-0 text-start"
+            >
               <p aria-live="polite" className="text-sm text-muted-foreground">
                 {dict.store.itemsInCart.replace(
                   "{n}",
@@ -1502,7 +1515,7 @@ export function StoreProducts({
               <p key={total} className="animate-pop text-lg font-extrabold tabular-nums">
                 {formatPrice(total)}
               </p>
-            </div>
+            </button>
             <div className="flex items-center gap-2">
               {waUrl && (
                 <a
@@ -1535,6 +1548,51 @@ export function StoreProducts({
           </div>
         ))
       )}
+
+      {/* The cart, on demand: lines, quantities and the running total —
+          everything the sticky bar summarises but had no room to show. The
+          steppers here are the same component the product list uses, so a
+          quantity change is one code path, not two that can disagree. */}
+      <BottomSheet
+        open={cartOpen}
+        onClose={() => setCartOpen(false)}
+        title={dict.store.yourOrder}
+        footer={
+          <button
+            type="button"
+            onClick={() => {
+              setCartOpen(false);
+              // New attempt → new idempotency key, exactly as the bar's own
+              // checkout button does.
+              idemKeyRef.current =
+                typeof crypto !== "undefined" && crypto.randomUUID
+                  ? crypto.randomUUID()
+                  : String(Math.random());
+              setCheckingOut(true);
+            }}
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary font-bold text-primary-foreground"
+          >
+            {dict.store.checkout} · {formatPrice(total)}
+          </button>
+        }
+      >
+        <ul className="divide-y divide-border">
+          {items.map((p) => (
+            <li key={p.id} className="flex items-center gap-3 py-3">
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-semibold">{p.name}</span>
+                <span className="text-sm tabular-nums text-muted-foreground">
+                  {formatPrice(effectivePrice(p))}
+                </span>
+              </span>
+              <Stepper id={p.id} qty={cart[p.id]} />
+              <span className="w-16 shrink-0 text-end font-bold tabular-nums">
+                {formatPrice(effectivePrice(p) * cart[p.id])}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </BottomSheet>
     </div>
   );
 }
