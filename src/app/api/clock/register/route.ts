@@ -43,13 +43,27 @@ export async function POST(req: Request) {
     if (!body.code) {
       return NextResponse.json({ error: "bad_code" }, { status: 400 });
     }
-    const { data: employeeId, error } = await admin.rpc(
-      "redeem_enrolment_code",
-      { p_store_id: store.store_id, p_code: body.code },
-    );
-    if (error || !employeeId) {
-      return NextResponse.json({ error: "bad_code" }, { status: 400 });
+    // The code is a six-digit secret on a public endpoint, so the function
+    // counts wrong guesses and refuses the shop after five in fifteen minutes
+    // (0264). A lockout is reported as itself: telling someone "wrong code"
+    // when the truth is "stop trying for a while" invites them to keep going.
+    const { data, error } = await admin.rpc("redeem_enrolment_code", {
+      p_store_id: store.store_id,
+      p_code: body.code,
+    });
+    const outcome = data as {
+      ok?: boolean;
+      reason?: string;
+      employee_id?: string;
+    } | null;
+    if (error || !outcome?.ok) {
+      const locked = outcome?.reason === "locked";
+      return NextResponse.json(
+        { error: locked ? "locked" : "bad_code" },
+        { status: locked ? 429 : 400 },
+      );
     }
+    const employeeId = outcome.employee_id;
 
     const options = await generateRegistrationOptions({
       rpName: store.name,

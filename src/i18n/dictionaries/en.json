@@ -591,6 +591,7 @@
       "enrolDone": "Phone linked ✓ From now on your fingerprint is enough.",
       "enrolFailed": "Linking failed. Try again or ask for a new code.",
       "badCode": "Wrong code, or it expired.",
+      "enrolLocked": "Too many wrong attempts. Wait fifteen minutes, or ask the owner for a fresh code.",
       "notRegistered": "This phone is not linked. Ask the owner for a code.",
       "needLocation": "Location (GPS) must be on to clock in.",
       "tooFar": "You are {m} m from the shop — the limit is {a} m.",
