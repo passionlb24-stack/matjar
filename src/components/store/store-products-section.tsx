@@ -103,6 +103,7 @@ export function StoreProductsSection({
               storeName={store.name}
               hours={parseHours(store.hours)}
               slotMinutes={store.bookingSlotMinutes ?? 30}
+              cancelHours={store.bookingCancelHours ?? 0}
               doctors={doctors.map((d) => ({
                 id: d.id,
                 name: d.name,

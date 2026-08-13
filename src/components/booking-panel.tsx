@@ -4,7 +4,14 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CalendarCheck, Check, MessageCircle } from "lucide-react";
+import {
+  CalendarCheck,
+  Check,
+  Clock,
+  Info,
+  MessageCircle,
+  ShieldCheck,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -15,6 +22,7 @@ import { daySpan, generateSlots, type WeekHours } from "@/lib/hours";
 import { localized } from "@/lib/i18n-field";
 import { groupBySection, type SectionInfo } from "@/lib/sections";
 import { categoryIcons } from "@/components/category-icon";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 
 type Service = {
   id: string;
@@ -43,9 +51,18 @@ type Avail = {
   blocked: boolean;
 };
 
+// min-h-11 is the 44px thumb target — every field here is also a tap target on
+// a phone, and a 40px select is a miss as often as a hit.
 const fieldClass =
-  "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
+  "mt-1.5 min-h-11 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
 const labelClass = "text-sm font-semibold";
+// A sheet trigger reads as the value it holds, not as an empty box: the
+// customer's own answer is the label once they've given one.
+const triggerClass =
+  "mt-1.5 flex min-h-12 w-full items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-2.5 text-start text-sm font-semibold transition-colors lg:hidden";
+
+/** The phone flow, in order. `provider` drops out of stores with one choice. */
+type Step = "service" | "provider" | "date" | "time" | "details" | "review";
 
 function formatPrice(price: number) {
   return price >= 1000
@@ -69,6 +86,7 @@ export function BookingPanel({
   providerServices = {},
   sections = [],
   initialServiceId = null,
+  cancelHours = 0,
 }: {
   storeId: string;
   lang: Locale;
@@ -87,6 +105,8 @@ export function BookingPanel({
   sections?: SectionInfo[];
   /** Preselect a service — set when the customer arrives from a service page. */
   initialServiceId?: string | null;
+  /** stores.booking_cancel_hours — 0 means the customer can cancel anytime. */
+  cancelHours?: number;
 }) {
   const router = useRouter();
   const Icon = categoryIcons[category];
@@ -118,13 +138,21 @@ export function BookingPanel({
   // Waitlist: when the chosen day is fully booked, let the customer get in line.
   const [waitBusy, setWaitBusy] = useState(false);
   const [waitJoined, setWaitJoined] = useState(false);
-  const today = new Date().toISOString().slice(0, 10);
   // Prefill the name only when the account actually has a real name — never the
   // email, so a booking is never recorded under an email address.
   const prefillName =
     customerName && !customerName.includes("@") ? customerName : "";
+  // Name and phone are controlled so the phone flow can gate "continue" on
+  // them, and so a failed submission never empties a field the customer would
+  // have to retype.
+  const [name, setName] = useState(prefillName);
   // Contact number so the merchant can reach the customer about the booking.
   const [phone, setPhone] = useState(customerPhone ?? "");
+  // Phone-only step cursor. Above `lg` every block is visible at once, so this
+  // is inert there — nothing branches on it except which block is hidden.
+  const [stepIdx, setStepIdx] = useState(0);
+  const [dateSheet, setDateSheet] = useState(false);
+  const [timeSheet, setTimeSheet] = useState(false);
 
   // A provider can deliver a service if it's unassigned or explicitly linked.
   const offeredBy = (svcId: string, doctor: string) => {
@@ -167,7 +195,6 @@ export function BookingPanel({
   // No booking a time that has already passed today (Asia/Beirut, so it's
   // correct whatever timezone the customer's device is in). The DB trigger is
   // the hard guard; this just hides past slots so they can't be picked.
-  /* eslint-disable-next-line react-hooks/purity */
   const nowRef = new Date();
   const todayBeirut = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Beirut",
@@ -259,6 +286,67 @@ export function BookingPanel({
     engineMode !== "request_based" &&
     (dayClosed ||
       (!!slots && slots.length > 0 && slots.every((s) => slotState(s).blocked)));
+
+  // ── Phone step flow ────────────────────────────────────────────────────────
+  // A step is only worth a screen when it asks a real question: a store with a
+  // single provider has no choice to offer, so it never gets a provider step.
+  const steps: Step[] =
+    doctors.length > 1
+      ? ["service", "provider", "date", "time", "details", "review"]
+      : ["service", "date", "time", "details", "review"];
+  const step = steps[Math.min(stepIdx, steps.length - 1)];
+  // What each step must have answered before the customer may move on. This
+  // gates navigation only — the submit button keeps its own guard, and the DB
+  // is still the authority on whether the slot is really free.
+  const stepReady: Record<Step, boolean> = {
+    service: !!serviceId,
+    provider: !!doctorId,
+    date: !!pickedDate,
+    time: !!time && !slotState(time).blocked,
+    details: !!name.trim() && !!phone.trim(),
+    review: true,
+  };
+  const stepLabels: Record<Step, string> = {
+    service: dict.booking.steps.service,
+    provider: dict.booking.steps.provider,
+    date: dict.booking.steps.date,
+    time: dict.booking.steps.time,
+    details: dict.booking.steps.details,
+    review: dict.booking.steps.review,
+  };
+  // Inactive blocks stay mounted and merely hidden: `display:none` fields are
+  // still submitted with the form, so stepping forward and back can never drop
+  // an answer, and a failed submission leaves every field as the customer left
+  // it. Above `lg` nothing is hidden — the single panel is unchanged.
+  const stepShell = (s: Step) => (step === s ? "" : "hidden lg:block");
+  const goTo = (s: Step) => {
+    const i = steps.indexOf(s);
+    if (i >= 0) setStepIdx(i);
+  };
+
+  const dateFmt = new Intl.DateTimeFormat(lang, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+  const dateLabel = (iso: string) => dateFmt.format(new Date(`${iso}T00:00:00`));
+  // Three weeks of taps instead of a native date roller. Generated from the
+  // same Beirut "today" the `min` attribute uses, so the sheet can never offer
+  // a day the input itself would reject.
+  const dayOptions = Array.from({ length: 21 }, (_, i) => {
+    const d = new Date(`${todayBeirut}T00:00:00`);
+    d.setDate(d.getDate() + i);
+    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    return { iso, label: dateFmt.format(d), closed: !!hours && !daySpan(hours, d) };
+  });
+
+  const providerLabel =
+    doctorId === "any"
+      ? dict.booking.anyProvider
+      : (doctors.find((d) => d.id === doctorId)?.name ?? "");
+  const serviceLabel = selectedService
+    ? localized(selectedService.name, selectedService.nameEn, lang)
+    : "";
 
   async function refreshTaken(date: string, doctor: string, service: string) {
     // Nothing to conflict against until a service (or a doctor) is chosen.
@@ -357,6 +445,19 @@ export function BookingPanel({
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    // A phone keyboard's "Go" submits the form from whatever field has focus.
+    // That would skip the review step — the only place stating that this is a
+    // request awaiting confirmation and what the cancellation window is — so on
+    // the step flow an early submit advances instead of booking. The step flow
+    // exists only below `lg`, which is exactly what this asks.
+    if (
+      typeof window !== "undefined" &&
+      !window.matchMedia("(min-width: 1024px)").matches &&
+      step !== "review"
+    ) {
+      if (stepReady[step]) setStepIdx((i) => Math.min(i + 1, steps.length - 1));
+      return;
+    }
     setLoading(true);
     setError(null);
     const form = new FormData(e.currentTarget);
@@ -552,8 +653,80 @@ export function BookingPanel({
     );
   }
 
+  // One slot grid, rendered twice: inline above `lg`, inside the sheet below
+  // it. Two copies of this markup would eventually disagree about which slots
+  // are bookable, and that disagreement is a double booking.
+  function slotGrid(inSheet: boolean) {
+    return (
+      <div
+        className={
+          inSheet ? "grid grid-cols-3 gap-2 pb-2" : "mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4"
+        }
+      >
+        {(slots ?? []).map((s) => {
+          const st = slotState(s);
+          const isTaken = st.blocked;
+          return (
+            <button
+              key={s}
+              type="button"
+              disabled={isTaken}
+              onClick={() => {
+                setTime(s);
+                setTimeSheet(false);
+              }}
+              dir="ltr"
+              className={`flex min-h-12 flex-col items-center justify-center rounded-xl border px-2 py-2 text-sm font-bold tabular-nums transition-colors ${
+                isTaken
+                  ? "cursor-not-allowed border-border bg-surface-muted text-muted-foreground line-through opacity-60"
+                  : time === s
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border hover:border-primary/50"
+              }`}
+            >
+              {s}
+              {st.remaining != null &&
+                st.remaining > 0 &&
+                avail?.capacity != null &&
+                st.remaining < avail.capacity && (
+                  <span className="block text-[10px] font-semibold opacity-80">
+                    {dict.booking.spotsLeft.replace("{n}", String(st.remaining))}
+                  </span>
+                )}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
   // Group into service groups when defined; else one flat list (no regression).
   const groups = groupBySection(services, sections);
+
+  const whenLabel = [pickedDate ? dateLabel(pickedDate) : "", time]
+    .filter(Boolean)
+    .join(" · ");
+  const netPrice = Math.max(0, selectedPrice - (coupon?.discount ?? 0));
+  // The first question still unanswered. Named rather than counted, so the
+  // review step can say what is missing instead of just refusing to submit.
+  const firstIncomplete = steps.find((s) => !stepReady[s]);
+  // Every review line is also the way back to the step that set it.
+  const reviewRows: { target: Step; label: string; value: string }[] = [
+    { target: "service", label: dict.booking.selectService, value: serviceLabel },
+    { target: "date", label: dict.booking.date, value: whenLabel },
+    {
+      target: "details",
+      label: dict.booking.yourName,
+      value: [name, phone].filter(Boolean).join(" · "),
+    },
+  ];
+  if (doctors.length > 0) {
+    reviewRows.splice(1, 0, {
+      target: "provider",
+      label: dict.booking.selectDoctor,
+      value: providerLabel,
+    });
+  }
 
   return (
     <div>
@@ -580,38 +753,45 @@ export function BookingPanel({
           {dict.booking.title}
         </h3>
         {customerName ? (
+          <>
           <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-border bg-surface p-5">
-            <div>
-              <label className={labelClass} htmlFor="customer_name">
-                {dict.booking.yourName}
-              </label>
-              <input
-                id="customer_name"
-                name="customer_name"
-                type="text"
-                required
-                defaultValue={prefillName}
-                placeholder={dict.booking.yourNamePlaceholder}
-                className={fieldClass}
-              />
+            {/* Phones only: what is being booked, restated at every step. The
+                commonest booking mistake is confirming the wrong service or
+                the wrong day, and one line of recap removes it. */}
+            <div className="lg:hidden">
+              <div className="flex items-start justify-between gap-3 rounded-xl border border-border bg-surface-muted/50 p-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold">
+                    {serviceLabel || dict.booking.steps.noService}
+                  </p>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {[providerLabel, whenLabel].filter(Boolean).join(" · ") ||
+                      dict.booking.steps.noWhen}
+                  </p>
+                </div>
+                {selectedPrice > 0 && (
+                  <p className="shrink-0 text-sm font-extrabold tabular-nums">
+                    {formatPrice(netPrice)}
+                  </p>
+                )}
+              </div>
+              <div className="mt-3 flex items-center gap-1.5" aria-hidden>
+                {steps.map((s, i) => (
+                  <span
+                    key={s}
+                    className={`h-1 flex-1 rounded-full ${i <= stepIdx ? "bg-primary" : "bg-border"}`}
+                  />
+                ))}
+              </div>
+              <p className="mt-2 text-label text-muted-foreground">
+                {dict.booking.steps.counter
+                  .replace("{n}", String(stepIdx + 1))
+                  .replace("{total}", String(steps.length))}
+              </p>
+              <h4 className="text-h4">{stepLabels[step]}</h4>
             </div>
-            <div>
-              <label className={labelClass} htmlFor="customer_phone">
-                {dict.booking.yourPhone}
-              </label>
-              <input
-                id="customer_phone"
-                name="customer_phone"
-                type="tel"
-                inputMode="tel"
-                required
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+961 …"
-                className={fieldClass}
-              />
-            </div>
-            <div>
+
+            <div className={stepShell("service")}>
               <label className={labelClass} htmlFor="service_id">
                 {dict.booking.selectService}
               </label>
@@ -634,7 +814,7 @@ export function BookingPanel({
               </select>
             </div>
             {doctors.length > 0 && (
-              <div>
+              <div className={stepShell("provider")}>
                 <label className={labelClass} htmlFor="doctor_id">
                   {dict.booking.selectDoctor}
                 </label>
@@ -667,22 +847,84 @@ export function BookingPanel({
                 </select>
               </div>
             )}
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className={labelClass} htmlFor="date">
-                  {dict.booking.date}
-                </label>
-                <input
-                  id="date"
-                  name="date"
-                  type="date"
-                  required
-                  min={todayBeirut}
-                  onChange={(e) => onDateChange(e.target.value)}
-                  className={fieldClass}
-                />
-              </div>
-              {!hours && (
+            <div className={stepShell("date")}>
+              <label className={`${labelClass} hidden lg:block`} htmlFor="date">
+                {dict.booking.date}
+              </label>
+              <button
+                type="button"
+                onClick={() => setDateSheet(true)}
+                aria-label={dict.booking.date}
+                className={triggerClass}
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <CalendarCheck className="h-4 w-4 shrink-0 text-primary" />
+                  <span className="truncate">
+                    {pickedDate
+                      ? dateLabel(pickedDate)
+                      : dict.booking.steps.chooseDate}
+                  </span>
+                </span>
+                <span className="shrink-0 text-xs font-bold text-primary">
+                  {dict.booking.steps.change}
+                </span>
+              </button>
+              {/* The native input stays mounted below `lg` too: it carries the
+                  `date` field the form submits, and hidden fields still post. */}
+              <input
+                id="date"
+                name="date"
+                type="date"
+                required
+                min={todayBeirut}
+                value={pickedDate}
+                onChange={(e) => onDateChange(e.target.value)}
+                className={`${fieldClass} hidden lg:block`}
+              />
+            </div>
+
+            <div className={`${stepShell("time")} space-y-4`}>
+              {hours ? (
+                <>
+                  <input type="hidden" name="time" value={time} />
+                  {pickedDate ? (
+                    <div>
+                      <span className={`${labelClass} hidden lg:block`}>
+                        {dict.booking.pickSlot}
+                      </span>
+                      {dayClosed ? (
+                        <p className="mt-2 rounded-xl bg-surface-muted p-3 text-sm font-semibold text-muted-foreground">
+                          {dict.booking.noSlots}
+                        </p>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setTimeSheet(true)}
+                            aria-label={dict.booking.pickSlot}
+                            className={triggerClass}
+                          >
+                            <span className="flex min-w-0 items-center gap-2">
+                              <Clock className="h-4 w-4 shrink-0 text-primary" />
+                              <span className="truncate tabular-nums" dir="ltr">
+                                {time || dict.booking.steps.chooseTime}
+                              </span>
+                            </span>
+                            <span className="shrink-0 text-xs font-bold text-primary">
+                              {dict.booking.steps.change}
+                            </span>
+                          </button>
+                          <div className="hidden lg:block">{slotGrid(false)}</div>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="rounded-xl bg-surface-muted p-3 text-sm font-semibold text-muted-foreground lg:hidden">
+                      {dict.booking.steps.pickDateFirst}
+                    </p>
+                  )}
+                </>
+              ) : (
                 <div>
                   <label className={labelClass} htmlFor="time">
                     {dict.booking.time}
@@ -698,183 +940,355 @@ export function BookingPanel({
                   />
                 </div>
               )}
-            </div>
-            {engineMode && avail && (
-              <p className="text-xs font-semibold text-muted-foreground">
-                ⏱️ {dict.booking.durationLabel.replace("{n}", String(avail.duration))}
-              </p>
-            )}
-            {engineMode === "request_based" && (
-              <p className="rounded-xl bg-info-soft px-3 py-2 text-sm font-semibold text-info">
-                {dict.booking.requestNote}
-              </p>
-            )}
-            {hours && <input type="hidden" name="time" value={time} />}
-            {hours && pickedDate && (
-              <div>
-                <span className={labelClass}>{dict.booking.pickSlot}</span>
-                {dayClosed ? (
-                  <p className="mt-2 rounded-xl bg-surface-muted p-3 text-sm font-semibold text-muted-foreground">
-                    {dict.booking.noSlots}
-                  </p>
-                ) : (
-                  <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
-                    {(slots ?? []).map((s) => {
-                      const st = slotState(s);
-                      const isTaken = st.blocked;
-                      return (
-                        <button
-                          key={s}
-                          type="button"
-                          disabled={isTaken}
-                          onClick={() => setTime(s)}
-                          dir="ltr"
-                          className={`rounded-xl border px-2 py-2 text-sm font-bold tabular-nums transition-colors ${
-                            isTaken
-                              ? "cursor-not-allowed border-border bg-surface-muted text-muted-foreground line-through opacity-60"
-                              : time === s
-                                ? "border-primary bg-primary text-primary-foreground"
-                                : "border-border hover:border-primary/50"
-                          }`}
-                        >
-                          {s}
-                          {st.remaining != null &&
-                            st.remaining > 0 &&
-                            avail?.capacity != null &&
-                            st.remaining < avail.capacity && (
-                              <span className="block text-[10px] font-semibold opacity-80">
-                                {dict.booking.spotsLeft.replace(
-                                  "{n}",
-                                  String(st.remaining),
-                                )}
-                              </span>
-                            )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-            {dayFull &&
-              (waitJoined ? (
-                <div className="rounded-xl bg-success-soft px-4 py-3 text-sm font-bold text-success">
-                  {dict.booking.waitlist.joined}
-                </div>
-              ) : (
-                <div className="rounded-xl border border-warning/30 bg-warning-soft px-4 py-3">
-                  <p className="text-sm font-bold text-warning">
-                    {dict.booking.waitlist.fullTitle}
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {dict.booking.waitlist.fullNote}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={joinWaitlist}
-                    disabled={waitBusy}
-                    className="mt-2.5 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
-                  >
-                    {dict.booking.waitlist.join}
-                  </button>
-                </div>
-              ))}
-            {!hours && taken.length > 0 && (
-              <div className="rounded-xl bg-warning-soft p-3">
-                <p className="text-xs font-bold text-warning">
-                  {dict.booking.takenTimes}
+              {engineMode && avail && (
+                <p className="text-xs font-semibold text-muted-foreground">
+                  ⏱️ {dict.booking.durationLabel.replace("{n}", String(avail.duration))}
                 </p>
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {taken.map((tt) => (
-                    <span
-                      key={tt}
-                      dir="ltr"
-                      className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                        tt === time
-                          ? "bg-danger-strong text-danger-strong-foreground"
-                          : "bg-warning-soft text-warning"
-                      }`}
+              )}
+              {dayFull &&
+                (waitJoined ? (
+                  <div className="rounded-xl bg-success-soft px-4 py-3 text-sm font-bold text-success">
+                    {dict.booking.waitlist.joined}
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-warning/30 bg-warning-soft px-4 py-3">
+                    <p className="text-sm font-bold text-warning">
+                      {dict.booking.waitlist.fullTitle}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {dict.booking.waitlist.fullNote}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={joinWaitlist}
+                      disabled={waitBusy}
+                      className="mt-2.5 h-11 rounded-lg bg-primary px-4 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
                     >
-                      {tt}
-                    </span>
-                  ))}
-                </div>
-                {time && taken.includes(time) && (
-                  <p className="mt-1.5 text-xs font-bold text-danger">
-                    {dict.booking.slotTaken}
+                      {dict.booking.waitlist.join}
+                    </button>
+                  </div>
+                ))}
+              {!hours && taken.length > 0 && (
+                <div className="rounded-xl bg-warning-soft p-3">
+                  <p className="text-xs font-bold text-warning">
+                    {dict.booking.takenTimes}
                   </p>
-                )}
-              </div>
-            )}
-            <div>
-              <label className={labelClass} htmlFor="notes">
-                {dict.booking.notes}
-              </label>
-              <textarea id="notes" name="notes" rows={2} placeholder={dict.booking.notesPlaceholder} className={fieldClass} />
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    {taken.map((tt) => (
+                      <span
+                        key={tt}
+                        dir="ltr"
+                        className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                          tt === time
+                            ? "bg-danger-strong text-danger-strong-foreground"
+                            : "bg-warning-soft text-warning"
+                        }`}
+                      >
+                        {tt}
+                      </span>
+                    ))}
+                  </div>
+                  {time && taken.includes(time) && (
+                    <p className="mt-1.5 text-xs font-bold text-danger">
+                      {dict.booking.slotTaken}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* Coupon — validated against the selected service price. */}
-            {serviceId && selectedPrice > 0 && (
+            <div className={`${stepShell("details")} space-y-4`}>
               <div>
-                <label className={labelClass}>{dict.booking.couponLabel}</label>
-                <div className="mt-1.5 flex gap-2">
-                  <input
-                    type="text"
-                    value={couponInput}
-                    onChange={(e) => {
-                      setCouponInput(e.target.value);
-                      setCoupon(null);
-                      setCouponError(null);
-                    }}
-                    placeholder={dict.booking.couponPlaceholder}
-                    className={fieldClass.replace("mt-1.5", "mt-0")}
-                  />
-                  <button
-                    type="button"
-                    onClick={applyCoupon}
-                    disabled={couponBusy || !couponInput.trim()}
-                    className="shrink-0 rounded-xl border border-border px-4 text-sm font-bold transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
-                  >
-                    {dict.booking.couponApply}
-                  </button>
+                <label className={labelClass} htmlFor="customer_name">
+                  {dict.booking.yourName}
+                </label>
+                <input
+                  id="customer_name"
+                  name="customer_name"
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder={dict.booking.yourNamePlaceholder}
+                  className={fieldClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass} htmlFor="customer_phone">
+                  {dict.booking.yourPhone}
+                </label>
+                <input
+                  id="customer_phone"
+                  name="customer_phone"
+                  type="tel"
+                  inputMode="tel"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+961 …"
+                  className={fieldClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass} htmlFor="notes">
+                  {dict.booking.notes}
+                </label>
+                <textarea id="notes" name="notes" rows={2} placeholder={dict.booking.notesPlaceholder} className={fieldClass} />
+              </div>
+
+              {/* Coupon — validated against the selected service price. */}
+              {serviceId && selectedPrice > 0 && (
+                <div>
+                  <label className={labelClass}>{dict.booking.couponLabel}</label>
+                  <div className="mt-1.5 flex gap-2">
+                    <input
+                      type="text"
+                      value={couponInput}
+                      onChange={(e) => {
+                        setCouponInput(e.target.value);
+                        setCoupon(null);
+                        setCouponError(null);
+                      }}
+                      placeholder={dict.booking.couponPlaceholder}
+                      className={fieldClass.replace("mt-1.5", "mt-0")}
+                    />
+                    <button
+                      type="button"
+                      onClick={applyCoupon}
+                      disabled={couponBusy || !couponInput.trim()}
+                      className="h-11 shrink-0 rounded-xl border border-border px-4 text-sm font-bold transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
+                    >
+                      {dict.booking.couponApply}
+                    </button>
+                  </div>
+                  {couponError && (
+                    <p className="mt-1.5 text-xs font-semibold text-danger">
+                      {couponError}
+                    </p>
+                  )}
+                  {coupon && (
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-success-soft px-3 py-2 text-sm font-bold text-success">
+                      <span>
+                        {dict.booking.discountLabel}: −{formatPrice(coupon.discount)}
+                      </span>
+                      <span className="text-foreground">
+                        {dict.booking.netLabel}:{" "}
+                        {formatPrice(Math.max(0, selectedPrice - coupon.discount))}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                {couponError && (
-                  <p className="mt-1.5 text-xs font-semibold text-danger">
-                    {couponError}
-                  </p>
-                )}
-                {coupon && (
-                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-success-soft px-3 py-2 text-sm font-bold text-success">
-                    <span>
-                      {dict.booking.discountLabel}: −{formatPrice(coupon.discount)}
-                    </span>
-                    <span className="text-foreground">
-                      {dict.booking.netLabel}:{" "}
-                      {formatPrice(Math.max(0, selectedPrice - coupon.discount))}
-                    </span>
+              )}
+            </div>
+
+            <div className={`${stepShell("review")} space-y-4`}>
+              {/* Phones: the booking restated in full, each line a way back to
+                  the step that set it. */}
+              <dl className="divide-y divide-border rounded-xl border border-border lg:hidden">
+                {reviewRows.map(({ target, label, value }) => (
+                  <div
+                    key={target}
+                    className="flex items-center justify-between gap-3 px-3 py-2.5"
+                  >
+                    <div className="min-w-0">
+                      <dt className="text-xs text-muted-foreground">{label}</dt>
+                      <dd className="truncate text-sm font-bold">{value || "—"}</dd>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => goTo(target)}
+                      className="relative shrink-0 text-xs font-bold text-primary before:absolute before:-inset-1.5 before:content-['']"
+                    >
+                      {dict.booking.steps.change}
+                    </button>
+                  </div>
+                ))}
+                {selectedPrice > 0 && (
+                  <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+                    <dt className="text-xs text-muted-foreground">
+                      {dict.booking.steps.price}
+                    </dt>
+                    <dd className="text-sm font-extrabold tabular-nums">
+                      {formatPrice(netPrice)}
+                    </dd>
                   </div>
                 )}
-              </div>
-            )}
+              </dl>
 
-            {error && (
-              <p className="text-sm font-medium text-danger">{error}</p>
-            )}
-            <button
-              type="submit"
-              disabled={
-                loading ||
-                (!!time && slotState(time).blocked) ||
-                (!!hours && !time)
-              }
-              className="rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
-            >
-              {loading ? dict.booking.submitting : dict.booking.submit}
-            </button>
-            <p className="text-xs text-muted-foreground">
-              {dict.booking.payOnArrival}
-            </p>
+              {/* Request-or-confirmation and the cancellation window, stated
+                  before the button rather than discovered afterwards. Every
+                  booking lands as `pending`, so nothing here promises an
+                  instant confirmation — request_based additionally means the
+                  time itself is not final. */}
+              <div className="rounded-xl border border-info/30 bg-info-soft px-4 py-3">
+                <p className="flex items-center gap-2 text-sm font-bold text-info">
+                  <Info className="h-4 w-4 shrink-0" />
+                  {engineMode === "request_based"
+                    ? dict.booking.confirmMode.requestTitle
+                    : dict.booking.confirmMode.heldTitle}
+                </p>
+                <p className="mt-1 text-xs font-medium text-info">
+                  {engineMode === "request_based"
+                    ? dict.booking.requestNote
+                    : dict.booking.confirmMode.heldNote}
+                </p>
+                <p className="mt-2.5 flex items-start gap-2 border-t border-info/20 pt-2.5 text-xs font-semibold text-info">
+                  <ShieldCheck className="h-4 w-4 shrink-0" />
+                  {cancelHours > 0
+                    ? dict.booking.cancelPolicy.hours.replace(
+                        "{n}",
+                        String(cancelHours),
+                      )
+                    : dict.booking.cancelPolicy.anytime}
+                </p>
+              </div>
+
+              {/* Shown at every width, because the submit button below is now
+                  disabled until the form is complete — and above `lg` that
+                  replaces the browser's own "please fill this field" bubble.
+                  A greyed-out button with no stated reason is worse than the
+                  bubble it replaced, so the reason is always on screen. */}
+              {firstIncomplete && (
+                <button
+                  type="button"
+                  onClick={() => goTo(firstIncomplete)}
+                  className="flex min-h-11 w-full items-center rounded-xl border border-warning/30 bg-warning-soft px-4 text-start text-sm font-bold text-warning"
+                >
+                  {dict.booking.steps.incomplete.replace(
+                    "{step}",
+                    stepLabels[firstIncomplete],
+                  )}
+                </button>
+              )}
+
+              {error && (
+                <p className="text-sm font-medium text-danger">{error}</p>
+              )}
+              <button
+                type="submit"
+                disabled={
+                  loading ||
+                  (!!time && slotState(time).blocked) ||
+                  (!!hours && !time) ||
+                  !!firstIncomplete
+                }
+                className="h-12 w-full rounded-xl bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60 lg:h-auto lg:w-auto lg:py-3"
+              >
+                {loading ? dict.booking.submitting : dict.booking.submit}
+              </button>
+              <p className="text-xs text-muted-foreground">
+                {dict.booking.payOnArrival}
+              </p>
+            </div>
+
+            {/* Step controls. `type="button"` throughout — only the review
+                step's submit may post the form. */}
+            <div className="flex items-center gap-3 lg:hidden">
+              {stepIdx > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setStepIdx((i) => Math.max(0, i - 1))}
+                  className="h-12 shrink-0 rounded-xl border border-border px-5 text-sm font-bold transition-colors hover:border-primary hover:text-primary"
+                >
+                  {dict.booking.steps.back}
+                </button>
+              )}
+              {step !== "review" && (
+                <button
+                  type="button"
+                  disabled={!stepReady[step]}
+                  onClick={() =>
+                    setStepIdx((i) => Math.min(steps.length - 1, i + 1))
+                  }
+                  className="h-12 flex-1 rounded-xl bg-primary px-5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+                >
+                  {dict.booking.steps.next}
+                </button>
+              )}
+            </div>
           </form>
+
+          {/* Date and time move into sheets on phones: a 3-column grid inside
+              a 5-inch panel is a row of 90px targets, and the day list has no
+              room at all beside it. The sheet is `lg:hidden` itself, so the
+              inline grid above `lg` is untouched.
+              Both sheets portal outside the form — nothing in them is a form
+              field; they only set the state the form's own inputs render. */}
+          <BottomSheet
+            open={dateSheet}
+            onClose={() => setDateSheet(false)}
+            title={dict.booking.steps.chooseDate}
+          >
+            <div className="space-y-2 pb-2">
+              {dayOptions.map((d) => (
+                <button
+                  key={d.iso}
+                  type="button"
+                  disabled={d.closed}
+                  onClick={() => {
+                    setDateSheet(false);
+                    void onDateChange(d.iso);
+                  }}
+                  className={`flex min-h-12 w-full items-center justify-between gap-3 rounded-xl border px-4 text-start text-sm font-semibold transition-colors ${
+                    d.closed
+                      ? "cursor-not-allowed border-border bg-surface-muted text-muted-foreground opacity-60"
+                      : pickedDate === d.iso
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border hover:border-primary/50"
+                  }`}
+                >
+                  <span className="truncate">{d.label}</span>
+                  {d.closed ? (
+                    <span className="shrink-0 text-xs font-bold">
+                      {dict.booking.steps.closed}
+                    </span>
+                  ) : (
+                    pickedDate === d.iso && (
+                      <Check className="h-4 w-4 shrink-0" />
+                    )
+                  )}
+                </button>
+              ))}
+              {/* Three weeks covers almost every appointment; anything further
+                  out falls back to the platform picker. */}
+              <label className={`${labelClass} block pt-2`} htmlFor="date_sheet">
+                {dict.booking.steps.otherDate}
+              </label>
+              <input
+                id="date_sheet"
+                type="date"
+                min={todayBeirut}
+                value={pickedDate}
+                onChange={(e) => {
+                  setDateSheet(false);
+                  void onDateChange(e.target.value);
+                }}
+                className={fieldClass}
+              />
+            </div>
+          </BottomSheet>
+
+          <BottomSheet
+            open={timeSheet}
+            onClose={() => setTimeSheet(false)}
+            title={dict.booking.pickSlot}
+          >
+            {dayClosed ? (
+              <p className="rounded-xl bg-surface-muted p-3 text-sm font-semibold text-muted-foreground">
+                {dict.booking.noSlots}
+              </p>
+            ) : (
+              <>
+                {engineMode && avail && (
+                  <p className="pb-3 text-xs font-semibold text-muted-foreground">
+                    ⏱️ {dict.booking.durationLabel.replace("{n}", String(avail.duration))}
+                  </p>
+                )}
+                {slotGrid(true)}
+              </>
+            )}
+          </BottomSheet>
+          </>
         ) : (
           <Link
             href={`/${lang}/login`}
