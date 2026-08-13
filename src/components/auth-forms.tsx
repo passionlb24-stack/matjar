@@ -458,21 +458,31 @@ export function SignupForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
 export function ForgotPasswordForm({
   lang,
   dict,
+  linkError = false,
 }: {
   lang: Locale;
   dict: Dictionary;
+  /** Sent back here by /auth/confirm because the link was spent or opened in a
+   *  different browser than the one that requested it. */
+  linkError?: boolean;
 }) {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    linkError ? dict.auth.resetLinkDead : null,
+  );
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError(null);
     const email = String(new FormData(e.currentTarget).get("email"));
+    // Through /auth/confirm, never straight at the form. The link has to become
+    // a session before anyone is asked to type a new password; landing on the
+    // form directly is what left people changing nothing and then being told at
+    // login that their password was wrong.
     const { error } = await createClient().auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/${lang}/reset-password`,
+      redirectTo: `${window.location.origin}/${lang}/auth/confirm?next=/${lang}/reset-password`,
     });
     if (error) {
       setError(dict.auth.errorGeneric);
