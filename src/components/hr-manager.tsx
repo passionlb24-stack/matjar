@@ -13,7 +13,10 @@ import {
   Smartphone,
   Link2,
   AlertTriangle,
+  Copy,
+  MessageCircle,
 } from "lucide-react";
+import { waLink } from "@/lib/phone";
 import { createClient } from "@/lib/supabase/client";
 import { notifyError, notifySuccess } from "@/lib/notify";
 import { useConfirm } from "@/components/ui/confirm-dialog";
@@ -194,6 +197,33 @@ export function HrManager({
     }
     notifySuccess(labels.radiusSaved);
     router.refresh();
+  }
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(clockLink);
+      notifySuccess(labels.copied);
+    } catch {
+      // Clipboard is blocked on insecure origins and in some in-app browsers.
+      // The link is printed above in full, so this is a convenience failing,
+      // not the task failing.
+      notifyError(labels.copyFailed);
+    }
+  }
+
+  // The link is the same for everyone; what is per-employee is having it land
+  // in the right person's chat. WhatsApp is where a shop already talks to its
+  // staff, so the message is prefilled rather than left to be retyped.
+  //
+  // Deliberately NOT the enrolment code: that is read out face to face, and
+  // sending it would hand over the one thing standing in for a password.
+  function sendLink(phone: string) {
+    const url = waLink(phone, labels.sendLinkMsg.replace("{u}", clockLink));
+    if (!url) {
+      notifyError(labels.badPhone);
+      return;
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
   }
 
   // One phone, one person. The code is single-use and dies in ten minutes, so
@@ -377,6 +407,14 @@ export function HrManager({
           <p className="mt-1 break-all font-mono text-sm text-primary" dir="ltr">
             {clockLink}
           </p>
+          {/* One link for the whole shop, not one per person — so it is copied
+              from here, and only the sending is per-employee (see the row
+              button). Reading eight characters off a screen and retyping them
+              is how a link arrives wrong. */}
+          <Button size="sm" variant="outline" className="mt-2" onClick={copyLink}>
+            <Copy className="h-4 w-4" />
+            {labels.copyLink}
+          </Button>
           <p className="mt-1 text-xs text-muted-foreground">{labels.linkHint}</p>
           <div className="mt-2 flex flex-wrap items-end gap-2">
             <div>
@@ -541,6 +579,18 @@ export function HrManager({
                   <Wallet className="h-4 w-4" />
                   {labels.advance}
                 </Button>
+                {/* Only where there is a number to send to. A button that opens
+                    an empty WhatsApp is a button that looks broken. */}
+                {e.phone && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => sendLink(e.phone!)}
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    {labels.sendLink}
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="outline"

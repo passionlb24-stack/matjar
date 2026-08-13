@@ -88,7 +88,12 @@ export function ClockDevice({
         body: JSON.stringify({ step: "options", shortCode, code: code.trim() }),
       }).then((r) => r.json());
       if (!optRes.options) {
-        setMsg({ ok: false, text: labels.badCode });
+        // "Wrong code" while the shop is locked would have the employee typing
+        // the same correct code over and over. Say which one it actually is.
+        setMsg({
+          ok: false,
+          text: optRes.error === "locked" ? labels.enrolLocked : labels.badCode,
+        });
         return;
       }
       const attestation = await startRegistration({
