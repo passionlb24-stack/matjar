@@ -13,6 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { waLink } from "@/lib/phone";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { notifyError, notifySuccess } from "@/lib/notify";
@@ -79,7 +80,7 @@ const statusVariant: Record<
 };
 
 function waHref(phone: string) {
-  return `https://wa.me/${phone.replace(/[^0-9]/g, "")}`;
+  return waLink(phone) ?? `tel:${phone}`;
 }
 
 function formatPrice(price: number) {

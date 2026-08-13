@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { MessageCircle, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { waLink } from "@/lib/phone";
 import { Button } from "@/components/ui/button";
 import { notifyError } from "@/lib/notify";
 
@@ -37,10 +38,7 @@ export function JoinAction({
       .then(({ data: { user } }) => setUid(user?.id ?? null));
   }, []);
 
-  const wa = whatsapp ? whatsapp.replace(/[^0-9]/g, "") : null;
-  const waHref = wa
-    ? `https://wa.me/${wa}?text=${encodeURIComponent(waText)}`
-    : null;
+  const waHref = waLink(whatsapp, waText);
 
   async function act() {
     if (!uid) {

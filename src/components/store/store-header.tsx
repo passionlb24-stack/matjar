@@ -12,6 +12,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { StoreView } from "@/lib/data/store-view";
 import { SITE_URL } from "@/lib/site";
+import { waLink } from "@/lib/phone";
 import { parseHours, isOpenNow, daySpan } from "@/lib/hours";
 import { FollowButton } from "@/components/follow-button";
 import { ShareButton } from "@/components/share-button";
@@ -190,7 +191,7 @@ export function StoreHeader({
           )}
           {store.whatsapp && (
             <a
-              href={`https://wa.me/${store.whatsapp.replace(/[^0-9]/g, "")}`}
+              href={waLink(store.whatsapp) ?? "#"}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"

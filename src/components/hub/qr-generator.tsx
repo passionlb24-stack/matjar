@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { waLink } from "@/lib/phone";
 import QRCode from "qrcode";
 import { Download } from "lucide-react";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -24,7 +25,7 @@ export function QrGenerator({ dict }: { dict: Dictionary }) {
   const encoded =
     mode === "wa"
       ? value.replace(/\D/g, "")
-        ? `https://wa.me/${value.replace(/\D/g, "")}`
+        ? (waLink(value) ?? value)
         : ""
       : value.trim();
 

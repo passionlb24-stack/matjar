@@ -6,6 +6,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
+import { waLink } from "@/lib/phone";
 import { ButtonLink } from "@/components/ui/button";
 
 export async function generateMetadata({
@@ -81,7 +82,7 @@ export default async function DeliveryPage({
                 <div className="mt-3 flex flex-wrap gap-2">
                   {c.whatsapp && (
                     <a
-                      href={`https://wa.me/${c.whatsapp.replace(/[^0-9]/g, "")}`}
+                      href={waLink(c.whatsapp) ?? "#"}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"

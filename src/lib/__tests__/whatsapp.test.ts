@@ -6,6 +6,13 @@ describe("waLink", () => {
     const link = waLink("+961 70 123 456", "hi there");
     expect(link).toBe("https://wa.me/96170123456?text=hi%20there");
   });
+
+  // The case the original test missed, and the reason every WhatsApp button
+  // on the platform was opening a dead page for locally-stored numbers.
+  it("adds the country code to a local number", () => {
+    expect(waLink("03709064", "hi")).toBe("https://wa.me/9613709064?text=hi");
+    expect(waLink("81457806", "hi")).toBe("https://wa.me/96181457806?text=hi");
+  });
 });
 
 describe("buildOrderMessage", () => {

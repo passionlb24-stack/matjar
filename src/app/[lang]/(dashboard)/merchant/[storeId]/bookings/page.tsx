@@ -4,6 +4,7 @@ import { ChevronRight, Mail, MessageCircle, Phone } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { waLink } from "@/lib/phone";
 import { Container } from "@/components/ui/container";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { BookingStatusControl } from "@/components/booking-status-control";
@@ -177,7 +178,7 @@ export default async function StoreBookingsPage({
                           {b.phone ? (
                             <>
                               <a
-                                href={`https://wa.me/${waNum}`}
+                                href={waLink(b.phone) ?? `tel:${b.phone}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1 font-semibold text-success hover:underline"

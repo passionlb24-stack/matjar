@@ -13,6 +13,7 @@ import { ReorderButton } from "@/components/reorder-button";
 import { PrintInvoiceButton } from "@/components/print-invoice-button";
 import { ReviewForm } from "@/components/review-form";
 import { OrderTimeline, type OrderEvent } from "@/components/order-timeline";
+import { OrderStickyActions } from "@/components/order-sticky-actions";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -36,7 +37,7 @@ export default async function OrderDetailPage({
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, status, subtotal, discount, total, delivery_fee, fulfillment, address, phone, customer_note, custom_fields, created_at, customer_id, store_id, stores(name), order_items(id, name, unit_price, quantity, product_id, products(item_kind))",
+      "id, status, subtotal, discount, total, delivery_fee, fulfillment, address, phone, customer_note, custom_fields, created_at, customer_id, store_id, stores(name, phone, whatsapp), order_items(id, name, unit_price, quantity, product_id, products(item_kind))",
     )
     .eq("id", id)
     .maybeSingle();
@@ -56,7 +57,7 @@ export default async function OrderDetailPage({
     created_at: string;
     customer_id: string;
     store_id: string;
-    stores: { name: string } | null;
+    stores: { name: string; phone: string | null; whatsapp: string | null } | null;
     order_items: {
       id: string;
       name: string;
@@ -107,6 +108,21 @@ export default async function OrderDetailPage({
     (sum, r) => sum + Number((r as { amount: number }).amount),
     0,
   );
+
+  // A finished order has no next step, so the bar does not appear at all
+  // rather than pinning a dead action to every screen.
+  const isLive = !["completed", "cancelled", "rejected"].includes(order.status);
+
+  // Only stated where the platform genuinely knows what comes next. Silence
+  // beats a reassuring guess on someone's money.
+  const nextSteps: Record<string, string | undefined> = {
+    pending: dict.orders.nextPending,
+    accepted: dict.orders.nextAccepted,
+    preparing: dict.orders.nextPreparing,
+    ready: dict.orders.nextReady,
+    out_for_delivery: dict.orders.nextOnTheWay,
+  };
+  const nextStep = nextSteps[order.status];
 
   const t = dict.orders;
   const fmtDate = (iso: string) =>
@@ -280,7 +296,29 @@ export default async function OrderDetailPage({
         >
           ← {t.backToOrders}
         </Link>
+
+        {/* Room for the sticky bar plus the tab bar beneath it, so the last
+            link on the page is never trapped under either. */}
+        {isLive && (
+          <div
+            aria-hidden
+            className="h-[calc(3.5rem+env(safe-area-inset-bottom))] lg:hidden"
+          />
+        )}
       </Container>
+
+      {isLive && (
+        <OrderStickyActions
+          statusLabel={
+            (t.status as unknown as Record<string, string>)[order.status] ??
+            order.status
+          }
+          nextStep={nextStep}
+          whatsapp={order.stores?.whatsapp ?? null}
+          phone={order.stores?.phone ?? null}
+          labels={{ contact: t.contactStore, call: t.callStore }}
+        />
+      )}
     </div>
   );
 }
