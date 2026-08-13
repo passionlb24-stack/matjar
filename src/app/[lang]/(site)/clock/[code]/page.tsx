@@ -48,6 +48,9 @@ export default async function ClockPage({
           shortCode={code}
           storeName={store.name}
           hasLocation={store.has_location}
+          // Times are formatted on the device, so the locale has to travel with
+          // the labels or the clock face ends up in the browser's language.
+          lang={lang}
           labels={{
             ...t,
             locationNote: t.locationNote.replace("{a}", String(store.radius)),
