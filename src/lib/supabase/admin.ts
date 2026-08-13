@@ -22,3 +22,15 @@ export function createAdminClient() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
+
+// The same client, for callers that would rather answer than crash.
+//
+// A missing key is a deployment problem, not a request problem, and throwing it
+// out of a route handler produces a 500 with an empty body. The browser then
+// fails to parse the response and falls into whatever generic catch it has, so
+// an employee holding a valid code is told the code is wrong — and the one fact
+// that would have explained it never reaches anyone. Clock-in was down in
+// production for exactly this reason, and it read as three different bugs.
+export function adminClientIfConfigured() {
+  return process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : null;
+}

@@ -76,6 +76,7 @@ export function HrManager({
   storeId,
   clockLink,
   storeHasPin,
+  clockConfigured,
   clockRadius,
   residencyCutoff,
   employees,
@@ -86,6 +87,8 @@ export function HrManager({
   /** Public link the employee opens on their own phone. */
   clockLink: string;
   storeHasPin: boolean;
+  /** Whether the server holds the key the clock routes need to answer at all. */
+  clockConfigured: boolean;
   clockRadius: number;
   /** ISO date 30 days out, computed on the server — reading the clock during
    *  render is impure and React rightly refuses it. */
@@ -444,6 +447,16 @@ export function HrManager({
               {labels.radiusHint}
             </span>
           </div>
+
+          {/* Stated first and in the strongest colour on the screen, because
+              nothing else on this page works without it and every downstream
+              symptom points at the employee instead. */}
+          {!clockConfigured && (
+            <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-danger-soft px-3 py-2 text-xs font-bold text-danger">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              {labels.notConfigured}
+            </p>
+          )}
 
           {!storeHasPin && (
             <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-warning-soft px-3 py-2 text-xs font-bold text-warning">

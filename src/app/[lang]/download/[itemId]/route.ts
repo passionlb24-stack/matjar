@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { adminClientIfConfigured } from "@/lib/supabase/admin";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -51,8 +51,18 @@ export async function GET(
     return new Response("Not found", { status: 404 });
   }
 
-  const { data: signed, error: signError } = await createAdminClient()
-    .storage.from("digital-goods")
+  // Entitlement is already proven above, so a missing service key is a
+  // deployment fault rather than a refusal. Answering "Not found" here would
+  // tell a paying customer their file is gone.
+  const admin = adminClientIfConfigured();
+  if (!admin) {
+    return new Response("Downloads are not configured on this server", {
+      status: 503,
+    });
+  }
+
+  const { data: signed, error: signError } = await admin.storage
+    .from("digital-goods")
     .createSignedUrl(grant.path, LINK_TTL_SECONDS, {
       download: grant.filename,
     });

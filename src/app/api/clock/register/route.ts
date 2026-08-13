@@ -4,7 +4,7 @@ import {
   verifyRegistrationResponse,
 } from "@simplewebauthn/server";
 import type { RegistrationResponseJSON } from "@simplewebauthn/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { adminClientIfConfigured } from "@/lib/supabase/admin";
 import { rpFromRequest } from "@/lib/webauthn";
 
 // Attaching one phone to one person, once.
@@ -27,7 +27,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
   }
 
-  const admin = createAdminClient();
+  // Say so, rather than crashing into an empty 500 the phone cannot read.
+  const admin = adminClientIfConfigured();
+  if (!admin) {
+    return NextResponse.json({ error: "not_configured" }, { status: 503 });
+  }
   const { rpID, origin } = await rpFromRequest();
 
   const { data: ctx } = await admin.rpc("clock_store_context", {

@@ -92,7 +92,12 @@ export function ClockDevice({
         // the same correct code over and over. Say which one it actually is.
         setMsg({
           ok: false,
-          text: optRes.error === "locked" ? labels.enrolLocked : labels.badCode,
+          text:
+            optRes.error === "not_configured"
+              ? labels.notConfigured
+              : optRes.error === "locked"
+                ? labels.enrolLocked
+                : labels.badCode,
         });
         return;
       }
@@ -143,7 +148,15 @@ export function ClockDevice({
         body: JSON.stringify({ step: "options", shortCode }),
       }).then((r) => r.json());
       if (!optRes.options) {
-        setMsg({ ok: false, text: labels.failed });
+        // "Something went wrong" would have the employee retrying their
+        // fingerprint at a server that is not configured to answer.
+        setMsg({
+          ok: false,
+          text:
+            optRes.error === "not_configured"
+              ? labels.notConfigured
+              : labels.failed,
+        });
         return;
       }
       const assertion = await startAuthentication({
