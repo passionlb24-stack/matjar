@@ -241,6 +241,10 @@ export function StoreProducts({
   /** waUrl captured at the moment of success — see where it is set. */
   const [placedWaUrl, setPlacedWaUrl] = useState<string | null>(null);
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
+  // Frozen at placement for the same reason placedWaUrl is: grandTotal is
+  // derived from the cart, and the cart is cleared on the next line, so the
+  // confirmation screen would have shown $0.00 for the order just paid.
+  const [placedTotal, setPlacedTotal] = useState(0);
   const fulfillmentOptions = (["delivery", "pickup"] as const).filter((o) =>
     o === "delivery" ? acceptsDelivery : acceptsPickup,
   );
@@ -529,6 +533,7 @@ export function StoreProducts({
       idemKeyRef.current = "";
       setCheckingOut(false);
       setPlacedOrderId(guestOrderId as string);
+      setPlacedTotal(grandTotal);
       setOrderPlaced(true);
       setCart({});
       return;
@@ -599,6 +604,7 @@ export function StoreProducts({
     // can also find the order under /orders, but the number is what they read
     // out on the phone, and it is the one the merchant sees.
     setPlacedOrderId(orderId as string);
+    setPlacedTotal(grandTotal);
     // Freeze the WhatsApp message before the cart goes. waUrl is derived from
     // `items`, which is derived from `cart` — so clearing the cart on the very
     // next line emptied it, and the confirmation screen's "tell the merchant"
@@ -952,6 +958,25 @@ export function StoreProducts({
               </p>
             </div>
           )}
+
+          {/* What was paid, and what happens now. The screen stated a reference
+              and a cheerful headline but never the amount the customer had just
+              committed to, nor what the shop does next — so the two questions
+              they actually have both went unanswered at the exact moment they
+              were asked. */}
+          <div className="mx-auto mt-4 max-w-xs rounded-xl border border-border bg-surface px-4 py-3 text-start">
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-sm text-muted-foreground">
+                {dict.store.total}
+              </span>
+              <span className="text-money text-lg font-extrabold">
+                {formatPrice(placedTotal)}
+              </span>
+            </div>
+            <p className="mt-2 border-t border-border pt-2 text-xs text-muted-foreground">
+              {dict.orders.nextPending}
+            </p>
+          </div>
           <div className="mt-5 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
             {placedWaUrl && (
               <a
