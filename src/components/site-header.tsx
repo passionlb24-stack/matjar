@@ -13,6 +13,7 @@ import { NavDropdown } from "@/components/nav-dropdown";
 import { NavLink } from "@/components/nav-link";
 import { HeaderBells } from "@/components/header-bells";
 import { HeaderSearch } from "@/components/header-search";
+import { MobileSearch } from "@/components/mobile-search";
 
 export function SiteHeader({
   lang,
@@ -174,6 +175,22 @@ export function SiteHeader({
           />
         </div>
       </Container>
+
+      {/* Phones get search as its own screen; desktop keeps the sticky field,
+          which works fine at that width. Both routes end at /search. */}
+      <Container className="pb-2.5 lg:hidden">
+        <MobileSearch
+          lang={lang}
+          labels={{
+            open: dict.search.openSearch,
+            placeholder: dict.hero.searchPlaceholder,
+            recent: dict.search.recent,
+            clear: dict.search.clear,
+            back: dict.common.back,
+          }}
+        />
+      </Container>
+
       <HeaderSearch lang={lang} dict={dictSlice(dict, ["hero"])} />
     </header>
   );
