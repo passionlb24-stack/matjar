@@ -44,26 +44,28 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "bad_code" }, { status: 400 });
     }
     // The code is a six-digit secret on a public endpoint, so the function
-    // counts wrong guesses and refuses the shop after five in fifteen minutes
-    // (0264). A lockout is reported as itself: telling someone "wrong code"
-    // when the truth is "stop trying for a while" invites them to keep going.
-    const { data, error } = await admin.rpc("redeem_enrolment_code", {
-      p_store_id: store.store_id,
-      p_code: body.code,
-    });
-    const outcome = data as {
-      ok?: boolean;
-      reason?: string;
-      employee_id?: string;
-    } | null;
-    if (error || !outcome?.ok) {
-      const locked = outcome?.reason === "locked";
+    // counts wrong guesses and refuses the shop after five in fifteen minutes.
+    //
+    // Null still means no, and the signature is deliberately unchanged: 0264
+    // widened this to jsonb and broke enrolment in production, because the
+    // deployed route was still reading a uuid. The reason for the refusal is
+    // asked separately (0265) and only after one — so a caller that never asks
+    // keeps working exactly as before.
+    const { data: employeeId, error } = await admin.rpc(
+      "redeem_enrolment_code",
+      { p_store_id: store.store_id, p_code: body.code },
+    );
+    if (error || !employeeId) {
+      // A lockout reported as "wrong code" is an instruction to keep trying,
+      // to someone who is holding the correct code.
+      const { data: locked } = await admin.rpc("enrolment_locked", {
+        p_store_id: store.store_id,
+      });
       return NextResponse.json(
         { error: locked ? "locked" : "bad_code" },
         { status: locked ? 429 : 400 },
       );
     }
-    const employeeId = outcome.employee_id;
 
     const options = await generateRegistrationOptions({
       rpName: store.name,
