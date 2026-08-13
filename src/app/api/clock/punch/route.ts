@@ -4,7 +4,7 @@ import {
   verifyAuthenticationResponse,
 } from "@simplewebauthn/server";
 import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { adminClientIfConfigured } from "@/lib/supabase/admin";
 import { rpFromRequest } from "@/lib/webauthn";
 
 // The punch.
@@ -29,7 +29,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
   }
 
-  const admin = createAdminClient();
+  // See the register route: an empty 500 here reads to the employee as "your
+  // fingerprint failed", which is the one thing it is not.
+  const admin = adminClientIfConfigured();
+  if (!admin) {
+    return NextResponse.json({ error: "not_configured" }, { status: 503 });
+  }
   const { rpID, origin } = await rpFromRequest();
 
   const { data: ctx } = await admin.rpc("clock_store_context", {

@@ -133,6 +133,11 @@ export default async function StoreHrPage({
             storeHasPin={
               (store as unknown as { lat: number | null }).lat != null
             }
+            // Read on the server, where the key lives. Without it every punch
+            // and every enrolment fails, and the failure surfaces on the
+            // employee's phone as "wrong code" — so the owner is the last to
+            // find out, from the one person who cannot explain it.
+            clockConfigured={!!process.env.SUPABASE_SERVICE_ROLE_KEY}
             employees={employees}
             runs={runs}
             labels={{ ...t, error: dict.common.actionFailed, save: t.save }}
