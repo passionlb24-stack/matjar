@@ -38,13 +38,22 @@ export function MobileSearch({
   const [recent, setRecent] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
+  // Reading history belongs to the tap that opens the screen, not to an effect
+  // that runs after it. Setting state from inside an effect makes React render
+  // the screen once without the recents and again with them, and the rule that
+  // forbids it is there because that second render is visible as a flash.
+  function openSearch() {
     try {
       setRecent(JSON.parse(localStorage.getItem(KEY) ?? "[]"));
     } catch {
+      /* private mode — the screen still works, it just has no history */
       setRecent([]);
     }
+    setOpen(true);
+  }
+
+  useEffect(() => {
+    if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     // The keyboard should be up before the user decides to think.
@@ -76,7 +85,7 @@ export function MobileSearch({
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={openSearch}
         aria-label={labels.open}
         className="flex h-11 w-full items-center gap-2 rounded-xl border border-border bg-surface-muted px-3 text-sm text-muted-foreground lg:hidden"
       >
