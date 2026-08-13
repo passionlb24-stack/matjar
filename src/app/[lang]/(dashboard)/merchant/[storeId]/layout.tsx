@@ -15,6 +15,7 @@ import {
   planRank,
   effectivePlan as resolvePlan,
 } from "@/lib/plan-tiers";
+import type { MerchantTab } from "@/components/merchant-tab-bar";
 import {
   MerchantSidebar,
   type SidebarNav,
@@ -175,6 +176,84 @@ export default async function StoreOsLayout({
     trialBadge: dict.os.pro.trialBadge.replace("{days}", String(trialDaysLeft)),
   };
 
+
+  // ---- Phone tab bar ----------------------------------------------------
+  // Derived from the sector's own module list, not a hardcoded map per
+  // business type: a restaurant leads with الطلبات and a clinic with المواعيد
+  // because sectors.ts already says which module comes first for each. A tab
+  // the staff member cannot open is never rendered — canSee is the same gate
+  // the sidebar uses.
+  const sectorModules = new Set(OS_GROUPS.flatMap((g) => sector.modules[g]));
+  const firstVisible = (candidates: OsModuleKey[]) =>
+    candidates.find((k) => sectorModules.has(k) && canSee(k));
+
+  // Order matters: the first match wins, so the most operational module for
+  // that sector leads. "stays" and "tickets" are here because a hotel and an
+  // events organiser have no orders or bookings table driving their day —
+  // leaving them out gave those two sectors no operations tab at all, which
+  // the per-sector resolution check caught.
+  const opsKey = firstVisible([
+    "orders",
+    "bookings",
+    "stays",
+    "tickets",
+    "requests",
+    "leads",
+  ]);
+  const catalogKey = firstVisible([
+    "items",
+    "units",
+    "resources",
+    "classes",
+    "courses",
+  ]);
+  const reportKey = firstVisible(["reports", "accounting"]);
+
+  // Only the operations tab carries a badge, and only from a real count of
+  // orders actually awaiting the merchant. A number they cannot clear would
+  // be worse than none.
+  let opsBadge = 0;
+  if (opsKey === "orders") {
+    const { count } = await supabase
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .eq("store_id", storeId)
+      .eq("status", "pending");
+    opsBadge = count ?? 0;
+  }
+
+  const tabs: MerchantTab[] = [
+    { key: "home", label: dict.dashboard.panel, href: base },
+    ...(opsKey
+      ? [
+          {
+            key: opsKey,
+            label: moduleLabel[opsKey],
+            href: `${base}/${OS_MODULE_META[opsKey].path}`,
+            badge: opsBadge,
+          },
+        ]
+      : []),
+    ...(catalogKey
+      ? [
+          {
+            key: catalogKey,
+            label: moduleLabel[catalogKey],
+            href: `${base}/${OS_MODULE_META[catalogKey].path}`,
+          },
+        ]
+      : []),
+    ...(reportKey
+      ? [
+          {
+            key: reportKey,
+            label: moduleLabel[reportKey],
+            href: `${base}/${OS_MODULE_META[reportKey].path}`,
+          },
+        ]
+      : []),
+    { key: "more", label: dict.os.groups.store },
+  ];
   return (
     <div className="flex flex-col lg:flex-row">
       <MerchantSidebar
@@ -186,8 +265,13 @@ export default async function StoreOsLayout({
         trialDaysLeft={trialDaysLeft}
         slug={s.slug}
         nav={nav}
+        tabs={tabs}
       />
-      <div className="min-w-0 flex-1">{children}</div>
+      {/* Clear the fixed phone tab bar (56px + safe area) so the last row of
+          any screen is never trapped under it. */}
+      <div className="min-w-0 flex-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] lg:pb-0">
+        {children}
+      </div>
     </div>
   );
 }
