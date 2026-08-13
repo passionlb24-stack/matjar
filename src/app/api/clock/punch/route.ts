@@ -24,6 +24,9 @@ export async function POST(req: Request) {
     response?: AuthenticationResponseJSON;
     lat?: number;
     lng?: number;
+    /** "in" | "out" | "break_start" | "break_end" | "status". Absent keeps the
+     *  old toggle. The database is the authority on whether it is allowed. */
+    action?: string;
   } | null;
   if (!body?.shortCode) {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
@@ -77,7 +80,7 @@ export async function POST(req: Request) {
 
     const { data: devRow } = await admin
       .from("employee_devices")
-      .select("credential_id, public_key, counter, store_id")
+      .select("credential_id, public_key, counter, store_id, employee_id")
       .eq("credential_id", body.response.id)
       .maybeSingle();
     const dev = devRow as {
@@ -85,6 +88,7 @@ export async function POST(req: Request) {
       public_key: string;
       counter: number;
       store_id: string;
+      employee_id: string;
     } | null;
     // A device registered at another shop must not clock in here.
     if (!dev || dev.store_id !== store.store_id) {
@@ -118,10 +122,28 @@ export async function POST(req: Request) {
         .eq("credential_id", dev.credential_id);
     }
 
+    // "Show me my hours" is the same proof of identity as a punch, minus the
+    // punch. The employee has no account, so a biometric assertion is the only
+    // thing that can stand for one — and it must not cost them a clock-in to
+    // ask a question.
+    if (body.action === "status") {
+      const { data: snap, error: snapErr } = await admin.rpc(
+        "attendance_snapshot",
+        { p_employee_id: dev.employee_id },
+      );
+      if (snapErr) {
+        return NextResponse.json({ error: "clock_failed" }, { status: 400 });
+      }
+      return NextResponse.json({ result: snap });
+    }
+
     const { data, error } = await admin.rpc("clock_by_device", {
       p_credential_id: dev.credential_id,
       p_lat: body.lat ?? null,
       p_lng: body.lng ?? null,
+      // Absent means the old toggle. The server still decides whether the
+      // action is allowed; this only says what was asked for.
+      p_action: body.action ?? null,
     });
     if (error) {
       return NextResponse.json({ error: "clock_failed" }, { status: 400 });
