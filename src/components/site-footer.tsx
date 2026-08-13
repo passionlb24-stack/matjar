@@ -85,14 +85,16 @@ export function SiteFooter({ lang, dict }: { lang: Locale; dict: Dictionary }) {
                 >
                   <Smartphone className="h-5 w-5 text-muted-foreground" />
                   <span className="leading-tight">
-                    <span className="block text-[10px] text-muted-foreground">
+                    {/* 12px is the floor for Arabic: below it the harakat and
+                        the dots that separate ب ت ث stop resolving on a phone. */}
+                    <span className="block text-xs text-muted-foreground">
                       {b.top}
                     </span>
                     <span className="block text-[13px] font-extrabold">
                       {b.name}
                     </span>
                   </span>
-                  <span className="absolute -end-1.5 -top-1.5 rounded-full bg-primary px-1.5 py-0.5 text-[9px] font-extrabold text-primary-foreground">
+                  <span className="absolute -end-1.5 -top-1.5 rounded-full bg-primary px-1.5 py-0.5 text-[11px] font-extrabold text-primary-foreground">
                     {soon}
                   </span>
                 </span>

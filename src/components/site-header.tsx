@@ -38,7 +38,14 @@ export function SiteHeader({
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 pt-[env(safe-area-inset-top)] backdrop-blur-md print:hidden">
       <Container className="flex h-16 items-center justify-between gap-4">
         <div className="flex items-center gap-6">
-          <Link href={`/${lang}`} className="flex items-center" aria-label={dict.common.brand}>
+          <Link
+            href={`/${lang}`}
+            aria-label={dict.common.brand}
+            /* The mark stays 36px; the tap area is extended to 44 with a
+               transparent pseudo-element — the same trick ui/button uses for
+               its sm size, so the header does not have to get taller. */
+            className="relative flex items-center before:absolute before:-inset-y-1 before:inset-x-0 before:content-['']"
+          >
             <Image
               src="/logo.png"
               alt={dict.common.brand}
@@ -161,7 +168,7 @@ export function SiteHeader({
           {!user && (
             <Link
               href={`/${lang}/merchant/new`}
-              className="rounded-lg bg-primary px-3 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover sm:px-4"
+              className="relative rounded-lg bg-primary px-3 py-2 text-sm font-bold text-primary-foreground transition-colors before:absolute before:-inset-y-1 before:inset-x-0 before:content-[''] hover:bg-primary-hover sm:px-4"
             >
               {dict.common.openStore}
             </Link>
