@@ -1593,6 +1593,9 @@
     "newPassword": "New password",
     "updatePassword": "Update password",
     "resetDone": "Password updated ✓",
+    "resetNoSession": "This link is no longer valid",
+    "resetNoSessionHint": "Reset links expire, and each one works only once. Opening it in a different browser from the one that asked for it will not work either. Ask for a new link and open it in the same browser.",
+    "resetLinkDead": "That link has expired or was already used. Ask for a new one, and open it in the same browser you request it from.",
     "backToLogin": "Back to login"
   },
   "merchant": {
