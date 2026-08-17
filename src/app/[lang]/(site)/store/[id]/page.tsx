@@ -1,4 +1,4 @@
-import { cache } from "react";
+import { cache, Fragment } from "react";
 import { notFound } from "next/navigation";
 import { MapPin, Megaphone } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
@@ -9,7 +9,12 @@ import {
   regions,
   sampleProducts,
 } from "@/lib/catalog";
-import { resolveStoreModules, sectorHasTeam } from "@/lib/sectors";
+import {
+  resolveProfileOrder,
+  resolveStoreModules,
+  sectorHasTeam,
+  type ProfileSectionKey,
+} from "@/lib/sectors";
 import { createClient } from "@/lib/supabase/server";
 import {
   getPublicStoreView,
@@ -269,7 +274,13 @@ export default async function StorePage({
   // providerServices: productId -> the provider ids that offer that service.
   // Empty entry (or absent) = any provider can deliver it.
   const providerServices: Record<string, string[]> = {};
-  if (store.isReal && UUID_RE.test(id) && sectorHasTeam(store.category)) {
+  // Resolved modules, not sector defaults: a store that switched `team` off has
+  // no roster to fetch, and one that switched it on does.
+  if (
+    store.isReal &&
+    UUID_RE.test(id) &&
+    sectorHasTeam(store.category, enabledModules)
+  ) {
     const { data } = await supabase
       .from("doctors")
       .select("id, name, specialty, photo_url, bio")
@@ -503,6 +514,211 @@ export default async function StorePage({
           ? dict.store.listings
           : dict.store.products;
 
+  // Every public section, keyed — composition lives in the sector registry
+  // (resolveProfileOrder) instead of in the shape of this JSX. A clinic can lead
+  // with its doctors and a salon with its portfolio without either page forking;
+  // whether a section appears at all is still decided by its own condition here.
+  const sections: Partial<Record<ProfileSectionKey, React.ReactNode>> = {
+    announcement: store.isReal && store.announcement && (
+      <div className="sf-announce bg-primary text-primary-foreground">
+        <Container>
+          <p className="sf-announce-p flex items-center justify-center gap-2 py-2.5 text-center text-sm font-bold">
+            <Megaphone className="h-4 w-4 shrink-0" />
+            <span>{store.announcement}</span>
+          </p>
+        </Container>
+      </div>
+    ),
+
+    hero: (
+      <StoreHero
+        store={store}
+        Icon={Icon}
+        style={style}
+        dict={dict}
+        lang={lang}
+        variant={sf.hero}
+      />
+    ),
+
+    header: (
+      <StoreHeader
+        store={store}
+        id={id}
+        Icon={Icon}
+        style={style}
+        dict={dict}
+        lang={lang}
+        hasVerified={hasVerified}
+        headerRating={headerRating}
+        headerCount={headerCount}
+        ordersFulfilled={ordersFulfilled}
+        isFollowing={isFollowing}
+      />
+    ),
+
+    branches: branches.length > 1 && (
+      <StoreBranches branches={branches} dict={dict} />
+    ),
+
+    delivery: couriers.length > 0 && (
+      <StoreDeliveryOptions couriers={couriers} dict={dict} />
+    ),
+
+    location: mapPins.length > 0 && enabledModules.has("location") && (
+      <div className="mt-6">
+        <h2 className="mb-3 flex items-center gap-2 font-bold">
+          <MapPin className="h-5 w-5 text-primary" />
+          {dict.merchant.mapLocation}
+        </h2>
+        <StoreMapClient stores={mapPins} lang={lang} heightClass="h-72" />
+      </div>
+    ),
+
+    serviceRequest: store.isReal && experience.showServiceRequest && (
+      <div className="mt-10">
+        <ServiceRequestForm
+          storeId={id}
+          lang={lang}
+          dict={dict}
+          examples={store.products
+            .filter((p) => p.itemKind === "service")
+            .map((p) => p.name)}
+        />
+      </div>
+    ),
+
+    leadForm: store.isReal && experience.showLeadForm && (
+      <div className="mt-10">
+        <LeadForm
+          storeId={id}
+          lang={lang}
+          dict={dict}
+          kinds={leadKinds(store.category)}
+        />
+      </div>
+    ),
+
+    stay: store.isReal && experience.showStay && (
+      <div className="mt-10">
+        <StaySearch storeId={id} lang={lang} dict={dict} />
+      </div>
+    ),
+
+    tickets: store.isReal && experience.showTickets && (
+      <div className="mt-10">
+        <EventTickets storeId={id} lang={lang} dict={dict} />
+      </div>
+    ),
+
+    resources: resources.length > 0 && experience.allowResourceBooking && (
+      <TimeslotBooking
+        storeId={id}
+        lang={lang}
+        dict={dict}
+        resources={resources}
+        customerName={currentUser?.name ?? null}
+        customerPhone={currentUser?.phone ?? null}
+      />
+    ),
+
+    memberships: membershipPlans.length > 0 && (
+      <StoreMemberships
+        plans={membershipPlans}
+        dict={dict}
+        lang={lang}
+        whatsapp={store.whatsapp ?? null}
+      />
+    ),
+
+    classes: classes.length > 0 && experience.allowResourceBooking && (
+      <ClassesBooking
+        storeId={id}
+        lang={lang}
+        dict={dict}
+        classes={classes}
+        customerName={currentUser?.name ?? null}
+        customerPhone={currentUser?.phone ?? null}
+      />
+    ),
+
+    reservations: store.isReal && enabledModules.has("reservations") && (
+      <ReservationForm storeId={id} lang={lang} dict={dict} />
+    ),
+
+    courses: courses.length > 0 && (
+      <StoreCourses courses={courses} dict={dict} lang={lang} whatsapp={store.whatsapp ?? null} />
+    ),
+
+    portfolio: portfolio.length > 0 && (
+      <StorePortfolio items={portfolio} dict={dict} lang={lang} />
+    ),
+
+    catalog: (
+      <StoreProductsSection
+        sectionTitle={sectionTitle}
+        store={store}
+        id={id}
+        lang={lang}
+        dict={dict}
+        surface={experience.itemSurface}
+        canOrderProducts={experience.canOrderProducts}
+        initialServiceId={initialServiceId}
+        directoryOnly={experience.directoryOnly}
+        doctors={doctors}
+        providerServices={providerServices}
+        currentUser={currentUser}
+        loggedIn={!!user}
+        defaultAddress={defaultAddress}
+        savedAddresses={savedAddresses}
+        lbpRate={lbpRate}
+        loyaltyPoints={loyaltyPoints}
+        branches={branches}
+        Icon={Icon}
+        style={style}
+        initialBrand={initialBrand}
+        layout={sf.layout}
+        zones={zones}
+      />
+    ),
+
+    // The sector test stays with the section, not with the render sequence:
+    // ordering is the only place composition is allowed to branch on category.
+    healthcareInfo: store.category === "healthcare" &&
+      (store.specialties || store.insurance) && (
+        <StoreHealthcareInfo store={store} dict={dict} />
+      ),
+
+    doctors: doctors.length > 0 && <StoreDoctors doctors={doctors} dict={dict} />,
+
+    verifications: store.isReal && enabledModules.has("verifications") && (
+      <StoreVerifications
+        verifications={verifications}
+        dict={dict}
+        lang={lang}
+      />
+    ),
+
+    reviews: store.isReal && (
+      <StoreReviews
+        storeId={id}
+        lang={lang}
+        dict={dict}
+        reviews={reviews}
+        currentUser={currentUser}
+      />
+    ),
+  };
+
+  // announcement and hero are full-bleed — their backgrounds run to the viewport
+  // edge, so they render outside <Container> as they always have. Both lead every
+  // sector's order, so pulling them out of the mapped list changes nothing about
+  // the sequence the customer sees; everything from `header` down is ordered.
+  const order = resolveProfileOrder(store.category);
+  const contained = order.filter(
+    (key) => key !== "announcement" && key !== "hero",
+  );
+
   return (
     <div
       className="pb-16"
@@ -539,187 +755,13 @@ export default async function StorePage({
           }}
         />
       )}
-      {store.isReal && store.announcement && (
-        <div className="sf-announce bg-primary text-primary-foreground">
-          <Container>
-            <p className="sf-announce-p flex items-center justify-center gap-2 py-2.5 text-center text-sm font-bold">
-              <Megaphone className="h-4 w-4 shrink-0" />
-              <span>{store.announcement}</span>
-            </p>
-          </Container>
-        </div>
-      )}
-      <StoreHero
-        store={store}
-        Icon={Icon}
-        style={style}
-        dict={dict}
-        lang={lang}
-        variant={sf.hero}
-      />
+      {sections.announcement}
+      {sections.hero}
 
       <Container>
-        <StoreHeader
-          store={store}
-          id={id}
-          Icon={Icon}
-          style={style}
-          dict={dict}
-          lang={lang}
-          hasVerified={hasVerified}
-          headerRating={headerRating}
-          headerCount={headerCount}
-          ordersFulfilled={ordersFulfilled}
-          isFollowing={isFollowing}
-        />
-
-        {branches.length > 1 && (
-          <StoreBranches branches={branches} dict={dict} />
-        )}
-
-        {couriers.length > 0 && (
-          <StoreDeliveryOptions couriers={couriers} dict={dict} />
-        )}
-
-        {mapPins.length > 0 && enabledModules.has("location") && (
-          <div className="mt-6">
-            <h2 className="mb-3 flex items-center gap-2 font-bold">
-              <MapPin className="h-5 w-5 text-primary" />
-              {dict.merchant.mapLocation}
-            </h2>
-            <StoreMapClient stores={mapPins} lang={lang} heightClass="h-72" />
-          </div>
-        )}
-
-        {store.isReal && experience.showServiceRequest && (
-          <div className="mt-10">
-            <ServiceRequestForm
-              storeId={id}
-              lang={lang}
-              dict={dict}
-              examples={store.products
-                .filter((p) => p.itemKind === "service")
-                .map((p) => p.name)}
-            />
-          </div>
-        )}
-
-        {store.isReal && experience.showLeadForm && (
-          <div className="mt-10">
-            <LeadForm
-              storeId={id}
-              lang={lang}
-              dict={dict}
-              kinds={leadKinds(store.category)}
-            />
-          </div>
-        )}
-
-        {store.isReal && experience.showStay && (
-          <div className="mt-10">
-            <StaySearch storeId={id} lang={lang} dict={dict} />
-          </div>
-        )}
-
-        {store.isReal && experience.showTickets && (
-          <div className="mt-10">
-            <EventTickets storeId={id} lang={lang} dict={dict} />
-          </div>
-        )}
-
-        {resources.length > 0 && experience.allowResourceBooking && (
-          <TimeslotBooking
-            storeId={id}
-            lang={lang}
-            dict={dict}
-            resources={resources}
-            customerName={currentUser?.name ?? null}
-            customerPhone={currentUser?.phone ?? null}
-          />
-        )}
-
-        {membershipPlans.length > 0 && (
-          <StoreMemberships
-            plans={membershipPlans}
-            dict={dict}
-            lang={lang}
-            whatsapp={store.whatsapp ?? null}
-          />
-        )}
-
-        {classes.length > 0 && experience.allowResourceBooking && (
-          <ClassesBooking
-            storeId={id}
-            lang={lang}
-            dict={dict}
-            classes={classes}
-            customerName={currentUser?.name ?? null}
-            customerPhone={currentUser?.phone ?? null}
-          />
-        )}
-
-        {store.isReal && enabledModules.has("reservations") && (
-          <ReservationForm storeId={id} lang={lang} dict={dict} />
-        )}
-
-        {courses.length > 0 && (
-          <StoreCourses courses={courses} dict={dict} lang={lang} whatsapp={store.whatsapp ?? null} />
-        )}
-
-        {portfolio.length > 0 && (
-          <StorePortfolio items={portfolio} dict={dict} lang={lang} />
-        )}
-
-        <StoreProductsSection
-          sectionTitle={sectionTitle}
-          store={store}
-          id={id}
-          lang={lang}
-          dict={dict}
-          surface={experience.itemSurface}
-          canOrderProducts={experience.canOrderProducts}
-          initialServiceId={initialServiceId}
-          directoryOnly={experience.directoryOnly}
-          doctors={doctors}
-          providerServices={providerServices}
-          currentUser={currentUser}
-          loggedIn={!!user}
-          defaultAddress={defaultAddress}
-          savedAddresses={savedAddresses}
-          lbpRate={lbpRate}
-          loyaltyPoints={loyaltyPoints}
-          branches={branches}
-          Icon={Icon}
-          style={style}
-          initialBrand={initialBrand}
-          layout={sf.layout}
-          zones={zones}
-        />
-
-        {store.category === "healthcare" &&
-          (store.specialties || store.insurance) && (
-            <StoreHealthcareInfo store={store} dict={dict} />
-          )}
-
-        {doctors.length > 0 && <StoreDoctors doctors={doctors} dict={dict} />}
-
-        {store.isReal && enabledModules.has("verifications") && (
-          <StoreVerifications
-            verifications={verifications}
-            dict={dict}
-            lang={lang}
-          />
-        )}
-
-        {store.isReal && (
-          <StoreReviews
-            storeId={id}
-            lang={lang}
-            dict={dict}
-            reviews={reviews}
-            currentUser={currentUser}
-          />
-        )}
+        {contained.map((key) => (
+          <Fragment key={key}>{sections[key]}</Fragment>
+        ))}
       </Container>
     </div>
   );

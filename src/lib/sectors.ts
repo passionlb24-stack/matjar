@@ -432,11 +432,131 @@ export function sectorPrimarySetup(
   return null;
 }
 
-/** Whether this sector has a roster of service providers (a "team") — clinics,
+/** Whether this store has a roster of service providers (a "team") — clinics,
  *  salons, gyms, schools, pet care, professional services. Drives the provider
- *  (team) module + booking provider picker across sectors. */
-export function sectorHasTeam(category: CategoryKey): boolean {
+ *  (team) module + booking provider picker across sectors.
+ *
+ *  Accepts the RESOLVED module set. Reading sector defaults directly meant a
+ *  store that switched `team` off still advertised a team, and one that switched
+ *  it on was told it had none — the only module whose per-store override was
+ *  silently ignored. The category-only form is kept for callers that have no
+ *  store in hand (the create form, sector docs). */
+export function sectorHasTeam(
+  category: CategoryKey,
+  modules?: Set<FeatureModuleKey>,
+): boolean {
+  if (modules) return modules.has("team");
   return sectorConfig[category]?.features.includes("team") ?? false;
+}
+
+// ===== Public profile composition =====
+//
+// The registry ordered modules for the MERCHANT dashboard and said nothing about
+// the customer-facing page, so all of it rendered in one hardcoded JSX sequence —
+// identical for all 17 sectors. A clinic listed its doctors at position 19, below
+// the product grid; a salon's portfolio sat below everything it was there to
+// sell. The sections were sector-aware. Their ORDER never was.
+export type ProfileSectionKey =
+  | "announcement"
+  | "hero"
+  | "header"
+  | "branches"
+  | "delivery"
+  | "location"
+  | "serviceRequest"
+  | "leadForm"
+  | "stay"
+  | "tickets"
+  | "resources"
+  | "memberships"
+  | "classes"
+  | "reservations"
+  | "courses"
+  | "portfolio"
+  | "catalog"
+  | "healthcareInfo"
+  | "doctors"
+  | "verifications"
+  | "reviews";
+
+/** Exactly the order the page rendered before this existed, so any sector
+ *  without an explicit composition keeps rendering as it did. */
+export const DEFAULT_PROFILE_ORDER: ProfileSectionKey[] = [
+  "announcement",
+  "hero",
+  "header",
+  "branches",
+  "delivery",
+  "location",
+  "serviceRequest",
+  "leadForm",
+  "stay",
+  "tickets",
+  "resources",
+  "memberships",
+  "classes",
+  "reservations",
+  "courses",
+  "portfolio",
+  "catalog",
+  "healthcareInfo",
+  "doctors",
+  "verifications",
+  "reviews",
+];
+
+// The lead of every page is fixed — identity is not a sector preference. What
+// moves is whatever the customer actually came for.
+const LEAD: ProfileSectionKey[] = ["announcement", "hero", "header"];
+
+const PROFILE_ORDER: Partial<Record<CategoryKey, ProfileSectionKey[]>> = {
+  // You choose a clinic by its doctors, and its credentials are the trust
+  // signal. Both used to sit below the product grid.
+  healthcare: [...LEAD, "healthcareInfo", "doctors", "catalog", "verifications",
+    "reservations", "location", "branches", "delivery", "reviews"],
+  // The work is the pitch: evidence first, price list second.
+  beauty: [...LEAD, "portfolio", "catalog", "doctors", "memberships",
+    "reservations", "reviews", "location", "branches", "delivery", "verifications"],
+  // Nobody browses a restaurant's amenities. They read the menu.
+  food: [...LEAD, "delivery", "catalog", "reservations", "reviews",
+    "location", "branches"],
+  // A stay begins with dates, not with a description.
+  hospitality: [...LEAD, "stay", "catalog", "location", "reviews", "branches",
+    "verifications"],
+  // Listing marketplaces: the enquiry IS the transaction, so it belongs beside
+  // the listing rather than at the foot of the page.
+  realEstate: [...LEAD, "catalog", "leadForm", "location", "verifications", "reviews"],
+  automotive: [...LEAD, "catalog", "leadForm", "location", "verifications", "reviews"],
+  // The timetable is the product; memberships are how it gets paid for.
+  fitness: [...LEAD, "classes", "resources", "memberships", "catalog", "doctors",
+    "reviews", "location", "branches"],
+  education: [...LEAD, "courses", "classes", "doctors", "catalog", "reviews",
+    "location", "branches"],
+  events: [...LEAD, "tickets", "catalog", "location", "reviews"],
+  sportsCourts: [...LEAD, "resources", "classes", "memberships", "catalog",
+    "reviews", "location", "branches"],
+  // Trades sell evidence of work and trust before they sell a price.
+  contractors: [...LEAD, "portfolio", "serviceRequest", "verifications", "catalog",
+    "reviews", "location"],
+  professional: [...LEAD, "serviceRequest", "doctors", "verifications", "portfolio",
+    "catalog", "reviews", "location"],
+  services: [...LEAD, "serviceRequest", "portfolio", "catalog", "doctors",
+    "reviews", "location", "branches"],
+  petCare: [...LEAD, "catalog", "doctors", "reservations", "stay", "reviews",
+    "location", "branches"],
+};
+
+/** The section order for a sector's public profile.
+ *
+ *  Any key a composition omits is appended in default order rather than dropped.
+ *  The failure mode of hand-written orderings is silent deletion — a storefront
+ *  losing its reviews because somebody editing this file forgot to list them —
+ *  and appending the remainder makes that impossible by construction. */
+export function resolveProfileOrder(category: CategoryKey): ProfileSectionKey[] {
+  const chosen = PROFILE_ORDER[category];
+  if (!chosen) return DEFAULT_PROFILE_ORDER;
+  const seen = new Set(chosen);
+  return [...chosen, ...DEFAULT_PROFILE_ORDER.filter((k) => !seen.has(k))];
 }
 
 /** Effective enabled modules for a store: sector defaults + per-store toggles,
