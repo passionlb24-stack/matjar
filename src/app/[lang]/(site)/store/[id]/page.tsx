@@ -172,7 +172,10 @@ export default async function StorePage({
     ? await Promise.all([
         supabase
           .from("reviews")
-          .select("id, customer_id, customer_name, rating, comment")
+          // reply/reply_at ride along on the query that was already being made —
+          // the shop's answer renders under the review it answers, not from a
+          // second round-trip.
+          .select("id, customer_id, customer_name, rating, comment, reply, reply_at")
           .eq("store_id", id)
           .order("created_at", { ascending: false })
           .then((r) => (r.data ?? []) as Review[]),

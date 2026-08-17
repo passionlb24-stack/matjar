@@ -2854,7 +2854,19 @@
     "noReviews": "لسا ما في تقييمات. كن أول مين يقيّم!",
     "loginToReview": "سجّل دخول لتقيّم",
     "ratePrompt": "طلبك وصل! كيف كانت تجربتك مع {store}؟",
-    "rateThanks": "شكراً لتقييمك! 🙏"
+    "rateThanks": "شكراً لتقييمك! 🙏",
+    "replyFrom": "ردّ المتجر",
+    "merchantTitle": "آخر التقييمات",
+    "merchantEmpty": "لسا ما في تقييمات.",
+    "reply": "ردّ",
+    "replyEdit": "عدّل ردّك",
+    "replyPlaceholder": "ردّ على هالزبون — الكل رح يقرا ردّك.",
+    "replySave": "انشر الردّ",
+    "replySaving": "عم نحفظ…",
+    "replySaved": "تنشر ردّك ✓",
+    "replyRemove": "احذف الردّ",
+    "replyRemoved": "تحذف الردّ ✓",
+    "replyError": "ما قدرنا نحفظ الردّ. جرّب مرة تانية."
   },
   "account": {
     "title": "حسابي",

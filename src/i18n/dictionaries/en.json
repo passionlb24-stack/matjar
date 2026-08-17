@@ -2854,7 +2854,19 @@
     "noReviews": "No reviews yet. Be the first to review!",
     "loginToReview": "Log in to review",
     "ratePrompt": "Your order arrived! How was your experience with {store}?",
-    "rateThanks": "Thanks for your review! 🙏"
+    "rateThanks": "Thanks for your review! 🙏",
+    "replyFrom": "Reply from the shop",
+    "merchantTitle": "Latest reviews",
+    "merchantEmpty": "No reviews yet.",
+    "reply": "Reply",
+    "replyEdit": "Edit reply",
+    "replyPlaceholder": "Answer this customer — everyone can read it.",
+    "replySave": "Publish reply",
+    "replySaving": "Saving…",
+    "replySaved": "Reply published ✓",
+    "replyRemove": "Remove reply",
+    "replyRemoved": "Reply removed ✓",
+    "replyError": "We couldn't save the reply. Try again."
   },
   "account": {
     "title": "My account",

@@ -47,6 +47,11 @@ import {
   type QuickAction,
   type QuickActionKey,
 } from "@/components/os-dashboard/quick-actions";
+import {
+  ReviewsWidget,
+  type MerchantReview,
+} from "@/components/os-dashboard/reviews-widget";
+import { dictSlice } from "@/lib/dict-slice";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -65,20 +70,23 @@ type WidgetKey =
   | "alerts"
   | "suggestions"
   | "tasks"
-  | "activity";
+  | "activity"
+  | "reviews";
 
+// Reviews sit last in every sector: answering one is never more urgent than
+// today's orders, but it is the only place the merchant can do it at all.
 const WIDGET_ORDER: Record<
   "commerce" | "food" | "booking" | "services",
   WidgetKey[]
 > = {
   // Shops & showrooms: money first, then what needs attention.
-  commerce: ["kpis", "chart", "alerts", "today", "suggestions", "tasks", "activity"],
+  commerce: ["kpis", "chart", "alerts", "today", "suggestions", "tasks", "activity", "reviews"],
   // Restaurants: the pass comes first — orders & kitchen, then the numbers.
-  food: ["today", "kpis", "chart", "alerts", "suggestions", "tasks", "activity"],
+  food: ["today", "kpis", "chart", "alerts", "suggestions", "tasks", "activity", "reviews"],
   // Clinics & agents: today's appointments are the whole morning.
-  booking: ["today", "kpis", "alerts", "suggestions", "activity", "tasks", "chart"],
+  booking: ["today", "kpis", "alerts", "suggestions", "activity", "tasks", "chart", "reviews"],
   // Service pros: open requests (quotes to send!) lead, bookings right behind.
-  services: ["today", "kpis", "alerts", "suggestions", "activity", "tasks", "chart"],
+  services: ["today", "kpis", "alerts", "suggestions", "activity", "tasks", "chart", "reviews"],
 };
 
 // ===== Matjar Business OS — store home =====
@@ -199,6 +207,7 @@ export default async function StoreOsHomePage({
     costedItemsRes,
     providersRes,
     storeModulesRes,
+    reviewsRes,
   ] = await Promise.all([
     canRevenue
       ? supabase.rpc("store_report", { p_store_id: storeId, p_days: 14 })
@@ -343,6 +352,15 @@ export default async function StoreOsHomePage({
       .from("store_modules")
       .select("module_key, enabled")
       .eq("store_id", storeId),
+    // What customers said in public, plus whatever the shop already answered.
+    // Ungated: a review is on the storefront for the world to read, so hiding
+    // it from the staff who caused it would protect nothing.
+    supabase
+      .from("reviews")
+      .select("id, customer_name, rating, comment, created_at, reply, reply_at")
+      .eq("store_id", storeId)
+      .order("created_at", { ascending: false })
+      .limit(5),
   ]);
 
   const report = (reportRes.data ?? null) as {
@@ -369,6 +387,7 @@ export default async function StoreOsHomePage({
     stock: number;
   }[];
   const tasks = (tasksRes.data ?? []) as TaskRow[];
+  const reviews = (reviewsRes.data ?? []) as MerchantReview[];
   const todayBookings = (todayBookingsRes.data ?? []) as {
     id: string;
     service_name: string | null;
@@ -880,6 +899,16 @@ export default async function StoreOsHomePage({
         title={t.activityTitle}
         empty={t.activityEmpty}
         rows={activity}
+        lang={lang}
+      />
+    ) : null,
+    // Only reviews the shop already has — an empty card here would be nagging a
+    // brand-new store about feedback nobody could have left yet.
+    reviews: reviews.length ? (
+      <ReviewsWidget
+        reviews={reviews}
+        canReply={isOwner}
+        dict={dictSlice(dict, ["reviews", "common"])}
         lang={lang}
       />
     ) : null,
