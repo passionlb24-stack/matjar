@@ -19,6 +19,10 @@ export type ProductView = {
   storeName: string;
   acceptsDelivery: boolean;
   acceptsPickup: boolean;
+  /** How long before an appointment the customer may still cancel/reschedule.
+   *  0/null = the merchant never set one, so the service page shows no policy
+   *  rather than inventing a window. */
+  bookingCancelHours: number | null;
   category: CategoryKey;
   /** product = cart, service = booked. Decides this page CTA. */
   itemKind: "product" | "service";
@@ -53,7 +57,7 @@ async function fetchProductView(
   const { data } = await supabase
     .from("products")
     .select(
-      "id, store_id, name, name_en, brand, description, description_en, price, discount_price, flash_price, flash_start, flash_end, image_url, gallery, stock, attributes, is_bundle, item_kind, duration_minutes, stores(name, accepts_delivery, accepts_pickup, business_types(slug))",
+      "id, store_id, name, name_en, brand, description, description_en, price, discount_price, flash_price, flash_start, flash_end, image_url, gallery, stock, attributes, is_bundle, item_kind, duration_minutes, stores(name, accepts_delivery, accepts_pickup, booking_cancel_hours, business_types(slug))",
     )
     .eq("id", id)
     .is("deleted_at", null)
@@ -64,6 +68,7 @@ async function fetchProductView(
     name: string;
     accepts_delivery: boolean | null;
     accepts_pickup: boolean | null;
+    booking_cancel_hours: number | null;
     business_types: { slug: string } | null;
   } | null;
 
@@ -118,6 +123,10 @@ async function fetchProductView(
     storeName: store?.name ?? "",
     acceptsDelivery: store?.accepts_delivery ?? true,
     acceptsPickup: store?.accepts_pickup ?? true,
+    bookingCancelHours:
+      store?.booking_cancel_hours != null
+        ? Number(store.booking_cancel_hours)
+        : null,
     category: (store?.business_types?.slug as CategoryKey) ?? "retail",
     itemKind: ((data.item_kind as string | null) ?? "product") as "product" | "service",
     durationMinutes: data.duration_minutes != null ? Number(data.duration_minutes) : null,

@@ -58,6 +58,7 @@ export function ProductOrder({
   acceptsPickup = true,
   lbpRate = 0,
   category = null,
+  ctaLabel,
 }: {
   lang: Locale;
   dict: Dictionary;
@@ -75,6 +76,9 @@ export function ProductOrder({
   lbpRate?: number;
   /** Store sector — decides which note example the shopper is shown. */
   category?: string | null;
+  /** Primary CTA wording chosen by the offering resolver: "أضف إلى السلة" for a
+   *  good, "أضف إلى الطلب" for a menu item. Omitted = the generic order label. */
+  ctaLabel?: string;
 }) {
   const router = useRouter();
   // Apparel variants carry color/size → render a 2-step picker; legacy flat
@@ -550,7 +554,7 @@ export function ProductOrder({
                 ? dict.product.outOfStock
                 : !modifiersOk
                   ? dict.product.modChoose
-                  : dict.product.buyNow}
+                  : (ctaLabel ?? dict.product.buyNow)}
             </button>
           </div>
         </>

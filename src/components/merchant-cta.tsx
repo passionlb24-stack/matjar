@@ -1,44 +1,27 @@
 import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
 
+// The merchant pitch is one line at the foot of a customer page. The feature
+// list, the pricing and the proof all live on /merchants — this is only the
+// door to them.
 export function MerchantCta({ lang, dict }: { lang: Locale; dict: Dictionary }) {
   return (
-    <section className="py-10 sm:py-16">
+    <section className="border-t border-border py-8">
       <Container>
-        <div
-          data-animate
-          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primary-hover px-6 py-12 text-center shadow-xl sm:px-12 sm:py-16"
-        >
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -end-10 -top-10 h-48 w-48 rounded-full bg-white/10 blur-2xl"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -bottom-12 -start-12 h-56 w-56 rounded-full bg-white/5 blur-2xl"
-          />
-          <h2 className="mx-auto max-w-2xl text-3xl font-extrabold text-primary-foreground text-balance sm:text-4xl">
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-bold sm:text-base">
             {dict.merchantCta.title}
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-primary-foreground/80">
-            {dict.merchantCta.subtitle}
           </p>
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link
-              href={`/${lang}/merchant/new`}
-              className="inline-flex h-12 items-center justify-center rounded-xl bg-white px-7 font-bold text-primary shadow-md transition-[transform,box-shadow] duration-150 hover:shadow-lg active:scale-[0.97]"
-            >
-              {dict.merchantCta.button}
-            </Link>
-            <Link
-              href={`/${lang}/pricing`}
-              className="inline-flex h-12 items-center justify-center rounded-xl border border-white/40 px-7 font-semibold text-white transition-[transform,background-color] duration-150 hover:bg-white/10 active:scale-[0.97]"
-            >
-              {dict.merchantCta.secondary}
-            </Link>
-          </div>
+          <Link
+            href={`/${lang}/merchants`}
+            className="inline-flex h-11 shrink-0 items-center gap-1 rounded-2xl border border-border bg-surface px-5 text-sm font-bold transition-colors hover:border-primary/40 hover:text-primary"
+          >
+            {dict.merchantCta.link}
+            <ChevronLeft className="h-4 w-4 ltr:rotate-180" />
+          </Link>
         </div>
       </Container>
     </section>
