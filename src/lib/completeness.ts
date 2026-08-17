@@ -128,8 +128,14 @@ export function computeCompleteness(
 
   if (modules.has("location")) specs.push(MAP_PIN);
   if (modules.has("team")) specs.push(TEAM);
-  // Only meaningful once there is something to price.
-  if (facts.offerings > 0) specs.push(COST);
+  // Only where the primary entity IS a product, and only once some exist.
+  //
+  // A hotel's offerings are rooms and an organiser's are ticket types, but cost
+  // price lives on `products` — so asking those sectors for margins compares two
+  // different populations and leaves an item that can never be satisfied. A
+  // permanently undone step is worse than an absent one: it teaches the merchant
+  // the whole checklist is noise.
+  if (!primary && facts.offerings > 0) specs.push(COST);
 
   const items: CompletenessItem[] = specs.map((spec) => {
     const s =

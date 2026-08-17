@@ -128,6 +128,21 @@ describe("cost prices", () => {
 });
 
 describe("sectors whose primary entity is not products", () => {
+  it("never asks a hotel for cost prices it cannot record", () => {
+    // `offerings` is units here while cost price lives on `products`, so the
+    // item could never be satisfied — and a permanently undone step teaches a
+    // merchant the whole checklist is noise.
+    const hospitality = resolveStoreModules("hospitality");
+    const c = computeCompleteness(
+      "hospitality",
+      hospitality,
+      { ...FULL, offerings: 6, offeringsWithCost: 0 },
+      { key: "units", href: "units" },
+    );
+    expect(c.items.map((i) => i.key)).not.toContain("costPrices");
+    expect(c.score).toBe(100);
+  });
+
   it("relabels and relinks the primary step", () => {
     const hospitality = resolveStoreModules("hospitality");
     const c = computeCompleteness("hospitality", hospitality, EMPTY, {

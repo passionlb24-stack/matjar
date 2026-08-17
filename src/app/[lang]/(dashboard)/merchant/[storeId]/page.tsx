@@ -7,15 +7,17 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import type { CategoryKey } from "@/lib/catalog";
-import { getSector, sectorPrimarySetup } from "@/lib/sectors";
+import {
+  getSector,
+  resolveStoreModules,
+  sectorPrimarySetup,
+} from "@/lib/sectors";
+import { computeCompleteness } from "@/lib/completeness";
 import { parseHours } from "@/lib/hours";
 import { SITE_URL } from "@/lib/site";
 import { Container } from "@/components/ui/container";
 import { StoreShareCard } from "@/components/store-share-card";
-import {
-  StoreChecklist,
-  type ChecklistState,
-} from "@/components/store-checklist";
+import { StoreChecklist } from "@/components/store-checklist";
 import { Stat } from "@/components/os-dashboard/stat";
 import { WidgetCard } from "@/components/os-dashboard/widget-card";
 import { RevenueChart } from "@/components/os-dashboard/revenue-chart";
@@ -107,7 +109,10 @@ export default async function StoreOsHomePage({
   const { data: store } = await supabase
     .from("stores")
     .select(
-      "id, name, slug, status, accent_color, owner_id, short_code, plan, trial_ends_at, logo_url, cover_url, description, hours, whatsapp, business_types(slug, name_ar, name_en)",
+      // lat/lng: the map pin is a completeness item (8 of 13 live stores have
+      // none), so the coordinates ride along on the store row already fetched
+      // rather than costing a second query.
+      "id, name, slug, status, accent_color, owner_id, short_code, plan, trial_ends_at, logo_url, cover_url, description, hours, whatsapp, lat, lng, business_types(slug, name_ar, name_en)",
     )
     .eq("id", storeId)
     .maybeSingle();
@@ -127,6 +132,8 @@ export default async function StoreOsHomePage({
     description: string | null;
     hours: unknown;
     whatsapp: string | null;
+    lat: number | null;
+    lng: number | null;
     business_types: { slug: string; name_ar: string; name_en: string } | null;
   };
   const category = (s.business_types?.slug as CategoryKey) ?? "retail";
@@ -189,6 +196,9 @@ export default async function StoreOsHomePage({
     campaigns14Res,
     automationsCountRes,
     followersRes,
+    costedItemsRes,
+    providersRes,
+    storeModulesRes,
   ] = await Promise.all([
     canRevenue
       ? supabase.rpc("store_report", { p_store_id: storeId, p_days: 14 })
@@ -305,6 +315,34 @@ export default async function StoreOsHomePage({
           .select("user_id", { count: "exact", head: true })
           .eq("store_id", storeId)
       : Promise.resolve(none),
+    // Cost prices are what the profit report runs on, and across the live
+    // platform not one product carries one — so the report computes zero for
+    // everybody and nothing ever said why. Counted here, inside the existing
+    // wave, so asking the question costs no extra round-trip.
+    isOwner
+      ? supabase
+          .from("products")
+          .select("id", { count: "exact", head: true })
+          .eq("store_id", storeId)
+          .is("deleted_at", null)
+          .gt("cost", 0)
+      : Promise.resolve(none),
+    // The roster count is not gated on the sector's default modules: the
+    // RESOLVED set isn't known until this wave returns, and gating on defaults
+    // would leave a store that switched `team` on stuck reporting zero
+    // providers forever — told to add a team it can never be credited for.
+    isOwner
+      ? supabase
+          .from("doctors")
+          .select("id", { count: "exact", head: true })
+          .eq("store_id", storeId)
+      : Promise.resolve(none),
+    // Per-store module toggles. Completeness follows the resolved module set,
+    // so a store that switched `location` off is never nagged for a map pin.
+    supabase
+      .from("store_modules")
+      .select("module_key, enabled")
+      .eq("store_id", storeId),
   ]);
 
   const report = (reportRes.data ?? null) as {
@@ -318,6 +356,8 @@ export default async function StoreOsHomePage({
   } | null;
 
   const itemsCount = itemsRes.count ?? 0;
+  const costedItems = costedItemsRes.count ?? 0;
+  const providers = providersRes.count ?? 0;
   const pendingOrders = pendingOrdersRes.count ?? 0;
   const pendingBookings = pendingBookingsRes.count ?? 0;
   const todayBookingsCount = todayBookingsCountRes.count ?? 0;
@@ -571,42 +611,62 @@ export default async function StoreOsHomePage({
     .slice(0, 8);
   const showActivity = canOrders || canBookings;
 
-  // ---- Smart suggestions (rule-based, from data already on hand) -----------
-  const checklist: ChecklistState = {
-    logo: !!s.logo_url,
-    cover: !!s.cover_url,
-    description: !!s.description?.trim(),
-    // Counts the weekly grid, not the retired free-text box (0244). A merchant
-    // who filled the grid properly was told to go add hours, while one who
-    // typed "9 صباحا" got the tick and the open/closed badge got nothing.
-    hours: !!parseHours(s.hours),
-    whatsapp: !!s.whatsapp?.trim(),
-    products: itemsCount >= 3,
-    brandColor: !!s.accent_color,
-    customLink: !!s.slug,
-  };
+  // ---- Profile completeness (weighted, sector-aware) -----------------------
+  // Which feature modules this store actually runs (sector defaults overlaid
+  // with its own toggles) — the completeness rules hang off this, not off the
+  // sector, so a store that switched a module off is never asked to fill it in.
+  const modOverrides: Record<string, boolean> = {};
+  for (const row of (storeModulesRes.data ?? []) as {
+    module_key: string;
+    enabled: boolean;
+  }[])
+    modOverrides[row.module_key] = row.enabled;
+  const enabledModules = resolveStoreModules(category, modOverrides);
+
   // Sector-aware onboarding: sectors whose core entity isn't products (a hotel's
   // units, an events organizer's ticket types) get a tailored primary-setup step.
   const primarySetup = sectorPrimarySetup(category);
-  let checklistPrimaryOverride:
-    | { label: string; href: string; done: boolean }
-    | undefined;
+  let primaryCount: number | null = null;
   if (isOwner && primarySetup) {
     const { count: coreCount } = await supabase
       .from(primarySetup.table)
       .select("id", { count: "exact", head: true })
       .eq("store_id", storeId);
-    checklistPrimaryOverride = {
-      label: dict.merchant.checklist[primarySetup.labelKey],
-      href: `/${lang}/merchant/${storeId}/${primarySetup.module}`,
-      done: (coreCount ?? 0) > 0,
-    };
+    primaryCount = coreCount ?? 0;
   }
-  const checklistDone = Object.entries(checklist).every(([k, v]) =>
-    k === "products" && checklistPrimaryOverride
-      ? checklistPrimaryOverride.done
-      : v,
+
+  // One weighted number instead of eight equal ticks. What each item is worth,
+  // which ones block publishing and which single one to do next are all decided
+  // in src/lib/completeness.ts — this page only supplies the facts.
+  const completeness = computeCompleteness(
+    category,
+    enabledModules,
+    {
+      logo: !!s.logo_url,
+      cover: !!s.cover_url,
+      description: !!s.description?.trim(),
+      // Counts the weekly grid, not the retired free-text box (0244). A merchant
+      // who filled the grid properly was told to go add hours, while one who
+      // typed "9 صباحا" got the tick and the open/closed badge got nothing.
+      hours: !!parseHours(s.hours),
+      whatsapp: !!s.whatsapp?.trim(),
+      // Coordinates, not a text address: "الأقرب إليك" cannot use prose.
+      mapPin: s.lat != null && s.lng != null,
+      brandColor: !!s.accent_color,
+      customLink: !!s.slug,
+      // Sectors whose core entity isn't products count that entity instead — a
+      // hotel's readiness hangs on its rooms, not on a catalogue it never keeps.
+      offerings: primaryCount ?? itemsCount,
+      offeringsWithCost: costedItems,
+      providers,
+    },
+    primarySetup
+      ? { key: primarySetup.labelKey, href: primarySetup.module }
+      : undefined,
   );
+  const checklistDone = completeness.next === null;
+
+  // ---- Smart suggestions (rule-based, from data already on hand) -----------
   const hasAudience =
     (followersRes.count ?? 0) > 0 || (report?.total_orders ?? 0) > 0;
   const suggestions: SuggestionRow[] = [];
@@ -924,8 +984,7 @@ export default async function StoreOsHomePage({
                 storeId={storeId}
                 storeName={s.name}
                 storeSlug={s.slug}
-                state={checklist}
-                primaryOverride={checklistPrimaryOverride}
+                completeness={completeness}
               />
             </div>
           )}

@@ -1,86 +1,83 @@
 import Link from "next/link";
-import { Check, Circle, Sparkles, PartyPopper, ExternalLink } from "lucide-react";
+import {
+  Circle,
+  Sparkles,
+  PartyPopper,
+  ExternalLink,
+  ChevronLeft,
+  AlertTriangle,
+  CircleCheck,
+} from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import type { Completeness, CompletenessItem } from "@/lib/completeness";
 import { SITE_URL } from "@/lib/site";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { ShareButton } from "@/components/share-button";
 
-export type ChecklistState = {
-  logo: boolean;
-  cover: boolean;
-  description: boolean;
-  hours: boolean;
-  whatsapp: boolean;
-  products: boolean;
-  brandColor: boolean;
-  customLink: boolean;
-};
-
-// Onboarding nudge shown on the OS home. While the store is being set up it's a
-// progress checklist that deep-links each missing step. Once everything is done
-// it flips into a "your store is ready — share it" card, because the merchant's
+// Onboarding nudge shown on the OS home. While the store is being set up it
+// reports one weighted number and ONE next action; once everything is done it
+// flips into a "your store is ready — share it" card, because the merchant's
 // next job (and the platform's) is to get that link in front of customers.
+//
+// It used to render eight equal ticks and a percentage derived from counting
+// them. Two things changed, both decided in src/lib/completeness.ts:
+//
+//   • The percentage is weighted, so it only moves when something that costs
+//     the merchant money moves. A number that changes for a brand colour is a
+//     number merchants learn to ignore.
+//   • Publishing and completeness are separate questions, so the blockers are
+//     drawn apart from the polish rather than sitting in the same flat list.
+//
+// This component computes nothing. It draws what the module already decided.
 export function StoreChecklist({
   lang,
   dict,
   storeId,
   storeName,
   storeSlug,
-  state,
-  primaryOverride,
+  completeness,
 }: {
   lang: Locale;
   dict: Dictionary;
   storeId: string;
   storeName: string;
   storeSlug: string | null;
-  state: ChecklistState;
-  /** Sector-aware replacement for the generic "add products" step (e.g. a hotel
-   *  adds a unit, an events organizer adds ticket types). */
-  primaryOverride?: { label: string; href: string; done: boolean };
+  completeness: Completeness;
 }) {
   const t = dict.merchant.checklist;
-  const editHref = `/${lang}/merchant/${storeId}/edit`;
-  const productsItem = primaryOverride
-    ? {
-        key: "products" as const,
-        label: primaryOverride.label,
-        href: primaryOverride.href,
-      }
-    : {
-        key: "products" as const,
-        label: t.products,
-        href: `/${lang}/merchant/${storeId}/items`,
-      };
-  // When a sector override is present, its `done` drives the row (the generic
-  // `state.products` counts products, which these sectors don't sell).
-  const effState: ChecklistState = primaryOverride
-    ? { ...state, products: primaryOverride.done }
-    : state;
-  const items: {
-    key: keyof ChecklistState;
-    label: string;
-    href: string | null;
-  }[] = [
-    { key: "logo", label: t.logo, href: editHref },
-    { key: "cover", label: t.cover, href: editHref },
-    { key: "description", label: t.description, href: editHref },
-    { key: "hours", label: t.hours, href: editHref },
-    { key: "whatsapp", label: t.whatsapp, href: editHref },
-    productsItem,
-    { key: "brandColor", label: t.brandColor, href: editHref },
-    { key: "customLink", label: t.customLink, href: editHref },
-  ];
-  const done = items.filter((i) => effState[i.key]).length;
-  const pct = Math.round((done / items.length) * 100);
-  const complete = done === items.length;
+  const base = `/${lang}/merchant/${storeId}`;
+
+  // Labels are mapped explicitly rather than by indexing the dictionary with a
+  // loose string: a new completeness item then cannot ship without its copy —
+  // TypeScript refuses the object, instead of the merchant seeing a raw key.
+  const labels: Record<string, string> = {
+    logo: t.logo,
+    cover: t.cover,
+    description: t.description,
+    hours: t.hours,
+    whatsapp: t.whatsapp,
+    mapPin: t.mapPin,
+    products: t.products,
+    units: t.units,
+    tickets: t.tickets,
+    team: t.team,
+    costPrices: t.costPrices,
+    brandColor: t.brandColor,
+    customLink: t.customLink,
+  };
+  const labelOf = (item: CompletenessItem) => labels[item.key] ?? item.key;
+  // `href` is a path segment under the store, or "" for the store root.
+  const hrefOf = (item: CompletenessItem) =>
+    item.href ? `${base}/${item.href}` : base;
 
   const storePath = `/${lang}/${storeSlug ?? `store/${storeId}`}`;
   const storeUrl = `${SITE_URL}${storePath}`;
   const displayUrl = `matjarlb.com/${storeSlug ?? `store/${storeId}`}`;
 
   // Store fully set up → celebrate + push the shareable link.
-  if (complete) {
+  if (!completeness.next) {
     return (
       <div className="rounded-2xl border border-primary/30 bg-primary-soft/40 p-5">
         <div className="flex items-center gap-2">
@@ -100,7 +97,7 @@ export function StoreChecklist({
             <ShareButton title={storeName} dict={dict} url={storeUrl} />
             <Link
               href={storePath}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold transition-colors hover:border-primary hover:text-primary lg:min-h-0"
             >
               {t.viewPage}
               <ExternalLink className="h-4 w-4" />
@@ -111,61 +108,99 @@ export function StoreChecklist({
     );
   }
 
+  const next = completeness.next;
+  // Everything else still open, blockers first then by what it costs to skip.
+  // The heaviest item is already the headline, so it is not repeated here.
+  const rest = completeness.items
+    .filter((i) => !i.done && i.key !== next.key)
+    .sort(
+      (a, b) => Number(b.required) - Number(a.required) || b.weight - a.weight,
+    );
+  const blockers = completeness.missingRequired.length;
+
   return (
     <div className="rounded-2xl border border-primary/30 bg-primary-soft/40 p-5">
-      <div className="flex items-center gap-2">
-        <Sparkles className="h-5 w-5 text-primary" />
-        <h2 className="font-extrabold">{t.title}</h2>
-        <span className="ms-auto text-sm font-bold text-primary">{pct}%</span>
+      <div className="flex items-start gap-3">
+        <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+        <div className="min-w-0 flex-1">
+          <h2 className="font-extrabold">{t.title}</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
+            {t.subtitle}
+          </p>
+        </div>
+        {/* The number is the headline. A merchant who reads 72% asks what the
+            other 28% is; a column of ticks never provoked that question. */}
+        <div className="shrink-0 text-end">
+          <div className="text-3xl font-extrabold leading-none tabular-nums text-primary sm:text-4xl">
+            {completeness.score}%
+          </div>
+          <div className="mt-1 text-xs font-semibold text-muted-foreground">
+            {t.scoreLabel}
+          </div>
+        </div>
       </div>
-      <p className="mt-1 text-sm text-muted-foreground">{t.subtitle}</p>
 
-      <div className="mt-3 h-2 overflow-hidden rounded-full bg-surface">
-        <div
-          className="h-full rounded-full bg-primary transition-all"
-          style={{ width: `${pct}%` }}
-        />
+      <Progress value={completeness.score} label={t.title} className="mt-4" />
+
+      {/* Publish readiness is a different question from completeness, so it is
+          stated in its own words instead of being inferred from the bar. */}
+      {blockers > 0 ? (
+        <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-warning sm:text-sm">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          {t.blockedHint.replace("{n}", String(blockers))}
+        </p>
+      ) : (
+        <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-success sm:text-sm">
+          <CircleCheck className="h-4 w-4 shrink-0" />
+          {t.publishReady}
+        </p>
+      )}
+
+      {/* One instruction. A merchant told eight things is told nothing. */}
+      <div className="mt-4">
+        <p className="text-xs font-bold text-muted-foreground">{t.nextLabel}</p>
+        <Link
+          href={hrefOf(next)}
+          className="mt-1.5 flex min-h-[44px] items-center gap-3 rounded-xl bg-primary px-4 py-3 text-primary-foreground transition-opacity hover:opacity-90 lg:min-h-0"
+        >
+          <span className="min-w-0 flex-1 text-sm font-bold">
+            {labelOf(next)}
+          </span>
+          <span className="inline-flex shrink-0 items-center gap-1 text-xs font-bold">
+            {t.fix}
+            <ChevronLeft className="h-4 w-4 ltr:rotate-180" />
+          </span>
+        </Link>
       </div>
 
-      <ul className="mt-4 space-y-2">
-        {items.map((item) => {
-          const isDone = effState[item.key];
-          const row = (
-            <span className="flex items-center gap-2 text-sm">
-              {isDone ? (
-                <Check className="h-4 w-4 text-primary" />
-              ) : (
-                <Circle className="h-4 w-4 text-muted-foreground" />
-              )}
-              <span
-                className={
-                  isDone
-                    ? "text-muted-foreground line-through"
-                    : "font-medium"
-                }
-              >
-                {item.label}
-              </span>
-            </span>
-          );
-          return (
-            <li
-              key={item.key}
-              className="flex items-center justify-between gap-3"
-            >
-              {row}
-              {!isDone && item.href && (
+      {rest.length > 0 && (
+        <div className="mt-4">
+          <p className="text-xs font-bold text-muted-foreground">
+            {t.moreLabel}
+          </p>
+          <ul className="mt-2 space-y-1.5">
+            {rest.map((item) => (
+              <li key={item.key}>
                 <Link
-                  href={item.href}
-                  className="shrink-0 rounded-lg border border-border bg-surface px-3 py-1 text-xs font-bold text-primary transition-colors hover:bg-surface-muted"
+                  href={hrefOf(item)}
+                  className="flex min-h-[44px] items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 transition-colors hover:border-primary lg:min-h-0"
                 >
-                  {t.fix}
+                  <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span className="min-w-0 flex-1 text-xs font-semibold sm:text-sm">
+                    {labelOf(item)}
+                  </span>
+                  {/* Required and recommended are not the same request: one
+                      keeps the storefront off the marketplace, the other just
+                      makes it nicer. Drawn the same, both get ignored. */}
+                  <Badge variant={item.required ? "warning" : "neutral"}>
+                    {item.required ? t.requiredBadge : t.recommendedBadge}
+                  </Badge>
                 </Link>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
