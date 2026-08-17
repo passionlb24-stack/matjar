@@ -55,7 +55,11 @@ import { StorePortfolio, type PortfolioItem } from "@/components/store-portfolio
 import { StoreHero } from "@/components/store/store-hero";
 import { StoreHeader } from "@/components/store/store-header";
 import { StoreBranches } from "@/components/store/store-branches";
-import { StoreDeliveryOptions } from "@/components/store/store-delivery-options";
+import {
+  StoreFulfillment,
+  type CourierOption,
+} from "@/components/store/store-fulfillment";
+import { StoreHours } from "@/components/store/store-hours";
 import { StoreProductsSection } from "@/components/store/store-products-section";
 import { StoreHealthcareInfo } from "@/components/store/store-healthcare-info";
 import { StoreDoctors, type DoctorView } from "@/components/store/store-doctors";
@@ -277,6 +281,11 @@ export default async function StorePage({
   // providerServices: productId -> the provider ids that offer that service.
   // Empty entry (or absent) = any provider can deliver it.
   const providerServices: Record<string, string[]> = {};
+  // The same link read the other way round — doctor id -> the service names
+  // that provider delivers — so the public roster can say what each person
+  // actually does instead of only who they are. Stays empty when the merchant
+  // recorded no per-provider restriction, and the roster then claims nothing.
+  const servicesByDoctor: Record<string, string[]> = {};
   // Resolved modules, not sector defaults: a store that switched `team` off has
   // no roster to fetch, and one that switched it on does.
   if (
@@ -295,11 +304,16 @@ export default async function StorePage({
         .from("service_providers")
         .select("product_id, doctor_id")
         .eq("store_id", id);
+      const productName = new Map(
+        store.products.filter((p) => p.id).map((p) => [p.id as string, p.name]),
+      );
       for (const row of (sp ?? []) as {
         product_id: string;
         doctor_id: string;
       }[]) {
         (providerServices[row.product_id] ??= []).push(row.doctor_id);
+        const name = productName.get(row.product_id);
+        if (name) (servicesByDoctor[row.doctor_id] ??= []).push(name);
       }
     }
   }
@@ -432,7 +446,6 @@ export default async function StorePage({
   }
 
   // Delivery options this store offers via partner couriers.
-  type CourierOption = { price: number | null; name: string };
   let couriers: CourierOption[] = [];
   if (store.isReal && UUID_RE.test(id)) {
     const { data: courierRows } = await supabase
@@ -499,6 +512,10 @@ export default async function StorePage({
 
   const Icon = categoryIcons[store.category];
   const style = categoryStyles[store.category];
+  // One clock read per request: the header badge, the hours grid and the
+  // "today" highlight must not disagree about which day it is.
+  const renderedAt = new Date();
+  const weekHours = parseHours(store.hours);
   // Theme = defaults; the merchant's own accent color / layout always win.
   const sf = resolveTheme(store);
   // Single source of truth for which transaction surface this storefront shows,
@@ -564,8 +581,31 @@ export default async function StorePage({
       <StoreBranches branches={branches} dict={dict} />
     ),
 
-    delivery: couriers.length > 0 && (
-      <StoreDeliveryOptions couriers={couriers} dict={dict} />
+    // "Can I get this, and on what terms" — the delivery/pickup modes, the
+    // minimum, the prep window, the payment note, the zones and the courier
+    // partners, in one block instead of a courier chip strip that said nothing
+    // about any of the rest. Gated on `orders`, so sectors that never sell a
+    // basket (a clinic) never see it, and the component itself returns null
+    // when the merchant recorded nothing.
+    delivery: store.isReal && enabledModules.has("orders") && (
+      <StoreFulfillment
+        acceptsDelivery={store.acceptsDelivery ?? true}
+        acceptsPickup={store.acceptsPickup ?? true}
+        minOrder={store.minOrder ?? null}
+        prepTime={store.prepTime ?? null}
+        paymentNote={store.paymentNote ?? null}
+        zones={zones}
+        couriers={couriers}
+        dict={dict}
+        lang={lang}
+      />
+    ),
+
+    // The full week. The header badge answers "open right now"; only this
+    // answers "can I come on Saturday". Absent for any store that never
+    // configured the grid — parseHours returns null and nothing renders.
+    hours: weekHours != null && (
+      <StoreHours hours={weekHours} now={renderedAt} dict={dict} />
     ),
 
     location: mapPins.length > 0 && enabledModules.has("location") && (
@@ -687,12 +727,25 @@ export default async function StorePage({
 
     // The sector test stays with the section, not with the render sequence:
     // ordering is the only place composition is allowed to branch on category.
-    healthcareInfo: store.category === "healthcare" &&
-      (store.specialties || store.insurance) && (
-        <StoreHealthcareInfo store={store} dict={dict} />
-      ),
+    // What is worth SAYING is decided inside the component, from the store's
+    // own data — it returns null when the clinic filled in none of it.
+    healthcareInfo: store.category === "healthcare" && (
+      <StoreHealthcareInfo
+        store={store}
+        services={store.products.filter((p) => p.itemKind === "service")}
+        cancelHours={store.bookingCancelHours ?? 0}
+        canBook={experience.showBooking}
+        dict={dict}
+      />
+    ),
 
-    doctors: doctors.length > 0 && <StoreDoctors doctors={doctors} dict={dict} />,
+    doctors: (
+      <StoreDoctors
+        doctors={doctors}
+        servicesByDoctor={servicesByDoctor}
+        dict={dict}
+      />
+    ),
 
     verifications: store.isReal && enabledModules.has("verifications") && (
       <StoreVerifications

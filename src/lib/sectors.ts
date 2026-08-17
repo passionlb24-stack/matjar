@@ -463,6 +463,7 @@ export type ProfileSectionKey =
   | "branches"
   | "delivery"
   | "location"
+  | "hours"
   | "serviceRequest"
   | "leadForm"
   | "stay"
@@ -488,6 +489,7 @@ export const DEFAULT_PROFILE_ORDER: ProfileSectionKey[] = [
   "branches",
   "delivery",
   "location",
+  "hours",
   "serviceRequest",
   "leadForm",
   "stay",
@@ -511,39 +513,58 @@ const LEAD: ProfileSectionKey[] = ["announcement", "hero", "header"];
 
 const PROFILE_ORDER: Partial<Record<CategoryKey, ProfileSectionKey[]>> = {
   // You choose a clinic by its doctors, and its credentials are the trust
-  // signal. Both used to sit below the product grid.
-  healthcare: [...LEAD, "healthcareInfo", "doctors", "catalog", "verifications",
-    "reservations", "location", "branches", "delivery", "reviews"],
+  // signal. Both used to sit below the product grid. `hours` sits above the
+  // booking engine because "are they open at all, and on which days" is the
+  // question that decides whether the calendar below is worth opening.
+  healthcare: [...LEAD, "healthcareInfo", "doctors", "hours", "catalog",
+    "verifications", "reservations", "location", "branches", "delivery", "reviews"],
   // The work is the pitch: evidence first, price list second.
   beauty: [...LEAD, "portfolio", "catalog", "doctors", "memberships",
-    "reservations", "reviews", "location", "branches", "delivery", "verifications"],
-  // Nobody browses a restaurant's amenities. They read the menu.
-  food: [...LEAD, "delivery", "catalog", "reservations", "reviews",
+    "reservations", "hours", "reviews", "location", "branches", "delivery",
+    "verifications"],
+  // Nobody browses a restaurant's amenities. They read the menu — but only
+  // after learning whether the food can reach them at all, which is what the
+  // fulfillment strip above it answers.
+  food: [...LEAD, "delivery", "catalog", "reservations", "hours", "reviews",
     "location", "branches"],
   // A stay begins with dates, not with a description.
-  hospitality: [...LEAD, "stay", "catalog", "location", "reviews", "branches",
-    "verifications"],
+  hospitality: [...LEAD, "stay", "catalog", "location", "hours", "reviews",
+    "branches", "verifications"],
   // Listing marketplaces: the enquiry IS the transaction, so it belongs beside
   // the listing rather than at the foot of the page.
-  realEstate: [...LEAD, "catalog", "leadForm", "location", "verifications", "reviews"],
-  automotive: [...LEAD, "catalog", "leadForm", "location", "verifications", "reviews"],
+  realEstate: [...LEAD, "catalog", "leadForm", "location", "hours",
+    "verifications", "reviews"],
+  automotive: [...LEAD, "catalog", "leadForm", "location", "hours",
+    "verifications", "reviews"],
   // The timetable is the product; memberships are how it gets paid for.
   fitness: [...LEAD, "classes", "resources", "memberships", "catalog", "doctors",
+    "hours", "reviews", "location", "branches"],
+  education: [...LEAD, "courses", "classes", "doctors", "catalog", "hours",
     "reviews", "location", "branches"],
-  education: [...LEAD, "courses", "classes", "doctors", "catalog", "reviews",
-    "location", "branches"],
-  events: [...LEAD, "tickets", "catalog", "location", "reviews"],
+  events: [...LEAD, "tickets", "catalog", "location", "hours", "reviews"],
   sportsCourts: [...LEAD, "resources", "classes", "memberships", "catalog",
-    "reviews", "location", "branches"],
+    "hours", "reviews", "location", "branches"],
   // Trades sell evidence of work and trust before they sell a price.
   contractors: [...LEAD, "portfolio", "serviceRequest", "verifications", "catalog",
-    "reviews", "location"],
+    "hours", "reviews", "location"],
   professional: [...LEAD, "serviceRequest", "doctors", "verifications", "portfolio",
-    "catalog", "reviews", "location"],
+    "catalog", "hours", "reviews", "location"],
   services: [...LEAD, "serviceRequest", "portfolio", "catalog", "doctors",
+    "hours", "reviews", "location", "branches"],
+  petCare: [...LEAD, "catalog", "doctors", "reservations", "stay", "hours",
     "reviews", "location", "branches"],
-  petCare: [...LEAD, "catalog", "doctors", "reservations", "stay", "reviews",
-    "location", "branches"],
+  // The goods sectors had no composition of their own, so they inherited a
+  // default in which the catalogue sits eighteenth — below branches, delivery,
+  // the map, the opening hours and nine sections that render nothing for a shop.
+  // Somebody who opens a shop's page came to see what it sells. This is the same
+  // defect the clinic had, and it survived longer only because retail is the
+  // fallback everything else was measured against.
+  retail: [...LEAD, "catalog", "delivery", "reviews", "location", "hours",
+    "branches", "verifications"],
+  pharmacy: [...LEAD, "catalog", "delivery", "reviews", "location", "hours",
+    "branches", "verifications"],
+  farm: [...LEAD, "catalog", "delivery", "reviews", "location", "hours",
+    "branches", "verifications"],
 };
 
 /** The section order for a sector's public profile.

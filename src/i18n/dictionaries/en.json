@@ -1047,7 +1047,6 @@
     "seePricing": "See pricing"
   },
   "hero": {
-    "badge": "Lebanon's local platform · Live now",
     "title": "Every store, restaurant, and service in Lebanon",
     "titleHighlight": "in one place",
     "subtitle": "Shop, order, book, or hire — everything in one place.",
@@ -1055,21 +1054,7 @@
     "locationAll": "All Lebanon",
     "searchButton": "Search",
     "popular": "Trending",
-    "ctaPrimary": "Start shopping",
-    "ctaSecondary": "Open your store free",
-    "stats": {
-      "storesLabel": "stores & services",
-      "sectorsLabel": "sectors",
-      "citiesLabel": "cities",
-      "codLabel": "Cash on delivery",
-      "codValue": "Free"
-    },
-    "floats": {
-      "food": "Restaurants & food",
-      "realEstate": "Real estate",
-      "jobs": "New jobs",
-      "cars": "Cars"
-    }
+    "ctaPrimary": "Start shopping"
   },
   "worlds": {
     "eyebrow": "One platform",
@@ -1086,40 +1071,8 @@
       "market": { "title": "Sunday Market", "desc": "Classifieds & swaps" }
     }
   },
-  "homeStats": {
-    "storesLabel": "stores & services",
-    "sectorsLabel": "different sectors",
-    "citiesLabel": "Lebanese cities",
-    "productsLabel": "products & listings"
-  },
   "home2": {
-    "seeAll": "See all",
-    "restaurantsTitle": "Restaurants near you",
-    "restaurantsSubtitle": "Order from the nearest restaurant — delivery or pickup.",
-    "restaurantsEmpty": "No restaurants listed yet — be the first!",
-    "citiesTitle": "Browse by city",
-    "citiesSubtitle": "Find stores and services in your area.",
-    "citiesCount": "stores & services",
-    "marketKicker": "Sunday Market",
-    "marketTitle": "Buy, sell, and swap",
-    "marketDesc": "Local classifieds for everything — post your ad free in seconds.",
-    "marketCta": "Open the market",
-    "trendKicker": "Best sellers",
-    "trendTitle": "Trending this week",
-    "trendDesc": "See what Lebanon is buying right now across all sectors.",
-    "trendCta": "Browse",
-    "jobsTitle": "Latest jobs",
-    "jobsSubtitle": "New opportunities across Lebanon."
-  },
-  "homeFaq": {
-    "eyebrow": "FAQ",
-    "title": "Got a question?",
-    "items": [
-      { "q": "Is Matjar free to use?", "a": "Yes — browsing and buying are completely free. Opening a basic store is also free, with no commission on your sales." },
-      { "q": "How do I pay?", "a": "Most stores accept cash on delivery — you pay when your order arrives — and some offer additional options." },
-      { "q": "Are the stores trustworthy?", "a": "Every store is manually reviewed before it goes live, and there are real ratings and reviews from customers." },
-      { "q": "How do I open my store?", "a": "Tap \"Open your store\", enter your store name and type, and start adding products — it takes minutes." }
-    ]
+    "seeAll": "See all"
   },
   "categories": {
     "title": "Browse by category",
@@ -1324,24 +1277,6 @@
     "emptyBody": "Open your store for free and start receiving orders across Lebanon.",
     "emptyCta": "Open your store"
   },
-  "trust": {
-    "cod": "Cash on delivery",
-    "codDesc": "Pay when your order arrives",
-    "verified": "Real businesses",
-    "verifiedDesc": "Every store is reviewed before it goes live",
-    "lebanon": "All of Lebanon",
-    "lebanonDesc": "Stores in every region",
-    "direct": "Direct contact",
-    "directDesc": "Call or WhatsApp the store"
-  },
-  "howItWorks": {
-    "title": "How Matjar works",
-    "steps": [
-      { "title": "Discover", "body": "Search by area and category to find the nearest store or service to you." },
-      { "title": "Order or book", "body": "Add to cart and order, or book a service in one tap — straight from the store." },
-      { "title": "Track", "body": "Follow your order step by step and rate your experience when it's done." }
-    ]
-  },
   "merchantCta": {
     "title": "Have a store or business? Get online in minutes.",
     "subtitle": "Launch your online store or business page, receive orders and bookings, and reach new customers across Lebanon.",
@@ -1375,6 +1310,39 @@
       "privacy": "Privacy"
     },
     "rights": "All rights reserved."
+  },
+  "discovery": {
+    "filters": "Filters",
+    "clearAll": "Clear all",
+    "showResults": "Show results",
+    "group": "Category",
+    "sector": "Business type",
+    "region": "Region",
+    "openNow": "Open now",
+    "hasCatalog": "Has items listed",
+    "hasOffers": "Has offers",
+    "rated": "Reviewed",
+    "verified": "Verified",
+    "registered": "Commercially registered",
+    "prevPage": "Previous",
+    "nextPage": "Next",
+    "emptyTitle": "No stores match these filters",
+    "emptyBody": "Clear a filter to widen the search.",
+    "alsoIn": "Also in this category",
+    "storesCount": "stores",
+    "offersBadge": "Offers",
+    "sectionsLabel": "sections",
+    "teamLabel": "practitioners",
+    "nouns": {
+      "products": "products",
+      "services": "services",
+      "menu": "menu items",
+      "listings": "listings",
+      "classes": "classes",
+      "courses": "courses",
+      "units": "rooms",
+      "tickets": "ticket types"
+    }
   },
   "explore": {
     "title": "Explore stores",
@@ -1439,6 +1407,9 @@
     "doctorsTitle": "Our team",
     "specialtiesTitle": "Specialties",
     "insuranceTitle": "Accepted insurance",
+    "visitLength": "Visit length",
+    "hoursToday": "Today",
+    "hoursClosedToday": "Closed today — see the rest of the week above.",
     "orderWhatsapp": "Order via WhatsApp",
     "waGreeting": "Hi, I'd like to order from",
     "outOfStock": "Sorry, the requested quantity is no longer available. Adjust your cart and try again.",
@@ -3485,15 +3456,6 @@
     "shop": "Shop",
     "more": "More"
   },
-  "verticals": {
-    "title": "More than shopping — everything in one place",
-    "subtitle": "Find a job, hire freelancers, buy wholesale, or arrange delivery.",
-    "jobs": "Jobs across Lebanon",
-    "freelance": "Freelance services",
-    "wholesale": "Buy in bulk",
-    "delivery": "Delivery companies",
-    "map": "Stores on the map"
-  },
   "delivery": {
     "title": "Delivery companies",
     "subtitle": "Partner couriers that deliver store orders across Lebanon.",
@@ -3730,11 +3692,6 @@
     "title": "Store map",
     "subtitle": "See stores on the map and find the nearest to you.",
     "empty": "No stores have pinned their location on the map yet."
-  },
-  "deal": {
-    "title": "Deal of the Day",
-    "endsIn": "Ends in",
-    "cta": "Get it now"
   },
   "faq": {
     "title": "Help & FAQ",

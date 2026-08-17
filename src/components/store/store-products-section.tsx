@@ -88,7 +88,11 @@ export function StoreProductsSection({
 
   return (
     <>
-      <h2 className="mb-4 mt-10 text-xl font-bold">{sectionTitle}</h2>
+      {/* Anchor target: sections that sit above this one (the clinic summary's
+          "book an appointment") jump here rather than restating the engine. */}
+      <h2 id="offerings" className="mb-4 mt-10 scroll-mt-20 text-xl font-bold">
+        {sectionTitle}
+      </h2>
       {store.isReal ? (
         primary.length ? (
           surface === "appointment" ? (

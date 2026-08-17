@@ -52,3 +52,41 @@ screen-reader ordering tradeoff recorded in the previous mobile audit.
 rows inside those stores rendered a **booking** CTA — pet food offered as an appointment.
 Three such rows exist in production. The resolver now decides on kind first, so a product is
 a product wherever it is sold.
+
+## Profile composition — measured on real stores
+
+Headings in rendered order, from live pages (scripts stripped with a parser):
+
+| Sector | Store | Rendered order |
+|---|---|---|
+| **Retail** | misk | name → **المنتجات والخدمات** → التوصيل والاستلام → التقييمات → الموقع → ساعات الدوام |
+| **Healthcare** | دكتور عمر الصمد | name → ساعات الدوام → **الخدمات** → التقييمات |
+| **Food** | Let's meat | name → التوصيل والاستلام → **القائمة** → ساعات الدوام → التقييمات |
+
+Three sectors, three different pages, one engine. Before this sprint all three rendered the
+same sequence.
+
+**The retail fix:** the goods sectors (retail, pharmacy, farm) had no composition of their
+own, so they inherited a default in which the catalogue sat **eighteenth of twenty-two** —
+below branches, delivery, the map, the hours, and nine sections that render nothing for a
+shop. It is the same defect the clinic had; it survived longer only because retail was the
+fallback every other sector was compared against. The catalogue is now position 3, directly
+after the identity block.
+
+## Discovery — filters that cannot lie
+
+`/explore` filters now live in the URL and run server-side, so a filtered view is
+shareable and indexable. Measured: `/ar/explore` → 13 cards · `?group=health` → 2 ·
+`?sector=retail` → 7 · `?offers=1` → 1 · `?rated=1&open=1` → 2 · `/ar/category/automotive`
+→ 0 cards **and no filter controls at all**.
+
+Filters are suppressed when the data cannot back them — the region facet entirely (all 13
+stores are `north`), verified/registered (zero stores), delivery and pickup (every store has
+both, so they narrow nothing), clinic specialties and insurance (columns NULL everywhere).
+The suppression is computed from live counts, not hardcoded: a filter returns the moment a
+merchant fills the field in.
+
+## Still not verified
+
+No screenshots, no layout, no RTL mirroring, no measured touch targets, and the mobile
+bottom sheet has never been opened. Everything above is rendered-HTML evidence.
