@@ -1,5 +1,5 @@
 import webpush from "web-push";
-import { createClient } from "@/lib/supabase/server";
+import { adminClientIfConfigured } from "@/lib/supabase/admin";
 import { VAPID_PUBLIC_KEY, VAPID_SUBJECT } from "@/lib/push";
 
 // Internal endpoint the DB calls (via pg_net) when a notification is created,
@@ -23,7 +23,16 @@ export async function POST(request: Request) {
   };
   if (!body.user_id) return Response.json({ error: "bad_request" }, { status: 400 });
 
-  const supabase = await createClient();
+  // Service role, not the request-scoped client. 0274 revoked get_push_subs from
+  // anon and authenticated — it hands back another user's push credentials for
+  // any uid, and being callable by a browser was the hole. This endpoint is
+  // server-to-server (pg_net → here, secret-header authenticated) and there is
+  // no session on the request, so the SSR client was arriving as `anon`: after
+  // the revoke it would have silently stopped sending every notification.
+  const supabase = adminClientIfConfigured();
+  if (!supabase) {
+    return Response.json({ error: "not_configured" }, { status: 503 });
+  }
   const { data: subs } = await supabase.rpc("get_push_subs", {
     p_uid: body.user_id,
     p_secret: hookSecret,

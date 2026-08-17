@@ -1,0 +1,125 @@
+sector,field,search_or_filter,type,required,default,mobile_ui,desktop_ui,source_of_truth,index_required,notes
+all,q,search,text,no,empty,search_bar,search_bar,"products.name | products.name_en | stores.name","yes - products.name_en trigram GIN MISSING; products_name_trgm and stores_name_trgm exist","search_products_fuzzy (migration 0114) matches name_en with no index - sequential scan"
+all,sector,filter,enum,no,all,chip_row_scroll,chip_row,"stores.business_type_id -> business_types.slug","no - stores_business_type_id_idx exists","17 sectors in src/lib/sectors.ts; only 5 have live merchants"
+all,group,filter,enum,no,all,chip_row_scroll,chip_row,"code only: categoryGroup in src/lib/catalog.ts:71","n/a","9 browse groups above the 17 sectors; not a DB column"
+all,region,filter,enum,no,all,bottom_sheet_chips,chip_row,stores.region,"yes - no index on stores(region)","5 values; all 13 active stores are 'north' so 4 of 5 chips return zero"
+all,area,filter,taxonomy,no,all,bottom_sheet_select,select,"proposed: stores.area_id -> lb_areas.id","yes - stores(area_id)","lb_areas exists (45 rows) but nothing links stores to it; stores.area is free text and ungroupable"
+all,open_now,filter,boolean,no,off,toggle,toggle,stores.hours,"no - computed in JS","currently a sort mode that silently filters (explore-client.tsx:217)"
+all,rating_min,filter,number,no,none,bottom_sheet_chips,chip_row,stores.rating_avg,"optional - stores(rating_avg) partial","denormalised by migration 0091; only 5 reviews exist platform-wide"
+all,verified,filter,boolean,no,off,toggle,toggle,"stores.is_verified | store_verifications.status",no,"two sources of truth for 'verified' - reconcile before exposing as a filter"
+all,delivery,filter,boolean,no,off,toggle,toggle,stores.accepts_delivery,no,"pair with store_delivery_zones for 'delivers to my area'"
+all,pickup,filter,boolean,no,off,toggle,toggle,stores.accepts_pickup,no,
+all,price_range,filter,range,no,none,dual_slider,dual_slider,"products.price | products.discount_price | products.flash_price",yes,"three price columns; the filter must use the effective price not products.price"
+all,distance_km,filter,number,no,none,toggle_then_chips,chip_row,"stores.lat | stores.lng | store_locations.lat/lng",no,"only 5 of 13 active stores have coordinates; needs PostGIS at scale"
+all,sort,sort,enum,no,recommended,bottom_sheet_list,chip_row,"code only: SortMode in explore-client.tsx:61",n/a,"recommended|nearest|topRated|newest|openNow; must be split from Filters in the UI"
+food,dish_name,search,text,no,empty,search_bar,search_bar,products.name,"yes - see all.q","menu items are products rows"
+food,cuisine,filter,enum,no,all,bottom_sheet_chips,chip_row,proposed,yes,"no cuisine column exists anywhere"
+food,dietary,filter,enum,no,all,bottom_sheet_chips,chip_row,proposed,no,"product_modifier_groups (migration 0194) models add-ons not diets"
+food,min_order,filter,number,no,none,bottom_sheet_select,select,stores.min_order,no,
+food,prep_time,filter,text,no,none,none,none,stores.prep_time,no,"free text; not filterable until enumerated"
+food,delivers_to_area,filter,taxonomy,no,none,bottom_sheet_select,select,store_delivery_zones,yes,"the honest version of a delivery filter"
+food,open_now,filter,boolean,no,off,toggle,toggle,stores.hours,no,"highest-intent filter for this sector"
+retail,product_name,search,text,no,empty,search_bar,search_bar,"products.name | products.name_en","yes - name_en index missing","only sector clearing the vertical-search inventory gate (7 merchants / 30 products)"
+retail,brand,filter,text,no,all,chip_row_scroll,chip_row,products.brand,"no - products_brand_trgm_idx exists","only 1 of 60 products has a brand set"
+retail,in_stock,filter,boolean,no,off,toggle,toggle,products.stock,no,"null stock means 'not tracked' not 'out of stock'"
+retail,color,filter,enum,no,all,bottom_sheet_chips,swatch_row,product_variants.color,yes,"column exists (migration 0181) but 0 of 6 variants populate it"
+retail,size,filter,enum,no,all,bottom_sheet_chips,chip_row,product_variants.size,yes,"same - exists and unpopulated"
+retail,condition,filter,enum,no,all,bottom_sheet_chips,chip_row,proposed,no,"new/used only meaningful once resale exists"
+retail,price_range,filter,range,no,none,dual_slider,dual_slider,products.price,yes,
+services,job_type,search,taxonomy,yes,none,typeahead,typeahead,"trades.slug (currently bound to crafts only)","no - trades_slug_key exists","reuse the trades taxonomy and its synonyms rather than inventing a second one"
+services,service_area,filter,taxonomy,no,all,bottom_sheet_select,select,"lb_areas.slug via proposed store area link",yes,"craft_provider_areas proves the pattern; stores have no equivalent"
+services,callout_fee,filter,range,no,none,dual_slider,dual_slider,products.price,yes,"services are products rows with item_kind='service' (migration 0206)"
+services,duration,filter,number,no,none,bottom_sheet_select,select,products.attributes->>'duration',"yes - GIN jsonb_path_ops","declared in attributes.ts:24 but not flagged filter:true"
+services,verified,filter,boolean,no,off,toggle,toggle,store_verifications.status,no,
+healthcare,specialty,search,taxonomy,yes,none,typeahead,typeahead,"doctors.specialty (free text) | stores.specialties (free text)",yes,"must be enumerated before it can be a facet; 2 doctors exist"
+healthcare,doctor_name,search,text,no,empty,search_bar,search_bar,doctors.name,yes,"no trigram index on doctors.name"
+healthcare,insurance,filter,enum,no,all,bottom_sheet_select,select,stores.insurance,no,"free text today; needs an insurer lookup table"
+healthcare,next_available,filter,date_range,no,none,date_picker,date_picker,"bookings.starts_at | booked_times",no,"derivable; the single most useful healthcare facet"
+healthcare,gender,filter,enum,no,all,bottom_sheet_chips,chip_row,proposed,no,"add to doctors; a real requirement in this market"
+healthcare,languages,filter,enum,no,all,bottom_sheet_chips,chip_row,proposed,no,
+healthcare,consultation_fee,filter,range,no,none,dual_slider,dual_slider,products.price,yes,
+realEstate,purpose,filter,enum,yes,none,segmented_control,segmented_control,products.attributes->>'purpose',"yes - GIN jsonb_path_ops","exists and already flagged filter:true in attributes.ts:36"
+realEstate,ptype,filter,enum,no,all,bottom_sheet_chips,chip_row,products.attributes->>'ptype',yes,"6 options defined in attributes.ts:48-55"
+realEstate,rooms,filter,number,no,none,stepper,stepper,products.attributes->>'rooms',yes,"filter:true already set"
+realEstate,bathrooms,filter,number,no,none,stepper,stepper,products.attributes->>'bathrooms',yes,"exists; filter:true not set"
+realEstate,area_m2,filter,range,no,none,dual_slider,dual_slider,products.attributes->>'area',yes,"exists; filter:true not set"
+realEstate,furnished,filter,enum,no,all,toggle,toggle,products.attributes->>'furnished',yes,"exists; filter:true not set"
+realEstate,price_range,filter,range,no,none,dual_slider,dual_slider,products.price,yes,"sale and rent prices share one column - a known modelling problem"
+automotive,mode,filter,enum,yes,buy,segmented_control,segmented_control,proposed,no,"this sector has two distinct intents (buy a car / fix a car) and one search box cannot serve both"
+automotive,make,search,text,no,empty,typeahead,typeahead,products.attributes->>'brand',yes,"filter:true already set (attributes.ts:72)"
+automotive,model,filter,text,no,all,bottom_sheet_select,select,products.attributes->>'model',yes,"exists; filter:true not set"
+automotive,year,filter,range,no,none,dual_slider,dual_slider,products.attributes->>'year',yes,"exists; filter:true not set"
+automotive,mileage,filter,range,no,none,dual_slider,dual_slider,products.attributes->>'mileage',yes,"exists; filter:true not set"
+automotive,gearbox,filter,enum,no,all,bottom_sheet_chips,chip_row,products.attributes->>'gearbox',yes,"filter:true already set"
+automotive,fuel,filter,enum,no,all,bottom_sheet_chips,chip_row,products.attributes->>'fuel',yes,"filter:true already set"
+automotive,condition,filter,enum,no,all,segmented_control,segmented_control,products.attributes->>'condition',yes,"filter:true already set"
+automotive,price_range,filter,range,no,none,dual_slider,dual_slider,products.price,yes,
+beauty,service_type,search,taxonomy,yes,none,typeahead,typeahead,"products.name where item_kind='service'","no - products_store_kind_idx exists","no service taxonomy exists; free text over service names is the only option today"
+beauty,earliest_slot,filter,date_range,no,none,date_picker,date_picker,"bookings.starts_at | booked_times",no,"availability is the deciding factor in this sector"
+beauty,provider,filter,text,no,all,bottom_sheet_select,select,doctors.name,no,"the 'team' module reuses the doctors table for salons (sectorHasTeam in sectors.ts:438)"
+beauty,duration,filter,number,no,none,bottom_sheet_select,select,products.duration_minutes,no,
+beauty,home_service,filter,boolean,no,off,toggle,toggle,proposed,no,
+beauty,price_range,filter,range,no,none,dual_slider,dual_slider,products.price,yes,
+fitness,class_type,search,text,no,empty,search_bar,search_bar,store_classes.name,no,"1 class row exists platform-wide"
+fitness,schedule_day,filter,enum,no,all,bottom_sheet_chips,chip_row,store_classes.day_of_week,no,"column exists (migration 0130)"
+fitness,membership_price,filter,range,no,none,dual_slider,dual_slider,store_membership_plans.price,no,"2 plan rows exist"
+fitness,membership_period,filter,enum,no,all,segmented_control,segmented_control,store_membership_plans.period,no,
+fitness,trainer,filter,text,no,all,bottom_sheet_select,select,doctors.name,no,"team module again"
+fitness,facilities,filter,enum,no,all,bottom_sheet_chips,chip_row,proposed,no,
+sportsCourts,sport,filter,enum,yes,none,chip_row_scroll,chip_row,proposed,no,"store_resources has no sport/type column - only name"
+sportsCourts,date,filter,date_range,yes,today,date_picker,date_picker,bookings.starts_at,no,"availability-first sector: the date is the query"
+sportsCourts,time_slot,filter,enum,yes,any,time_grid,time_grid,"booked_times | store_resources.open_hour/close_hour",no,"scoped by service since migration 0145"
+sportsCourts,indoor_outdoor,filter,enum,no,all,segmented_control,segmented_control,proposed,no,
+sportsCourts,surface,filter,enum,no,all,bottom_sheet_chips,chip_row,proposed,no,
+sportsCourts,price_per_hour,filter,range,no,none,dual_slider,dual_slider,store_resources.price,no,
+education,subject,search,taxonomy,yes,none,typeahead,typeahead,proposed,yes,"no subject taxonomy; store_courses.name is free text"
+education,level,filter,enum,no,all,bottom_sheet_chips,chip_row,store_courses.level,no,"column exists (migration 0134) but is free text not enumerated"
+education,format,filter,enum,no,all,segmented_control,segmented_control,proposed,no,"online vs onsite - a first-order filter with no column"
+education,schedule,filter,text,no,none,none,none,store_courses.schedule,no,"free text; display only"
+education,price_range,filter,range,no,none,dual_slider,dual_slider,store_courses.price,no,
+events,event_type,filter,enum,no,all,bottom_sheet_chips,chip_row,proposed,no,
+events,date,filter,date_range,yes,none,date_picker,date_picker,bookings.starts_at,no,
+events,capacity,filter,number,no,none,stepper,stepper,"bookings.party_size | proposed venue_capacity",no,"party_size added by migration 0131; no venue capacity column"
+events,venue_type,filter,enum,no,all,bottom_sheet_chips,chip_row,proposed,no,
+events,ticket_price,filter,range,no,none,dual_slider,dual_slider,event_ticket_types.price,no,"table exists (migration 0193) with 0 rows"
+events,tickets_available,filter,boolean,no,off,toggle,toggle,"event_ticket_types.capacity - event_ticket_types.sold",no,
+hospitality,check_in,filter,date_range,yes,none,date_picker,date_picker,stay_bookings.check_in,"yes - accommodation_units(store_id,active,max_guests)","search_stay (migration 0191) requires p_store_id - there is no marketplace-wide stay search"
+hospitality,check_out,filter,date_range,yes,none,date_picker,date_picker,stay_bookings.check_out,yes,"daterange overlap guarded by a gist exclusion constraint"
+hospitality,guests,filter,number,yes,2,stepper,stepper,accommodation_units.max_guests,yes,
+hospitality,unit_type,filter,enum,no,all,bottom_sheet_chips,chip_row,accommodation_units.unit_type,no,"free text today; enumerate before exposing"
+hospitality,bedrooms,filter,number,no,none,stepper,stepper,accommodation_units.bedrooms,no,
+hospitality,bathrooms,filter,number,no,none,stepper,stepper,accommodation_units.bathrooms,no,
+hospitality,amenities,filter,enum,no,all,bottom_sheet_chips,checkbox_list,accommodation_units.amenities,"yes - GIN on jsonb",
+hospitality,price_per_night,filter,range,no,none,dual_slider,dual_slider,"accommodation_units.base_nightly_price | weekend_price",no,"weekend pricing means the displayed total must come from stay_base_total()"
+hospitality,min_nights,filter,number,no,none,none,none,accommodation_units.min_nights,no,"a constraint on results not a user-facing facet"
+pharmacy,medicine_name,search,text,yes,empty,search_bar,search_bar,"products.name | products.name_en","yes - name_en index missing","brand/generic synonyms are essential here and no synonym table exists"
+pharmacy,open_now,filter,boolean,no,on,toggle,toggle,stores.hours,no,"should default ON for this sector - the query is usually urgent"
+pharmacy,delivers,filter,boolean,no,off,toggle,toggle,stores.accepts_delivery,no,
+pharmacy,in_stock,filter,boolean,no,off,toggle,toggle,products.stock,no,
+pharmacy,prescription_required,filter,boolean,no,all,toggle,toggle,proposed,no,"regulatory relevance - do not guess this value"
+petCare,animal_type,filter,enum,yes,all,chip_row_scroll,chip_row,proposed,no,
+petCare,service_type,search,text,no,empty,search_bar,search_bar,"products.name where item_kind='service'",no,
+petCare,home_visit,filter,boolean,no,off,toggle,toggle,proposed,no,
+petCare,vet_name,filter,text,no,all,bottom_sheet_select,select,doctors.name,no,"team module reused for clinics"
+petCare,earliest_slot,filter,date_range,no,none,date_picker,date_picker,bookings.starts_at,no,
+professional,discipline,search,taxonomy,yes,none,typeahead,typeahead,"proposed - could reuse trades.slug",yes,"lawyer/accountant/notary; the trades synonym mechanism transfers directly"
+professional,specialisation,filter,enum,no,all,bottom_sheet_chips,chip_row,proposed,no,
+professional,language,filter,enum,no,all,bottom_sheet_chips,chip_row,proposed,no,"ar/en/fr matters in this sector in Lebanon"
+professional,consultation_fee,filter,range,no,none,dual_slider,dual_slider,products.price,yes,
+professional,remote,filter,boolean,no,off,toggle,toggle,proposed,no,
+professional,verified,filter,boolean,no,off,toggle,toggle,store_verifications.status,no,"credential verification carries real weight here"
+contractors,trade,search,taxonomy,yes,none,typeahead,typeahead,trades.slug,"no - trades_slug_key exists","47 active trades with a synonyms text[] column; search_trades (migration 0237) is the model for every other taxonomy"
+contractors,service_area,filter,taxonomy,yes,all,select,select,"lb_areas.slug via craft_provider_areas","no - craft_provider_areas_area_idx exists","answers 'do you come to me' from declared coverage not from the provider address"
+contractors,region,filter,enum,no,all,bottom_sheet_chips,chip_row,craft_providers.region,"no - craft_providers_region_idx exists",
+contractors,verified,filter,boolean,no,off,toggle,toggle,craft_providers.verified,no,
+contractors,years_experience,filter,number,no,none,bottom_sheet_select,select,craft_providers.years_experience,no,
+contractors,price_from,filter,range,no,none,dual_slider,dual_slider,craft_services.price,no,
+contractors,pricing_type,filter,enum,no,all,bottom_sheet_chips,chip_row,craft_services.pricing_type,no,"fixed|from|hourly|per_meter|quote - trades do not price alike"
+contractors,has_whatsapp,filter,boolean,no,off,toggle,toggle,craft_providers.whatsapp,no,"returned by browse_crafts as a derived boolean"
+contractors,sort,sort,enum,no,rating,bottom_sheet_list,chip_row,"browse_crafts p_sort",n/a,"unrated providers sort after rated ones rather than as zero stars"
+farm,produce_type,filter,enum,no,all,chip_row_scroll,chip_row,proposed,no,
+farm,product_name,search,text,no,empty,search_bar,search_bar,products.name,yes,
+farm,organic,filter,boolean,no,off,toggle,toggle,proposed,no,"a claim that needs verification before it is a filter"
+farm,delivery_day,filter,enum,no,all,bottom_sheet_chips,chip_row,proposed,no,
+farm,box_subscription,filter,boolean,no,off,toggle,toggle,proposed,no,"no subscription model exists for farm boxes"
+farm,price_range,filter,range,no,none,dual_slider,dual_slider,products.price,yes,

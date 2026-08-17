@@ -21,6 +21,7 @@ import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { AdminBroadcast } from "@/components/admin-broadcast";
+import { PushNotice } from "@/components/push-notice";
 import { AdminStoreActions } from "@/components/admin-store-actions";
 import { AdminReviewDelete } from "@/components/admin-review-delete";
 
@@ -93,6 +94,14 @@ export default async function AdminOverviewPage({
         />
 
         <div data-animate className="space-y-8">
+          {/* A store waiting for review is urgent to exactly one person, and
+              until now that person had to already be looking at this page to
+              find out it was waiting. */}
+          <PushNotice
+            dict={dict}
+            title={dict.push.adminNoticeTitle}
+            body={dict.push.adminNoticeBody}
+          />
           <AdminAttentionQueue queue={queue} lang={lang} dict={dict} />
           <StatGrid>
             <Stat

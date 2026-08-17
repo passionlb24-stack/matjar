@@ -1,0 +1,144 @@
+sector,entity,field,required,type,source_of_truth,exists_today,notes
+all,store,name,yes,text,stores.name,yes,Arabic primary; no name_en column on stores unlike products
+all,store,slug,yes,text,stores.slug,yes,Public handle used by the /[handle] route
+all,store,business_type_id,yes,uuid,stores.business_type_id,yes,Maps to one of the 17 keys in src/lib/catalog.ts:4-20
+all,store,description,no,text,stores.description,yes,No description_en counterpart
+all,store,logo_url,no,text,stores.logo_url,yes,
+all,store,cover_url,no,text,stores.cover_url,yes,Plus cover_position smallint for framing
+all,store,phone,yes,text,stores.phone,yes,
+all,store,whatsapp,no,text,stores.whatsapp,yes,Primary contact channel in market; used as the fallback CTA in directory-only sectors
+all,store,region,yes,text,stores.region,yes,Free text against the 5 keys in src/lib/catalog.ts regions
+all,store,area,yes,text,stores.area,yes,Also lb_areas lookup table exists
+all,store,address,no,text,stores.address,yes,
+all,store,lat/lng,no,numeric,stores.lat / stores.lng,yes,Drives the /map route
+all,store,hours,no,jsonb,stores.hours,yes,15 of 33 live stores populate it; legacy opening_hours text also still present
+all,store,status,yes,enum,stores.status (store_status),yes,pending/active/suspended/rejected
+all,store,plan,yes,enum,stores.plan (store_plan),yes,free/basic/pro/business; gates OS modules via minPlan in sectors.ts
+all,store,is_verified,no,boolean,stores.is_verified,yes,Backed by store_verifications and store_verification_docs
+all,store,commercial_reg_no,no,text,stores.commercial_reg_no,yes,Plus commercial_reg_verified boolean
+all,store,legal_name / tax_no / vat_rate,no,text/numeric,stores.legal_name / tax_no / vat_rate,yes,Invoicing block; vat_inclusive boolean and invoice_prefix alongside
+all,store,accepts_delivery / accepts_pickup,no,boolean,stores.accepts_delivery / accepts_pickup,yes,Only meaningful for order sectors
+all,store,booking_slot_minutes,no,integer,stores.booking_slot_minutes,yes,Default slot length; the fallback place_booking actually uses in production
+all,store,booking_cancel_hours,no,integer,stores.booking_cancel_hours,yes,Notice window enforced by cancel_my_booking (migration 0189)
+all,offering,name,yes,text,products.name,yes,
+all,offering,item_kind,yes,text,products.item_kind,yes,product / service / digital; migrations 0206 and 0234. Live: 52/13/0
+all,offering,price,yes,numeric,products.price,yes,Semantics vary by sector - see realEstate and hospitality rows
+all,offering,status,yes,enum,products.status (product_status),yes,active/draft/hidden
+food,store,prep_time,no,text,stores.prep_time,yes,Free text
+food,store,min_order,no,numeric,stores.min_order,yes,
+food,store,delivery zones,no,table,store_delivery_zones,yes,Per-zone fee; orders.delivery_zone_id FK
+food,offering,section (menu category),no,uuid,products.section_id -> store_sections,yes,26 live sections
+food,offering,modifier groups,no,table,product_modifier_groups,partial,Migration 0194; 0 live rows - built but unused
+food,offering,options (add-ons),no,table,product_options,yes,3 live rows
+food,offering,spice level / allergens,no,-,-,no,No allergen or dietary-tag field anywhere; a legal requirement in many markets
+food,reservation,party_size,no,integer,bookings.party_size,yes,Written by reservation-form.tsx:59
+food,reservation,table / seating,yes,-,-,no,No table entity - a restaurant cannot express its floor plan or seat count
+retail,offering,brand,no,text,products.brand,yes,
+retail,offering,sku,no,text,products.sku,yes,
+retail,offering,cost,no,numeric,products.cost,yes,Deliberately NULL-not-zero so margin reports can distinguish - product-form.tsx:142-148
+retail,offering,stock,no,integer,products.stock,yes,Plus low_stock_threshold default 5
+retail,offering,variants (colour/size),no,table,product_variants,yes,Migration 0181; 6 live rows; apparel gets a colour-to-size matrix builder (product-form.tsx:60)
+retail,offering,return window,no,-,-,no,No returns policy field and no RMA entity
+services,store,service_area,no,text,stores.service_area,yes,Free text
+services,offering,duration_minutes,yes,integer,products.duration_minutes,partial,Column exists but only 1 of 65 live products sets it; also duplicated as attributes.duration in src/lib/attributes.ts:24-26
+services,offering,buffer_minutes,no,integer,products.buffer_minutes,yes,Defaults 0
+services,offering,booking_allocation_mode,yes,text,products.booking_allocation_mode,partial,provider_exclusive / pooled_providers / capacity_based; set on 1 of 65 live products
+services,offering,portfolio work,no,table,store_portfolio,partial,Table exists; 0 live rows
+services,request,description,yes,text,service_requests.description,yes,Length validated inside the RLS policy itself
+services,request,photos,no,-,-,no,craft_requests has photos jsonb; service_requests does not
+services,request,scheduled date,no,-,-,no,A quoted job cannot be put in the diary without manually creating a separate booking
+healthcare,store,specialties,no,text,stores.specialties,yes,Free text - not a structured taxonomy
+healthcare,store,insurance,no,text,stores.insurance,yes,Free text - no insurer list and no claim model
+healthcare,provider,doctor roster,yes,table,doctors,yes,2 live rows
+healthcare,provider,availability rules,yes,table,provider_availability_rules,partial,Table and logic exist and are read by place_booking and reschedule_booking; 0 live rows so no clinic has configured hours
+healthcare,provider,availability exceptions,no,table,provider_availability_exceptions,yes,Holidays and one-off closures
+healthcare,offering,service-to-provider mapping,no,table,service_providers,yes,Restricts which doctors can deliver which service in pooled_providers mode
+healthcare,appointment,patient record,no,-,-,no,A booking has no clinical subject or visit history
+realEstate,offering,purpose (sale vs rent),yes,jsonb key,products.attributes->>'purpose',partial,Typed in src/lib/attributes.ts:32-41 and flagged filter:true - but stored untyped in jsonb
+realEstate,offering,price semantics,yes,numeric,products.price,no,A sale price and a monthly rent occupy the same column with nothing distinguishing them - the single most damaging modelling gap in this sector
+realEstate,offering,property type,yes,jsonb key,products.attributes->>'ptype',partial,apartment/house/land/office/shop/chalet; jsonb; filter:true
+realEstate,offering,rooms,yes,jsonb key,products.attributes->>'rooms',partial,jsonb text comparison - a 3+ bedrooms filter is a string compare
+realEstate,offering,bathrooms,no,jsonb key,products.attributes->>'bathrooms',partial,jsonb
+realEstate,offering,area_sqm,yes,jsonb key,products.attributes->>'area',partial,jsonb
+realEstate,offering,furnished,no,jsonb key,products.attributes->>'furnished',partial,jsonb
+realEstate,offering,floor / parking / year built,no,-,-,no,Not modelled anywhere
+realEstate,lead,kind,yes,enum,leads.kind (lead_kind),yes,viewing/contact/offer per store-experience.ts:61
+realEstate,lead,scheduled_at,yes,-,-,no,lead_status has a 'scheduled' value with no column and no bookings FK to back it
+realEstate,lead,customer visibility,yes,policy,pg_policies leads_select_store,no,"Policy is staff_can(store_id,'orders') only - the buyer can never see their own inquiry"
+automotive,offering,brand,yes,jsonb key,products.attributes->>'brand',partial,Duplicates the typed products.brand column - two places for the same fact
+automotive,offering,model,yes,jsonb key,products.attributes->>'model',partial,jsonb
+automotive,offering,year,yes,jsonb key,products.attributes->>'year',partial,jsonb; filter would be a string compare
+automotive,offering,mileage_km,yes,jsonb key,products.attributes->>'mileage',partial,jsonb
+automotive,offering,gearbox,yes,jsonb key,products.attributes->>'gearbox',partial,automatic/manual; filter:true; jsonb
+automotive,offering,fuel,yes,jsonb key,products.attributes->>'fuel',partial,petrol/diesel/hybrid/electric; filter:true; jsonb
+automotive,offering,condition,yes,jsonb key,products.attributes->>'condition',partial,new/used; filter:true; jsonb
+automotive,offering,VIN / plate / service history,no,-,-,no,Not modelled
+automotive,lead,kind,yes,enum,leads.kind,yes,test_drive/contact/offer per store-experience.ts:62
+beauty,provider,stylist roster,yes,table,doctors,yes,The doctors table is reused as the generic provider roster across team sectors (sectorHasTeam in sectors.ts:438)
+beauty,offering,duration_minutes,yes,integer,products.duration_minutes,partial,Same underuse as services - 1 of 65 products
+beauty,offering,before/after gallery,no,jsonb,products.gallery,partial,Generic image array; no structured before/after pairing
+fitness,offering,membership plan name,yes,text,store_membership_plans.name,yes,
+fitness,offering,membership period,yes,text,store_membership_plans.period,yes,monthly/quarterly/yearly; read once by subscribe_membership to compute ends_on
+fitness,offering,membership price,yes,numeric,store_membership_plans.price,yes,Displayed and never charged - no payments linkage
+fitness,membership,status,yes,text,store_memberships.status,partial,text DEFAULT 'active' with no CHECK constraint and no enum
+fitness,membership,ends_on,yes,date,store_memberships.ends_on,partial,Computed once at subscribe time and never read again - nothing expires a membership
+fitness,offering,class name / day / time,yes,text+int,store_classes.name / day_of_week / start_time,yes,start_time is text not time
+fitness,offering,class capacity,yes,integer,store_classes.capacity,partial,Column exists but is only checked client-side via class_spots_taken - no write-time enforcement
+fitness,offering,trainer assignment,no,-,-,no,store_classes has no doctor_id or provider FK
+sportsCourts,offering,court name,yes,text,store_resources.name,yes,2 live rows
+sportsCourts,offering,open_hour / close_hour,yes,integer,store_resources.open_hour / close_hour,partial,Two integers only - no per-weekday hours and no closures
+sportsCourts,offering,slot price,yes,numeric,store_resources.price,partial,Single price - no peak/off-peak
+sportsCourts,offering,surface / indoor / lighting,no,-,-,no,Not modelled
+sportsCourts,reservation,overlap guard,yes,constraint,pg_constraint on bookings,no,Neither exclusion constraint's WHERE predicate matches a resource_id booking - double-booking is possible
+sportsCourts,store,memberships module access,yes,config,src/lib/sectors.ts:296-301,no,features declares 'memberships' at sectors.ts:292 but modules.daily omits it - the merchant has no screen
+education,offering,course name,yes,text,store_courses.name,yes,2 live rows
+education,offering,price,no,numeric,store_courses.price,yes,Never collected
+education,offering,duration,no,text,store_courses.duration,partial,Free text - not a number and not a date range
+education,offering,schedule,no,text,store_courses.schedule,partial,Free text - a course has no session list so an enrolment has no calendar footprint
+education,offering,level,no,text,store_courses.level,yes,Free text
+education,offering,capacity,yes,-,-,no,No capacity column - a course can never sell out and enroll_course has no seat check
+education,offering,start / end date,yes,-,-,no,Not modelled - an enrolment can never expire
+education,enrollment,status,yes,text,course_enrollments.status,partial,text DEFAULT 'enrolled' with no CHECK; merchant screen is read-only
+education,provider,instructor roster,no,table,doctors,yes,Reused provider roster; education has team in its feature bundle
+events,offering,ticket type name,yes,text,event_ticket_types.name,yes,0 live rows
+events,offering,price,yes,numeric,event_ticket_types.price,yes,CHECK price >= 0
+events,offering,capacity,no,integer,event_ticket_types.capacity,yes,NULL means unlimited; enforced atomically inside buy_tickets
+events,offering,sold counter,yes,integer,event_ticket_types.sold,partial,Increments only - no decrement path so any cancel drifts it permanently
+events,offering,event date/time,yes,-,-,no,No event_at column - the buyer cannot be told when the event is. Blocks go-live
+events,offering,venue,yes,-,-,no,No venue column
+events,ticket,ticket code / QR,yes,-,-,no,event_tickets has no unique reference beyond its uuid
+events,ticket,checked_in_at,yes,-,-,no,No check-in - merchant tickets screen is read-only
+hospitality,offering,unit name,yes,text,accommodation_units.name,yes,4 live rows; name_en also present
+hospitality,offering,unit_type,no,text,accommodation_units.unit_type,yes,Free text - no controlled vocabulary
+hospitality,offering,max_guests,yes,integer,accommodation_units.max_guests,yes,CHECK between 1 and 50; enforced by place_stay_booking as 'over_capacity'
+hospitality,offering,bedrooms / bathrooms,yes,integer,accommodation_units.bedrooms / bathrooms,yes,
+hospitality,offering,base_nightly_price,yes,numeric,accommodation_units.base_nightly_price,yes,CHECK >= 0
+hospitality,offering,weekend_price,no,numeric,accommodation_units.weekend_price,yes,Applied by stay_base_total()
+hospitality,offering,seasonal / per-date rates,no,-,-,no,No rate calendar - only base and weekend
+hospitality,offering,blackout dates,no,-,-,no,A unit can only be closed by deactivating it - which also hides it from search_stay
+hospitality,offering,min_nights,yes,integer,accommodation_units.min_nights,yes,CHECK 1-90; enforced as 'min_stay'
+hospitality,offering,cleaning_fee,no,numeric,accommodation_units.cleaning_fee,yes,Snapshotted onto the booking row
+hospitality,offering,security_deposit,no,numeric,accommodation_units.security_deposit,partial,Recorded and snapshotted but never charged or refunded
+hospitality,offering,check_in_time / check_out_time,no,text,accommodation_units.check_in_time / check_out_time,yes,text not time
+hospitality,offering,cancellation_policy,yes,text,accommodation_units.cancellation_policy,partial,Free text that nothing reads or enforces - and there is no customer cancel path at all
+hospitality,offering,amenities,no,jsonb,accommodation_units.amenities,yes,List of scalars - legitimate jsonb use
+hospitality,stay,guest visibility,yes,policy,pg_policies stays_select,no,place_stay_booking sets customer_id = auth.uid() which is NULL for guests; stays_select matches neither branch and there is no get_guest_stay RPC
+pharmacy,offering,prescription required,yes,-,-,no,No flag on products and no upload on orders
+pharmacy,offering,active ingredient / dosage,no,-,-,no,Not modelled
+pharmacy,store,pharmacist licence,no,table,store_verifications / store_verification_docs,partial,Store-level verification only - does not gate any individual item
+petCare,appointment,pet / animal subject,yes,-,-,no,A booking has no subject so a groomer cannot record which animal is coming
+petCare,offering,species / size suitability,no,-,-,no,Not modelled
+professional,store,professional licence,no,table,store_verifications,yes,verifications is in the sector feature bundle (sectors.ts:370)
+professional,request,quote_amount,yes,numeric,service_requests.quote_amount,yes,
+professional,request,counter_amount,no,numeric,service_requests.counter_amount,yes,Two-way negotiation - the customer can counter
+professional,request,order/invoice conversion,yes,-,-,no,An accepted quote never becomes an order or invoice - completed and paid are indistinguishable
+professional,request,document attachments,no,-,-,no,Not modelled
+contractors,offering,portfolio work,yes,table,store_portfolio,partial,0 live rows - the sector's differentiating surface is empty
+contractors,offering,trade / specialisation,no,table,trades / trade_groups,partial,47 live trades but they belong to the separate craft_providers vertical not to stores
+contractors,request,photos,yes,jsonb,craft_requests.photos,partial,Exists on craft_requests (0 rows) but NOT on service_requests which is the table stores actually use
+contractors,request,site visit scheduling,no,-,-,no,Not modelled
+contractors,request,milestones / progress payments,no,-,-,no,Not modelled
+farm,offering,unit of measure,yes,-,-,no,No UoM column - weight-priced produce can only be sold by convention in the product name
+farm,offering,harvest / seasonal window,no,-,-,no,products.deal_date is a single date not a range
+farm,offering,organic / certification,no,-,-,no,Not modelled
+farm,offering,box scheme / subscription,no,-,-,no,No recurring-order model despite it being the dominant farm-direct pattern

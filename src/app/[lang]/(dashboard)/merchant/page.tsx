@@ -5,6 +5,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { PushNotice } from "@/components/push-notice";
 
 type StoreRow = {
   id: string;
@@ -120,6 +121,19 @@ export default async function MerchantPage({
             {dict.merchant.newStore}
           </Link>
         </div>
+
+        {/* Approval is the message that makes a shop real, and a merchant who
+            just signed up is exactly the person not yet in the habit of opening
+            this page to see whether it arrived. */}
+        {allStores.length > 0 && (
+          <div className="mt-6">
+            <PushNotice
+              dict={dict}
+              title={dict.push.merchantNoticeTitle}
+              body={dict.push.merchantNoticeBody}
+            />
+          </div>
+        )}
 
         {storeIds.length > 0 && (
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">

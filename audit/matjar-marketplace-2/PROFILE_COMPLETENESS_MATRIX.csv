@@ -1,0 +1,222 @@
+sector,field,weight,required_for_publish,customer_visible,coaching_message_key,exists_today,notes
+food,logo,10,yes,yes,merchant.coach.logo,yes,stores.logo_url; on checklist (store-checklist.tsx:65)
+food,cover,8,no,yes,merchant.coach.cover,yes,stores.cover_url; on checklist
+food,description,10,yes,yes,merchant.coach.description,yes,stores.description; on checklist
+food,brand_color,2,no,yes,merchant.coach.brandColor,yes,stores.accent_color; cosmetic - lowest weight on purpose
+food,custom_link,4,no,yes,merchant.coach.customLink,yes,stores.slug; drives matjarlb.com/<slug>
+food,hours,8,yes,yes,merchant.coach.hours,yes,stores.hours structured grid via parseHours (0244)
+food,whatsapp,8,yes,yes,merchant.coach.whatsapp,yes,stores.whatsapp; primary contact channel in Lebanon
+food,phone,4,no,yes,merchant.coach.phone,partial,stores.phone; collected at /merchant/new but never scored or nudged
+food,region_area,4,yes,yes,merchant.coach.area,partial,stores.region + stores.area; optional on the create form
+food,map_pin,8,yes,yes,merchant.coach.mapPin,partial,"stores.lat/lng; only in /edit and /settings, never nudged; 7 of 33 stores set"
+food,menu_items,20,yes,yes,merchant.coach.menuItems,yes,"products where itemsKey=menu (modules.ts); checklist asks >=3 generically"
+food,delivery_or_pickup,8,yes,yes,merchant.coach.fulfilment,partial,"stores.accepts_delivery / accepts_pickup + store_delivery_zones; set in /settings, never nudged"
+food,prep_time,6,no,yes,merchant.coach.prepTime,partial,"stores.prep_time; set in /settings, never nudged; the answer to 'how long until my food arrives'"
+retail,logo,10,yes,yes,merchant.coach.logo,yes,stores.logo_url; on checklist
+retail,cover,8,no,yes,merchant.coach.cover,yes,stores.cover_url; on checklist
+retail,description,10,yes,yes,merchant.coach.description,yes,stores.description; on checklist
+retail,brand_color,2,no,yes,merchant.coach.brandColor,yes,stores.accent_color
+retail,custom_link,4,no,yes,merchant.coach.customLink,yes,stores.slug
+retail,hours,8,yes,yes,merchant.coach.hours,yes,stores.hours structured grid
+retail,whatsapp,8,yes,yes,merchant.coach.whatsapp,yes,stores.whatsapp
+retail,phone,4,no,yes,merchant.coach.phone,partial,stores.phone; collected but unscored
+retail,region_area,4,yes,yes,merchant.coach.area,partial,stores.region + stores.area
+retail,map_pin,8,yes,yes,merchant.coach.mapPin,partial,stores.lat/lng; the largest live gap
+retail,products,20,yes,yes,merchant.coach.products,yes,"products table; checklist counts >=3 (page.tsx:584) - this is the one sector the generic step fits"
+retail,product_photos,6,no,yes,merchant.coach.productPhotos,partial,"product images exist; no coverage check anywhere - a catalog of unphotographed rows scores full marks today"
+retail,stock_or_availability,8,no,yes,merchant.coach.stock,no,"NEW WORK. products.stock exists but there is no shop-level availability signal; and 0 of 65 products carry a cost price (products.cost 0210) so margin-aware coaching is impossible"
+services,logo,10,yes,yes,merchant.coach.logo,yes,stores.logo_url; on checklist
+services,cover,8,no,yes,merchant.coach.cover,yes,stores.cover_url; on checklist
+services,description,10,yes,yes,merchant.coach.description,yes,"stores.description; carries more weight here - a service buyer has no product photo to judge"
+services,brand_color,2,no,yes,merchant.coach.brandColor,yes,stores.accent_color
+services,custom_link,4,no,yes,merchant.coach.customLink,yes,stores.slug
+services,hours,8,no,yes,merchant.coach.hours,yes,stores.hours; not publish-blocking - many trades have no fixed hours
+services,whatsapp,8,yes,yes,merchant.coach.whatsapp,yes,stores.whatsapp
+services,phone,4,yes,yes,merchant.coach.phone,partial,"stores.phone; publish-blocking here because requests is the sales channel"
+services,region_area,4,yes,yes,merchant.coach.area,partial,stores.region + stores.area
+services,map_pin,8,no,yes,merchant.coach.mapPin,partial,stores.lat/lng; not required - many service pros travel to the customer
+services,services_offered,20,yes,yes,merchant.coach.servicesOffered,partial,"products with simplifiedItem=true (modules.ts); checklist says 'add 3 products' - wrong noun"
+services,portfolio_items,6,no,yes,merchant.coach.portfolio,partial,"store_portfolio table + /portfolio page exist; 0 rows platform-wide; never nudged"
+services,service_area,8,yes,yes,merchant.coach.serviceArea,no,"NEW WORK. Service areas exist only for craft_providers (craft_provider_areas / lb_areas 0235-0236); stores has no equivalent"
+healthcare,logo,10,yes,yes,merchant.coach.logo,yes,stores.logo_url; on checklist
+healthcare,cover,8,no,yes,merchant.coach.cover,yes,stores.cover_url; on checklist
+healthcare,description,10,yes,yes,merchant.coach.description,yes,stores.description; on checklist
+healthcare,brand_color,2,no,yes,merchant.coach.brandColor,yes,stores.accent_color
+healthcare,custom_link,4,no,yes,merchant.coach.customLink,yes,stores.slug
+healthcare,hours,8,yes,yes,merchant.coach.hours,yes,stores.hours; clinic hours are the most-asked question
+healthcare,whatsapp,8,yes,yes,merchant.coach.whatsapp,yes,stores.whatsapp
+healthcare,phone,4,yes,yes,merchant.coach.phone,partial,stores.phone; publish-blocking for a clinic
+healthcare,region_area,4,yes,yes,merchant.coach.area,partial,stores.region + stores.area
+healthcare,map_pin,8,yes,yes,merchant.coach.mapPin,partial,stores.lat/lng; a patient must be able to find the clinic
+healthcare,services_offered,16,yes,yes,merchant.coach.servicesOffered,partial,products with simplifiedItem=true; bookable services
+healthcare,practitioners,14,yes,yes,merchant.coach.practitioners,partial,"doctors table (2 rows) + /doctors page; sectorHasTeam(healthcare)=true but nothing ever nudges for it"
+healthcare,specialties,4,no,yes,merchant.coach.specialties,partial,stores.specialties; free text in /settings behind isHealthcare
+healthcare,license_verification,0,no,yes,merchant.coach.licence,partial,"store_verifications (0 rows). Weight held at 0 until the self-verification hole in 12_REVIEWS_TRUST.md SS4 is closed - do not score a badge that can be self-awarded"
+realEstate,logo,10,yes,yes,merchant.coach.logo,yes,stores.logo_url; on checklist
+realEstate,cover,8,no,yes,merchant.coach.cover,yes,stores.cover_url; on checklist
+realEstate,description,10,yes,yes,merchant.coach.description,yes,stores.description; on checklist
+realEstate,brand_color,2,no,yes,merchant.coach.brandColor,yes,stores.accent_color
+realEstate,custom_link,4,no,yes,merchant.coach.customLink,yes,stores.slug
+realEstate,hours,8,no,yes,merchant.coach.hours,yes,stores.hours; agency office hours
+realEstate,whatsapp,8,yes,yes,merchant.coach.whatsapp,yes,stores.whatsapp
+realEstate,phone,4,yes,yes,merchant.coach.phone,partial,stores.phone; leads arrive by phone in this sector
+realEstate,region_area,4,yes,yes,merchant.coach.area,partial,stores.region + stores.area
+realEstate,map_pin,8,no,yes,merchant.coach.mapPin,partial,"stores.lat/lng pins the agency office; the listing's own location matters more and is a separate gap"
+realEstate,listings,22,yes,yes,merchant.coach.listings,partial,"products with itemsKey=listings; checklist says 'add 3 products' - wrong noun"
+realEstate,listing_photos,8,yes,yes,merchant.coach.listingPhotos,partial,"a property listing without photos is not a listing; no coverage check exists"
+realEstate,lead_contact,4,no,no,merchant.coach.leadContact,no,"leads module exists (3 rows) but no per-store declaration of how a lead should reach the agent"
+automotive,logo,10,yes,yes,merchant.coach.logo,yes,stores.logo_url; on checklist
+automotive,cover,8,no,yes,merchant.coach.cover,yes,stores.cover_url; on checklist
+automotive,description,10,yes,yes,merchant.coach.description,yes,stores.description; on checklist
+automotive,brand_color,2,no,yes,merchant.coach.brandColor,yes,stores.accent_color
+automotive,custom_link,4,no,yes,merchant.coach.customLink,yes,stores.slug
+automotive,hours,8,yes,yes,merchant.coach.hours,yes,stores.hours; showroom hours
+automotive,whatsapp,8,yes,yes,merchant.coach.whatsapp,yes,stores.whatsapp
+automotive,phone,4,yes,yes,merchant.coach.phone,partial,stores.phone
+automotive,region_area,4,yes,yes,merchant.coach.area,partial,stores.region + stores.area
+automotive,map_pin,8,yes,yes,merchant.coach.mapPin,partial,stores.lat/lng; a showroom is a place people drive to
+automotive,listings,22,yes,yes,merchant.coach.listings,partial,"products with itemsKey=listings; sectors.ts comment says this sector is directory-only with a Leads inbox and no cart"
+automotive,listing_photos,8,yes,yes,merchant.coach.listingPhotos,partial,no photo-coverage check exists
+automotive,lead_contact,4,no,no,merchant.coach.leadContact,no,leads module exists but no per-store routing declaration
+beauty,logo,10,yes,yes,merchant.coach.logo,yes,stores.logo_url; on checklist
+beauty,cover,8,no,yes,merchant.coach.cover,yes,stores.cover_url; on checklist
+beauty,description,10,yes,yes,merchant.coach.description,yes,stores.description; on checklist
+beauty,brand_color,2,no,yes,merchant.coach.brandColor,yes,stores.accent_color
+beauty,custom_link,4,no,yes,merchant.coach.customLink,yes,stores.slug
+beauty,hours,8,yes,yes,merchant.coach.hours,yes,stores.hours; drives the booking grid
+beauty,whatsapp,8,yes,yes,merchant.coach.whatsapp,yes,stores.whatsapp
+beauty,phone,4,no,yes,merchant.coach.phone,partial,stores.phone
+beauty,region_area,4,yes,yes,merchant.coach.area,partial,stores.region + stores.area
+beauty,map_pin,8,yes,yes,merchant.coach.mapPin,partial,stores.lat/lng; salons are walk-in businesses
+beauty,services_offered,16,yes,yes,merchant.coach.servicesOffered,partial,bookable services; generic 'add 3 products' step today
+beauty,practitioners,10,no,yes,merchant.coach.practitioners,partial,"doctors table + /doctors page; sectorHasTeam(beauty)=true; never nudged"
+beauty,booking_slot_minutes,8,yes,no,merchant.coach.slotLength,partial,"stores.booking_slot_minutes set in /edit; without it the booking grid has no granularity"
+fitness,logo,10,yes,yes,merchant.coach.logo,yes,stores.logo_url; on checklist
+fitness,cover,8,no,yes,merchant.coach.cover,yes,stores.cover_url; on checklist
+fitness,description,10,yes,yes,merchant.coach.description,yes,stores.description; on checklist
+fitness,brand_color,2,no,yes,merchant.coach.brandColor,yes,stores.accent_color
+fitness,custom_link,4,no,yes,merchant.coach.customLink,yes,stores.slug
+fitness,hours,8,yes,yes,merchant.coach.hours,yes,stores.hours; gym opening hours
+fitness,whatsapp,8,yes,yes,merchant.coach.whatsapp,yes,stores.whatsapp
+fitness,phone,4,no,yes,merchant.coach.phone,partial,stores.phone
+fitness,region_area,4,yes,yes,merchant.coach.area,partial,stores.region + stores.area
+fitness,map_pin,8,yes,yes,merchant.coach.mapPin,partial,stores.lat/lng; people join the gym near them
+fitness,membership_plans,12,yes,yes,merchant.coach.membershipPlans,partial,"store_membership_plans (2 rows) + /memberships page; ownerOnly module; never nudged"
+fitness,classes,12,no,yes,merchant.coach.classes,partial,store_classes (1 row) + /classes page; never nudged
+fitness,practitioners,6,no,yes,merchant.coach.practitioners,partial,doctors table reused as trainers; sectorHasTeam(fitness)=true
+fitness,booking_slot_minutes,4,no,no,merchant.coach.slotLength,partial,stores.booking_slot_minutes
+sportsCourts,logo,10,yes,yes,merchant.coach.logo,yes,stores.logo_url; on checklist
+sportsCourts,cover,8,no,yes,merchant.coach.cover,yes,stores.cover_url; on checklist
+sportsCourts,description,10,no,yes,merchant.coach.description,yes,stores.description; on checklist
+sportsCourts,brand_color,2,no,yes,merchant.coach.brandColor,yes,stores.accent_color
+sportsCourts,custom_link,4,no,yes,merchant.coach.customLink,yes,stores.slug
+sportsCourts,hours,8,yes,yes,merchant.coach.hours,yes,"stores.hours; a court with no hours cannot generate bookable slots"
+sportsCourts,whatsapp,8,yes,yes,merchant.coach.whatsapp,yes,stores.whatsapp
+sportsCourts,phone,4,no,yes,merchant.coach.phone,partial,stores.phone
+sportsCourts,region_area,4,yes,yes,merchant.coach.area,partial,stores.region + stores.area
+sportsCourts,map_pin,8,yes,yes,merchant.coach.mapPin,partial,stores.lat/lng; you drive to a court
+sportsCourts,resources_courts,20,yes,yes,merchant.coach.resources,partial,"store_resources (2 rows) + /resources page (0128); the sector cannot transact without at least one court"
+sportsCourts,booking_slot_minutes,10,yes,no,merchant.coach.slotLength,partial,stores.booking_slot_minutes; slot length is the whole product here
+sportsCourts,cancel_window,4,no,yes,merchant.coach.cancelWindow,partial,stores.booking_cancel_hours (0189); set in /settings; never nudged
+education,logo,10,yes,yes,merchant.coach.logo,yes,stores.logo_url; on checklist
+education,cover,8,no,yes,merchant.coach.cover,yes,stores.cover_url; on checklist
+education,description,10,yes,yes,merchant.coach.description,yes,stores.description; on checklist
+education,brand_color,2,no,yes,merchant.coach.brandColor,yes,stores.accent_color
+education,custom_link,4,no,yes,merchant.coach.customLink,yes,stores.slug
+education,hours,8,no,yes,merchant.coach.hours,yes,stores.hours; office hours rather than class times
+education,whatsapp,8,yes,yes,merchant.coach.whatsapp,yes,stores.whatsapp
+education,phone,4,yes,yes,merchant.coach.phone,partial,stores.phone; parents call
+education,region_area,4,yes,yes,merchant.coach.area,partial,stores.region + stores.area
+education,map_pin,8,yes,yes,merchant.coach.mapPin,partial,stores.lat/lng
+education,courses,18,yes,yes,merchant.coach.courses,partial,"store_courses (2 rows) + /courses page (0134); never nudged"
+education,tutors,10,no,yes,merchant.coach.practitioners,partial,doctors table reused as tutors; sectorHasTeam(education)=true
+education,membership_plans,6,no,yes,merchant.coach.membershipPlans,partial,store_membership_plans; term enrolment
+events,logo,10,yes,yes,merchant.coach.logo,yes,stores.logo_url; on checklist
+events,cover,8,yes,yes,merchant.coach.cover,yes,"stores.cover_url; publish-blocking here - the cover IS the event poster"
+events,description,10,yes,yes,merchant.coach.description,yes,stores.description; on checklist
+events,brand_color,2,no,yes,merchant.coach.brandColor,yes,stores.accent_color
+events,custom_link,4,no,yes,merchant.coach.customLink,yes,stores.slug
+events,hours,8,no,yes,merchant.coach.hours,yes,stores.hours; venue hours where a fixed venue exists
+events,whatsapp,8,yes,yes,merchant.coach.whatsapp,yes,stores.whatsapp
+events,phone,4,no,yes,merchant.coach.phone,partial,stores.phone
+events,region_area,4,yes,yes,merchant.coach.area,partial,stores.region + stores.area
+events,map_pin,8,yes,yes,merchant.coach.mapPin,partial,stores.lat/lng; attendees must find the venue
+events,ticket_types,24,yes,yes,merchant.coach.ticketTypes,yes,"event_ticket_types (0 rows) via sectorPrimarySetup(); one of only two sectors with a tailored checklist step"
+events,media_gallery,10,no,yes,merchant.coach.media,partial,"media is a default feature module; no gallery-coverage check exists"
+hospitality,logo,10,yes,yes,merchant.coach.logo,yes,stores.logo_url; on checklist
+hospitality,cover,8,yes,yes,merchant.coach.cover,yes,stores.cover_url; publish-blocking - nobody books an unphotographed stay
+hospitality,description,10,yes,yes,merchant.coach.description,yes,stores.description; on checklist
+hospitality,brand_color,2,no,yes,merchant.coach.brandColor,yes,stores.accent_color
+hospitality,custom_link,4,no,yes,merchant.coach.customLink,yes,stores.slug
+hospitality,hours,8,no,yes,merchant.coach.hours,yes,stores.hours; reception hours - check-in windows are a separate concept
+hospitality,whatsapp,8,yes,yes,merchant.coach.whatsapp,yes,stores.whatsapp
+hospitality,phone,4,yes,yes,merchant.coach.phone,partial,stores.phone
+hospitality,region_area,4,yes,yes,merchant.coach.area,partial,stores.region + stores.area
+hospitality,map_pin,8,yes,yes,merchant.coach.mapPin,partial,"stores.lat/lng; publish-blocking - a chalet with no location is unbookable"
+hospitality,accommodation_units,24,yes,yes,merchant.coach.units,yes,"accommodation_units (4 rows) via sectorPrimarySetup() (0191); the other tailored checklist step"
+hospitality,unit_photos,10,yes,yes,merchant.coach.unitPhotos,partial,no photo-coverage check on accommodation_units
+pharmacy,logo,10,yes,yes,merchant.coach.logo,yes,stores.logo_url; on checklist
+pharmacy,cover,8,no,yes,merchant.coach.cover,yes,stores.cover_url; on checklist
+pharmacy,description,10,no,yes,merchant.coach.description,yes,stores.description; on checklist
+pharmacy,brand_color,2,no,yes,merchant.coach.brandColor,yes,stores.accent_color
+pharmacy,custom_link,4,no,yes,merchant.coach.customLink,yes,stores.slug
+pharmacy,hours,8,yes,yes,merchant.coach.hours,yes,"stores.hours; publish-blocking - 'is the pharmacy open' is the whole question"
+pharmacy,whatsapp,8,yes,yes,merchant.coach.whatsapp,yes,stores.whatsapp
+pharmacy,phone,4,yes,yes,merchant.coach.phone,partial,stores.phone
+pharmacy,region_area,4,yes,yes,merchant.coach.area,partial,stores.region + stores.area
+pharmacy,map_pin,8,yes,yes,merchant.coach.mapPin,partial,stores.lat/lng; nearest-pharmacy is the primary use case
+pharmacy,products,18,yes,yes,merchant.coach.products,yes,products table; generic checklist step fits this sector
+pharmacy,license_verification,10,yes,yes,merchant.coach.licence,partial,"store_verifications (0 rows). Publish-blocking on policy grounds; scoring must wait until the self-verification hole is closed - see 12_REVIEWS_TRUST.md SS4"
+pharmacy,delivery_or_pickup,6,no,yes,merchant.coach.fulfilment,partial,stores.accepts_delivery / accepts_pickup; never nudged
+petCare,logo,10,yes,yes,merchant.coach.logo,yes,stores.logo_url; on checklist
+petCare,cover,8,no,yes,merchant.coach.cover,yes,stores.cover_url; on checklist
+petCare,description,10,yes,yes,merchant.coach.description,yes,stores.description; on checklist
+petCare,brand_color,2,no,yes,merchant.coach.brandColor,yes,stores.accent_color
+petCare,custom_link,4,no,yes,merchant.coach.customLink,yes,stores.slug
+petCare,hours,8,yes,yes,merchant.coach.hours,yes,stores.hours
+petCare,whatsapp,8,yes,yes,merchant.coach.whatsapp,yes,stores.whatsapp
+petCare,phone,4,yes,yes,merchant.coach.phone,partial,stores.phone; emergencies arrive by phone
+petCare,region_area,4,yes,yes,merchant.coach.area,partial,stores.region + stores.area
+petCare,map_pin,8,yes,yes,merchant.coach.mapPin,partial,stores.lat/lng
+petCare,services_offered,18,yes,yes,merchant.coach.servicesOffered,partial,bookable services; generic 'add 3 products' step today
+petCare,practitioners,10,no,yes,merchant.coach.practitioners,partial,doctors table reused as vets/groomers; sectorHasTeam(petCare)=true
+petCare,booking_slot_minutes,6,no,no,merchant.coach.slotLength,partial,stores.booking_slot_minutes
+professional,logo,10,yes,yes,merchant.coach.logo,yes,stores.logo_url; on checklist
+professional,cover,8,no,yes,merchant.coach.cover,yes,stores.cover_url; on checklist
+professional,description,10,yes,yes,merchant.coach.description,yes,"stores.description; heavily weighted - a lawyer sells credibility in prose"
+professional,brand_color,2,no,yes,merchant.coach.brandColor,yes,stores.accent_color
+professional,custom_link,4,no,yes,merchant.coach.customLink,yes,stores.slug
+professional,hours,8,no,yes,merchant.coach.hours,yes,stores.hours; office hours
+professional,whatsapp,8,yes,yes,merchant.coach.whatsapp,yes,stores.whatsapp
+professional,phone,4,yes,yes,merchant.coach.phone,partial,stores.phone; publish-blocking - the enquiry channel
+professional,region_area,4,yes,yes,merchant.coach.area,partial,stores.region + stores.area
+professional,map_pin,8,no,yes,merchant.coach.mapPin,partial,"stores.lat/lng; not required - many professionals work without a client-facing office"
+professional,services_offered,18,yes,yes,merchant.coach.servicesOffered,partial,products with simplifiedItem=true; generic 'add 3 products' step today
+professional,credential_verification,10,no,yes,merchant.coach.credential,partial,"store_verifications (0 rows); bar/syndicate membership. Not publish-blocking, but the highest-value trust field in this sector once the badge is safe"
+professional,booking_slot_minutes,6,no,no,merchant.coach.slotLength,partial,stores.booking_slot_minutes; consultation length
+contractors,logo,10,yes,yes,merchant.coach.logo,yes,stores.logo_url; on checklist
+contractors,cover,8,no,yes,merchant.coach.cover,yes,stores.cover_url; on checklist
+contractors,description,10,yes,yes,merchant.coach.description,yes,stores.description; on checklist
+contractors,brand_color,2,no,yes,merchant.coach.brandColor,yes,stores.accent_color
+contractors,custom_link,4,no,yes,merchant.coach.customLink,yes,stores.slug
+contractors,hours,8,no,yes,merchant.coach.hours,yes,stores.hours; not publish-blocking - trades work to job hours
+contractors,whatsapp,8,yes,yes,merchant.coach.whatsapp,yes,"stores.whatsapp; publish-blocking - this trade runs on WhatsApp and phone calls"
+contractors,phone,4,yes,yes,merchant.coach.phone,partial,stores.phone; publish-blocking
+contractors,region_area,4,yes,yes,merchant.coach.area,partial,stores.region + stores.area
+contractors,map_pin,8,no,yes,merchant.coach.mapPin,partial,stores.lat/lng; a contractor travels - pin is optional
+contractors,portfolio_items,14,yes,yes,merchant.coach.portfolio,partial,"store_portfolio (0 rows) + /portfolio page (0133); photos of finished work are how a trade is judged"
+contractors,services_offered,12,yes,yes,merchant.coach.servicesOffered,partial,products with simplifiedItem=true; generic 'add 3 products' step today
+contractors,service_area,8,yes,yes,merchant.coach.serviceArea,no,"NEW WORK. Service areas exist only for craft_providers (craft_provider_areas / lb_areas 0235-0236); stores has no equivalent"
+farm,logo,10,yes,yes,merchant.coach.logo,yes,stores.logo_url; on checklist
+farm,cover,8,no,yes,merchant.coach.cover,yes,stores.cover_url; on checklist
+farm,description,10,yes,yes,merchant.coach.description,yes,stores.description; on checklist
+farm,brand_color,2,no,yes,merchant.coach.brandColor,yes,stores.accent_color
+farm,custom_link,4,no,yes,merchant.coach.customLink,yes,stores.slug
+farm,hours,8,no,yes,merchant.coach.hours,yes,stores.hours; farm-gate hours where they exist
+farm,whatsapp,8,yes,yes,merchant.coach.whatsapp,yes,stores.whatsapp
+farm,phone,4,no,yes,merchant.coach.phone,partial,stores.phone
+farm,region_area,4,yes,yes,merchant.coach.area,partial,"stores.region + stores.area; provenance is part of the product in this sector"
+farm,map_pin,8,yes,yes,merchant.coach.mapPin,partial,stores.lat/lng; buyers drive to the farm
+farm,products,22,yes,yes,merchant.coach.products,yes,products table; generic checklist step fits this sector
+farm,product_photos,6,no,yes,merchant.coach.productPhotos,partial,no photo-coverage check exists
+farm,delivery_or_pickup,6,yes,yes,merchant.coach.fulfilment,partial,"stores.accepts_delivery / accepts_pickup; publish-blocking - a farm selling with neither has no way to hand over goods"
