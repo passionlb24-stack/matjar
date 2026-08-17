@@ -50,8 +50,8 @@ export function ProductBuyBar({
   if (!show) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-14 z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden print:hidden">
-      <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-2.5">
+    <div className="fixed inset-x-0 bottom-[var(--m-tabbar-h)] z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden print:hidden">
+      <div className="mx-auto flex max-w-3xl items-center justify-between gap-[var(--m-sticky-gap)] px-[var(--m-page-x)] py-2.5">
         <div className="min-w-0">
           <p className="text-lg font-extrabold text-primary tabular-nums" dir="ltr">
             {price}
@@ -70,7 +70,7 @@ export function ProductBuyBar({
               .getElementById(targetId)
               ?.scrollIntoView({ behavior: "smooth", block: "center" })
           }
-          className="relative inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold whitespace-nowrap text-primary-foreground shadow-sm transition-[transform,box-shadow,background-color] duration-150 select-none hover:bg-primary-hover hover:shadow-md active:scale-[0.97] disabled:pointer-events-none disabled:opacity-55"
+          className="relative inline-flex h-[var(--m-touch)] items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold whitespace-nowrap text-primary-foreground shadow-sm transition-[transform,box-shadow,background-color] duration-150 select-none hover:bg-primary-hover hover:shadow-md active:scale-[0.97] disabled:pointer-events-none disabled:opacity-55"
         >
           <ChevronUp className="h-4 w-4" />
           {soldOut ? soldOutLabel : label}

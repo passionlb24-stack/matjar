@@ -8,6 +8,7 @@ import { Container } from "@/components/ui/container";
 import { RequestProButton } from "@/components/request-pro-button";
 import { StartTrialButton } from "@/components/start-trial-button";
 import { PLAN_TIERS, promoState, annualPrice, planRank } from "@/lib/plan-tiers";
+import { PLAN_HIGHLIGHTS } from "@/lib/feature-availability";
 import { requestNow } from "@/lib/now";
 
 // Single source of truth for Pro pricing (promo-aware): plan-tiers.
@@ -199,16 +200,22 @@ export default async function StoreSubscriptionPage({
                 {dict.pricing.perYear}
               </span>
             </p>
+            {/* Same list the /pricing Pro card shows, from the availability
+                config — not the hand-written array this used to read, which
+                promised unlimited products and a verified badge that paying has
+                never granted. */}
             <ul className="mt-3 grid gap-1.5">
-              {dict.os.pro.benefits.map((b) => (
-                <li
-                  key={b}
-                  className="flex items-start gap-2 text-sm font-medium text-warning"
-                >
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-                  {b}
-                </li>
-              ))}
+              {PLAN_HIGHLIGHTS.pro
+                .filter((id) => id !== "products")
+                .map((id) => (
+                  <li
+                    key={id}
+                    className="flex items-start gap-2 text-sm font-medium text-warning"
+                  >
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                    {dict.pricing.features[id]}
+                  </li>
+                ))}
             </ul>
             <RequestProButton
               storeId={storeId}

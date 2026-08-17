@@ -46,6 +46,12 @@
     "kind_craft": "Service request",
     "kind_lead": "Inquiry",
     "needsYou": "Needs you",
+    "actionTrack": "Track order",
+    "actionReview": "Rate your experience",
+    "actionBooking": "View booking",
+    "actionCraft": "View service request",
+    "actionRateWork": "Rate the work",
+    "actionLead": "View conversation",
     "emptyTitle": "Nothing here yet",
     "emptyBody": "Your first order or booking will show up here so you can follow it.",
     "emptyCta": "Browse stores"
@@ -181,7 +187,10 @@
         "location": "Location & branches",
         "marketing": "Offers & loyalty",
         "messaging": "Messaging",
-        "media": "Photos & video"
+        "media": "Photos & video",
+        "leads": "Inquiries & viewings",
+        "stays": "Stays & rooms",
+        "tickets": "Event tickets"
       }
     },
     "dashboard": {
@@ -901,24 +910,15 @@
       "badge": "Pro",
       "trialBadge": "Pro trial · {days} days left",
       "lockedTitle": "This feature is for Pro members",
-      "lockedBody": "Upgrade to Matjar Pro to unlock: POS, reports, offers, bookings, staff and more.",
+      "lockedBody": "Upgrade to Matjar Pro to unlock: point of sale, sales and profit reports, the customer book, offers and staff accounts.",
       "lockedTitleBusiness": "This feature is on the Business plan",
-      "lockedBodyBusiness": "Upgrade to Business to unlock: multiple branches, inventory, suppliers, kitchen (KDS), automation, marketing campaigns, and profit analytics.",
+      "lockedBodyBusiness": "Upgrade to Business to unlock: multiple branches, inventory, suppliers, kitchen (KDS), accounting, automation, marketing campaigns, and attendance & payroll.",
       "upgrade": "Upgrade to Pro",
       "upgradeBusiness": "Upgrade to Business",
       "seePlans": "See plans",
-      "perMonth": "$15/mo",
-      "perYear": "or $150/yr",
+      "benefitsTitle": "What the plan adds",
       "productLimitTitle": "You've reached the limit (3 products)",
-      "productLimitBody": "The free plan allows 3 products. Upgrade to Pro for unlimited products and every management tool.",
-      "benefits": [
-        "Unlimited products",
-        "Point of sale (POS) + inventory",
-        "Customer book (CRM) + suppliers & debts",
-        "Accounting & profit + reports",
-        "Coupons + staff & permissions",
-        "Higher visibility + verified Pro badge"
-      ]
+      "productLimitBody": "An unsubscribed store can list 3 products. Basic raises that to 30, Pro to 200, and Business has no limit."
     },
     "serviceForm": {
       "title": "Add a new service",
@@ -1006,35 +1006,36 @@
     "kicker": "For merchants & business owners",
     "title": "More than a store — an operating system for your business",
     "subtitle": "Matjar doesn't just give you an online store. It gives you one place to run your whole business.",
-    "soon": "Soon",
+    "included": "On every plan",
     "ctaPrimary": "Open your store free",
     "ctaSecondary": "See all features",
-    "cards": [
-      { "t": "Orders", "d": "Receive and organize your orders instead of losing them in WhatsApp." },
-      { "t": "Bookings", "d": "Appointments, tables, and classes — in one calendar." },
-      { "t": "Customers", "d": "Know your customers and reach them smartly." },
-      { "t": "Reports", "d": "Your sales and profit at a glance." },
-      { "t": "Inventory & POS", "d": "Manage your stock and point of sale.", "soon": false },
-      { "t": "Tools & Academy", "d": "Calculators, generators, and guides to grow your business." }
-    ]
+    "desc": {
+      "whatsappOrders": "Receive and organize your orders instead of losing them in WhatsApp.",
+      "bookings": "Appointments, tables, classes and court slots — in one calendar.",
+      "customers": "Every customer, what they ordered, and how to reach them again.",
+      "reports": "What you sold, what it cost you, and what you kept.",
+      "inventory": "Stock counts and a warning before you run out.",
+      "tools": "Calculators and generators for the daily arithmetic of the shop."
+    }
   },
   "merchantsPage": {
     "metaTitle": "For merchants — open your store on Matjar",
     "metaDesc": "An operating system and online store for every Lebanese merchant: orders, bookings, customers, and reports — all in one place. Start free.",
     "heroKicker": "The Lebanese merchant platform",
     "heroTitle": "Run your business, and let customers find you",
-    "heroSub": "Your store, orders, bookings, and customers — in one place. Start free in minutes.",
+    "heroSub": "A restaurant gets a menu, orders and table reservations. A clinic gets doctors, appointments and its certificates. Pick your trade and the store arrives already fitted out.",
     "problemTitle": "Selling on WhatsApp and Instagram?",
     "problemBody": "Orders get lost in chats, there's no organization, and no reports to see how your business is doing. Matjar organizes it all in one place.",
     "howTitle": "How it works",
     "steps": [
       { "t": "Open your store in minutes", "d": "Sign up, pick your business type, and your store is ready." },
-      { "t": "Add your products or services", "d": "Photos, prices, and details — easily." },
+      { "t": "Your store comes fitted for your trade", "d": "Pick your sector and the right screens are already switched on — you add your items, not your setup." },
       { "t": "Share the link and receive orders", "d": "Your store link on WhatsApp and Instagram, and orders arrive organized." }
     ],
-    "sectorsTitle": "Fits every business",
-    "sectorsSub": "Restaurants, clinics, salons, shops, services, and more.",
-    "sectors": ["Restaurants", "Shops", "Salons", "Clinics", "Services", "Small businesses"],
+    "sectorsTitle": "What your sector gets on day one",
+    "sectorsSub": "Every card below is read straight from the configuration the product runs on. A sector's list changes only when its screens change — nothing here is written by hand.",
+    "sectorsNote": "You can switch any of these off, or add others, from your dashboard.",
+    "sectorsCta": "See what each plan adds",
     "trustTitle": "Why merchants trust Matjar",
     "trust": [
       { "t": "Free to start", "d": "Begin at no cost, and upgrade as your business grows." },
@@ -1361,6 +1362,27 @@
     "km": "km"
   },
   "store": {
+    "tabsLabel": "Page sections",
+    "tabs": {
+      "branches": "Branches",
+      "delivery": "Delivery",
+      "location": "Location",
+      "hours": "Hours",
+      "serviceRequest": "Request a service",
+      "leadForm": "Enquire",
+      "stay": "Stay",
+      "tickets": "Tickets",
+      "resources": "Hourly booking",
+      "memberships": "Memberships",
+      "classes": "Classes",
+      "reservations": "Table booking",
+      "courses": "Courses",
+      "portfolio": "Our work",
+      "healthcareInfo": "About the clinic",
+      "doctors": "Team",
+      "verifications": "Credentials",
+      "reviews": "Reviews"
+    },
     "openNow": "Open now",
     "ordersFulfilled": "{n} orders fulfilled",
     "deliveryIn": "Delivers in {t}",
@@ -3114,72 +3136,77 @@
     "tiers": {
       "basic": {
         "name": "Basic",
-        "tagline": "For new sellers, small shops, and Insta stores getting started",
-        "features": [
-          "Full store page (AR/EN)",
-          "Directory + search + map listing — customers find you",
-          "Up to 30 products",
-          "WhatsApp orders + cash on delivery",
-          "USD & LBP pricing",
-          "1 staff account",
-          "Verified badge after verification",
-          "Chat support"
-        ]
+        "tagline": "For new sellers, small shops, and Insta stores getting started"
       },
       "pro": {
         "name": "Pro",
-        "tagline": "For active shops, restaurants, and clinics with real traffic",
-        "features": [
-          "Up to 200 products",
-          "We build your store with you — our team sets it up and adds your first products",
-          "Orders + bookings",
-          "3 staff accounts",
-          "Offers, coupons & loyalty",
-          "Featured placement in category",
-          "Point of sale (POS)",
-          "Sales reports",
-          "Priority support (chat + WhatsApp)"
-        ]
+        "tagline": "For active shops, restaurants, and clinics with real traffic"
       },
       "business": {
         "name": "Business",
-        "tagline": "For established brands, chains, and multi-branch operations",
-        "features": [
-          "Unlimited products",
-          "Multiple branches",
-          "10 staff accounts",
-          "Kitchen (KDS) + inventory + suppliers",
-          "Automation",
-          "Marketing & win-back campaigns",
-          "Profit analytics",
-          "Mobile store unit & advanced modules",
-          "Dedicated success manager"
-        ]
+        "tagline": "For established brands, chains, and multi-branch operations"
       }
     },
-    "matrix": [
-      { "f": "Store page on Matjar (AR/EN)", "basic": "✓", "pro": "✓", "business": "✓" },
-      { "f": "Directory + search + map listing", "basic": "✓", "pro": "✓", "business": "✓" },
-      { "f": "Products", "basic": "30", "pro": "200", "business": "Unlimited" },
-      { "f": "WhatsApp orders + cash on delivery", "basic": "✓", "pro": "✓", "business": "✓" },
-      { "f": "USD & LBP pricing", "basic": "✓", "pro": "✓", "business": "✓" },
-      { "f": "Staff accounts", "basic": "1", "pro": "3", "business": "10" },
-      { "f": "Verified badge (after verification)", "basic": "✓", "pro": "✓", "business": "✓" },
-      { "f": "Support", "basic": "Chat", "pro": "Priority (chat + WhatsApp)", "business": "Dedicated success manager" },
-      { "f": "We build your store with you (onboarding)", "basic": "—", "pro": "✓", "business": "✓" },
-      { "f": "Bookings (restaurants/clinics/services)", "basic": "—", "pro": "✓", "business": "✓" },
-      { "f": "Offers, coupons & loyalty", "basic": "—", "pro": "✓", "business": "✓" },
-      { "f": "Featured placement in category", "basic": "—", "pro": "✓", "business": "✓" },
-      { "f": "Point of sale (POS)", "basic": "—", "pro": "✓", "business": "✓" },
-      { "f": "Sales reports", "basic": "—", "pro": "✓", "business": "✓" },
-      { "f": "Multiple branches", "basic": "—", "pro": "—", "business": "✓" },
-      { "f": "Kitchen (KDS) + inventory + suppliers", "basic": "—", "pro": "—", "business": "✓" },
-      { "f": "Automation (confirm, follow-up, auto-messages)", "basic": "—", "pro": "—", "business": "✓" },
-      { "f": "Marketing & win-back campaigns", "basic": "—", "pro": "—", "business": "✓" },
-      { "f": "Profit analytics (after delivery & returns)", "basic": "—", "pro": "—", "business": "✓" },
-      { "f": "Mobile store unit & advanced modules", "basic": "—", "pro": "—", "business": "✓" },
-      { "f": "Matjar commission on sales", "basic": "0%", "pro": "0%", "business": "0%" }
-    ],
+    "matrixSub": "Every row here is a screen that exists today. What isn't built is listed underneath, not left out.",
+    "unlimited": "Unlimited",
+    "support": {
+      "chat": "Chat",
+      "priority": "Priority (chat + WhatsApp)",
+      "manager": "Dedicated success manager"
+    },
+    "states": {
+      "beta": "In review",
+      "soon": "Not built yet"
+    },
+    "roadmapTitle": "Not built yet",
+    "roadmapSub": "We name these so you never pay for something that isn't there. None of them belong to any plan.",
+    "features": {
+      "storePage": "Your store page on Matjar (Arabic & English)",
+      "discovery": "Listed in the directory, search and map",
+      "products": "Products / services",
+      "whatsappOrders": "Orders + WhatsApp + cash on delivery",
+      "dualCurrency": "Prices in USD and LBP",
+      "bookings": "Bookings — appointments, tables, classes and courts",
+      "messaging": "Chat with your customers",
+      "reviews": "Ratings, reviews and questions",
+      "documents": "Your licences and certificates on your page",
+      "moduleManager": "Switch your store's modules on and off",
+      "qrLink": "Short link + QR code for your store",
+      "academy": "Matjar Academy guides",
+      "staffSeats": "Staff seats (the owner is the first)",
+      "support": "Support",
+      "commission": "Matjar's commission on your sales",
+      "onboarding": "We set the store up with you — our team adds your first products",
+      "staffAccounts": "Staff accounts and permissions",
+      "pos": "Point of sale (POS)",
+      "reports": "Sales reports",
+      "profitAnalytics": "Profit and margin (sales minus cost)",
+      "customers": "Customer book (CRM)",
+      "coupons": "Offers, coupons and loyalty points",
+      "team": "Team page — doctors, trainers, stylists",
+      "tasks": "Team tasks",
+      "tools": "Business calculators and generators",
+      "courierDispatch": "Send an order to a courier from the orders screen",
+      "homeFeatured": "Featured on the Matjar home page",
+      "branches": "Multiple branches",
+      "inventory": "Inventory and low-stock alerts",
+      "kitchen": "Kitchen display (KDS)",
+      "suppliers": "Suppliers and what you owe them",
+      "accounting": "Accounting and cash box",
+      "automations": "Automations — confirmations, follow-ups, reminders",
+      "campaigns": "Marketing and win-back campaigns",
+      "hr": "Staff attendance and payroll",
+      "verifiedBadge": "Verified badge",
+      "rentals": "Rentals (by the day or the week)",
+      "onlinePayment": "Online card payment",
+      "nativeApp": "Matjar app on the App Store and Google Play"
+    },
+    "featureNotes": {
+      "verifiedBadge": "Send us your documents and we review them. It is a stricter check than the store review every shop already passes, no plan buys it, and no business has earned it yet.",
+      "rentals": "Renting by period — a car for three days, gear for a week. Hotels and chalets take dates through Stays; nothing else can rent yet.",
+      "onlinePayment": "Orders are cash on delivery. Your plan is paid by arrangement with us, by hand.",
+      "nativeApp": "The site works on any phone and installs to the home screen. It is not on the app stores yet."
+    },
     "free": "Free",
     "pro": "Matjar Pro",
     "perMonth": "/month",
@@ -3187,28 +3214,15 @@
     "startFree": "Start free",
     "goPro": "Go Pro",
     "perYear": "/year",
-    "yearlyNote": "or $150/year — save 2 months",
     "contactNote": "Payment is manual for now — contact us to activate Pro after payment.",
     "freeTrial": "14-day free trial",
     "trialBanner": "Try all Pro features free for 14 days — no card, no commitment.",
-    "compareTitle": "Detailed comparison",
-    "compareFeature": "Feature",
-    "compareRows": [
-      { "f": "Online store & business page", "free": "✓", "pro": "✓" },
-      { "f": "Receive orders & bookings", "free": "✓", "pro": "✓" },
-      { "f": "Direct WhatsApp contact", "free": "✓", "pro": "✓" },
-      { "f": "Number of products", "free": "Limited", "pro": "Unlimited" },
-      { "f": "Verified Pro badge", "free": "—", "pro": "✓" },
-      { "f": "Reports & analytics", "free": "—", "pro": "✓" },
-      { "f": "Inventory & staff management", "free": "—", "pro": "✓" },
-      { "f": "Business tools (calculators & generators)", "free": "—", "pro": "✓" },
-      { "f": "Multi-branch stores", "free": "—", "pro": "✓" },
-      { "f": "Priority listing & support", "free": "—", "pro": "✓" }
-    ],
     "faqTitle": "Frequently asked questions",
     "faq": [
       { "q": "Is opening a store free?", "a": "Yes — creating your store and account is free, and you get a full 14-day trial with no card. The plan is only for the extra features." },
-      { "q": "What's the difference between the three plans?", "a": "Basic to start (up to 30 products), Pro for active shops (bookings, POS, offers, we build your store with you), and Business for chains & branches (kitchen, inventory, automation, profit analytics)." },
+      { "q": "What's the difference between the three plans?", "a": "Basic to start (up to 30 products), Pro for active shops (POS, sales and profit reports, the customer book, offers, and we build the store with you), and Business for chains & branches (inventory, kitchen, suppliers, accounting, automation, campaigns, attendance & payroll). Your store page, orders and bookings are on every plan — Pro and Business add the management screens behind them." },
+      { "q": "Do I need Pro to take bookings?", "a": "No. Appointments, table reservations, classes and court slots work on every plan, including a store that never subscribed. Pro adds the team page and the reports on top of them." },
+      { "q": "Does paying make my store verified?", "a": "No. Every store is reviewed before it goes live, on any plan. The verified badge is a separate, stricter check of a business's documents — no plan buys it, and it has not been awarded to anyone yet." },
       { "q": "How long does the annual offer last?", "a": "The annual promo prices ($75 / $150 / $300) run during August only. After that, annual reverts to the standard yearly price." },
       { "q": "Is there a commission on sales?", "a": "Never — Matjar takes 0% commission on your orders, on any plan. Only the plan subscription." },
       { "q": "Can I change or cancel my plan?", "a": "Of course — upgrade, downgrade, or cancel anytime, and your store and products stay." },
@@ -3216,23 +3230,7 @@
     ],
     "discountOff": "{pct}% off",
     "monthly": "Monthly",
-    "yearly": "Yearly",
-    "freeFeatures": [
-      "Basic business page",
-      "Contact info + WhatsApp",
-      "Limited images",
-      "Standard search visibility",
-      "Up to 3 products"
-    ],
-    "proFeatures": [
-      "Full online store",
-      "Unlimited products",
-      "Orders + bookings management",
-      "Dashboard + analytics",
-      "Higher search visibility",
-      "Verified Pro badge",
-      "Priority support"
-    ]
+    "yearly": "Yearly"
   },
   "aboutPage": {
     "body": "Matjar is Lebanon's local commerce platform — one place that brings together stores, products, and services, helping business owners reach their customers with ease. Our goal is to make local shopping and booking faster and simpler, and to give every merchant their own online store in minutes.",
@@ -3281,7 +3279,7 @@
       { "t": "Your data is safe", "d": "Your and your customers' information is protected and never shared." },
       { "t": "No commission", "d": "We take no cut of your sales." },
       { "t": "Direct support", "d": "Our team is with you on WhatsApp anytime." },
-      { "t": "Full control", "d": "Your store, products, and data are yours — export or delete anytime." }
+      { "t": "Your data stays yours", "d": "Your products and your customers' numbers belong to you, and we never sell or share them. There is no self-service export button yet — message us and we'll send you your data or close your store." }
     ],
     "returnsTitle": "Returns & complaints",
     "returnsBody": "Since orders happen directly between you and the store (cash on delivery), returns and exchanges are arranged directly with the store. If you face an issue that isn't resolved, contact us and we'll step in to help both sides reach a fair solution.",
@@ -3707,7 +3705,11 @@
       },
       {
         "q": "What is the commission?",
-        "a": "Zero commission on sales — the customer, their number, and the profit are all yours. There's an optional Pro plan ($12/mo) for higher visibility, analytics, and a verified badge."
+        "a": "Zero commission on sales, on every plan — the customer, their number, and the profit are all yours. Paid plans buy management screens (point of sale, reports, inventory and the rest); the pricing page lists what each one adds and what it costs."
+      },
+      {
+        "q": "Is the store I'm buying from checked?",
+        "a": "Every store is reviewed by us before it appears on Matjar, whatever plan it is on. The \"verified\" badge is a separate, stricter check of a business's documents — it has not been awarded to anyone yet, so no store on Matjar carries it today."
       },
       {
         "q": "What is Sunday Market?",
@@ -3723,7 +3725,7 @@
       },
       {
         "q": "Is Matjar free to use?",
-        "a": "Yes — browsing and buying are completely free. Opening a basic store is also free, with no commission on your sales."
+        "a": "Yes — browsing and buying are completely free. Opening a store is free too: without a subscription you can list 3 products and still take orders and bookings, with no commission on your sales. A paid plan raises the product limit and adds the management screens."
       }
     ],
     "contactCta": "Still have a question? Contact us"

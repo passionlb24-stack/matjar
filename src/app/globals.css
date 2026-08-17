@@ -46,6 +46,24 @@
   --danger-strong-foreground: #ffffff;
   --info: #0369a1; /* darkened for AA text on --info-soft (5.2:1) */
   --info-soft: #e3f2fb;
+
+  /* ===== Mobile app metrics =====
+     Named once so sticky bars, sheets and page gutters stop guessing at each
+     other. --m-tabbar-h is the visible bar only; the safe-area inset is added
+     on top by the nav itself, so anything sitting above it must use both.
+     These live in :root, not in @theme inline where they used to sit: an
+     `inline` theme block is a source of values for generated utilities, not a
+     runtime declaration, so `var(--m-touch)` inside an arbitrary class had
+     nothing to resolve against. That, plus --m-header-h claiming 3.5rem while
+     site-header.tsx renders h-16, is why none of these was safe to use. */
+  --m-page-x: 1.25rem; /* = Container's mobile gutter (px-5) */
+  --m-header-h: 4rem; /* = site-header's row (h-16); the header adds
+                         env(safe-area-inset-top) ABOVE this, so anything that
+                         sticks to it must add the inset itself */
+  --m-tabbar-h: 3.5rem; /* = bottom-nav's row (visible bar only) */
+  --m-sectiontabs-h: 3rem; /* = the store page's section-tab rail */
+  --m-sticky-gap: 0.75rem;
+  --m-touch: 2.75rem; /* 44px — the minimum touch target below lg */
 }
 
 @theme inline {
@@ -93,15 +111,6 @@
   /* Signature easing — a gentle overshoot for entrances/hovers. */
   --ease-out-back: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* ===== Mobile app metrics =====
-     Named once so sticky bars, sheets and page gutters stop guessing at each
-     other. --m-tabbar-h is the visible bar only; the safe-area inset is added
-     on top by the nav itself, so anything sitting above it must use both. */
-  --m-page-x: 1rem;
-  --m-header-h: 3.5rem;
-  --m-tabbar-h: 3.5rem;
-  --m-sticky-gap: 0.75rem;
-  --m-touch: 2.75rem;
 }
 
 /* Entrance motion. Add `data-animate` to a container and its direct children

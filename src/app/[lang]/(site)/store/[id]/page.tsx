@@ -27,6 +27,7 @@ import { resolveTheme } from "@/lib/themes";
 import { storeJsonLd, jsonLdScript, toOpeningHours } from "@/lib/jsonld";
 import { parseHours } from "@/lib/hours";
 import { getUsdLbpRate } from "@/lib/data/settings";
+import { formatUsd } from "@/lib/currency";
 import { categoryIcons } from "@/components/category-icon";
 import { Container } from "@/components/ui/container";
 import { ServiceRequestForm } from "@/components/service-request-form";
@@ -63,6 +64,12 @@ import { StoreHours } from "@/components/store/store-hours";
 import { StoreProductsSection } from "@/components/store/store-products-section";
 import { StoreHealthcareInfo } from "@/components/store/store-healthcare-info";
 import { StoreDoctors, type DoctorView } from "@/components/store/store-doctors";
+import {
+  StoreSectionTabs,
+  type StoreSectionTab,
+} from "@/components/store/store-section-tabs";
+import { StoreStickyCta } from "@/components/store/store-sticky-cta";
+import { resolveOffering } from "@/lib/offering";
 import { TrackVisit } from "@/components/track-visit";
 import { LeadForm } from "@/components/lead-form";
 import { StaySearch } from "@/components/stay-search";
@@ -220,9 +227,19 @@ export default async function StorePage({
   for (const r of modRowsData) modOverrides[r.module_key] = r.enabled;
   const enabledModules = resolveStoreModules(store.category, modOverrides);
 
+  // Single source of truth for which transaction surface this storefront shows,
+  // derived from the enabled modules + sector operational status (never from a
+  // hardcoded slug list). See src/lib/store-experience.ts. Resolved here rather
+  // than at render time because it is a pure function of data already in hand,
+  // and Wave 2 below needs it to decide what is worth fetching.
+  const experience = resolveStoreExperience({
+    category: store.category,
+    enabledModules,
+  });
+
   // Wave 2 — module-gated public sections. Independent of each other, so run in
   // parallel; each resolves to [] when its module is off (or the store is demo).
-  const [resources, membershipPlans, classes, portfolio, courses] =
+  const [resources, membershipPlans, classes, portfolio, courses, ticketTypes] =
     await Promise.all([
       // Bookable resources (courts/rooms/rental items) for time-slot sectors.
       realStore && enabledModules.has("timeslot")
@@ -275,6 +292,18 @@ export default async function StorePage({
             .order("sort_order", { ascending: true })
             .then((r) => (r.data ?? []) as CourseRow[])
         : Promise.resolve([] as CourseRow[]),
+      // Event ticket types. Fetched only to know whether the tickets section has
+      // anything at all: EventTickets loads its own rows on the client and
+      // returns null when there are none, so without this count the section tab
+      // would be a chip that scrolls to an empty page.
+      realStore && experience.showTickets
+        ? supabase
+            .from("event_ticket_types")
+            .select("id", { count: "exact", head: true })
+            .eq("store_id", id)
+            .eq("active", true)
+            .then((r) => r.count ?? 0)
+        : Promise.resolve(0),
     ]);
 
   let doctors: DoctorView[] = [];
@@ -518,13 +547,6 @@ export default async function StorePage({
   const weekHours = parseHours(store.hours);
   // Theme = defaults; the merchant's own accent color / layout always win.
   const sf = resolveTheme(store);
-  // Single source of truth for which transaction surface this storefront shows,
-  // derived from the enabled modules + sector operational status (never from a
-  // hardcoded slug list). See src/lib/store-experience.ts.
-  const experience = resolveStoreExperience({
-    category: store.category,
-    enabledModules,
-  });
   const sectionTitle =
     store.category === "food"
       ? dict.store.menu
@@ -766,6 +788,72 @@ export default async function StorePage({
     ),
   };
 
+  // ===== Which sections actually have something in them =====
+  //
+  // `sections[key]` being truthy is NOT the same as the section having content:
+  // several of these components decide for themselves and return null (an empty
+  // doctor roster, a clinic that filled in no facts, a shop with no fulfilment
+  // terms recorded). The mobile tab rail below is derived from this map, so a
+  // wrong entry here is a chip that scrolls to nothing — the one failure the
+  // rail must not have. Each line mirrors the component's own null test.
+  const services = store.products.filter((p) => p.itemKind === "service");
+  const goods = store.products.filter((p) => p.itemKind !== "service");
+  // The list StoreProductsSection gates its own empty state on.
+  const catalogPrimary =
+    experience.itemSurface === "appointment" ? services : goods;
+  const catalogGoodsCart =
+    experience.itemSurface === "appointment" &&
+    experience.canOrderProducts &&
+    goods.length > 0;
+
+  const present: Partial<Record<ProfileSectionKey, boolean>> = {
+    branches: branches.length > 1,
+    // StoreFulfillment returns null when the merchant recorded no mode, no
+    // fact, no zone and no courier.
+    delivery:
+      store.isReal &&
+      enabledModules.has("orders") &&
+      ((store.acceptsDelivery ?? true) ||
+        (store.acceptsPickup ?? true) ||
+        (store.minOrder ?? 0) > 0 ||
+        !!store.prepTime ||
+        !!store.paymentNote ||
+        zones.length > 0 ||
+        couriers.length > 0),
+    location: mapPins.length > 0 && enabledModules.has("location"),
+    hours: weekHours != null,
+    serviceRequest: store.isReal && experience.showServiceRequest,
+    leadForm: store.isReal && experience.showLeadForm,
+    stay: store.isReal && experience.showStay,
+    // EventTickets loads its rows on the client and renders nothing when a
+    // store has none — hence the server-side count in wave 2.
+    tickets: store.isReal && experience.showTickets && ticketTypes > 0,
+    resources: resources.length > 0 && experience.allowResourceBooking,
+    memberships: membershipPlans.length > 0,
+    classes: classes.length > 0 && experience.allowResourceBooking,
+    reservations: store.isReal && enabledModules.has("reservations"),
+    courses: courses.length > 0,
+    portfolio: portfolio.length > 0,
+    catalog: store.isReal && (catalogPrimary.length > 0 || catalogGoodsCart),
+    healthcareInfo:
+      store.category === "healthcare" &&
+      (!!store.specialties ||
+        !!store.insurance ||
+        (store.bookingCancelHours ?? 0) > 0 ||
+        services.some((s) => s.price > 0) ||
+        services.some(
+          (s) =>
+            (s.durationMinutes ?? 0) > 0 ||
+            Number(s.attributes?.duration ?? NaN) > 0,
+        )),
+    doctors: doctors.length > 0,
+    verifications:
+      store.isReal && enabledModules.has("verifications") && verifications.length > 0,
+    // Always a real section on a live store: it carries the review form and its
+    // own empty state, which is a thing to do rather than an empty shell.
+    reviews: store.isReal,
+  };
+
   // announcement and hero are full-bleed — their backgrounds run to the viewport
   // edge, so they render outside <Container> as they always have. Both lead every
   // sector's order, so pulling them out of the mapped list changes nothing about
@@ -775,9 +863,61 @@ export default async function StorePage({
     (key) => key !== "announcement" && key !== "hero",
   );
 
+  // ===== Mobile section tabs =====
+  // Derived, never written: the sector registry's own order, filtered by the
+  // map above. `header` is the page's identity block, not a destination, so it
+  // is the only contained key excluded by name.
+  const tabLabels = dict.store.tabs as unknown as Record<string, string>;
+  const sectionTabs: StoreSectionTab[] = contained
+    .filter((key) => key !== "header" && present[key])
+    .map((key) => ({
+      key,
+      // The catalogue's chip reuses the heading the page already renders
+      // (المنيو / الخدمات / العروض / المنتجات) instead of a second vocabulary.
+      label: key === "catalog" ? sectionTitle : tabLabels[key],
+    }))
+    .filter((t) => !!t.label);
+
+  // ===== Mobile sticky CTA =====
+  // The LABEL comes from the same resolver the offering page uses, so a clinic
+  // says احجز, a restaurant اطلب and a shop أضف إلى السلة — one vocabulary
+  // across both surfaces. It is rendered only where the page can actually
+  // transact: `resolveOffering().transacts` for the cart path, and for the
+  // booking path the equivalent test — that resolver reports `transacts: false`
+  // for an appointment because the OFFERING page cannot book and hands off to
+  // this one; here the booking engine IS the page, so what has to be true is
+  // that it rendered with something in it.
+  const storeOffering = resolveOffering({
+    category: store.category,
+    itemKind: experience.itemSurface === "appointment" ? "service" : "product",
+  });
+  const canTransactHere =
+    experience.itemSurface === "appointment"
+      ? experience.showBooking && services.length > 0
+      : experience.itemSurface === "order" &&
+        storeOffering.transacts &&
+        goods.length > 0;
+  // A real "from" price or nothing — never a rounded-up guess.
+  const cheapest = catalogPrimary
+    .map((p) => p.discountPrice ?? p.price)
+    .filter((p) => p > 0)
+    .sort((a, b) => a - b)[0];
+  const stickyCta =
+    canTransactHere && present.catalog
+      ? {
+          label: dict.offering.cta[storeOffering.cta],
+          note:
+            cheapest != null
+              ? `${dict.store.from} ${formatUsd(cheapest)}`
+              : null,
+        }
+      : null;
+
   return (
     <div
-      className="pb-16"
+      // Extra bottom room below lg only when the sticky CTA is there to cover
+      // it — the tab bar's own clearance is already in the site layout.
+      className={stickyCta ? "pb-32 lg:pb-16" : "pb-16"}
       data-sf={sf.key}
       style={accentStyle(sf.accent) as React.CSSProperties | undefined}
     >
@@ -815,10 +955,42 @@ export default async function StorePage({
       {sections.hero}
 
       <Container>
-        {contained.map((key) => (
-          <Fragment key={key}>{sections[key]}</Fragment>
-        ))}
+        {contained.map((key) => {
+          const node = sections[key];
+          if (!node) return null;
+          // Only sections the rail can actually reach get an anchor + a scroll
+          // margin; everything else renders exactly as it did, in a Fragment
+          // that adds no box and no margin of its own.
+          if (!present[key] || key === "header")
+            return <Fragment key={key}>{node}</Fragment>;
+          return (
+            <Fragment key={key}>
+              {/* The rail is emitted after the identity block, so it starts
+                  sticking the moment the customer scrolls past the name. */}
+              {sectionTabs[0]?.key === key && (
+                <StoreSectionTabs
+                  tabs={sectionTabs}
+                  label={dict.store.tabsLabel}
+                />
+              )}
+              <div
+                id={`sec-${key}`}
+                className="scroll-mt-[calc(var(--m-header-h)+var(--m-sectiontabs-h)+env(safe-area-inset-top))] lg:scroll-mt-20"
+              >
+                {node}
+              </div>
+            </Fragment>
+          );
+        })}
       </Container>
+
+      {stickyCta && (
+        <StoreStickyCta
+          targetId="offerings"
+          label={stickyCta.label}
+          note={stickyCta.note}
+        />
+      )}
     </div>
   );
 }

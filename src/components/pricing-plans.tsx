@@ -7,10 +7,23 @@ import { formatLbp } from "@/lib/currency";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { PLAN_ORDER, type PlanConfig, type PlanKey } from "@/lib/plan-tiers";
+import {
+  FEATURES,
+  PLAN_HIGHLIGHTS,
+  matrixCell,
+  type FeatureId,
+} from "@/lib/feature-availability";
 
 // The interactive pricing cards: monthly/annual toggle, promo strikethrough +
 // savings, and a live countdown. Prices/flags come from the server (already
 // promo-resolved by date); this component only chooses which to show.
+//
+// The bullet list is no longer copy. It is PLAN_HIGHLIGHTS, and a test asserts
+// every id in it is `live` and belongs to that exact tier — so a card cannot
+// promise a feature the comparison table below denies, nor one the merchant's
+// dashboard would lock. The count rows (products, staff seats) print the number
+// PLAN_TIERS holds, which is why "unlimited products" can no longer appear on a
+// 200-product plan.
 export function PricingPlans({
   lang,
   dict,
@@ -34,6 +47,18 @@ export function PricingPlans({
 
   const lbp = (usd: number) =>
     lbpRate > 0 ? formatLbp(usd, lbpRate, lang) : null;
+
+  // A highlight that carries a per-plan number or level (products, staff seats,
+  // support) prints it beside the label; everything else is a plain claim.
+  const highlightValue = (id: FeatureId, plan: PlanKey): string | null => {
+    if (!FEATURES[id].cell) return null;
+    const c = matrixCell(id, plan);
+    if (c.kind === "count")
+      return c.value === null ? t.unlimited : String(c.value);
+    if (c.kind === "text")
+      return c.token === "zero" ? "0%" : t.support[c.token];
+    return null;
+  };
 
   return (
     <div>
@@ -135,7 +160,9 @@ export function PricingPlans({
                   )}
                   {lbp(price) && (
                     <span className="text-xs text-muted-foreground">
-                      ≈ {lbp(price)}
+                      {/* formatLbp already prefixes "≈" — the literal one that
+                          used to sit here rendered "≈ ≈ 6,727,500 LBP". */}
+                      {lbp(price)}
                     </span>
                   )}
                 </div>
@@ -154,12 +181,18 @@ export function PricingPlans({
                 </p>
               )}
               <ul className="mt-3 space-y-2.5">
-                {tier.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-sm">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    <span>{f}</span>
-                  </li>
-                ))}
+                {PLAN_HIGHLIGHTS[key].map((id) => {
+                  const value = highlightValue(id, key);
+                  return (
+                    <li key={id} className="flex items-start gap-2 text-sm">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      <span>
+                        {t.features[id]}
+                        {value && <span className="font-bold"> · {value}</span>}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
 
               <div className="mt-7 flex-1" />

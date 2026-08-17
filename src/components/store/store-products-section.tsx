@@ -90,7 +90,13 @@ export function StoreProductsSection({
     <>
       {/* Anchor target: sections that sit above this one (the clinic summary's
           "book an appointment") jump here rather than restating the engine. */}
-      <h2 id="offerings" className="mb-4 mt-10 scroll-mt-20 text-xl font-bold">
+      {/* Below lg the site header and the store's section-tab rail are both
+          sticky, so the scroll margin must clear BOTH or a jump to this anchor
+          lands the heading underneath them. */}
+      <h2
+        id="offerings"
+        className="mb-4 mt-10 scroll-mt-[calc(var(--m-header-h)+var(--m-sectiontabs-h)+env(safe-area-inset-top))] text-xl font-bold lg:scroll-mt-20"
+      >
         {sectionTitle}
       </h2>
       {store.isReal ? (

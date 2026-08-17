@@ -49,6 +49,7 @@ export default async function ActivityPage({
 
         <ActivityList
           items={items}
+          lang={lang}
           labels={{ ...t, emptyHref: `/${lang}/explore` }}
           statusLabels={statusLabels}
         />

@@ -198,10 +198,16 @@ export async function searchStores(
   return markFavorites(list);
 }
 
-// Homepage "featured" strip = PAYING stores only: Pro plan, or a store an admin
-// flagged featured (featured_until in the future). Free stores never appear here
-// — the strip is a paid placement. Dedicated limit-bound query (was reusing the
-// 200-store listing + all-reviews path just to slice 4).
+// Homepage "featured" strip = PAYING stores only: a paid plan, or a store an
+// admin flagged featured (featured_until in the future). Free stores never
+// appear here — the strip is a paid placement. Dedicated limit-bound query (was
+// reusing the 200-store listing + all-reviews path just to slice 4).
+//
+// The plan test was `plan.eq.pro`, which matches the string "pro" and nothing
+// else, so a Business store — the most expensive plan there is — was excluded
+// from the placement its Pro competitor received. /pricing has always sold this
+// as included on both tiers (feature-availability.ts `homeFeatured`), so the
+// query was the thing that was wrong.
 export async function getFeaturedStores(limit = 4): Promise<Store[]> {
   const supabase = await createClient();
   const nowIso = new Date().toISOString();
@@ -212,7 +218,7 @@ export async function getFeaturedStores(limit = 4): Promise<Store[]> {
     )
     .eq("status", "active")
     .is("deleted_at", null)
-    .or(`plan.eq.pro,featured_until.gt.${nowIso}`)
+    .or(`plan.in.(pro,business),featured_until.gt.${nowIso}`)
     .limit(limit);
   const real = (
     (data ?? []) as unknown as Parameters<typeof rowToStore>[0][]

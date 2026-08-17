@@ -3,9 +3,18 @@ import { Crown, Lock, Check } from "lucide-react";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
 import { PLAN_TIERS, promoState, annualPrice } from "@/lib/plan-tiers";
+import { PLAN_HIGHLIGHTS } from "@/lib/feature-availability";
 
 // Upsell shown in place of a Pro-only module when a free store opens it. Also
 // used inline when the free product limit is hit (compact variant).
+//
+// The benefit list used to be a fixed six-line array in the dictionary, shown
+// for both tiers, and it had drifted badly: it promised "unlimited products" on
+// a plan capped at 200, listed inventory, suppliers and accounting (all
+// Business screens) as Pro, and offered a "verified Pro badge" — which paying
+// has never granted and which /trust says has not been awarded to anyone. It
+// now renders the same PLAN_HIGHLIGHTS the price cards render, for the tier
+// actually being asked for, so the upsell and /pricing cannot disagree.
 export function ProGate({
   lang,
   dict,
@@ -50,12 +59,14 @@ export function ProGate({
       </p>
 
       <ul className="mx-auto mt-5 max-w-xs space-y-2 text-start">
-        {t.benefits.map((b) => (
-          <li key={b} className="flex items-start gap-2 text-sm font-medium">
-            <Check className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
-            {b}
-          </li>
-        ))}
+        {PLAN_HIGHLIGHTS[requiredPlan]
+          .filter((id) => id !== "products")
+          .map((id) => (
+            <li key={id} className="flex items-start gap-2 text-sm font-medium">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+              {dict.pricing.features[id]}
+            </li>
+          ))}
       </ul>
 
       <div className="mt-6">

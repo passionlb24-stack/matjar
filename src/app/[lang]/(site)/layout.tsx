@@ -96,7 +96,7 @@ export default async function SiteLayout({
       {/* Spacer so page content can scroll clear of the fixed mobile tab bar. */}
       <div
         aria-hidden
-        className="h-[calc(3.5rem+env(safe-area-inset-bottom))] lg:hidden"
+        className="h-[calc(var(--m-tabbar-h)+env(safe-area-inset-bottom))] lg:hidden"
       />
       <BottomNav
         lang={lang}
