@@ -1,8 +1,17 @@
 import type { Metadata } from "next";
-import { cache } from "react";
+import type { ReactNode } from "react";
+import { cache, Fragment } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Store as StoreIcon, CalendarCheck, Clock } from "lucide-react";
+import {
+  Store as StoreIcon,
+  CalendarCheck,
+  Clock,
+  ShieldCheck,
+  Truck,
+  UserRound,
+} from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -23,6 +32,9 @@ import {
   getMoreFromStore,
   getSimilarProducts,
   getBoughtTogether,
+  getServiceProviders,
+  type RelatedProduct,
+  type ServiceProvider,
 } from "@/lib/data/related";
 import { getProductReviews } from "@/lib/data/product-reviews";
 import { getProductQuestions } from "@/lib/data/product-qa";
@@ -42,7 +54,12 @@ import { ProductStoryCard } from "@/components/product-story-card";
 import { BackButton } from "@/components/back-button";
 import { TrackVisit } from "@/components/track-visit";
 import { RestockButton } from "@/components/restock-button";
-import { isOrderSurface } from "@/lib/store-experience";
+import { sectorHasTeam } from "@/lib/sectors";
+import {
+  offeringSectionSlot,
+  resolveOffering,
+  type OfferingSectionKey,
+} from "@/lib/offering";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -91,6 +108,8 @@ export async function generateMetadata({
   return {
     title: name,
     description,
+    // The URL stays /product/[id] for every offering kind. Route semantics are
+    // worth less than the links and search rankings already pointing here.
     alternates: localeAlternates(lang, `/product/${id}`),
     openGraph: {
       title: name,
@@ -123,6 +142,20 @@ export default async function ProductPage({
     product.descriptionEn,
     l,
   );
+
+  // ===== The offering resolver decides the whole page =====
+  // Variant (goods / appointment / menu item), primary CTA, and the ordered
+  // sections — all from the store's sector plus this row's own item_kind. The
+  // old page branched once on "service or non-commerce sector" and rendered one
+  // hardcoded sequence for everything else, which is why a dental cleaning
+  // showed a stock badge and "منتجات مشابهة".
+  const offering = resolveOffering({
+    category: product.category,
+    itemKind: product.itemKind,
+  });
+  const copy = dict.offering[offering.noun];
+  const ctaLabel = dict.offering.cta[offering.cta];
+  const shows = (key: OfferingSectionKey) => offering.sections.includes(key);
 
   // Prefill checkout from the customer's saved address.
   const supabase = await createClient();
@@ -169,15 +202,40 @@ export default async function ProductPage({
   const compareAt = compareAtPrice(product);
   const flashEnd = flashEndsAt(product);
   const lbpRate = await getUsdLbpRate();
-  const [moreFromStore, similar, boughtTogether, productReviews, questions, soldRes] =
-    await Promise.all([
-      getMoreFromStore(product.storeId, product.id),
-      getSimilarProducts(product.category, product.storeId, product.id),
-      getBoughtTogether(product.id),
-      getProductReviews(product.id, user?.id ?? null),
-      getProductQuestions(product.id, user?.id ?? null),
-      supabase.rpc("product_sold_count", { p_product_id: product.id }),
-    ]);
+  // Related lists are filtered to this offering's own kind, so a clinic page
+  // recommends services and a shop page recommends goods. Sections the variant
+  // does not render are not fetched at all.
+  const [
+    moreFromStore,
+    similar,
+    boughtTogether,
+    productReviews,
+    questions,
+    soldRes,
+    providers,
+  ] = await Promise.all([
+    shows("moreFromStore")
+      ? getMoreFromStore(product.storeId, product.id, 6, offering.relatedKind)
+      : Promise.resolve([] as RelatedProduct[]),
+    shows("related")
+      ? getSimilarProducts(
+          product.category,
+          product.storeId,
+          product.id,
+          6,
+          offering.relatedKind,
+        )
+      : Promise.resolve([] as RelatedProduct[]),
+    shows("boughtTogether")
+      ? getBoughtTogether(product.id)
+      : Promise.resolve([] as RelatedProduct[]),
+    getProductReviews(product.id, user?.id ?? null),
+    getProductQuestions(product.id, user?.id ?? null),
+    supabase.rpc("product_sold_count", { p_product_id: product.id }),
+    shows("provider") && sectorHasTeam(product.category)
+      ? getServiceProviders(product.storeId, product.id)
+      : Promise.resolve([] as ServiceProvider[]),
+  ]);
   const soldCount = (soldRes.data as number | null) ?? 0;
 
   let isStoreOwner = false;
@@ -190,16 +248,7 @@ export default async function ProductPage({
     isStoreOwner = (st as { owner_id?: string } | null)?.owner_id === user.id;
   }
   const attrText = attributeSummary(product.category, product.attributes, l);
-  // Show the add-to-cart order box only for real commerce sectors that are not
-  // directory-only. Booking sectors + directory-only sectors (hotels, real
-  // estate, car sales) show a "visit store" / contact link instead — a car is
-  // never sold via cart + COD. Derived from the store-experience resolver.
-  // Decided by the ITEM, not the sector: a booking store can stock goods, and
-  // those must still reach the cart. Only a real service takes the booking CTA.
-  // (Directory-only sectors still never transact.)
-  const isBooking =
-    product.itemKind === "service" || !isOrderSurface(product.category);
-  const soldOut = product.stock != null && product.stock <= 0;
+  const soldOut = shows("stock") && product.stock != null && product.stock <= 0;
 
   // Back-in-stock: is this signed-in viewer already waiting on this product?
   let onWaitlist = false;
@@ -212,6 +261,410 @@ export default async function ProductPage({
       .maybeSingle();
     onWaitlist = !!wl;
   }
+
+  const storeHref = `/${lang}/store/${product.storeId}`;
+  const cancelHours = product.bookingCancelHours ?? 0;
+
+  // ===== Sections =====
+  // A section is null when it has no data, and a null section is never rendered
+  // — no empty shells. The resolver decides ORDER; the data decides PRESENCE.
+  const nodes: Partial<Record<OfferingSectionKey, ReactNode>> = {};
+
+  nodes.gallery = <ProductGallery images={product.images} alt={name} />;
+
+  nodes.header = (
+    <>
+      {product.brand && (
+        <Link
+          href={`${storeHref}?brand=${encodeURIComponent(product.brand)}`}
+          className="inline-block text-sm font-bold uppercase tracking-wide text-primary transition-opacity hover:opacity-80"
+        >
+          {product.brand}
+        </Link>
+      )}
+      <h1 className="text-3xl font-extrabold tracking-tight">{name}</h1>
+      <Link
+        href={storeHref}
+        className="mt-1.5 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary lg:min-h-0"
+      >
+        <StoreIcon className="h-4 w-4" />
+        {product.storeName}
+      </Link>
+    </>
+  );
+
+  nodes.price = (
+    <>
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <span
+          dir="ltr"
+          className={`text-2xl font-extrabold tabular-nums ${flashEnd != null ? "text-warning" : "text-primary"}`}
+        >
+          {formatPrice(basePrice)}
+        </span>
+        {compareAt != null && (
+          <span
+            dir="ltr"
+            className="text-lg tabular-nums text-muted-foreground line-through"
+          >
+            {formatPrice(compareAt)}
+          </span>
+        )}
+        {flashEnd != null && <FlashCountdown endsAt={flashEnd} dict={dict} />}
+      </div>
+      {lbpRate > 0 && (
+        <p dir="ltr" className="mt-1 text-sm tabular-nums text-muted-foreground">
+          {formatLbp(basePrice, lbpRate, l)}
+        </p>
+      )}
+      {attrText && (
+        <p className="mt-3 text-sm text-muted-foreground">{attrText}</p>
+      )}
+    </>
+  );
+
+  // Duration is real or absent: `duration_minutes` is a merchant-entered column,
+  // never inferred. A service with no duration simply has no duration line.
+  nodes.duration =
+    product.durationMinutes != null ? (
+      <p className="mt-3 flex items-center gap-1.5 text-sm font-semibold">
+        <Clock className="h-4 w-4 text-primary" />
+        {dict.product.durationLabel.replace(
+          "{n}",
+          String(product.durationMinutes),
+        )}
+      </p>
+    ) : null;
+
+  nodes.stock =
+    product.stock != null || soldCount > 0 ? (
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        {product.stock != null &&
+          (soldOut ? (
+            <span className="rounded-full bg-danger-soft px-2.5 py-0.5 text-xs font-bold text-danger">
+              {dict.product.outOfStock}
+            </span>
+          ) : product.stock <= 5 ? (
+            <span className="rounded-full bg-warning-soft px-2.5 py-0.5 text-xs font-bold text-warning">
+              {dict.product.lowStock.replace("{n}", String(product.stock))}
+            </span>
+          ) : (
+            <span className="rounded-full bg-success-soft px-2.5 py-0.5 text-xs font-bold text-success">
+              {dict.product.inStock}
+            </span>
+          ))}
+        {soldCount > 0 && (
+          <span className="text-sm font-semibold text-primary">
+            🔥 {dict.product.soldCount.replace("{n}", String(soldCount))}
+          </span>
+        )}
+      </div>
+    ) : null;
+
+  nodes.included =
+    product.isBundle && product.includes.length > 0 ? (
+      <div className="mt-5 rounded-2xl border border-primary/20 bg-primary-soft/40 p-4">
+        <h2 className="text-sm font-bold text-primary">{copy.includedTitle}</h2>
+        <ul className="mt-2 space-y-1">
+          {product.includes.map((it, i) => (
+            <li key={i} className="flex items-center gap-2 text-sm font-semibold">
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-bold text-primary-foreground">
+                {it.quantity}
+              </span>
+              {localized(it.name, it.nameEn, l)}
+            </li>
+          ))}
+        </ul>
+      </div>
+    ) : null;
+
+  nodes.description = description ? (
+    <div className="mt-5">
+      <h2 className="text-sm font-bold text-muted-foreground">
+        {copy.descriptionTitle}
+      </h2>
+      <p className="mt-1.5 whitespace-pre-line leading-relaxed">{description}</p>
+    </div>
+  ) : null;
+
+  // Who provides it: the roster the merchant entered, filtered by the
+  // service_providers mapping (no mapping = anyone on the team, the same rule
+  // the booking engine applies). No team, no section.
+  nodes.provider =
+    providers.length > 0 ? (
+      <div className="mt-5 rounded-2xl border border-border bg-surface p-4">
+        <h2 className="flex items-center gap-1.5 text-sm font-bold">
+          <UserRound className="h-4 w-4 text-primary" />
+          {dict.offering.providerTitle}
+        </h2>
+        <ul className="mt-3 space-y-3">
+          {providers.map((p) => (
+            <li key={p.id} className="flex items-center gap-3">
+              {p.photo_url ? (
+                <Image
+                  src={p.photo_url}
+                  alt=""
+                  width={40}
+                  height={40}
+                  className="h-10 w-10 shrink-0 rounded-full object-cover"
+                />
+              ) : (
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface-muted">
+                  <UserRound className="h-5 w-5 text-muted-foreground" />
+                </span>
+              )}
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-bold">
+                  {p.name}
+                </span>
+                {p.specialty && (
+                  <span className="block truncate text-xs text-muted-foreground">
+                    {p.specialty}
+                  </span>
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>
+        {providers.length > 1 && (
+          <p className="mt-3 text-xs text-muted-foreground">
+            {dict.offering.providerAny}
+          </p>
+        )}
+      </div>
+    ) : null;
+
+  nodes.buyBox = (
+    <div
+      id="buy-box"
+      className="mt-6 rounded-2xl border border-border bg-surface p-5"
+    >
+      {offering.cta === "bookAppointment" ? (
+        /* Routes into the EXISTING booking engine with this service
+           preselected — the page states the outcome and hands off; it does not
+           re-implement any part of place_booking. */
+        <>
+          <p className="mb-3 text-sm text-muted-foreground">
+            {dict.product.bookingLead}
+          </p>
+          <Link
+            href={`${storeHref}?service=${product.id}`}
+            className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-6 py-3.5 font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
+          >
+            <CalendarCheck className="h-4.5 w-4.5" />
+            {ctaLabel}
+          </Link>
+          <Link
+            href={storeHref}
+            className="mt-2 flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-border px-6 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+          >
+            <StoreIcon className="h-4 w-4" />
+            {dict.product.visitStore}
+          </Link>
+        </>
+      ) : offering.cta === "contactStore" ? (
+        /* Directory-only sectors have no engine at all — say so instead of
+           offering a transaction the platform cannot honour. */
+        <>
+          <p className="mb-3 text-sm text-muted-foreground">
+            {dict.offering.contactLead}
+          </p>
+          <Link
+            href={storeHref}
+            className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-6 py-3.5 font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
+          >
+            <StoreIcon className="h-4.5 w-4.5" />
+            {ctaLabel}
+          </Link>
+        </>
+      ) : (
+        <>
+          <ProductOrder
+            lang={lang}
+            dict={dict}
+            storeId={product.storeId}
+            productId={product.id}
+            basePrice={basePrice}
+            stock={product.stock}
+            variants={product.variants}
+            addons={product.addons}
+            modifierGroups={product.modifierGroups}
+            allowScheduling={offering.variant === "menuItem"}
+            category={product.category}
+            defaultAddress={defaultAddress}
+            acceptsDelivery={product.acceptsDelivery}
+            acceptsPickup={product.acceptsPickup}
+            lbpRate={lbpRate}
+            ctaLabel={ctaLabel}
+          />
+          {soldOut && (
+            <div className="mt-3 border-t border-border pt-3">
+              <RestockButton
+                productId={product.id}
+                lang={l}
+                loggedIn={!!user}
+                subscribed={onWaitlist}
+                labels={{
+                  notify: dict.product.notifyMe,
+                  login: dict.product.notifyLogin,
+                  on: dict.product.notifyOn,
+                  cancel: dict.product.notifyCancel,
+                  saved: dict.product.notifySaved,
+                  error: dict.common.actionFailed,
+                }}
+              />
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+
+  nodes.share = (
+    <>
+      <div className="mt-3">
+        <WishlistButton
+          productId={product.id}
+          wishlisted={isWishlisted}
+          lang={lang}
+          dict={dict}
+        />
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <ShareButton title={name} dict={dict} />
+        <ProductStoryCard
+          productId={product.id}
+          name={name}
+          price={basePrice}
+          imageUrl={product.images[0] ?? null}
+          baseUrl={SITE_URL}
+          dict={dict}
+        />
+      </div>
+    </>
+  );
+
+  // Policies are merchant data or nothing. A service shows its cancellation
+  // window only when the merchant set one (booking_cancel_hours); goods show
+  // the delivery/pickup the store actually accepts. Neither is invented, and
+  // when there is nothing to say the whole block disappears.
+  const policyLines: { icon: ReactNode; text: string }[] = [];
+  if (offering.cta === "bookAppointment") {
+    if (cancelHours > 0)
+      policyLines.push({
+        icon: <ShieldCheck className="h-4 w-4 text-primary" />,
+        text: dict.offering.policyCancel.replace("{n}", String(cancelHours)),
+      });
+  } else if (offering.transacts) {
+    if (product.acceptsDelivery)
+      policyLines.push({
+        icon: <Truck className="h-4 w-4 text-primary" />,
+        text: dict.offering.fulfillmentDelivery,
+      });
+    if (product.acceptsPickup)
+      policyLines.push({
+        icon: <StoreIcon className="h-4 w-4 text-primary" />,
+        text: dict.offering.fulfillmentPickup,
+      });
+  }
+  nodes.policies =
+    policyLines.length > 0 ? (
+      <div className="mt-4 rounded-2xl border border-border p-4">
+        <h2 className="text-sm font-bold">
+          {offering.cta === "bookAppointment"
+            ? dict.offering.policiesTitle
+            : dict.offering.fulfillmentTitle}
+        </h2>
+        <ul className="mt-2 space-y-1.5">
+          {policyLines.map((line, i) => (
+            <li key={i} className="flex items-start gap-2 text-sm">
+              <span className="mt-0.5 shrink-0">{line.icon}</span>
+              {line.text}
+            </li>
+          ))}
+        </ul>
+      </div>
+    ) : null;
+
+  const grid = (items: RelatedProduct[], showStore: boolean) => (
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      {items.map((p) => (
+        <ProductMiniCard
+          key={p.id}
+          lang={lang}
+          id={p.id}
+          name={p.name}
+          nameEn={p.nameEn}
+          price={p.price}
+          discountPrice={p.discountPrice}
+          imageUrl={p.imageUrl}
+          storeName={showStore ? p.storeName : undefined}
+          lbpRate={lbpRate}
+        />
+      ))}
+    </div>
+  );
+
+  nodes.boughtTogether =
+    boughtTogether.length > 0 ? (
+      <section className="mt-12">
+        <h2 className="mb-4 text-xl font-bold">{dict.product.boughtTogether}</h2>
+        {grid(boughtTogether, true)}
+      </section>
+    ) : null;
+
+  nodes.reviews = (
+    <ProductReviews
+      data={productReviews}
+      productId={product.id}
+      canWrite={!!user}
+      lang={l}
+      dict={dict}
+      copy={{
+        title: copy.reviewsTitle,
+        empty: copy.reviewsEmpty,
+        commentPlaceholder: copy.reviewsPlaceholder,
+      }}
+    />
+  );
+
+  nodes.qa = (
+    <ProductQA
+      productId={product.id}
+      questions={questions}
+      canAsk={!!user}
+      canAnswer={isStoreOwner}
+      dict={dict}
+      askPlaceholder={copy.qaPlaceholder}
+    />
+  );
+
+  nodes.moreFromStore =
+    moreFromStore.length > 0 ? (
+      <section className="mt-12">
+        <h2 className="mb-4 text-xl font-bold">{copy.moreFromStore}</h2>
+        {grid(moreFromStore, false)}
+      </section>
+    ) : null;
+
+  nodes.related =
+    similar.length > 0 ? (
+      <section className="mt-10">
+        <h2 className="mb-4 text-xl font-bold">{copy.related}</h2>
+        {grid(similar, true)}
+      </section>
+    ) : null;
+
+  nodes.recentlyViewed = (
+    <RecentlyViewed currentId={product.id} lang={l} dict={dict} />
+  );
+
+  // Fragments, not wrappers: the resolver reorders the page without adding a
+  // single box to it, so the two-column hero and the existing spacing survive.
+  const inSlot = (slot: ReturnType<typeof offeringSectionSlot>) =>
+    offering.sections
+      .filter((k) => offeringSectionSlot(k) === slot)
+      .map((k) => (nodes[k] ? <Fragment key={k}>{nodes[k]}</Fragment> : null));
 
   return (
     <div className="py-8">
@@ -242,210 +695,26 @@ export default async function ProductPage({
       />
       <Container>
         <div className="pt-4">
-          <BackButton label={dict.common.back} fallbackHref={`/${lang}/store/${product.storeId}`} />
+          <BackButton label={dict.common.back} fallbackHref={storeHref} />
         </div>
         <Breadcrumbs
           items={[
             { label: dict.common.brand, href: `/${lang}` },
             {
               label: product.storeName || dict.product.backToStore,
-              href: `/${lang}/store/${product.storeId}`,
+              href: storeHref,
             },
             { label: name },
           ]}
         />
 
         <div className="grid gap-8 lg:grid-cols-2">
-          <ProductGallery images={product.images} alt={name} />
-
+          {inSlot("gallery")}
           <div>
-            {product.brand && (
-              <Link
-                href={`/${lang}/store/${product.storeId}?brand=${encodeURIComponent(product.brand)}`}
-                className="inline-block text-sm font-bold uppercase tracking-wide text-primary transition-opacity hover:opacity-80"
-              >
-                {product.brand}
-              </Link>
-            )}
-            <h1 className="text-3xl font-extrabold tracking-tight">
-              {name}
-            </h1>
-
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              <span
-                className={`text-2xl font-extrabold ${flashEnd != null ? "text-warning" : "text-primary"}`}
-              >
-                {formatPrice(basePrice)}
-              </span>
-              {compareAt != null && (
-                <span className="text-lg text-muted-foreground line-through">
-                  {formatPrice(compareAt)}
-                </span>
-              )}
-              {flashEnd != null && (
-                <FlashCountdown endsAt={flashEnd} dict={dict} />
-              )}
-              {product.stock != null &&
-                (soldOut ? (
-                  <span className="rounded-full bg-danger-soft px-2.5 py-0.5 text-xs font-bold text-danger">
-                    {dict.product.outOfStock}
-                  </span>
-                ) : product.stock <= 5 ? (
-                  <span className="rounded-full bg-warning-soft px-2.5 py-0.5 text-xs font-bold text-warning">
-                    {dict.product.lowStock.replace("{n}", String(product.stock))}
-                  </span>
-                ) : (
-                  <span className="rounded-full bg-success-soft px-2.5 py-0.5 text-xs font-bold text-success">
-                    {dict.product.inStock}
-                  </span>
-                ))}
-            </div>
-
-            {soldCount > 0 && (
-              <p className="mt-1.5 text-sm font-semibold text-primary">
-                🔥 {dict.product.soldCount.replace("{n}", String(soldCount))}
-              </p>
-            )}
-
-            {lbpRate > 0 && (
-              <p className="mt-1 text-sm text-muted-foreground">
-                {formatLbp(basePrice, lbpRate, l)}
-              </p>
-            )}
-
-            {attrText && (
-              <p className="mt-3 text-sm text-muted-foreground">{attrText}</p>
-            )}
-            {product.isBundle && product.includes.length > 0 && (
-              <div className="mt-5 rounded-2xl border border-primary/20 bg-primary-soft/40 p-4">
-                <h2 className="text-sm font-bold text-primary">
-                  {dict.product.bundleIncludes}
-                </h2>
-                <ul className="mt-2 space-y-1">
-                  {product.includes.map((it, i) => (
-                    <li
-                      key={i}
-                      className="flex items-center gap-2 text-sm font-semibold"
-                    >
-                      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-bold text-primary-foreground">
-                        {it.quantity}
-                      </span>
-                      {localized(it.name, it.nameEn, l)}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {description && (
-              <div className="mt-5">
-                <h2 className="text-sm font-bold text-muted-foreground">
-                  {dict.product.description}
-                </h2>
-                <p className="mt-1.5 whitespace-pre-line leading-relaxed">
-                  {description}
-                </p>
-              </div>
-            )}
-
-            <div
-              id="buy-box"
-              className="mt-6 rounded-2xl border border-border bg-surface p-5"
-            >
-              {isBooking ? (
-                /* A service page used to dead-end on a bare "visit store" link:
-                   no idea what happens next, and the customer landed at the top
-                   of the storefront having to find the service again. Now it
-                   states the outcome and deep-links with the service preselected. */
-                <>
-                  <p className="mb-3 text-sm text-muted-foreground">
-                    {dict.product.bookingLead}
-                  </p>
-                  {product.durationMinutes ? (
-                    <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold">
-                      <Clock className="h-4 w-4 text-primary" />
-                      {dict.product.durationLabel.replace(
-                        "{n}",
-                        String(product.durationMinutes),
-                      )}
-                    </p>
-                  ) : null}
-                  <Link
-                    href={`/${lang}/store/${product.storeId}?service=${product.id}`}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-6 py-3.5 font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
-                  >
-                    <CalendarCheck className="h-4.5 w-4.5" />
-                    {dict.product.bookThisService}
-                  </Link>
-                  <Link
-                    href={`/${lang}/store/${product.storeId}`}
-                    className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl border border-border px-6 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-                  >
-                    <StoreIcon className="h-4 w-4" />
-                    {dict.product.visitStore}
-                  </Link>
-                </>
-              ) : (
-                <ProductOrder
-                  lang={lang}
-                  dict={dict}
-                  storeId={product.storeId}
-                  productId={product.id}
-                  basePrice={basePrice}
-                  stock={product.stock}
-                  variants={product.variants}
-                  addons={product.addons}
-                  modifierGroups={product.modifierGroups}
-                  allowScheduling={product.category === "food"}
-                  category={product.category}
-                  defaultAddress={defaultAddress}
-                  acceptsDelivery={product.acceptsDelivery}
-                  acceptsPickup={product.acceptsPickup}
-                  lbpRate={lbpRate}
-                />
-              )}
-              {soldOut && !isBooking && (
-                <div className="mt-3 border-t border-border pt-3">
-                  <RestockButton
-                    productId={product.id}
-                    lang={l}
-                    loggedIn={!!user}
-                    subscribed={onWaitlist}
-                    labels={{
-                      notify: dict.product.notifyMe,
-                      login: dict.product.notifyLogin,
-                      on: dict.product.notifyOn,
-                      cancel: dict.product.notifyCancel,
-                      saved: dict.product.notifySaved,
-                      error: dict.common.actionFailed,
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="mt-3">
-              <WishlistButton
-                productId={product.id}
-                wishlisted={isWishlisted}
-                lang={lang}
-                dict={dict}
-              />
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <ShareButton title={name} dict={dict} />
-              <ProductStoryCard
-                productId={product.id}
-                name={name}
-                price={basePrice}
-                imageUrl={product.images[0] ?? null}
-                baseUrl={SITE_URL}
-                dict={dict}
-              />
-            </div>
-
+            {inSlot("detail")}
             <Link
-              href={`/${lang}/store/${product.storeId}`}
-              className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+              href={storeHref}
+              className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-primary hover:underline lg:min-h-0"
             >
               <StoreIcon className="h-4 w-4" />
               {dict.product.visitStore}
@@ -453,105 +722,20 @@ export default async function ProductPage({
           </div>
         </div>
 
-        {boughtTogether.length > 0 && (
-          <section className="mt-12">
-            <h2 className="mb-4 text-xl font-bold">
-              {dict.product.boughtTogether}
-            </h2>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-              {boughtTogether.map((p) => (
-                <ProductMiniCard
-                  key={p.id}
-                  lang={lang}
-                  id={p.id}
-                  name={p.name}
-                  nameEn={p.nameEn}
-                  price={p.price}
-                  discountPrice={p.discountPrice}
-                  imageUrl={p.imageUrl}
-                  storeName={p.storeName}
-                  lbpRate={lbpRate}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Mobile: the price and CTA follow the thumb once the buy box
-            scrolls away. Booking products keep their own deep-link CTA. */}
-        {!isBooking && (
+        {/* Mobile: the price and CTA follow the thumb once the buy box scrolls
+            away — only where this page itself transacts. */}
+        {offering.transacts && (
           <ProductBuyBar
             targetId="buy-box"
             price={formatPrice(basePrice)}
             compareAt={compareAt != null ? formatPrice(compareAt) : null}
-            label={dict.product.backToBuy}
+            label={ctaLabel}
             soldOut={soldOut}
             soldOutLabel={dict.product.outOfStock}
           />
         )}
 
-        <ProductReviews
-          data={productReviews}
-          productId={product.id}
-          canWrite={!!user}
-          lang={l}
-          dict={dict}
-        />
-
-        <ProductQA
-          productId={product.id}
-          questions={questions}
-          canAsk={!!user}
-          canAnswer={isStoreOwner}
-          dict={dict}
-        />
-
-        {moreFromStore.length > 0 && (
-          <section className="mt-12">
-            <h2 className="mb-4 text-xl font-bold">
-              {dict.product.moreFromStore}
-            </h2>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-              {moreFromStore.map((p) => (
-                <ProductMiniCard
-                  key={p.id}
-                  lang={lang}
-                  id={p.id}
-                  name={p.name}
-                  nameEn={p.nameEn}
-                  price={p.price}
-                  discountPrice={p.discountPrice}
-                  imageUrl={p.imageUrl}
-                  lbpRate={lbpRate}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {similar.length > 0 && (
-          <section className="mt-10">
-            <h2 className="mb-4 text-xl font-bold">{dict.product.similar}</h2>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-              {similar.map((p) => (
-                <ProductMiniCard
-                  key={p.id}
-                  lang={lang}
-                  id={p.id}
-                  name={p.name}
-                  nameEn={p.nameEn}
-                  price={p.price}
-                  discountPrice={p.discountPrice}
-                  imageUrl={p.imageUrl}
-                  storeName={p.storeName}
-                  lbpRate={lbpRate}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
-        <RecentlyViewed currentId={product.id} lang={l} dict={dict} />
+        {inSlot("page")}
       </Container>
     </div>
   );

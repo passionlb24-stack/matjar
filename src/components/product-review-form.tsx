@@ -11,9 +11,12 @@ import { ImageUpload } from "@/components/image-upload";
 export function ProductReviewForm({
   productId,
   dict,
+  commentPlaceholder,
 }: {
   productId: string;
   dict: Dictionary;
+  /** Variant wording from the offering resolver (service / dish). */
+  commentPlaceholder?: string;
 }) {
   const router = useRouter();
   const t = dict.productReviews;
@@ -83,7 +86,7 @@ export function ProductReviewForm({
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         rows={3}
-        placeholder={t.commentPlaceholder}
+        placeholder={commentPlaceholder ?? t.commentPlaceholder}
         className="mt-3 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
       />
 

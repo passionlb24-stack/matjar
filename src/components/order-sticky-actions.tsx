@@ -37,8 +37,8 @@ export function OrderStickyActions({
   if (!wa && !phone) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-14 z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden print:hidden">
-      <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-2.5">
+    <div className="fixed inset-x-0 bottom-[var(--m-tabbar-h)] z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden print:hidden">
+      <div className="mx-auto flex max-w-2xl items-center justify-between gap-[var(--m-sticky-gap)] px-[var(--m-page-x)] py-2.5">
         <div className="min-w-0">
           <p className="truncate text-sm font-bold">{statusLabel}</p>
           {nextStep && (
@@ -51,7 +51,7 @@ export function OrderStickyActions({
             <a
               href={`tel:${phone}`}
               aria-label={labels.call}
-              className="flex h-11 w-11 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors active:bg-surface-muted"
+              className="flex h-[var(--m-touch)] w-[var(--m-touch)] items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors active:bg-surface-muted"
             >
               <Phone className="h-4 w-4" />
             </a>
@@ -61,7 +61,7 @@ export function OrderStickyActions({
               href={wa}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition-transform active:scale-[0.97]"
+              className="inline-flex h-[var(--m-touch)] items-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition-transform active:scale-[0.97]"
             >
               <MessageCircle className="h-4 w-4" />
               {labels.contact}
