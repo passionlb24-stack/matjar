@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Star } from "lucide-react";
+import { Star, CornerDownLeft } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { ReviewForm } from "@/components/review-form";
@@ -10,6 +10,11 @@ export type Review = {
   customer_name: string | null;
   rating: number;
   comment: string | null;
+  // The shop's answer (0276). Only the owner can write it, and `reply_at` is
+  // stamped by the trigger — so a reply sent three months late can never be
+  // dressed up as same-day.
+  reply: string | null;
+  reply_at: string | null;
 };
 
 export function StoreReviews({
@@ -74,6 +79,32 @@ export function StoreReviews({
               </div>
               {r.comment && (
                 <p className="mt-2 text-muted-foreground">{r.comment}</p>
+              )}
+              {/* An answer, not a second opinion: inset behind a start-edge rule
+                  and set smaller than the review it belongs to, so a reader
+                  never mistakes the shop's voice for another customer's. */}
+              {r.reply?.trim() && (
+                <div className="mt-3 rounded-e-xl border-s-2 border-primary/40 bg-surface-muted/60 px-3.5 py-2.5">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                    <span className="flex items-center gap-1 text-xs font-bold text-primary">
+                      <CornerDownLeft className="h-3.5 w-3.5 rtl:-scale-x-100" />
+                      {dict.reviews.replyFrom}
+                    </span>
+                    {r.reply_at && (
+                      <time
+                        dateTime={r.reply_at}
+                        dir="ltr"
+                        className="text-xs tabular-nums text-muted-foreground"
+                      >
+                        {new Date(r.reply_at).toLocaleDateString(
+                          lang === "ar" ? "ar" : "en",
+                          { year: "numeric", month: "short", day: "numeric" },
+                        )}
+                      </time>
+                    )}
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">{r.reply}</p>
+                </div>
               )}
             </div>
           ))
