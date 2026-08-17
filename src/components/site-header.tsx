@@ -102,25 +102,18 @@ export function SiteHeader({
             >
               {dict.common.forMerchants}
             </NavLink>
-            <NavLink
-              href={`/${lang}/map`}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground aria-[current=page]:bg-surface-muted aria-[current=page]:text-foreground"
-            >
-              {dict.map.title}
-            </NavLink>
+            {/* The map link left this row on purpose. The row was 94px over its
+                container at every desktop width, something had to go, and the map
+                is the least-earned tenant: 5 of 13 stores have a pin, and the
+                footer keeps the link. It returns to the header when the map has
+                a marketplace behind it. */}
           </nav>
         </div>
-        {/* KNOWN: this row overflows its container at every desktop width, and
-            escapes the viewport as ~6px of horizontal page scroll around 1280px,
-            where the mx-auto slack is narrowest. Measured in a live browser:
-            max-w-6xl + lg:px-8 leaves 1088px of content space; the nav is 621px,
-            this group is 545px, the gap is 16px — 1182px needed.
-            It is NOT a spacing bug and min-w-0 does not fix it (tried, measured,
-            reverted). The row simply carries more than it has room for: seven nav
-            items from md upward, plus five actions. Fixing it means dropping nav
-            items into the overflow menu or shrinking this group — a visible
-            change to the header of every page, so it is recorded rather than
-            guessed at from a terminal. */}
+        {/* This row used to need 1182px inside 1088px of container — measured in
+            a live browser as 6px of horizontal page scroll at 1280, with the CTA
+            at left:-6 in RTL. min-w-0 on this group changed nothing (tried,
+            measured, reverted): the row was simply over-tenanted. Dropping the
+            map link (see the nav above) is what paid the debt. */}
         <div className="flex shrink-0 items-center gap-1 sm:gap-3">
           {/* Bells stay visible for signed-in users even on a phone. */}
           {user && (

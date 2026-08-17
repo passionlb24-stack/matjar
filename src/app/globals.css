@@ -165,7 +165,8 @@
     --primary-foreground: #0b1220;
     --primary-soft: #16233b;
     --accent: #fbbf24;
-    --accent-foreground: #0b1220;
+    /* See the [data-theme=dark] block for why this is light, not dark. */
+    --accent-foreground: #fbbf24;
     --accent-soft: #2b2410;
     --border: #2a3038;
     --ring: #4c8dff;
@@ -197,7 +198,12 @@
   --primary-foreground: #0b1220;
   --primary-soft: #16233b;
   --accent: #fbbf24;
-  --accent-foreground: #0b1220;
+  /* Light amber, not near-black. bg-accent (solid) has zero call sites — every
+     accent-foreground in the codebase sits on accent-soft, a dark amber in this
+     theme, where #0b1220 measured 1.21:1 in a live browser: the Pro badge, the
+     activity 'needs you' pill and the flash countdown were all illegible in
+     dark. Same shape as --warning on --warning-soft two tokens down. */
+  --accent-foreground: #fbbf24;
   --accent-soft: #2b2410;
   --border: #2a3038;
   --ring: #4c8dff;
