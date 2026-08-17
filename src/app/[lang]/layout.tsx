@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { Tajawal, Alexandria } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { notFound } from "next/navigation";
@@ -95,21 +94,22 @@ export default async function RootLayout({
         />
       </head>
       <body className="flex min-h-dvh flex-col bg-background font-sans text-foreground antialiased">
-        {/* Google Tag Manager — loaded after hydration so the container (and any
-            tags it injects) stays off the critical path / main thread at first
-            paint. next/script afterInteractive keeps the same GTM-M89LK69J id. */}
-        <Script id="gtm-base" strategy="afterInteractive">
-          {"(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-M89LK69J');"}
-        </Script>
-        {/* Google Tag Manager (noscript) */}
-        <noscript>
-          <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-M89LK69J"
-            height={0}
-            width={0}
-            style={{ display: "none", visibility: "hidden" }}
-          />
-        </noscript>
+        {/* Google Tag Manager was here, and it has never once run.
+            `script-src` in next.config.ts allows 'self' and va.vercel-scripts.com;
+            googletagmanager.com is not on it, so the browser refused the request
+            on every page view since the tag was added — silently, because a CSP
+            refusal is not a JavaScript error. Confirmed against the live
+            response headers, not inferred.
+            Removed rather than left in place: a tag that looks like analytics and
+            collects nothing is worse than no tag, because it invites decisions to
+            be made on numbers that were never recorded. Vercel Analytics is
+            already loaded below and does work.
+            To bring GA back, the honest path is to add https://www.googletagmanager.com
+            to script-src in next.config.ts and re-add this block — accepting that
+            GTM exists to inject arbitrary third-party script, which is exactly
+            what that CSP line is holding shut. First-party events
+            (store_visits, search_logs) answer the merchant-funnel questions
+            without that trade. */}
         <ConfirmProvider>{children}</ConfirmProvider>
         <SwRegister />
         <NativeBridge />

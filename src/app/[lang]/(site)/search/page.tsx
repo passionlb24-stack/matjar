@@ -9,6 +9,7 @@ import { Container } from "@/components/ui/container";
 import { StoreCard } from "@/components/store-card";
 import { ProductMiniCard } from "@/components/product-mini-card";
 import { MarketListingCard } from "@/components/market-listing-card";
+import { TrackSearch } from "@/components/track-search";
 
 export async function generateMetadata({
   params,
@@ -61,6 +62,15 @@ export default async function SearchPage({
   return (
     <div className="py-10">
       <Container>
+        {/* The page where somebody types what they want was the one page that
+            never recorded it. A search that returns 0 here is a merchant this
+            marketplace has not recruited yet, named by a customer. */}
+        <TrackSearch
+          q={q}
+          section="search"
+          results={total}
+          region={sp.region ?? null}
+        />
         <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
           {t.resultsFor}{" "}
           <span className="text-primary">&ldquo;{q}&rdquo;</span>
