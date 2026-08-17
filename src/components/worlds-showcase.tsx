@@ -1,15 +1,15 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { groupKeys } from "@/lib/catalog";
 import { groupIcons } from "@/components/category-icon";
 import { Container } from "@/components/ui/container";
 
-// The platform's thesis, made visible: MatjarLB is many worlds under one roof.
-// Renders the top-level GROUPS (shopping, food, services, health, sports,
-// bookings, real estate, automotive, education) — the clean navigation layer
-// above the granular sectors. Each links into /explore filtered by group.
+// Categories — the scannable navigation layer above the 17 granular sectors.
+// V2 drops the per-card description: this row exists to be scanned in one
+// pass, and a two-line blurb under every tile turns nine choices into a wall
+// of reading. Each tile links into /explore filtered by group.
 const TINTS = [
   "bg-primary-soft text-primary",
   "bg-accent-soft text-warning",
@@ -17,50 +17,49 @@ const TINTS = [
 ];
 
 export function WorldsShowcase({ lang, dict }: { lang: Locale; dict: Dictionary }) {
-  const t = dict.worlds;
   return (
-    <section className="py-10 sm:py-20">
+    <section className="py-8 sm:py-12">
       <Container>
-        <div className="mb-8 text-center">
-          <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-primary">
-            {t.eyebrow}
-          </p>
-          <h2 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl lg:text-4xl">
-            {t.title}
+        <div className="mb-5 flex items-end justify-between gap-4">
+          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+            {dict.categories.title}
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-            {t.subtitle}
-          </p>
+          <Link
+            href={`/${lang}/categories`}
+            // -me-2/px-2 keeps the label optically flush with the container
+            // edge while the box itself stays a 44px tap target on phones.
+            className="-me-2 inline-flex h-11 shrink-0 items-center gap-1 px-2 text-sm font-bold text-primary transition-colors hover:text-primary-hover"
+          >
+            {dict.home2.seeAll}
+            <ChevronLeft className="h-4 w-4 ltr:rotate-180" />
+          </Link>
         </div>
 
-        {/* Nine worlds in a two-up grid is five rows — a whole phone screen of
-            navigation before a single store appears. On phones it becomes one
-            snap-scrolling row that bleeds past the Container's gutter, so the
-            clipped ninth card is what says "keep going". Desktop keeps the
-            grid it has: the rail classes all unwind at `lg`. */}
+        {/* Nine categories stacked two-up is five rows — a whole phone screen
+            of navigation before a single store appears. Below `lg` it is one
+            snap-scrolling row that bleeds past the Container gutter, so the
+            clipped card is what says "keep going". At `lg` every rail class
+            unwinds into a plain three-column grid. */}
         <div
           data-animate
-          className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-4 lg:overflow-visible lg:px-0 lg:pb-0 [&::-webkit-scrollbar]:hidden"
+          className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-3 lg:overflow-visible lg:px-0 lg:pb-0 [&::-webkit-scrollbar]:hidden"
         >
           {groupKeys.map((g, i) => {
             const Icon = groupIcons[g];
-            const grp = dict.groups[g];
             return (
               <Link
                 key={g}
                 href={`/${lang}/explore?group=${g}`}
-                className="group relative w-40 shrink-0 snap-start overflow-hidden rounded-2xl border border-border bg-surface p-4 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg lg:w-auto lg:p-5"
+                className="group flex min-h-14 w-40 shrink-0 snap-start items-center gap-3 rounded-2xl border border-border bg-surface p-3 transition-colors hover:border-primary/40 lg:w-auto lg:p-4"
               >
                 <span
-                  className={`flex h-12 w-12 items-center justify-center rounded-2xl shadow-xs transition-transform duration-300 group-hover:scale-110 ${TINTS[i % TINTS.length]}`}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${TINTS[i % TINTS.length]}`}
                 >
-                  <Icon className="h-6 w-6" />
+                  <Icon className="h-5 w-5" />
                 </span>
-                <h3 className="mt-4 text-base font-extrabold">{grp.name}</h3>
-                <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground lg:line-clamp-none">
-                  {grp.desc}
-                </p>
-                <ArrowLeft className="absolute end-4 top-5 h-4 w-4 text-muted-foreground opacity-0 transition-all duration-300 group-hover:-translate-x-1 group-hover:opacity-100 ltr:rotate-180" />
+                <span className="min-w-0 text-sm font-bold leading-tight transition-colors group-hover:text-primary">
+                  {dict.groups[g].name}
+                </span>
               </Link>
             );
           })}

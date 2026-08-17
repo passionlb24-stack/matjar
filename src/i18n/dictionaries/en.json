@@ -1050,7 +1050,7 @@
     "badge": "Lebanon's local platform · Live now",
     "title": "Every store, restaurant, and service in Lebanon",
     "titleHighlight": "in one place",
-    "subtitle": "Shop, order, book, or hire — and find the nearest store or service to you in seconds. One platform for everything.",
+    "subtitle": "Shop, order, book, or hire — everything in one place.",
     "searchPlaceholder": "Search for a store, product, restaurant, or service…",
     "locationAll": "All Lebanon",
     "searchButton": "Search",
@@ -1310,7 +1310,7 @@
   },
   "featured": {
     "title": "Featured stores",
-    "subtitle": "The newest and top-rated stores near you.",
+    "subtitle": "Active stores on Matjar — the newest and top-rated.",
     "viewAll": "View all",
     "open": "Open",
     "closed": "Closed",
@@ -1346,7 +1346,11 @@
     "title": "Have a store or business? Get online in minutes.",
     "subtitle": "Launch your online store or business page, receive orders and bookings, and reach new customers across Lebanon.",
     "button": "Open your store for free",
-    "secondary": "See Pro plan"
+    "secondary": "See Pro plan",
+    "link": "See what we offer merchants"
+  },
+  "homeMore": {
+    "title": "Also on Matjar"
   },
   "footer": {
     "tagline": "Your local commerce platform for Lebanon.",
@@ -3290,14 +3294,14 @@
   },
   "trustPage": {
     "metaTitle": "Trust & Safety",
-    "metaDesc": "How Matjar protects merchants and customers: cash on delivery, verified stores, a returns policy, and direct support.",
+    "metaDesc": "How Matjar protects merchants and customers: cash on delivery, every store reviewed before it goes live, a returns policy, and direct support.",
     "kicker": "Your trust matters",
     "title": "Trust & Safety on Matjar",
     "intro": "We work to make every order and every interaction on Matjar safe and clear — for both merchant and customer.",
     "customerTitle": "For customers",
     "customer": [
       { "t": "Cash on delivery", "d": "You pay when you receive your order — no risk." },
-      { "t": "Verified stores", "d": "We're building a store-verification system so you know who you're dealing with." },
+      { "t": "Every store is reviewed before it goes live", "d": "No store appears on Matjar until we have reviewed it. The \"verified\" badge is a separate, stricter check of a business's documents — and it has not been awarded to anyone yet." },
       { "t": "Direct contact", "d": "Call or message the store on WhatsApp before you order." },
       { "t": "Report a problem", "d": "If something goes wrong, contact us and we'll help." }
     ],
@@ -3759,9 +3763,59 @@
       {
         "q": "Payment methods?",
         "a": "Currently cash on delivery, with the option to contact and order directly via WhatsApp with the merchant."
+      },
+      {
+        "q": "Is Matjar free to use?",
+        "a": "Yes — browsing and buying are completely free. Opening a basic store is also free, with no commission on your sales."
       }
     ],
     "contactCta": "Still have a question? Contact us"
+  },
+  "offering": {
+    "cta": {
+      "addToCart": "Add to cart",
+      "addToOrder": "Add to order",
+      "bookAppointment": "Book an appointment",
+      "contactStore": "Contact the store"
+    },
+    "product": {
+      "descriptionTitle": "Description",
+      "includedTitle": "What's in the bundle",
+      "reviewsTitle": "Product reviews",
+      "reviewsEmpty": "No reviews yet. Be the first to review it!",
+      "reviewsPlaceholder": "Tell us what you think of this product…",
+      "qaPlaceholder": "Have a question about this product? Ask the merchant…",
+      "moreFromStore": "More products from this store",
+      "related": "Similar products"
+    },
+    "service": {
+      "descriptionTitle": "About this service",
+      "includedTitle": "What this service includes",
+      "reviewsTitle": "Service reviews",
+      "reviewsEmpty": "No reviews yet. Be the first to review it!",
+      "reviewsPlaceholder": "How was your experience with this service?…",
+      "qaPlaceholder": "Have a question about this service? Ask the provider…",
+      "moreFromStore": "More services from this provider",
+      "related": "Similar services"
+    },
+    "dish": {
+      "descriptionTitle": "About this dish",
+      "includedTitle": "What's in the meal",
+      "reviewsTitle": "Dish reviews",
+      "reviewsEmpty": "No reviews yet. Be the first to review it!",
+      "reviewsPlaceholder": "How was the dish?…",
+      "qaPlaceholder": "Have a question about this dish? Ask the restaurant…",
+      "moreFromStore": "More dishes from this restaurant",
+      "related": "Similar dishes"
+    },
+    "providerTitle": "Who provides it",
+    "providerAny": "Anyone on the team can deliver this service — you pick who when you book.",
+    "policiesTitle": "Before you book",
+    "policyCancel": "You can cancel or reschedule up to {n} hours before your appointment.",
+    "fulfillmentTitle": "Delivery & pickup",
+    "fulfillmentDelivery": "Delivery to your address is available.",
+    "fulfillmentPickup": "You can pick it up from the shop.",
+    "contactLead": "This one isn't ordered online — visit the store page and get in touch."
   },
   "productQa": {
     "title": "Questions & answers",

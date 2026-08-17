@@ -14,12 +14,16 @@ export function ProductQA({
   canAsk,
   canAnswer,
   dict,
+  askPlaceholder,
 }: {
   productId: string;
   questions: ProductQuestion[];
   canAsk: boolean;
   canAnswer: boolean;
   dict: Dictionary;
+  /** Variant wording from the offering resolver — a clinic page must not ask
+   *  "عندك سؤال عن المنتج؟". Omitted = the product wording. */
+  askPlaceholder?: string;
 }) {
   const router = useRouter();
   const t = dict.productQa;
@@ -85,7 +89,7 @@ export function ProductQA({
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder={t.askPlaceholder}
+            placeholder={askPlaceholder ?? t.askPlaceholder}
             className="w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm outline-none focus:border-primary"
           />
           <button

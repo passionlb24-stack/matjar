@@ -5,18 +5,29 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import type { ProductReviewsData } from "@/lib/data/product-reviews";
 import { ProductReviewForm } from "@/components/product-review-form";
 
+/** Wording the offering resolver picks per variant, so a clinic's page says
+ *  "تقييمات الخدمة" and a restaurant's "تقييمات الطبق" instead of speaking about
+ *  a product the customer never bought. Omitted = the product wording. */
+export type ReviewsCopy = {
+  title: string;
+  empty: string;
+  commentPlaceholder: string;
+};
+
 export function ProductReviews({
   data,
   productId,
   canWrite,
   lang,
   dict,
+  copy,
 }: {
   data: ProductReviewsData;
   productId: string;
   canWrite: boolean;
   lang: Locale;
   dict: Dictionary;
+  copy?: ReviewsCopy;
 }) {
   const t = dict.productReviews;
   const fmtDate = (iso: string) =>
@@ -28,7 +39,9 @@ export function ProductReviews({
 
   return (
     <section className="mt-10">
-      <h2 className="mb-4 text-2xl font-extrabold tracking-tight">{t.title}</h2>
+      <h2 className="mb-4 text-2xl font-extrabold tracking-tight">
+        {copy?.title ?? t.title}
+      </h2>
 
       {data.count > 0 && (
         <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5 sm:flex-row sm:items-center">
@@ -76,13 +89,17 @@ export function ProductReviews({
 
       {canWrite && !data.mine && (
         <div className="mb-6">
-          <ProductReviewForm productId={productId} dict={dict} />
+          <ProductReviewForm
+            productId={productId}
+            dict={dict}
+            commentPlaceholder={copy?.commentPlaceholder}
+          />
         </div>
       )}
 
       {data.count === 0 ? (
         <p className="rounded-2xl border border-dashed border-border py-10 text-center text-muted-foreground">
-          {t.empty}
+          {copy?.empty ?? t.empty}
         </p>
       ) : (
         <div className="space-y-3">

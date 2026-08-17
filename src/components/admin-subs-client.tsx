@@ -122,9 +122,20 @@ function Row({
       method: "manual",
       recorded_by: user?.id ?? null,
     });
+    // Recording a payment sets the PLAN and nothing else.
+    //
+    // It used to also set is_verified, which made "موثّق" mean "paid". Those are
+    // different promises: Pro is a tier a merchant bought, verified is a claim
+    // Matjar makes to a customer that it checked something. A badge its own
+    // subject can purchase is not evidence.
+    //
+    // The card already renders the two separately — ProBadge from `plan`, the
+    // tick from `is_verified` — so nothing is lost visually. And verification now
+    // has a real path: the merchant submits to store_verifications and an admin
+    // approves it (0272). That queue should be the only thing that moves this.
     const { error } = await supabase
       .from("stores")
-      .update({ plan: tier, is_verified: true })
+      .update({ plan: tier })
       .eq("id", row.id);
     setBusy(false);
     if (error) {
