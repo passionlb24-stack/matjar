@@ -183,7 +183,7 @@ export default async function ListingPage({
                       )}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-emerald-700"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-emerald-800"
                     >
                       <MessageCircle className="h-4 w-4" />
                       {dict.market.contactWhatsapp}

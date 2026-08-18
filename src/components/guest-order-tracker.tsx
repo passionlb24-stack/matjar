@@ -66,9 +66,10 @@ export function GuestOrderTracker({
           onSubmit={check}
           className="rounded-2xl border border-border bg-surface p-5"
         >
-          <label className="text-sm font-semibold">{t.phone}</label>
+          <label className="text-sm font-semibold" htmlFor="guest-track-phone">{t.phone}</label>
           <div className="mt-1.5 flex gap-2">
             <input
+              id="guest-track-phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               dir="ltr"

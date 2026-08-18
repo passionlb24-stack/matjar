@@ -111,24 +111,27 @@ export function CoursesManager({
   const form = (
     <div className="space-y-3 rounded-2xl border border-primary/30 bg-surface p-5">
       <div>
-        <label className={labelClass}>{t.name}</label>
+        <label className={labelClass} htmlFor="course-name">{t.name}</label>
         <Input
+          id="course-name"
           value={draft.name}
           onChange={(e) => setDraft({ ...draft, name: e.target.value })}
           className="mt-1"
         />
       </div>
       <div>
-        <label className={labelClass}>{t.nameEn}</label>
+        <label className={labelClass} htmlFor="course-name-en">{t.nameEn}</label>
         <Input
+          id="course-name-en"
           value={draft.name_en}
           onChange={(e) => setDraft({ ...draft, name_en: e.target.value })}
           className="mt-1"
         />
       </div>
       <div>
-        <label className={labelClass}>{t.description}</label>
+        <label className={labelClass} htmlFor="course-description">{t.description}</label>
         <Textarea
+          id="course-description"
           value={draft.description}
           onChange={(e) => setDraft({ ...draft, description: e.target.value })}
           className="mt-1"
@@ -136,8 +139,9 @@ export function CoursesManager({
       </div>
       <div className="flex gap-3">
         <div className="flex-1">
-          <label className={labelClass}>{t.price}</label>
+          <label className={labelClass} htmlFor="course-price">{t.price}</label>
           <Input
+            id="course-price"
             type="number"
             value={draft.price}
             onChange={(e) => setDraft({ ...draft, price: e.target.value })}
@@ -145,8 +149,9 @@ export function CoursesManager({
           />
         </div>
         <div className="flex-1">
-          <label className={labelClass}>{t.level}</label>
+          <label className={labelClass} htmlFor="course-level">{t.level}</label>
           <Input
+            id="course-level"
             value={draft.level}
             onChange={(e) => setDraft({ ...draft, level: e.target.value })}
             className="mt-1"
@@ -154,8 +159,9 @@ export function CoursesManager({
         </div>
       </div>
       <div>
-        <label className={labelClass}>{t.duration}</label>
+        <label className={labelClass} htmlFor="course-duration">{t.duration}</label>
         <Input
+          id="course-duration"
           value={draft.duration}
           onChange={(e) => setDraft({ ...draft, duration: e.target.value })}
           placeholder={t.durationHint}
@@ -163,8 +169,9 @@ export function CoursesManager({
         />
       </div>
       <div>
-        <label className={labelClass}>{t.schedule}</label>
+        <label className={labelClass} htmlFor="course-schedule">{t.schedule}</label>
         <Input
+          id="course-schedule"
           value={draft.schedule}
           onChange={(e) => setDraft({ ...draft, schedule: e.target.value })}
           placeholder={t.scheduleHint}

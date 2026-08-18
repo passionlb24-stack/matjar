@@ -11,6 +11,7 @@ import {
   type Store,
 } from "@/lib/catalog";
 import { isOpenNow, parseHours } from "@/lib/hours";
+import type { StorePlan } from "@/lib/plan-tiers";
 
 // Maps a database store row into the shape the StoreCard expects.
 function rowToStore(row: {
@@ -18,7 +19,7 @@ function rowToStore(row: {
   name: string;
   area: string | null;
   region: string | null;
-  plan: "free" | "pro" | null;
+  plan: StorePlan | null;
   is_verified: boolean | null;
   commercial_reg_verified: boolean | null;
   featured_until: string | null;

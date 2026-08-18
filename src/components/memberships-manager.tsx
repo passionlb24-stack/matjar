@@ -105,16 +105,18 @@ export function MembershipsManager({
   const form = (
     <div className="space-y-3 rounded-2xl border border-primary/30 bg-surface p-5">
       <div>
-        <label className={labelClass}>{t.name}</label>
+        <label className={labelClass} htmlFor="membership-name">{t.name}</label>
         <Input
+          id="membership-name"
           value={draft.name}
           onChange={(e) => setDraft({ ...draft, name: e.target.value })}
           className="mt-1"
         />
       </div>
       <div>
-        <label className={labelClass}>{`${t.name} (EN)`}</label>
+        <label className={labelClass} htmlFor="membership-name-en">{`${t.name} (EN)`}</label>
         <Input
+          id="membership-name-en"
           value={draft.name_en}
           onChange={(e) => setDraft({ ...draft, name_en: e.target.value })}
           className="mt-1"
@@ -122,8 +124,9 @@ export function MembershipsManager({
       </div>
       <div className="flex gap-3">
         <div className="flex-1">
-          <label className={labelClass}>{t.price}</label>
+          <label className={labelClass} htmlFor="membership-price">{t.price}</label>
           <Input
+            id="membership-price"
             type="number"
             value={draft.price}
             onChange={(e) => setDraft({ ...draft, price: e.target.value })}
@@ -131,8 +134,9 @@ export function MembershipsManager({
           />
         </div>
         <div className="flex-1">
-          <label className={labelClass}>{t.period}</label>
+          <label className={labelClass} htmlFor="membership-period">{t.period}</label>
           <Select
+            id="membership-period"
             value={draft.period}
             onChange={(e) => setDraft({ ...draft, period: e.target.value })}
             className="mt-1"
@@ -146,8 +150,9 @@ export function MembershipsManager({
         </div>
       </div>
       <div>
-        <label className={labelClass}>{t.description}</label>
+        <label className={labelClass} htmlFor="membership-description">{t.description}</label>
         <Textarea
+          id="membership-description"
           value={draft.description}
           onChange={(e) => setDraft({ ...draft, description: e.target.value })}
           className="mt-1"

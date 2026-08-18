@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
@@ -20,18 +20,24 @@ export function BottomSheet({
   open,
   onClose,
   title,
+  closeLabel,
   children,
   footer,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
+  /** Accessible name for the X button (dict.common.close). Without it the
+   *  close button used to repeat the sheet title, so AT announced the title
+   *  as a button twice. */
+  closeLabel: string;
   children: React.ReactNode;
   /** Sticky action row — "apply", "clear", etc. */
   footer?: React.ReactNode;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const restoreTo = useRef<HTMLElement | null>(null);
+  const titleId = useId();
 
   useEffect(() => {
     if (!open) return;
@@ -77,9 +83,14 @@ export function BottomSheet({
 
   return createPortal(
     <div className="fixed inset-0 z-[100] lg:hidden">
+      {/* Backdrop press-to-close is a pointer redundancy for Esc and the X
+          button, so it is hidden from AT (aria-hidden) and pulled out of the
+          tab order (tabIndex -1) — a screen-reader user was hearing the sheet
+          title announced as a button twice. */}
       <button
         type="button"
-        aria-label={title}
+        aria-hidden="true"
+        tabIndex={-1}
         onClick={onClose}
         className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
       />
@@ -87,7 +98,7 @@ export function BottomSheet({
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-label={title}
+        aria-labelledby={titleId}
         tabIndex={-1}
         className="animate-sheet absolute inset-x-0 bottom-0 flex max-h-[85vh] flex-col rounded-t-3xl border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] shadow-xl outline-none"
       >
@@ -99,11 +110,13 @@ export function BottomSheet({
         />
 
         <div className="flex shrink-0 items-center justify-between gap-3 px-4 py-3">
-          <h2 className="text-h4">{title}</h2>
+          <h2 id={titleId} className="text-h4">
+            {title}
+          </h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label={title}
+            aria-label={closeLabel}
             className="flex h-11 w-11 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground"
           >
             <X className="h-5 w-5" />

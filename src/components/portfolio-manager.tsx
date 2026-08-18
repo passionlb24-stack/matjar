@@ -102,24 +102,27 @@ export function PortfolioManager(props: {
   const form = (
     <div className="space-y-3 rounded-2xl border border-primary/30 bg-surface p-5">
       <div>
-        <label className={labelClass}>{t.name}</label>
+        <label className={labelClass} htmlFor="portfolio-title">{t.name}</label>
         <Input
+          id="portfolio-title"
           value={draft.title}
           onChange={(e) => setDraft({ ...draft, title: e.target.value })}
           className="mt-1"
         />
       </div>
       <div>
-        <label className={labelClass}>{t.nameEn}</label>
+        <label className={labelClass} htmlFor="portfolio-title-en">{t.nameEn}</label>
         <Input
+          id="portfolio-title-en"
           value={draft.title_en}
           onChange={(e) => setDraft({ ...draft, title_en: e.target.value })}
           className="mt-1"
         />
       </div>
       <div>
-        <label className={labelClass}>{t.description}</label>
+        <label className={labelClass} htmlFor="portfolio-description">{t.description}</label>
         <Textarea
+          id="portfolio-description"
           value={draft.description}
           onChange={(e) => setDraft({ ...draft, description: e.target.value })}
           className="mt-1"
@@ -132,8 +135,9 @@ export function PortfolioManager(props: {
         label={t.image}
       />
       <div>
-        <label className={labelClass}>{t.linkField}</label>
+        <label className={labelClass} htmlFor="portfolio-link">{t.linkField}</label>
         <Input
+          id="portfolio-link"
           value={draft.link}
           onChange={(e) => setDraft({ ...draft, link: e.target.value })}
           className="mt-1"

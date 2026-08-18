@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { jsonLdScript } from "@/lib/jsonld";
 import { SITE_URL } from "@/lib/site";
 
@@ -42,7 +42,9 @@ export function Breadcrumbs({ items }: { items: Crumb[] }) {
                   {c.label}
                 </span>
               )}
-              {!last && <ChevronLeft className="h-3.5 w-3.5 rtl:rotate-180" />}
+              {/* Forward separator: points right in LTR, left in RTL — the
+                  dominant ChevronRight + rtl:rotate-180 convention. */}
+              {!last && <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" />}
             </li>
           );
         })}

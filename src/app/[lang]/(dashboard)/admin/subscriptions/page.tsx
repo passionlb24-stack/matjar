@@ -3,6 +3,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdminSection } from "@/lib/admin-guard";
+import type { StorePlan } from "@/lib/plan-tiers";
 import { AdminSubsClient, type SubRow } from "@/components/admin-subs-client";
 
 export default async function AdminSubscriptionsPage({
@@ -25,7 +26,7 @@ export default async function AdminSubscriptionsPage({
   const stores = (storesData ?? []) as {
     id: string;
     name: string;
-    plan: "free" | "pro";
+    plan: StorePlan;
   }[];
   const ids = stores.map((s) => s.id);
 

@@ -282,7 +282,11 @@ export default async function ProductPage({
           {product.brand}
         </Link>
       )}
-      <h1 className="text-3xl font-extrabold tracking-tight">{name}</h1>
+      {/* dir=auto: merchant-typed name; Latin names with digits bidi-garble
+          inside the RTL document without it. */}
+      <h1 dir="auto" className="text-3xl font-extrabold tracking-tight">
+        {name}
+      </h1>
       <Link
         href={storeHref}
         className="mt-1.5 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary lg:min-h-0"
@@ -296,17 +300,15 @@ export default async function ProductPage({
   nodes.price = (
     <>
       <div className="mt-3 flex flex-wrap items-center gap-3">
+        {/* .text-money replaces hand-rolled dir=ltr + tabular-nums and adds
+            the bidi isolation the house standard calls for. */}
         <span
-          dir="ltr"
-          className={`text-2xl font-extrabold tabular-nums ${flashEnd != null ? "text-warning" : "text-primary"}`}
+          className={`text-money text-2xl font-extrabold ${flashEnd != null ? "text-warning" : "text-primary"}`}
         >
           {formatPrice(basePrice)}
         </span>
         {compareAt != null && (
-          <span
-            dir="ltr"
-            className="text-lg tabular-nums text-muted-foreground line-through"
-          >
+          <span className="text-money text-lg text-muted-foreground line-through">
             {formatPrice(compareAt)}
           </span>
         )}

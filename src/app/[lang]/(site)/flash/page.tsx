@@ -92,7 +92,10 @@ export default async function FlashPage({
           </div>
         ) : (
           <div className="mt-8 rounded-2xl border border-dashed border-border py-10 sm:py-16 text-center">
-            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+            {/* accent-foreground, not accent: --accent on --accent-soft is
+                1.93:1 in light — below the 3:1 non-text minimum. The
+                foreground pair is tuned for this soft fill in both themes. */}
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent-foreground">
               <Zap className="h-7 w-7" />
             </span>
             <p className="mt-4 text-muted-foreground">{dict.flash.empty}</p>

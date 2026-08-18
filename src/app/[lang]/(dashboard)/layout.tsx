@@ -81,6 +81,14 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-dvh flex-col overflow-x-clip bg-surface-muted/30">
+      {/* First focusable element: skip the dashboard chrome (WCAG 2.4.1).
+          Logical `start-*` keeps it on the correct side in RTL and LTR. */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-[200] focus:rounded-xl focus:bg-primary focus:px-4 focus:py-2.5 focus:text-sm focus:font-bold focus:text-primary-foreground focus:shadow-lg"
+      >
+        {dict.common.skipToContent}
+      </a>
       <header className="sticky top-0 z-50 border-b border-border bg-background print:hidden">
         <Container className="flex h-16 items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-6">
@@ -148,7 +156,9 @@ export default async function DashboardLayout({
           </div>
         </Container>
       </header>
-      <main className="flex-1">{children}</main>
+      <main id="main-content" className="flex-1">
+        {children}
+      </main>
     </div>
   );
 }

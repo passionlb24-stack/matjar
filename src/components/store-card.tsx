@@ -17,6 +17,7 @@ import { categoryStyles, type FeaturedStore } from "@/lib/catalog";
 import { resolveCardFacts, type StoreFactSource } from "@/lib/discovery";
 import { categoryIcons } from "@/components/category-icon";
 import { ProBadge } from "@/components/pro-badge";
+import { hasPlan } from "@/lib/plan-tiers";
 import { FavoriteButton } from "@/components/favorite-button";
 
 const UUID_RE =
@@ -122,10 +123,15 @@ export function StoreCard({
 
       <div className="p-4 pt-7">
         <div className="flex items-center gap-2">
-          <h3 className="font-bold leading-tight transition-colors group-hover:text-primary">
+          {/* dir=auto: a Latin store name ending in a digit bidi-garbles
+              inside the RTL page ("Let's meat 2" → "2 Let's meat") without it. */}
+          <h3
+            dir="auto"
+            className="font-bold leading-tight transition-colors group-hover:text-primary"
+          >
             {store.name[lang]}
           </h3>
-          {store.plan === "pro" && <ProBadge />}
+          {hasPlan(store.plan, "pro") && <ProBadge />}
           {store.verified && (
             <span className="inline-flex items-center gap-0.5 rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-bold text-primary">
               <BadgeCheck className="h-3 w-3" />

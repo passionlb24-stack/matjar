@@ -37,8 +37,8 @@ export default async function SiteLayout({
 
   // Badge on the طلباتي tab: only what the customer must act on. Computed
   // here because the tab bar lives in this layout and every page renders it.
-  let activityCount = 0;
-  let unread = 0;
+  let activityCount = 0;
+  let unread = 0;
   let unreadMessages = 0;
   let dashboardHref: string | null = null;
   let suspended = false;
@@ -81,6 +81,16 @@ export default async function SiteLayout({
 
   return (
     <>
+      {/* First focusable element on every route: lets a keyboard user jump the
+          whole header instead of tabbing it on all 137 pages (WCAG 2.4.1).
+          Hidden until focused; positioned with logical `start-*` so it appears
+          on the correct side in RTL and LTR alike. */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-[200] focus:rounded-xl focus:bg-primary focus:px-4 focus:py-2.5 focus:text-sm focus:font-bold focus:text-primary-foreground focus:shadow-lg"
+      >
+        {dict.common.skipToContent}
+      </a>
       <SiteHeader
         lang={lang}
         dict={dict}
@@ -91,7 +101,9 @@ export default async function SiteLayout({
         dashboardHref={dashboardHref}
         lbpRate={lbpRate}
       />
-      <main className="flex-1">{children}</main>
+      <main id="main-content" className="flex-1">
+        {children}
+      </main>
       <SiteFooter lang={lang} dict={dict} />
       {/* Spacer so page content can scroll clear of the fixed mobile tab bar. */}
       <div

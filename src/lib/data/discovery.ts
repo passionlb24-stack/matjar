@@ -10,6 +10,7 @@ import {
   type Store,
 } from "@/lib/catalog";
 import { isOpenNow, parseHours } from "@/lib/hours";
+import type { StorePlan } from "@/lib/plan-tiers";
 import {
   DISCOVERY_PAGE_SIZE,
   EMPTY_COVERAGE,
@@ -46,7 +47,7 @@ type StoreRow = {
   description: string | null;
   area: string | null;
   region: string | null;
-  plan: "free" | "pro" | "business" | null;
+  plan: StorePlan | null;
   is_verified: boolean | null;
   commercial_reg_verified: boolean | null;
   featured_until: string | null;
@@ -73,7 +74,9 @@ function rowToStore(row: StoreRow): Store {
     // A store that has not configured hours is never shown as closed — missing
     // data must not send a customer away.
     isOpen: isOpenNow(parseHours(row.hours), new Date()) ?? true,
-    plan: row.plan === "pro" ? "pro" : "free",
+    // Pass the tier through as-is: collapsing anything-but-pro to "free" made
+    // Business stores (the top tier) render as unsubscribed on every card.
+    plan: row.plan ?? "free",
     verified: row.is_verified ?? false,
     registered: row.commercial_reg_verified ?? false,
     rating: ratingAvg > 0 ? ratingAvg : undefined,
