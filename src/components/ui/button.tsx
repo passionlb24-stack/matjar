@@ -30,7 +30,10 @@ const variants: Record<Variant, string> = {
     "border border-primary/30 text-primary hover:bg-primary-soft/60 hover:border-primary/60",
   ghost: "text-foreground hover:bg-surface-muted",
   danger:
-    "bg-red-600 text-white shadow-sm hover:bg-red-700 hover:shadow-md",
+    // Semantic tokens, not raw reds: --danger-strong is tuned per theme so the
+    // white label clears AA on the fill (6.47:1 light, 5.92:1 dark). The hover
+    // darkens like the old red-600→red-700 step without needing a second token.
+    "bg-danger-strong text-danger-strong-foreground shadow-sm hover:brightness-90 hover:shadow-md",
 };
 
 const sizes: Record<Size, string> = {

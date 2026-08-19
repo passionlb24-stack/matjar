@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createPublicClient } from "@/lib/supabase/public-client";
 import type { CategoryKey } from "@/lib/catalog";
+import type { StorePlan } from "@/lib/plan-tiers";
 
 // The public store view: the store row + its active catalogue + sections. This
 // is the heaviest, most-visited public read on the site (the store page is the
@@ -23,7 +24,7 @@ export type StoreView = {
   announcement?: string | null;
   /** Live on the platform — NOT opening hours. Read `hours` for open/closed. */
   isOpen: boolean;
-  plan?: "free" | "pro";
+  plan?: StorePlan;
   rating?: number;
   reviews?: number;
   logoUrl?: string | null;
@@ -200,7 +201,7 @@ async function fetchStoreView(
     description: (data.description as string | null) ?? null,
     announcement: (data.announcement as string | null) ?? null,
     isOpen: data.status === "active",
-    plan: (data.plan as "free" | "pro" | null) ?? "free",
+    plan: (data.plan as StorePlan | null) ?? "free",
     logoUrl: (data.logo_url as string | null) ?? null,
     coverUrl: (data.cover_url as string | null) ?? null,
     coverPosition: Number(data.cover_position ?? 50),

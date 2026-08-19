@@ -52,6 +52,7 @@ import {
   type MerchantReview,
 } from "@/components/os-dashboard/reviews-widget";
 import { dictSlice } from "@/lib/dict-slice";
+import type { StorePlan } from "@/lib/plan-tiers";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -133,7 +134,7 @@ export default async function StoreOsHomePage({
     accent_color: string | null;
     owner_id: string;
     short_code: string;
-    plan: "free" | "pro" | null;
+    plan: StorePlan | null;
     trial_ends_at: string | null;
     logo_url: string | null;
     cover_url: string | null;

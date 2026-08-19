@@ -111,16 +111,18 @@ export function ClassesManager({
   const form = (
     <div className="space-y-3 rounded-2xl border border-primary/30 bg-surface p-5">
       <div>
-        <label className={labelClass}>{t.name}</label>
+        <label className={labelClass} htmlFor="cls-name">{t.name}</label>
         <Input
+          id="cls-name"
           value={draft.name}
           onChange={(e) => setDraft({ ...draft, name: e.target.value })}
           className="mt-1"
         />
       </div>
       <div>
-        <label className={labelClass}>{`${t.name} (EN)`}</label>
+        <label className={labelClass} htmlFor="cls-name-en">{`${t.name} (EN)`}</label>
         <Input
+          id="cls-name-en"
           value={draft.name_en}
           onChange={(e) => setDraft({ ...draft, name_en: e.target.value })}
           className="mt-1"
@@ -128,8 +130,9 @@ export function ClassesManager({
       </div>
       <div className="flex gap-3">
         <div className="flex-1">
-          <label className={labelClass}>{t.day}</label>
+          <label className={labelClass} htmlFor="cls-day">{t.day}</label>
           <Select
+            id="cls-day"
             value={draft.day_of_week}
             onChange={(e) => setDraft({ ...draft, day_of_week: e.target.value })}
             className="mt-1"
@@ -142,8 +145,9 @@ export function ClassesManager({
           </Select>
         </div>
         <div className="flex-1">
-          <label className={labelClass}>{t.startTime}</label>
+          <label className={labelClass} htmlFor="cls-start">{t.startTime}</label>
           <Input
+            id="cls-start"
             type="time"
             value={draft.start_time}
             onChange={(e) => setDraft({ ...draft, start_time: e.target.value })}
@@ -153,8 +157,9 @@ export function ClassesManager({
       </div>
       <div className="flex gap-3">
         <div className="flex-1">
-          <label className={labelClass}>{t.capacity}</label>
+          <label className={labelClass} htmlFor="cls-capacity">{t.capacity}</label>
           <Input
+            id="cls-capacity"
             type="number"
             min={1}
             value={draft.capacity}
@@ -163,8 +168,9 @@ export function ClassesManager({
           />
         </div>
         <div className="flex-1">
-          <label className={labelClass}>{t.price}</label>
+          <label className={labelClass} htmlFor="cls-price">{t.price}</label>
           <Input
+            id="cls-price"
             type="number"
             value={draft.price}
             onChange={(e) => setDraft({ ...draft, price: e.target.value })}
@@ -173,8 +179,9 @@ export function ClassesManager({
         </div>
       </div>
       <div>
-        <label className={labelClass}>{t.description}</label>
+        <label className={labelClass} htmlFor="cls-description">{t.description}</label>
         <Textarea
+          id="cls-description"
           value={draft.description}
           onChange={(e) => setDraft({ ...draft, description: e.target.value })}
           className="mt-1"

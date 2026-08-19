@@ -5,6 +5,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
+import { supportWaLink } from "@/lib/support";
 
 export async function generateMetadata({
   params,
@@ -50,8 +51,12 @@ export default async function ContactPage({
               </span>
               <span className="font-semibold">hello@matjarlb.com</span>
             </a>
+            {/* This linked wa.me/9610000000 — a placeholder a customer could
+                actually tap, and reach nothing. The number itself is shown, not
+                just the word "WhatsApp": a person deciding whether to reach out
+                wants to see there is a real line on the other end. */}
             <a
-              href="https://wa.me/9610000000"
+              href={supportWaLink()}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4 shadow-xs transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
@@ -59,7 +64,12 @@ export default async function ContactPage({
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-success-soft text-success">
                 <MessageCircle className="h-5 w-5" />
               </span>
-              <span className="font-semibold">WhatsApp</span>
+              <span className="font-semibold">
+                WhatsApp{" "}
+                <span dir="ltr" className="tabular-nums text-muted-foreground">
+                  +961 71 793 516
+                </span>
+              </span>
             </a>
           </div>
         </div>

@@ -93,11 +93,11 @@ export default async function WishlistPage({
                       {p.stores?.name}
                     </p>
                     <p className="mt-2">
-                      <span className="font-bold text-primary">
+                      <span className="text-money font-bold text-primary">
                         {formatPrice(discount ?? price)}
                       </span>{" "}
                       {discount != null && (
-                        <span className="text-xs text-muted-foreground line-through">
+                        <span className="text-money text-xs text-muted-foreground line-through">
                           {formatPrice(price)}
                         </span>
                       )}

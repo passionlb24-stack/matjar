@@ -12,14 +12,36 @@ import type { LucideIcon } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
+import { Badge } from "@/components/ui/badge";
+import { FEATURES, OS_BAND, type OsBandId } from "@/lib/feature-availability";
 
-const ICONS: LucideIcon[] = [ClipboardList, CalendarCheck, Users, BarChart3, Boxes, Wrench];
+const ICONS: Record<OsBandId, LucideIcon> = {
+  whatsappOrders: ClipboardList,
+  bookings: CalendarCheck,
+  customers: Users,
+  reports: BarChart3,
+  inventory: Boxes,
+  tools: Wrench,
+};
 
-// Homepage "Business OS" band — the piece the audit found missing: it reframes
-// Matjar from a marketplace into an operating system for the merchant. Static
-// content (no counts, no fabricated data) surfaced high on the page.
+// Homepage / merchant-page "Business OS" band — the piece that reframes Matjar
+// from a marketplace into an operating system for the merchant.
+//
+// The six cards were free text carrying a `soon` flag nobody maintained, and
+// they said nothing about which plan any of it needed: "Inventory & POS" sat
+// beside "Orders" as though both arrived with the store, when inventory is a
+// Business screen and orders are on every plan. Each card now names its own
+// plan floor from the availability config, which is itself checked against the
+// guard on the screen it describes.
 export function BusinessOs({ lang, dict }: { lang: Locale; dict: Dictionary }) {
   const t = dict.businessOs;
+  const p = dict.pricing;
+
+  const planLabel = (id: OsBandId) => {
+    const floor = FEATURES[id].plan;
+    return floor === "free" ? t.included : p.tiers[floor].name;
+  };
+
   return (
     <section className="border-y border-border bg-surface-muted/30 py-10 sm:py-20">
       <Container>
@@ -30,22 +52,19 @@ export function BusinessOs({ lang, dict }: { lang: Locale; dict: Dictionary }) {
         </div>
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {t.cards.map((c, i) => {
-            const Icon = ICONS[i] ?? Wrench;
+          {OS_BAND.map((id) => {
+            const Icon = ICONS[id];
+            const free = FEATURES[id].plan === "free";
             return (
-              <div key={i} className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+              <div key={id} className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
                 <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary-soft text-primary">
                   <Icon className="h-5 w-5" />
                 </span>
-                <h3 className="mt-4 flex items-center gap-2 font-bold">
-                  {c.t}
-                  {c.soon && (
-                    <span className="rounded-full bg-surface-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
-                      {t.soon}
-                    </span>
-                  )}
+                <h3 className="mt-4 flex flex-wrap items-center gap-2 font-bold">
+                  {p.features[id]}
+                  <Badge variant={free ? "success" : "primary"}>{planLabel(id)}</Badge>
                 </h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{c.d}</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{t.desc[id]}</p>
               </div>
             );
           })}

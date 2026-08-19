@@ -88,7 +88,17 @@ export function StoreProductsSection({
 
   return (
     <>
-      <h2 className="mb-4 mt-10 text-xl font-bold">{sectionTitle}</h2>
+      {/* Anchor target: sections that sit above this one (the clinic summary's
+          "book an appointment") jump here rather than restating the engine. */}
+      {/* Below lg the site header and the store's section-tab rail are both
+          sticky, so the scroll margin must clear BOTH or a jump to this anchor
+          lands the heading underneath them. */}
+      <h2
+        id="offerings"
+        className="mb-4 mt-10 scroll-mt-[calc(var(--m-header-h)+var(--m-sectiontabs-h)+env(safe-area-inset-top))] text-xl font-bold lg:scroll-mt-20"
+      >
+        {sectionTitle}
+      </h2>
       {store.isReal ? (
         primary.length ? (
           surface === "appointment" ? (
@@ -238,7 +248,9 @@ export function StoreProductsSection({
                           )}
                         </span>
                         <div className="flex min-w-0 flex-1 flex-col p-4">
-                          <h3 className="truncate font-bold">{p.name}</h3>
+                          <h3 dir="auto" className="truncate font-bold">
+                            {p.name}
+                          </h3>
                           {attr && (
                             <p className="mt-1 truncate text-xs text-muted-foreground">
                               {attr}
@@ -246,7 +258,7 @@ export function StoreProductsSection({
                           )}
                           <p className="mt-2 text-sm text-muted-foreground">
                             {dict.store.from}{" "}
-                            <span className="font-bold text-foreground">
+                            <span className="text-money font-bold text-foreground">
                               {formatPrice(p.price)}
                             </span>
                           </p>
@@ -339,10 +351,12 @@ export function StoreProductsSection({
                 <Icon className="h-7 w-7 text-black/20" />
               </span>
               <div className="min-w-0 flex-1">
-                <h3 className="truncate font-bold">{p.name}</h3>
+                <h3 dir="auto" className="truncate font-bold">
+                  {p.name}
+                </h3>
                 <p className="mt-0.5 text-sm text-muted-foreground">
                   {dict.store.from}{" "}
-                  <span className="font-bold text-foreground">
+                  <span className="text-money font-bold text-foreground">
                     {formatPrice(p.price)}
                   </span>
                 </p>

@@ -1,11 +1,23 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Star, BadgeCheck, Navigation, Sparkles, Landmark } from "lucide-react";
+import {
+  Star,
+  BadgeCheck,
+  Navigation,
+  Sparkles,
+  Landmark,
+  Package,
+  Percent,
+  Users,
+  LayoutGrid,
+} from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { categoryStyles, type FeaturedStore } from "@/lib/catalog";
+import { resolveCardFacts, type StoreFactSource } from "@/lib/discovery";
 import { categoryIcons } from "@/components/category-icon";
 import { ProBadge } from "@/components/pro-badge";
+import { hasPlan } from "@/lib/plan-tiers";
 import { FavoriteButton } from "@/components/favorite-button";
 
 const UUID_RE =
@@ -15,15 +27,29 @@ export function StoreCard({
   store,
   lang,
   dict,
+  facts,
+  factsDict,
 }: {
   store: FeaturedStore;
   lang: Locale;
   dict: Pick<Dictionary, "catalog" | "explore" | "featured">;
+  /** Real, per-store counts. A card renders a decision field only when the
+   *  page has actually counted one — there is no placeholder and no estimate. */
+  facts?: StoreFactSource;
+  /** Supplied together with `facts`; keeping it separate means the pages that
+   *  show a plain card (favourites, rails) need no new dictionary slice. */
+  factsDict?: Dictionary["discovery"];
 }) {
   const Icon = categoryIcons[store.category];
   const cat = dict.catalog[store.category];
   const style = categoryStyles[store.category];
   const isReal = UUID_RE.test(store.id);
+  // The sector-aware part of the card. A clinic, a restaurant and a shop share
+  // this component and this markup; the registry decides which lines exist and
+  // what the catalogue is called, and the data decides whether each one has
+  // anything to say. Nothing here is invented — an absent field is absent.
+  const cardFacts =
+    facts && factsDict ? resolveCardFacts(store.category, facts) : [];
 
   return (
     <article className="group relative overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md">
@@ -97,10 +123,15 @@ export function StoreCard({
 
       <div className="p-4 pt-7">
         <div className="flex items-center gap-2">
-          <h3 className="font-bold leading-tight transition-colors group-hover:text-primary">
+          {/* dir=auto: a Latin store name ending in a digit bidi-garbles
+              inside the RTL page ("Let's meat 2" → "2 Let's meat") without it. */}
+          <h3
+            dir="auto"
+            className="font-bold leading-tight transition-colors group-hover:text-primary"
+          >
             {store.name[lang]}
           </h3>
-          {store.plan === "pro" && <ProBadge />}
+          {hasPlan(store.plan, "pro") && <ProBadge />}
           {store.verified && (
             <span className="inline-flex items-center gap-0.5 rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-bold text-primary">
               <BadgeCheck className="h-3 w-3" />
@@ -122,6 +153,43 @@ export function StoreCard({
             <Navigation className="h-3 w-3" />
             {store.distanceKm.toFixed(1)} {dict.explore.km}
           </span>
+        )}
+        {cardFacts.length > 0 && factsDict && (
+          <ul className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
+            {cardFacts.map((f) => {
+              if (f.key === "offers")
+                return (
+                  <li
+                    key="offers"
+                    className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 font-bold text-success"
+                  >
+                    <Percent aria-hidden className="h-3 w-3" />
+                    {factsDict.offersBadge}
+                  </li>
+                );
+              const Glyph =
+                f.key === "providers"
+                  ? Users
+                  : f.key === "sections"
+                    ? LayoutGrid
+                    : Package;
+              const word =
+                f.key === "providers"
+                  ? factsDict.teamLabel
+                  : f.key === "sections"
+                    ? factsDict.sectionsLabel
+                    : factsDict.nouns[f.noun];
+              return (
+                <li key={f.key} className="inline-flex items-center gap-1">
+                  <Glyph aria-hidden className="h-3.5 w-3.5" />
+                  <span className="font-semibold tabular-nums text-foreground">
+                    {f.count}
+                  </span>
+                  {word}
+                </li>
+              );
+            })}
+          </ul>
         )}
         {store.rating != null && (
           <div className="mt-3 flex items-center gap-1.5 text-sm">

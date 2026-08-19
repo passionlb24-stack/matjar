@@ -64,10 +64,28 @@ describe("profile section order", () => {
     expect(before("food", "catalog", "reviews")).toBe(true);
   });
 
-  it("leaves an unconfigured sector exactly as it rendered before", () => {
-    // retail and pharmacy have no bespoke composition on purpose.
-    expect(resolveProfileOrder("retail")).toEqual(DEFAULT_PROFILE_ORDER);
-    expect(resolveProfileOrder("pharmacy")).toEqual(DEFAULT_PROFILE_ORDER);
+  it("leads the goods sectors with what they sell", () => {
+    // These three used to have no composition, so they inherited a default in
+    // which the catalogue sat eighteenth — below branches, delivery, the map,
+    // the hours and nine sections that render nothing for a shop. The same
+    // defect as the clinic's, and it lasted longer only because retail was the
+    // fallback everything else was compared against.
+    for (const sector of ["retail", "pharmacy", "farm"] as const) {
+      const order = resolveProfileOrder(sector);
+      // Straight after the identity block — nothing between the name and the goods.
+      expect(order.indexOf("catalog"), `${sector} buries its catalogue`).toBe(3);
+      expect(order.indexOf("catalog")).toBeLessThan(order.indexOf("location"));
+      expect(order.indexOf("catalog")).toBeLessThan(order.indexOf("branches"));
+    }
+  });
+
+  it("still falls back to the default for any sector left unconfigured", () => {
+    // The fallback is the safety net, not a sector's design. Asserted on the
+    // resolver itself so it keeps holding once every sector has a composition.
+    const unknown = "not_a_sector" as unknown as Parameters<
+      typeof resolveProfileOrder
+    >[0];
+    expect(resolveProfileOrder(unknown)).toEqual(DEFAULT_PROFILE_ORDER);
   });
 });
 

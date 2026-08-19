@@ -1,6 +1,8 @@
 // Shared catalog metadata for the 6 business modules, plus demo stores and
 // products used across the public pages until real data is wired from Supabase.
 
+import type { StorePlan } from "@/lib/plan-tiers";
+
 export const categoryKeys = [
   "food",
   "retail",
@@ -117,7 +119,9 @@ export type Store = {
   rating?: number;
   reviews?: number;
   isOpen: boolean;
-  plan?: "free" | "pro";
+  /** Subscription tier in force. Compare with hasPlan(), never `=== "pro"` —
+   *  Business ranks ABOVE Pro and must not read as unsubscribed. */
+  plan?: StorePlan;
   verified?: boolean;
   registered?: boolean;
   featured?: boolean;

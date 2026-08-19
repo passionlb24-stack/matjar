@@ -157,11 +157,16 @@ export function ReceiveStockForm({
       <div className="mt-4 space-y-2">
         {lines.map((l, i) => (
           <div key={i} className="flex flex-wrap items-end gap-2">
+            {/* Ids carry the row index — these fields repeat once per line. */}
             <div className="min-w-40 flex-1">
-              <label className="text-xs font-semibold text-muted-foreground">
+              <label
+                className="text-xs font-semibold text-muted-foreground"
+                htmlFor={`rs-product-${i}`}
+              >
                 {labels.product}
               </label>
               <select
+                id={`rs-product-${i}`}
                 value={l.product_id}
                 onChange={(e) => setLine(i, { product_id: e.target.value })}
                 className={`${fieldClass} mt-1`}
@@ -175,10 +180,14 @@ export function ReceiveStockForm({
               </select>
             </div>
             <div className="w-24">
-              <label className="text-xs font-semibold text-muted-foreground">
+              <label
+                className="text-xs font-semibold text-muted-foreground"
+                htmlFor={`rs-qty-${i}`}
+              >
                 {labels.qty}
               </label>
               <input
+                id={`rs-qty-${i}`}
                 type="number"
                 min="1"
                 step="1"
@@ -188,10 +197,14 @@ export function ReceiveStockForm({
               />
             </div>
             <div className="w-24">
-              <label className="text-xs font-semibold text-muted-foreground">
+              <label
+                className="text-xs font-semibold text-muted-foreground"
+                htmlFor={`rs-pack-${i}`}
+              >
                 {labels.pack}
               </label>
               <input
+                id={`rs-pack-${i}`}
                 type="number"
                 min="1"
                 step="1"
@@ -201,10 +214,14 @@ export function ReceiveStockForm({
               />
             </div>
             <div className="w-28">
-              <label className="text-xs font-semibold text-muted-foreground">
+              <label
+                className="text-xs font-semibold text-muted-foreground"
+                htmlFor={`rs-unit-cost-${i}`}
+              >
                 {labels.unitCost}
               </label>
               <input
+                id={`rs-unit-cost-${i}`}
                 type="number"
                 min="0"
                 step="0.01"

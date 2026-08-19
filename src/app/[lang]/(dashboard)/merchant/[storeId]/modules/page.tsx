@@ -6,6 +6,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import type { CategoryKey } from "@/lib/catalog";
 import { MODULE_CATALOG } from "@/lib/modules-catalog";
+import { hasPlan, type StorePlan } from "@/lib/plan-tiers";
 import { sectorDefaultModules } from "@/lib/sectors";
 import { Container } from "@/components/ui/container";
 import { ModulesManager, type ModuleItem } from "@/components/modules-manager";
@@ -42,14 +43,16 @@ export default async function StoreModulesPage({
   const s = store as unknown as {
     name: string;
     owner_id: string;
-    plan: "free" | "pro" | null;
+    plan: StorePlan | null;
     business_types: { slug: string } | null;
   };
   // Module management is an owner concern.
   if (s.owner_id !== user.id) redirect(`/${lang}/merchant/${storeId}`);
 
   const category = (s.business_types?.slug as CategoryKey) ?? "retail";
-  const isPro = s.plan === "pro";
+  // Business ranks above Pro — an exact "pro" test locked the top tier out of
+  // its own Pro modules.
+  const isPro = hasPlan(s.plan, "pro");
 
   const { data: overridesData } = await supabase
     .from("store_modules")

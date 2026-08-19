@@ -102,14 +102,18 @@ export function SiteHeader({
             >
               {dict.common.forMerchants}
             </NavLink>
-            <NavLink
-              href={`/${lang}/map`}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground aria-[current=page]:bg-surface-muted aria-[current=page]:text-foreground"
-            >
-              {dict.map.title}
-            </NavLink>
+            {/* The map link left this row on purpose. The row was 94px over its
+                container at every desktop width, something had to go, and the map
+                is the least-earned tenant: 5 of 13 stores have a pin, and the
+                footer keeps the link. It returns to the header when the map has
+                a marketplace behind it. */}
           </nav>
         </div>
+        {/* This row used to need 1182px inside 1088px of container — measured in
+            a live browser as 6px of horizontal page scroll at 1280, with the CTA
+            at left:-6 in RTL. min-w-0 on this group changed nothing (tried,
+            measured, reverted): the row was simply over-tenanted. Dropping the
+            map link (see the nav above) is what paid the debt. */}
         <div className="flex shrink-0 items-center gap-1 sm:gap-3">
           {/* Bells stay visible for signed-in users even on a phone. */}
           {user && (

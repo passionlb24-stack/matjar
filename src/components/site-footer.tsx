@@ -65,7 +65,10 @@ export function SiteFooter({ lang, dict }: { lang: Locale; dict: Dictionary }) {
             the app block's top edge — exactly under the tagline. */}
         <div className="grid gap-10 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr] md:grid-rows-[auto_1fr] md:gap-y-6">
           <div>
-            <Link href={`/${lang}`} className="flex items-center gap-2">
+            {/* Measured at 40px in a live browser: the only interactive target on
+                the home page that misses the 44px the rest of the codebase holds
+                to, and the only one with no hit-area pseudo behind it. */}
+            <Link href={`/${lang}`} className="flex min-h-11 items-center gap-2">
               <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-hover text-primary-foreground shadow-md">
                 <Store className="h-5 w-5" />
               </span>

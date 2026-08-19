@@ -24,6 +24,10 @@
 
   /* Lines */
   --border: #e8e8e2;
+  /* Form-control boundaries only (Field inputs/selects/textareas). Hairline
+     dividers stay on --border; a control's border is its sole boundary cue and
+     must clear 3:1 (WCAG 1.4.11): this is 3.30 on surface, 3.18 on background. */
+  --border-strong: #8a8f88;
   --ring: #1556c2;
 
   /* Semantic status colors (badges, stats, progress, toasts). Each has a soft
@@ -46,6 +50,24 @@
   --danger-strong-foreground: #ffffff;
   --info: #0369a1; /* darkened for AA text on --info-soft (5.2:1) */
   --info-soft: #e3f2fb;
+
+  /* ===== Mobile app metrics =====
+     Named once so sticky bars, sheets and page gutters stop guessing at each
+     other. --m-tabbar-h is the visible bar only; the safe-area inset is added
+     on top by the nav itself, so anything sitting above it must use both.
+     These live in :root, not in @theme inline where they used to sit: an
+     `inline` theme block is a source of values for generated utilities, not a
+     runtime declaration, so `var(--m-touch)` inside an arbitrary class had
+     nothing to resolve against. That, plus --m-header-h claiming 3.5rem while
+     site-header.tsx renders h-16, is why none of these was safe to use. */
+  --m-page-x: 1.25rem; /* = Container's mobile gutter (px-5) */
+  --m-header-h: 4rem; /* = site-header's row (h-16); the header adds
+                         env(safe-area-inset-top) ABOVE this, so anything that
+                         sticks to it must add the inset itself */
+  --m-tabbar-h: 3.5rem; /* = bottom-nav's row (visible bar only) */
+  --m-sectiontabs-h: 3rem; /* = the store page's section-tab rail */
+  --m-sticky-gap: 0.75rem;
+  --m-touch: 2.75rem; /* 44px — the minimum touch target below lg */
 }
 
 @theme inline {
@@ -62,6 +84,7 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-soft: var(--accent-soft);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-ring: var(--ring);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
@@ -93,15 +116,6 @@
   /* Signature easing — a gentle overshoot for entrances/hovers. */
   --ease-out-back: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* ===== Mobile app metrics =====
-     Named once so sticky bars, sheets and page gutters stop guessing at each
-     other. --m-tabbar-h is the visible bar only; the safe-area inset is added
-     on top by the nav itself, so anything sitting above it must use both. */
-  --m-page-x: 1rem;
-  --m-header-h: 3.5rem;
-  --m-tabbar-h: 3.5rem;
-  --m-sticky-gap: 0.75rem;
-  --m-touch: 2.75rem;
 }
 
 /* Entrance motion. Add `data-animate` to a container and its direct children
@@ -156,9 +170,13 @@
     --primary-foreground: #0b1220;
     --primary-soft: #16233b;
     --accent: #fbbf24;
-    --accent-foreground: #0b1220;
+    /* See the [data-theme=dark] block for why this is light, not dark. */
+    --accent-foreground: #fbbf24;
     --accent-soft: #2b2410;
     --border: #2a3038;
+    /* See the light block: form-control boundaries only. 3.77 on surface,
+       4.12 on background. */
+    --border-strong: #6e7681;
     --ring: #4c8dff;
     --success: #3fb950;
     --success-soft: #12261a;
@@ -188,9 +206,17 @@
   --primary-foreground: #0b1220;
   --primary-soft: #16233b;
   --accent: #fbbf24;
-  --accent-foreground: #0b1220;
+  /* Light amber, not near-black. bg-accent (solid) has zero call sites — every
+     accent-foreground in the codebase sits on accent-soft, a dark amber in this
+     theme, where #0b1220 measured 1.21:1 in a live browser: the Pro badge, the
+     activity 'needs you' pill and the flash countdown were all illegible in
+     dark. Same shape as --warning on --warning-soft two tokens down. */
+  --accent-foreground: #fbbf24;
   --accent-soft: #2b2410;
   --border: #2a3038;
+  /* See the light block: form-control boundaries only. 3.77 on surface,
+     4.12 on background. */
+  --border-strong: #6e7681;
   --ring: #4c8dff;
   --success: #3fb950;
   --success-soft: #12261a;

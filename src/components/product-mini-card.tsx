@@ -55,22 +55,29 @@ export function ProductMiniCard({
         )}
       </div>
       <div className="flex flex-1 flex-col p-3">
-        <h3 className="line-clamp-2 text-sm font-bold leading-tight transition-colors group-hover:text-primary">
+        <h3
+          dir="auto"
+          className="line-clamp-2 text-sm font-bold leading-tight transition-colors group-hover:text-primary"
+        >
           {displayName}
         </h3>
         {storeName ? (
-          <p className="mt-0.5 text-xs text-muted-foreground">{storeName}</p>
+          <p dir="auto" className="mt-0.5 text-xs text-muted-foreground">
+            {storeName}
+          </p>
         ) : null}
         <p className="mt-1.5">
-          <span className="text-base font-bold text-primary">{formatPrice(shown)}</span>{" "}
+          <span className="text-money text-base font-bold text-primary">
+            {formatPrice(shown)}
+          </span>{" "}
           {discountPrice != null && (
-            <span className="text-xs text-muted-foreground line-through">
+            <span className="text-money text-xs text-muted-foreground line-through">
               {formatPrice(price)}
             </span>
           )}
         </p>
         {lbpRate > 0 && (
-          <p className="mt-0.5 text-[11px] text-muted-foreground">
+          <p className="text-money mt-0.5 text-[11px] text-muted-foreground">
             {formatLbp(shown, lbpRate, lang)}
           </p>
         )}

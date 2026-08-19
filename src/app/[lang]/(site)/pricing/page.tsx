@@ -8,7 +8,9 @@ import { getUsdLbpRate } from "@/lib/data/settings";
 import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
 import { PricingPlans } from "@/components/pricing-plans";
-import { PLAN_ORDER, PLAN_TIERS, promoState } from "@/lib/plan-tiers";
+import { FeatureRoadmap } from "@/components/feature-roadmap";
+import { PLAN_ORDER, PLAN_TIERS, promoState, type PlanKey } from "@/lib/plan-tiers";
+import { PRICING_MATRIX, matrixCell, type FeatureId } from "@/lib/feature-availability";
 
 export async function generateMetadata({
   params,
@@ -59,14 +61,30 @@ export default async function PricingPage({
   // request — the promo flips off automatically after PROMO_END.
   const { active: promoActive, daysLeft } = promoState(new Date());
   const t = dict.pricing;
-  const cell = (v: string) =>
-    v === "✓" ? (
-      <Check className="mx-auto h-4 w-4 text-primary" />
-    ) : v === "—" ? (
-      <Minus className="mx-auto h-4 w-4 text-muted-foreground/40" />
-    ) : (
-      <span className="font-semibold">{v}</span>
+
+  // Every cell is computed, never typed in. Ticks come from the plan floor the
+  // merchant screens actually enforce (feature-availability.ts checks each floor
+  // against OS_MODULE_META.minPlan), and the numbers come straight out of
+  // PLAN_TIERS — so the table cannot contradict the price cards above it or the
+  // lock a merchant meets in their dashboard.
+  const cell = (id: FeatureId, plan: PlanKey) => {
+    const c = matrixCell(id, plan);
+    if (c.kind === "included")
+      return <Check className="mx-auto h-4 w-4 text-primary" />;
+    if (c.kind === "excluded")
+      return <Minus className="mx-auto h-4 w-4 text-muted-foreground/40" />;
+    if (c.kind === "count")
+      return (
+        <span className="font-semibold">
+          {c.value === null ? t.unlimited : c.value}
+        </span>
+      );
+    return (
+      <span className="font-semibold">
+        {c.token === "zero" ? "0%" : t.support[c.token]}
+      </span>
     );
+  };
 
   return (
     <div className="py-10 sm:py-16">
@@ -95,6 +113,9 @@ export default async function PricingPage({
           <h2 className="text-center text-2xl font-extrabold tracking-tight">
             {t.matrixTitle}
           </h2>
+          <p className="mx-auto mt-3 max-w-xl text-center text-sm text-muted-foreground">
+            {t.matrixSub}
+          </p>
           <div className="mt-6 overflow-x-auto rounded-2xl border border-border">
             <table className="w-full min-w-[560px] text-sm">
               <thead>
@@ -113,17 +134,26 @@ export default async function PricingPage({
                 </tr>
               </thead>
               <tbody>
-                {t.matrix.map((r, i) => (
-                  <tr key={i} className="border-t border-border">
-                    <td className="p-3 font-medium">{r.f}</td>
-                    <td className="p-3 text-center">{cell(r.basic)}</td>
-                    <td className="p-3 text-center">{cell(r.pro)}</td>
-                    <td className="p-3 text-center">{cell(r.business)}</td>
+                {PRICING_MATRIX.map((id) => (
+                  <tr key={id} className="border-t border-border">
+                    <td className="p-3 font-medium">{t.features[id]}</td>
+                    {PLAN_ORDER.map((k) => (
+                      <td key={k} className="p-3 text-center">
+                        {cell(id, k)}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* What we do not have. Deliberately between the comparison table and
+            the FAQ: a merchant who has just read what a plan buys should meet
+            the gaps before they are asked to decide. */}
+        <div className="mx-auto mt-12 max-w-4xl">
+          <FeatureRoadmap dict={dict} />
         </div>
 
         {/* FAQ */}

@@ -221,8 +221,9 @@ export function DoctorManager({
         label={t.photo}
       />
       <div>
-        <label className={labelClass}>{t.name}</label>
+        <label className={labelClass} htmlFor="doctor-name">{t.name}</label>
         <input
+          id="doctor-name"
           value={draft.name}
           onChange={(e) => setDraft({ ...draft, name: e.target.value })}
           placeholder={t.namePlaceholder}
@@ -230,8 +231,9 @@ export function DoctorManager({
         />
       </div>
       <div>
-        <label className={labelClass}>{t.specialty}</label>
+        <label className={labelClass} htmlFor="doctor-specialty">{t.specialty}</label>
         <input
+          id="doctor-specialty"
           value={draft.specialty}
           onChange={(e) => setDraft({ ...draft, specialty: e.target.value })}
           placeholder={t.specialtyPlaceholder}
@@ -239,8 +241,9 @@ export function DoctorManager({
         />
       </div>
       <div>
-        <label className={labelClass}>{t.bio}</label>
+        <label className={labelClass} htmlFor="doctor-bio">{t.bio}</label>
         <textarea
+          id="doctor-bio"
           value={draft.bio}
           onChange={(e) => setDraft({ ...draft, bio: e.target.value })}
           rows={2}

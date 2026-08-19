@@ -135,8 +135,9 @@ export function CraftWorksManager({
           dict={dict}
         />
         <div>
-          <label className="text-sm font-semibold">{labels.caption}</label>
+          <label className="text-sm font-semibold" htmlFor="craftwork-caption">{labels.caption}</label>
           <input
+            id="craftwork-caption"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder={labels.captionPlaceholder}

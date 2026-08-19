@@ -134,7 +134,7 @@ function ReviewRow({
             />
           ))}
         </span>
-        <span className="min-w-0 truncate text-sm font-bold">
+        <span dir="auto" className="min-w-0 truncate text-sm font-bold">
           {review.customer_name ?? "—"}
         </span>
         <time

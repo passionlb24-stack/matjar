@@ -63,7 +63,10 @@ export function StoreReviews({
               className="rounded-2xl border border-border bg-surface p-5"
             >
               <div className="flex items-center justify-between gap-3">
-                <span className="font-bold">{r.customer_name ?? "—"}</span>
+                {/* dir=auto: customer names may be Latin inside the RTL page. */}
+                <span dir="auto" className="font-bold">
+                  {r.customer_name ?? "—"}
+                </span>
                 <span className="flex items-center gap-0.5">
                   {[1, 2, 3, 4, 5].map((n) => (
                     <Star

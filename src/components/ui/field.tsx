@@ -1,4 +1,5 @@
 import { ChevronDown } from "lucide-react";
+import { Children, cloneElement, isValidElement } from "react";
 import type { ComponentProps, ReactNode } from "react";
 
 // The ONE definition of form controls. Replaces the ad-hoc `fieldClass` string
@@ -10,12 +11,15 @@ import type { ComponentProps, ReactNode } from "react";
 // Exported so existing forms can adopt by deleting their local constant first,
 // then migrate to the components at their own pace.
 export const fieldClass =
-  "h-11 w-full rounded-xl border border-border bg-surface px-4 text-sm text-foreground " +
+  // border-strong, not border: a control's border is its only boundary cue and
+  // must clear 3:1 against the surrounding surface (WCAG 1.4.11). Decorative
+  // dividers keep the quieter --border.
+  "h-11 w-full rounded-xl border border-border-strong bg-surface px-4 text-sm text-foreground " +
   "outline-none transition-[border-color,box-shadow] duration-150 " +
   "placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 " +
   "disabled:cursor-not-allowed disabled:bg-surface-muted disabled:opacity-60";
 
-const errorClass = "border-red-500 focus:border-red-500 focus:ring-red-500/15";
+const errorClass = "border-danger focus:border-danger focus:ring-danger/15";
 
 /** Label + control + hint/error wrapper. Pass the control as children. */
 export function Field({
@@ -36,22 +40,35 @@ export function Field({
   className?: string;
   children: ReactNode;
 }) {
+  // The asterisk is aria-hidden, so the requirement must reach AT through the
+  // control itself: mirror `required`/`aria-required` onto the child control.
+  // Cloning the single element child works for <Input>/<Select>/<Textarea> and
+  // raw controls alike (their prop spread forwards to the native element);
+  // anything more complex keeps its own props untouched.
+  const content =
+    required && Children.count(children) === 1 && isValidElement(children)
+      ? cloneElement(children as React.ReactElement<Record<string, unknown>>, {
+          required: true,
+          "aria-required": true,
+          ...(children.props as Record<string, unknown>),
+        })
+      : children;
   return (
     <div className={`space-y-1.5 ${className}`}>
       {label && (
         <label htmlFor={htmlFor} className="block text-sm font-semibold">
           {label}
           {required && (
-            <span className="text-red-600" aria-hidden="true">
+            <span className="text-danger" aria-hidden="true">
               {" "}
               *
             </span>
           )}
         </label>
       )}
-      {children}
+      {content}
       {error ? (
-        <p className="text-xs font-medium text-red-600" role="alert">
+        <p className="text-xs font-medium text-danger" role="alert">
           {error}
         </p>
       ) : hint ? (

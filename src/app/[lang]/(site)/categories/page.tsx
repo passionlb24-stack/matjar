@@ -5,6 +5,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
 import { Container } from "@/components/ui/container";
 import { CategoryGrid } from "@/components/category-grid";
+import { getDiscoveryCoverage } from "@/lib/data/discovery";
 
 export async function generateMetadata({
   params,
@@ -28,7 +29,10 @@ export default async function CategoriesPage({
 }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
-  const dict = await getDictionary(lang);
+  const [dict, coverage] = await Promise.all([
+    getDictionary(lang),
+    getDiscoveryCoverage(),
+  ]);
 
   return (
     <div className="pt-8">
@@ -37,7 +41,11 @@ export default async function CategoriesPage({
           {lang === "ar" ? "التصنيفات" : "Categories"}
         </h1>
       </Container>
-      <CategoryGrid lang={lang} dict={dict} />
+      <CategoryGrid
+        lang={lang}
+        dict={dict}
+        counts={{ byGroup: coverage.byGroup, bySector: coverage.bySector }}
+      />
     </div>
   );
 }
