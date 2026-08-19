@@ -1,3 +1,4 @@
+import { createElement } from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -101,9 +102,14 @@ export default async function TradePage({
       )
     : [];
 
-  const TradeIcon = tradeRow
-    ? tradeIcon(tradeRow.slug, tradeRow.group_slug)
-    : Wrench;
+  // Resolve to an element up front. Binding the looked-up component to a
+  // capitalised const inside render trips react/no-unstable-components; the
+  // lookup is a plain function, so build the node with createElement and render
+  // the node, not the type.
+  const tradeIconNode = createElement(
+    tradeRow ? tradeIcon(tradeRow.slug, tradeRow.group_slug) : Wrench,
+    { "aria-hidden": true, className: "h-6 w-6" },
+  );
 
   // The WhatsApp fallback carries the trade (and area, when filtered) so the
   // support line knows what is being asked for without a single extra question.
@@ -139,7 +145,7 @@ export default async function TradePage({
 
         <div className="mt-2 flex items-center gap-3">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary-soft text-primary">
-            <TradeIcon aria-hidden className="h-6 w-6" />
+            {tradeIconNode}
           </span>
           <div className="min-w-0">
             <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
