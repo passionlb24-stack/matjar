@@ -8,6 +8,7 @@ import {
   type GuideLevel,
   type GuideBlock,
 } from "@/content/academy";
+import { FETCH_BOUNDS, warnIfTruncated } from "./bounds";
 
 type Row = {
   slug: string;
@@ -48,8 +49,10 @@ const fetchAcademyGuides = unstable_cache(
         "slug, category, level, title, title_en, excerpt, read_min, emoji, blocks",
       )
       .eq("published", true)
-      .order("sort_order", { ascending: true });
+      .order("sort_order", { ascending: true })
+      .limit(FETCH_BOUNDS.referenceRows);
     if (error || !data) return [];
+    warnIfTruncated(data, FETCH_BOUNDS.referenceRows, "academy_guides");
     return (data as unknown as Row[]).map(toGuide);
   },
   ["academy-guides"],

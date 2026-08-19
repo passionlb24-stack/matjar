@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { CategoryKey } from "@/lib/catalog";
 import type { OfferingKind } from "@/lib/offering";
+import { FETCH_BOUNDS, warnIfTruncated } from "./bounds";
 
 /** A team member who can deliver a service (the `doctors` roster). */
 export type ServiceProvider = {
@@ -59,7 +60,10 @@ export async function getBoughtTogether(
     .in("id", ids)
     .eq("status", "active")
     .eq("is_available", true)
-    .is("deleted_at", null);
+    .is("deleted_at", null)
+    // Already bounded upstream by the RPC's p_limit; explicit so the ceiling
+    // is stated at the query rather than inferred from another file.
+    .limit(FETCH_BOUNDS.productVariants);
   const mapped = mapRows(
     (data ?? []) as unknown as Parameters<typeof mapRows>[0],
   );
@@ -150,13 +154,17 @@ export async function getServiceProviders(
       .from("doctors")
       .select("id, name, specialty, photo_url")
       .eq("store_id", storeId)
-      .order("sort_order", { ascending: true }),
+      .order("sort_order", { ascending: true })
+      .limit(FETCH_BOUNDS.allProviders),
     supabase
       .from("service_providers")
       .select("doctor_id")
       .eq("store_id", storeId)
-      .eq("product_id", productId),
+      .eq("product_id", productId)
+      .limit(FETCH_BOUNDS.allProviders),
   ]);
+  warnIfTruncated(team, FETCH_BOUNDS.allProviders, `doctors (store ${storeId})`);
+  warnIfTruncated(links, FETCH_BOUNDS.allProviders, `service_providers (store ${storeId})`);
   const roster = (team ?? []) as unknown as ServiceProvider[];
   const assigned = new Set(
     ((links ?? []) as { doctor_id: string }[]).map((r) => r.doctor_id),

@@ -8,12 +8,13 @@ import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { IssueInvoiceButton } from "@/components/issue-invoice-button";
 import { PrintInvoiceButton } from "@/components/print-invoice-button";
+import { formatUsd } from "@/lib/currency";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function money(n: number) {
-  return `$${Number(Number(n).toFixed(2)).toLocaleString("en-US")}`;
+  return formatUsd(n, { cents: true });
 }
 
 // Print-friendly order invoice for the merchant (print → Save as PDF).

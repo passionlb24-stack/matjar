@@ -2,12 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { ImageIcon } from "lucide-react";
 import type { Locale } from "@/i18n/config";
-import { formatLbp } from "@/lib/currency";
+import { formatUsd, formatLbp } from "@/lib/currency";
 import { localized } from "@/lib/i18n-field";
-
-function formatPrice(price: number) {
-  return price >= 1000 ? `$${Number(price).toLocaleString("en-US")}` : `$${price}`;
-}
 
 // Compact product card used in discovery rows (related products, etc.).
 export function ProductMiniCard({
@@ -68,11 +64,11 @@ export function ProductMiniCard({
         ) : null}
         <p className="mt-1.5">
           <span className="text-money text-base font-bold text-primary">
-            {formatPrice(shown)}
+            {formatUsd(shown)}
           </span>{" "}
           {discountPrice != null && (
             <span className="text-money text-xs text-muted-foreground line-through">
-              {formatPrice(price)}
+              {formatUsd(price)}
             </span>
           )}
         </p>

@@ -12,6 +12,7 @@ import {
 } from "@/lib/catalog";
 import { isOpenNow, parseHours } from "@/lib/hours";
 import type { StorePlan } from "@/lib/plan-tiers";
+import { FETCH_BOUNDS, warnIfTruncated } from "./bounds";
 
 // Maps a database store row into the shape the StoreCard expects.
 function rowToStore(row: {
@@ -111,7 +112,9 @@ async function attachLocations(list: Store[]): Promise<void> {
     .from("store_locations")
     .select("id, store_id, name, area, lat, lng")
     .in("store_id", ids)
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .limit(FETCH_BOUNDS.storeLocations);
+  warnIfTruncated(locs, FETCH_BOUNDS.storeLocations, "store_locations (store listing)");
   const byStore = new Map<string, NonNullable<Store["locations"]>>();
   (
     (locs ?? []) as {
@@ -149,7 +152,11 @@ async function markFavorites(list: Store[]): Promise<Store[]> {
   const { data: favs } = await supabase
     .from("follows")
     .select("store_id")
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .limit(FETCH_BOUNDS.follows);
+  // Truncation shows as a saved store that renders un-saved — a heart that
+  // silently forgets, which reads as a bug in following, not in fetching.
+  warnIfTruncated(favs, FETCH_BOUNDS.follows, `follows (user ${user.id})`);
   const ids = new Set(
     ((favs ?? []) as { store_id: string }[]).map((f) => f.store_id),
   );

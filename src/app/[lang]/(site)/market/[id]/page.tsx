@@ -26,13 +26,10 @@ import { ListingFavoriteButton } from "@/components/listing-favorite-button";
 import { ListingReport } from "@/components/listing-report";
 import { ListingViewTracker } from "@/components/listing-view-tracker";
 import { BackButton } from "@/components/back-button";
+import { formatUsd } from "@/lib/currency";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function formatPrice(price: number) {
-  return price >= 1000 ? `$${Number(price).toLocaleString("en-US")}` : `$${price}`;
-}
 
 export async function generateMetadata({
   params,
@@ -136,7 +133,7 @@ export default async function ListingPage({
               <p
                 className={`mt-3 text-2xl font-extrabold ${listing.status === "active" ? "text-primary" : "text-muted-foreground line-through"}`}
               >
-                {formatPrice(listing.price)}
+                {formatUsd(listing.price)}
               </p>
             )}
 

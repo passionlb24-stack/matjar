@@ -9,6 +9,7 @@ import { OrderStatusControl } from "@/components/order-status-control";
 import { OrderPayments, type OrderPayment } from "@/components/order-payments";
 import { OrderNoteEditor } from "@/components/order-note-editor";
 import { OrderAssignTags } from "@/components/order-assign-tags";
+import { formatUsd } from "@/lib/currency";
 import {
   OrderDispatch,
   type DispatchCourier,
@@ -66,12 +67,6 @@ function chip(active: boolean) {
   return active
     ? "bg-primary text-primary-foreground border-primary"
     : "bg-surface text-foreground border-border hover:border-primary/40";
-}
-
-function formatPrice(price: number) {
-  return price >= 1000
-    ? `$${Number(price).toLocaleString("en-US")}`
-    : `$${price}`;
 }
 
 export function OrdersFilter({
@@ -209,7 +204,7 @@ export function OrdersFilter({
                           {item.quantity}× {item.name}
                         </span>
                         <span className="text-muted-foreground">
-                          {formatPrice(item.unit_price * item.quantity)}
+                          {formatUsd(item.unit_price * item.quantity)}
                         </span>
                       </div>
                       {item.note && (
@@ -231,7 +226,7 @@ export function OrdersFilter({
                 )}
                 <div className="mt-3 flex justify-between border-t border-border pt-3 font-bold">
                   <span>{dict.orders.total}</span>
-                  <span>{formatPrice(order.total)}</span>
+                  <span>{formatUsd(order.total)}</span>
                 </div>
                 <div className="mt-3 space-y-1 border-t border-border pt-3 text-sm text-muted-foreground">
                   <p>

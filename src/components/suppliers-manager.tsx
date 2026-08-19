@@ -15,6 +15,7 @@ import { waLink } from "@/lib/phone";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { formatUsd } from "@/lib/currency";
 
 export type SupplierRow = {
   id: string;
@@ -33,7 +34,7 @@ export type SupplierTx = {
 };
 
 function fmt(n: number) {
-  return `$${Number(n.toFixed(2)).toLocaleString("en-US")}`;
+  return formatUsd(n, { cents: true });
 }
 
 function waHref(phone: string) {

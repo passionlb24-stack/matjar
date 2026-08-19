@@ -30,7 +30,6 @@ import { getUsdLbpRate } from "@/lib/data/settings";
 import { formatUsd } from "@/lib/currency";
 import { categoryIcons } from "@/components/category-icon";
 import { Container } from "@/components/ui/container";
-import { ServiceRequestForm } from "@/components/service-request-form";
 import { StoreReviews, type Review } from "@/components/store-reviews";
 import {
   StoreVerifications,
@@ -38,19 +37,12 @@ import {
 } from "@/components/store-verifications";
 import { StoreMapClient } from "@/components/store-map-client";
 import type { MapStore } from "@/components/store-map";
-import {
-  TimeslotBooking,
-  type Resource,
-} from "@/components/timeslot-booking";
+import type { Resource } from "@/components/timeslot-booking";
 import {
   StoreMemberships,
   type MembershipPlan,
 } from "@/components/store-memberships";
-import {
-  ClassesBooking,
-  type ClassRow,
-} from "@/components/classes-booking";
-import { ReservationForm } from "@/components/reservation-form";
+import type { ClassRow } from "@/components/classes-booking";
 import { StoreCourses, type CourseRow } from "@/components/store-courses";
 import { StorePortfolio, type PortfolioItem } from "@/components/store-portfolio";
 import { StoreHero } from "@/components/store/store-hero";
@@ -71,10 +63,20 @@ import {
 import { StoreStickyCta } from "@/components/store/store-sticky-cta";
 import { resolveOffering } from "@/lib/offering";
 import { TrackVisit } from "@/components/track-visit";
-import { LeadForm } from "@/components/lead-form";
-import { StaySearch } from "@/components/stay-search";
-import { EventTickets } from "@/components/event-tickets";
 import { resolveStoreExperience, leadKinds } from "@/lib/store-experience";
+// The sector transaction engines are fetched only where they render. Which
+// section exists is decided exactly as before (resolveStoreExperience /
+// resolveStoreModules / resolveProfileOrder); only the moment the code behind a
+// section is downloaded changes. See src/components/store/lazy-engines.tsx.
+import {
+  ClassesBooking,
+  EventTickets,
+  LeadForm,
+  ReservationForm,
+  ServiceRequestForm,
+  StaySearch,
+  TimeslotBooking,
+} from "@/components/store/lazy-engines";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

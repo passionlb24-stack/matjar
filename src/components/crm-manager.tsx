@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { notifyError, notifySuccess } from "@/lib/notify";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { formatUsd } from "@/lib/currency";
 
 export type BookCustomer = {
   id: string;
@@ -81,12 +82,6 @@ const statusVariant: Record<
 
 function waHref(phone: string) {
   return waLink(phone) ?? `tel:${phone}`;
-}
-
-function formatPrice(price: number) {
-  return price >= 1000
-    ? `$${Number(price).toLocaleString("en-US")}`
-    : `$${price}`;
 }
 
 // CRM module of the Business OS: the merchant's own customer book (walk-ins,
@@ -550,7 +545,7 @@ export function CrmManager({
                     </span>
                   )}
                   <span className="order-2 shrink-0 font-bold tabular-nums text-primary lg:order-none">
-                    {formatPrice(c.total)}
+                    {formatUsd(c.total)}
                   </span>
                   {c.phone && !bookPhones.has(c.phone) && (
                     <button

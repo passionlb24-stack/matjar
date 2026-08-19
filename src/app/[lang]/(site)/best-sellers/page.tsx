@@ -7,15 +7,11 @@ import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getBestSellers } from "@/lib/data/best-sellers";
 import { getUsdLbpRate } from "@/lib/data/settings";
-import { formatLbp } from "@/lib/currency";
+import { formatUsd, formatLbp } from "@/lib/currency";
 import { localized } from "@/lib/i18n-field";
 import { Container } from "@/components/ui/container";
 import { PageHero } from "@/components/ui/page-hero";
 import { EmptyState } from "@/components/ui/empty-state";
-
-function formatPrice(price: number) {
-  return price >= 1000 ? `$${Number(price).toLocaleString("en-US")}` : `$${price}`;
-}
 
 export async function generateMetadata({
   params,
@@ -90,11 +86,11 @@ export default async function BestSellersPage({
                   <p className="mt-0.5 text-xs text-muted-foreground">{p.storeName}</p>
                   <p className="mt-2">
                     <span className="font-bold text-primary">
-                      {formatPrice(p.discountPrice ?? p.price)}
+                      {formatUsd(p.discountPrice ?? p.price)}
                     </span>{" "}
                     {p.discountPrice != null && (
                       <span className="text-xs text-muted-foreground line-through">
-                        {formatPrice(p.price)}
+                        {formatUsd(p.price)}
                       </span>
                     )}
                   </p>

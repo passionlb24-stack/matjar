@@ -9,6 +9,7 @@ import { PageHero } from "@/components/ui/page-hero";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { formatUsd } from "@/lib/currency";
 
 type OrderStatus =
   | "pending"
@@ -41,12 +42,6 @@ const statusVariant: Record<
   cancelled: "neutral",
   rejected: "danger",
 };
-
-function formatPrice(price: number) {
-  return price >= 1000
-    ? `$${Number(price).toLocaleString("en-US")}`
-    : `$${price}`;
-}
 
 export default async function OrdersPage({
   params,
@@ -90,7 +85,7 @@ export default async function OrdersPage({
                       {dict.orders.order} #{order.id.slice(0, 8)}
                     </p>
                     <p className="text-money mt-1 text-lg font-extrabold text-primary">
-                      {formatPrice(order.total)}
+                      {formatUsd(order.total)}
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
