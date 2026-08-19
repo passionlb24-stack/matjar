@@ -1,6 +1,17 @@
+import { timingSafeEqual } from "node:crypto";
 import webpush from "web-push";
 import { adminClientIfConfigured } from "@/lib/supabase/admin";
 import { VAPID_PUBLIC_KEY, VAPID_SUBJECT } from "@/lib/push";
+
+// A `!==` on a secret returns at the first differing byte, so response timing
+// leaks how much of a guess was right. timingSafeEqual compares every byte
+// regardless. It throws on unequal lengths, so lengths are checked first — that
+// comparison only reveals the secret's length, which is not the secret.
+function secretMatches(provided: string, expected: string): boolean {
+  const a = Buffer.from(provided, "utf8");
+  const b = Buffer.from(expected, "utf8");
+  return a.length === b.length && timingSafeEqual(a, b);
+}
 
 // Internal endpoint the DB calls (via pg_net) when a notification is created,
 // to fan it out as Web Push. Authenticated by a shared secret header — never
@@ -11,7 +22,7 @@ export async function POST(request: Request) {
   if (!privateKey || !hookSecret) {
     return Response.json({ error: "not_configured" }, { status: 503 });
   }
-  if (request.headers.get("x-push-secret") !== hookSecret) {
+  if (!secretMatches(request.headers.get("x-push-secret") ?? "", hookSecret)) {
     return Response.json({ error: "forbidden" }, { status: 403 });
   }
 

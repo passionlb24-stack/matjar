@@ -134,24 +134,27 @@ export function CraftServicesManager({
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="text-sm font-semibold">{labels.name}</label>
+          <label className="text-sm font-semibold" htmlFor="craftsvc-name">{labels.name}</label>
           <input
+            id="craftsvc-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             className={`${fieldClass} mt-1.5`}
           />
         </div>
         <div>
-          <label className="text-sm font-semibold">{labels.description}</label>
+          <label className="text-sm font-semibold" htmlFor="craftsvc-desc">{labels.description}</label>
           <input
+            id="craftsvc-desc"
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
             className={`${fieldClass} mt-1.5`}
           />
         </div>
         <div>
-          <label className="text-sm font-semibold">{labels.pricing}</label>
+          <label className="text-sm font-semibold" htmlFor="craftsvc-pricing">{labels.pricing}</label>
           <select
+            id="craftsvc-pricing"
             value={pricing}
             onChange={(e) => setPricing(e.target.value)}
             className={`${fieldClass} mt-1.5`}
@@ -165,8 +168,9 @@ export function CraftServicesManager({
         </div>
         {needsPrice && (
           <div>
-            <label className="text-sm font-semibold">{labels.price}</label>
+            <label className="text-sm font-semibold" htmlFor="craftsvc-price">{labels.price}</label>
             <input
+              id="craftsvc-price"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               type="number"

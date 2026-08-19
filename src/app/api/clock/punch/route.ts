@@ -17,6 +17,35 @@ import { rpFromRequest } from "@/lib/webauthn";
 // No employee id is ever sent by the browser. The credential identifies the
 // person, so there is nothing to tamper with and no roster to leak.
 
+// The options step is public and used to be unlimited: each call both told the
+// caller whether a short code exists (a 404 against a store enumeration script)
+// and wrote a challenge row. The store page itself already answers "does this
+// code exist" to anyone who loads it, so the response shape is not the secret —
+// the unbounded, free probing is what this limits. In-memory and per-instance
+// (a serverless cold start empties it), which is the "modest" limit MP-017
+// asks for: it turns a free firehose into a trickle without adding a store
+// round-trip to every legitimate punch. Legit use is one options call per
+// punch, so these ceilings are far above a busy shift change.
+const OPTION_WINDOW_MS = 5 * 60_000;
+const optionCalls = new Map<string, number[]>();
+
+function overOptionLimit(key: string, max: number): boolean {
+  const now = Date.now();
+  // Crude but bounded: the map can only grow one key per caller identity, and
+  // a runaway scan clears it wholesale rather than growing forever.
+  if (optionCalls.size > 5000) optionCalls.clear();
+  const recent = (optionCalls.get(key) ?? []).filter(
+    (t) => now - t < OPTION_WINDOW_MS,
+  );
+  if (recent.length >= max) {
+    optionCalls.set(key, recent);
+    return true;
+  }
+  recent.push(now);
+  optionCalls.set(key, recent);
+  return false;
+}
+
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => null)) as {
     step?: string;
@@ -30,6 +59,20 @@ export async function POST(req: Request) {
   } | null;
   if (!body?.shortCode) {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
+  }
+
+  // Before the store lookup, so an enumeration scan is limited whether its
+  // guesses are right or wrong.
+  if (body.step === "options") {
+    const ip =
+      (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() ||
+      "unknown";
+    if (
+      overOptionLimit(`ip:${ip}`, 30) ||
+      overOptionLimit(`store:${body.shortCode}`, 60)
+    ) {
+      return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+    }
   }
 
   // See the register route: an empty 500 here reads to the employee as "your

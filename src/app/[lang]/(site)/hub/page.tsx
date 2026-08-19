@@ -24,7 +24,7 @@ import {
   Stethoscope,
   Wrench,
   Building2,
-  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { isLocale } from "@/i18n/config";
@@ -187,7 +187,7 @@ export default async function HubPage({
                   </div>
                   <h3 className="mt-2 text-sm font-bold">{t}</h3>
                 </div>
-                {!last && <ChevronLeft className="h-5 w-5 shrink-0 text-muted-foreground/50 rtl:rotate-180" />}
+                {!last && <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/50 rtl:rotate-180" />}
               </div>
             );
           })}

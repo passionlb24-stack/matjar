@@ -18,6 +18,7 @@ import { FollowButton } from "@/components/follow-button";
 import { ShareButton } from "@/components/share-button";
 import { MessageStoreButton } from "@/components/message-store-button";
 import { ProBadge } from "@/components/pro-badge";
+import { hasPlan } from "@/lib/plan-tiers";
 
 export function StoreHeader({
   store,
@@ -62,7 +63,12 @@ export function StoreHeader({
           </span>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+              {/* dir=auto keeps Latin names with trailing digits from
+                  bidi-reordering inside the RTL document. */}
+              <h1
+                dir="auto"
+                className="text-2xl font-extrabold tracking-tight sm:text-3xl"
+              >
                 {store.name}
               </h1>
               {/* The "مفتوح الآن" pill that used to sit here was reading
@@ -70,7 +76,7 @@ export function StoreHeader({
                   hours. It said open at 3am, next to the real hours badge a few
                   lines below saying closed. One of them had to go, and it was
                   never going to be the one that reads the clock. */}
-              {store.plan === "pro" && <ProBadge />}
+              {hasPlan(store.plan, "pro") && <ProBadge />}
               {store.registered && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2.5 py-1 text-xs font-bold text-success">
                   <BadgeCheck className="h-3.5 w-3.5" />
@@ -194,7 +200,7 @@ export function StoreHeader({
               href={waLink(store.whatsapp) ?? "#"}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+              className="flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-800"
             >
               <MessageCircle className="h-4 w-4" />
               {dict.store.whatsapp}

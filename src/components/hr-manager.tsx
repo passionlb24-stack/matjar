@@ -421,10 +421,14 @@ export function HrManager({
           <p className="mt-1 text-xs text-muted-foreground">{labels.linkHint}</p>
           <div className="mt-2 flex flex-wrap items-end gap-2">
             <div>
-              <label className="text-xs font-semibold text-muted-foreground">
+              <label
+                className="text-xs font-semibold text-muted-foreground"
+                htmlFor="hr-clock-radius"
+              >
                 {labels.radius}
               </label>
               <input
+                id="hr-clock-radius"
                 type="number"
                 min="20"
                 max="2000"
@@ -662,10 +666,16 @@ export function HrManager({
                 {advanceFor === e.id && (
                   <div className="mt-2 flex w-full flex-wrap items-end gap-2 rounded-xl border border-border bg-surface-muted/40 p-3">
                     <div>
-                      <label className="text-xs font-semibold text-muted-foreground">
+                      {/* Static ids are safe: only one advance form is open at
+                          a time (advanceFor is a single id). */}
+                      <label
+                        className="text-xs font-semibold text-muted-foreground"
+                        htmlFor="hr-advance-amount"
+                      >
                         {labels.advanceAmount.replace("{c}", e.pay_currency)}
                       </label>
                       <input
+                        id="hr-advance-amount"
                         type="number"
                         min="1"
                         step="0.01"
@@ -677,10 +687,14 @@ export function HrManager({
                       />
                     </div>
                     <div className="min-w-32 flex-1">
-                      <label className="text-xs font-semibold text-muted-foreground">
+                      <label
+                        className="text-xs font-semibold text-muted-foreground"
+                        htmlFor="hr-advance-note"
+                      >
                         {labels.advanceNote}
                       </label>
                       <input
+                        id="hr-advance-note"
                         value={advanceNote}
                         onChange={(ev) => setAdvanceNote(ev.target.value)}
                         placeholder={labels.advanceNotePlaceholder}
@@ -794,10 +808,14 @@ export function HrManager({
                       dir="ltr"
                     />
                     <div>
-                      <label className="text-xs font-semibold text-muted-foreground">
+                      <label
+                        className="text-xs font-semibold text-muted-foreground"
+                        htmlFor="hr-residency-expiry"
+                      >
                         {labels.fResidency}
                       </label>
                       <input
+                        id="hr-residency-expiry"
                         type="date"
                         value={editing.residency_expires_on ?? ""}
                         onChange={(ev) =>

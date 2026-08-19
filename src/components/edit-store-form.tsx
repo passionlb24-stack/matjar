@@ -209,14 +209,27 @@ export function EditStoreForm({
               >
                 {dict.merchant.coverPosition}
               </label>
+              {/* A horizontal slider driving a VERTICAL crop. dir="ltr" pins
+                  the drag direction so Arabic and English merchants both drag
+                  the same way, and aria-valuetext names the effect (top /
+                  middle / bottom of the photo) instead of announcing a bare
+                  percentage that describes nothing. */}
               <input
                 id="cover_position"
                 type="range"
                 min={0}
                 max={100}
                 step={5}
+                dir="ltr"
                 value={coverPos}
                 onChange={(e) => setCoverPos(Number(e.target.value))}
+                aria-valuetext={
+                  coverPos <= 33
+                    ? dict.merchant.coverPosTop
+                    : coverPos < 67
+                      ? dict.merchant.coverPosMiddle
+                      : dict.merchant.coverPosBottom
+                }
                 className="mt-1 w-full accent-[var(--primary)]"
               />
             </div>
@@ -226,8 +239,12 @@ export function EditStoreForm({
 
       {/* Storefront theme: a full design system in one tap. The brand color
           and layout pickers below it OVERRIDE whatever the theme defaults. */}
-      <div>
-        <label className={labelClass}>{dict.merchant.theme}</label>
+      {/* role=group + aria-labelledby, not <label>: a label can only name a
+          form control, and these name button groups (MP-058). */}
+      <div role="group" aria-labelledby="store-theme-label">
+        <span id="store-theme-label" className={labelClass}>
+          {dict.merchant.theme}
+        </span>
         <p className="mt-1 text-xs text-muted-foreground">
           {dict.merchant.themeHint}
         </p>
@@ -267,8 +284,10 @@ export function EditStoreForm({
         </div>
       </div>
 
-      <div>
-        <label className={labelClass}>{dict.merchant.brandColor}</label>
+      <div role="group" aria-labelledby="store-brandcolor-label">
+        <span id="store-brandcolor-label" className={labelClass}>
+          {dict.merchant.brandColor}
+        </span>
         <p className="mt-1 text-xs text-muted-foreground">
           {dict.merchant.brandColorHint}
         </p>
@@ -327,8 +346,10 @@ export function EditStoreForm({
         </div>
       </div>
 
-      <div>
-        <label className={labelClass}>{dict.merchant.layout}</label>
+      <div role="group" aria-labelledby="store-layout-label">
+        <span id="store-layout-label" className={labelClass}>
+          {dict.merchant.layout}
+        </span>
         <p className="mt-1 text-xs text-muted-foreground">
           {dict.merchant.layoutHint}
         </p>
@@ -455,8 +476,10 @@ export function EditStoreForm({
         <input id="area" name="area" type="text" defaultValue={initial.area ?? ""} placeholder={dict.merchant.areaPlaceholder} className={fieldClass} />
       </div>
 
-      <div>
-        <label className={labelClass}>{dict.merchant.mapLocation}</label>
+      <div role="group" aria-labelledby="store-maploc-label">
+        <span id="store-maploc-label" className={labelClass}>
+          {dict.merchant.mapLocation}
+        </span>
         <div className="mt-1.5">
           <LocationPicker
             value={coords}

@@ -97,6 +97,7 @@ export async function DiscoveryPage({
           "groups",
           "sort",
           "explore",
+          "common",
         ])}
         base={base}
         query={query}

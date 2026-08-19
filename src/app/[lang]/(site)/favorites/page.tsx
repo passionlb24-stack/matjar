@@ -8,6 +8,7 @@ import { PageHero } from "@/components/ui/page-hero";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StoreCard } from "@/components/store-card";
 import type { CategoryKey, RegionKey, Store } from "@/lib/catalog";
+import type { StorePlan } from "@/lib/plan-tiers";
 
 type FavRow = {
   stores: {
@@ -15,7 +16,7 @@ type FavRow = {
     name: string;
     area: string | null;
     region: string | null;
-    plan: "free" | "pro" | null;
+    plan: StorePlan | null;
     business_types: { slug: string } | null;
   } | null;
 };

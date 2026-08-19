@@ -81,7 +81,7 @@ export function JoinAction({
 
   if (done) {
     return (
-      <div className="mt-4 inline-flex h-11 items-center justify-center gap-1.5 rounded-xl bg-emerald-600 text-sm font-bold text-white">
+      <div className="mt-4 inline-flex h-11 items-center justify-center gap-1.5 rounded-xl bg-emerald-700 text-sm font-bold text-white">
         <Check className="h-4 w-4" />
         {labels.done}
       </div>

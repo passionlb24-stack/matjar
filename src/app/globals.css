@@ -24,6 +24,10 @@
 
   /* Lines */
   --border: #e8e8e2;
+  /* Form-control boundaries only (Field inputs/selects/textareas). Hairline
+     dividers stay on --border; a control's border is its sole boundary cue and
+     must clear 3:1 (WCAG 1.4.11): this is 3.30 on surface, 3.18 on background. */
+  --border-strong: #8a8f88;
   --ring: #1556c2;
 
   /* Semantic status colors (badges, stats, progress, toasts). Each has a soft
@@ -80,6 +84,7 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-soft: var(--accent-soft);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-ring: var(--ring);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
@@ -169,6 +174,9 @@
     --accent-foreground: #fbbf24;
     --accent-soft: #2b2410;
     --border: #2a3038;
+    /* See the light block: form-control boundaries only. 3.77 on surface,
+       4.12 on background. */
+    --border-strong: #6e7681;
     --ring: #4c8dff;
     --success: #3fb950;
     --success-soft: #12261a;
@@ -206,6 +214,9 @@
   --accent-foreground: #fbbf24;
   --accent-soft: #2b2410;
   --border: #2a3038;
+  /* See the light block: form-control boundaries only. 3.77 on surface,
+     4.12 on background. */
+  --border-strong: #6e7681;
   --ring: #4c8dff;
   --success: #3fb950;
   --success-soft: #12261a;

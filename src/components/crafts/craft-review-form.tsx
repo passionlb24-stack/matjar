@@ -103,10 +103,11 @@ export function CraftReviewForm({
         ))}
       </div>
 
-      <label className="mt-3 block text-sm font-semibold">
+      <label className="mt-3 block text-sm font-semibold" htmlFor="craft-review-comment">
         {labels.comment}
       </label>
       <textarea
+        id="craft-review-comment"
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         rows={2}

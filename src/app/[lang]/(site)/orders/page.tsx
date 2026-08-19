@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { Package, ChevronLeft } from "lucide-react";
+import { Package, ChevronRight } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -83,13 +83,13 @@ export default async function OrdersPage({
                   className="flex items-center justify-between gap-4 p-5"
                 >
                   <div className="min-w-0">
-                    <p className="truncate font-bold">
+                    <p dir="auto" className="truncate font-bold">
                       {order.stores?.name ?? "—"}
                     </p>
                     <p className="mt-0.5 text-sm text-muted-foreground">
                       {dict.orders.order} #{order.id.slice(0, 8)}
                     </p>
-                    <p className="mt-1 text-lg font-extrabold text-primary">
+                    <p className="text-money mt-1 text-lg font-extrabold text-primary">
                       {formatPrice(order.total)}
                     </p>
                   </div>
@@ -97,7 +97,7 @@ export default async function OrdersPage({
                     <Badge variant={statusVariant[order.status]}>
                       {dict.orders.status[order.status]}
                     </Badge>
-                    <ChevronLeft className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
                   </div>
                 </Link>
               </Card>

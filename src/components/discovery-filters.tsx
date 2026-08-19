@@ -27,7 +27,7 @@ export type DiscoveryFacets = {
   regions: FacetOption<RegionKey>[];
 };
 
-type Dict = Pick<Dictionary, "discovery" | "catalog" | "groups" | "sort" | "explore">;
+type Dict = Pick<Dictionary, "discovery" | "catalog" | "groups" | "sort" | "explore" | "common">;
 
 const BOOLEAN_KEYS: BooleanFilterKey[] = [
   "openNow",
@@ -299,6 +299,7 @@ export function DiscoveryFilters({
         open={sheet}
         onClose={() => setSheet(false)}
         title={dict.discovery.filters}
+        closeLabel={dict.common.close}
         footer={
           <Link
             href={clearHref}

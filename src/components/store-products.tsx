@@ -80,11 +80,15 @@ function PriceTag({ p }: { p: Product }) {
   const flash = isFlashActive(p);
   return (
     <span className="sf-price inline-flex items-center gap-1.5">
-      <span className={`font-bold ${flash ? "text-warning" : "text-primary"}`}>
+      {/* .text-money = tabular numerals + LTR bidi isolation, the house rule
+          for currency inside Arabic text (globals.css). */}
+      <span
+        className={`text-money font-bold ${flash ? "text-warning" : "text-primary"}`}
+      >
         {formatPrice(eff)}
       </span>
       {compare != null && (
-        <span className="text-xs font-normal text-muted-foreground line-through">
+        <span className="text-money text-xs font-normal text-muted-foreground line-through">
           {formatPrice(compare)}
         </span>
       )}
@@ -399,31 +403,39 @@ export function StoreProducts({
     setCouponMsg(null);
   }
 
-  // Abandoned-cart capture: fire-and-forget a "checkout intent" as the customer
-  // enters a phone, so the merchant's order_abandoned automation can win them
-  // back if they never place the order. It is NEVER awaited and can NEVER throw
-  // — wrapped so it cannot touch the checkout / order-submit path in any way.
-  function captureCheckoutIntent(phone: string, name: string) {
+  // Abandoned-cart capture. This used to fire on BLUR of the phone field, which
+  // shipped the customer's phone, name and cart to the merchant before they had
+  // decided anything — typing your number is not consent to be contacted. It now
+  // fires only from confirmOrder, at the moment the customer taps the confirm
+  // button: the deliberate forward step. The merchant's order_abandoned
+  // automation still works — an order that then fails, or a customer who taps
+  // confirm and closes the page, leaves an intent behind; a placed order clears
+  // it via the DB trigger. It can NEVER throw, and the returned promise resolves
+  // on error too, so awaiting it cannot break the order-submit path.
+  function captureCheckoutIntent(phone: string, name: string): Promise<void> {
     const trimmed = phone.trim();
-    if (trimmed.length < 4 || items.length === 0) return;
+    if (trimmed.length < 4 || items.length === 0) return Promise.resolve();
     try {
-      void createClient()
-        .rpc("record_checkout_intent", {
-          p_store_id: storeId,
-          p_phone: trimmed,
-          p_name: name.trim() || null,
-          p_items: items.map((p) => ({
-            product_id: p.id,
-            name: p.name,
-            quantity: cart[p.id],
-          })),
-        })
-        .then(
-          () => {},
-          () => {},
-        );
+      return Promise.resolve(
+        createClient()
+          .rpc("record_checkout_intent", {
+            p_store_id: storeId,
+            p_phone: trimmed,
+            p_name: name.trim() || null,
+            p_items: items.map((p) => ({
+              product_id: p.id,
+              name: p.name,
+              quantity: cart[p.id],
+            })),
+          })
+          .then(
+            () => undefined,
+            () => undefined,
+          ),
+      );
     } catch {
       /* never affect checkout */
+      return Promise.resolve();
     }
   }
 
@@ -474,6 +486,18 @@ export function StoreProducts({
     setPlacing(true);
     setOrderError(null);
     const form = new FormData(e.currentTarget);
+    // The customer has just committed by tapping confirm — this is the point
+    // where sharing their number with the store is what they asked for. Awaited
+    // (bounded) so the intent lands BEFORE the order insert whose trigger clears
+    // it; the 1.5s cap means a hung network can only delay checkout, not block
+    // it. Worst case on timeout: one stale abandoned-cart nudge in 30 minutes.
+    await Promise.race([
+      captureCheckoutIntent(
+        String(form.get("phone") ?? ""),
+        String(form.get("name") ?? ""),
+      ),
+      new Promise<void>((resolve) => setTimeout(resolve, 1500)),
+    ]);
     const customFields = buildCustomFields();
     const supabase = createClient();
     const {
@@ -696,6 +720,7 @@ export function StoreProducts({
               <div className="flex flex-1 flex-col p-4">
                 <Link
                   href={`/${lang}/product/${p.id}`}
+                  dir="auto"
                   className="font-bold leading-tight transition-colors hover:text-primary"
                 >
                   {localized(p.name, p.nameEn, lang)}
@@ -759,6 +784,7 @@ export function StoreProducts({
               <div className="min-w-0 flex-1">
                 <Link
                   href={`/${lang}/product/${p.id}`}
+                  dir="auto"
                   className="block truncate font-bold transition-colors hover:text-primary"
                 >
                   {localized(p.name, p.nameEn, lang)}
@@ -983,7 +1009,7 @@ export function StoreProducts({
                 href={placedWaUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-700"
+                className="flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-800"
               >
                 <MessageCircle className="h-4 w-4" />
                 {dict.store.notifyMerchantWa}
@@ -1402,14 +1428,12 @@ export function StoreProducts({
                 required
                 placeholder="+961 …"
                 className={fieldClass}
-                onBlur={(e) => {
-                  const form = e.currentTarget.form;
-                  const name = form
-                    ? String(new FormData(form).get("name") ?? "")
-                    : "";
-                  captureCheckoutIntent(e.currentTarget.value, name);
-                }}
               />
+              {/* The disclosure MP-007 asked for: the number is shared with the
+                  store at confirm time, and the store may follow up. */}
+              <p className="mt-1 text-xs text-muted-foreground">
+                {dict.store.checkoutPhoneNote}
+              </p>
             </div>
             <div>
               <label className="text-sm font-semibold" htmlFor="note">
@@ -1547,7 +1571,7 @@ export function StoreProducts({
                   href={waUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white transition-colors hover:bg-emerald-700"
+                  className="flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-3 font-bold text-white transition-colors hover:bg-emerald-800"
                 >
                   <MessageCircle className="h-4 w-4" />
                   <span className="hidden sm:inline">
@@ -1582,6 +1606,7 @@ export function StoreProducts({
         open={cartOpen}
         onClose={() => setCartOpen(false)}
         title={dict.store.yourOrder}
+        closeLabel={dict.common.close}
         footer={
           <button
             type="button"

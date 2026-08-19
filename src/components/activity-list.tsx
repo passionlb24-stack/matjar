@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, Package, CalendarCheck, Wrench, MessageSquare } from "lucide-react";
+import { ChevronRight, Package, CalendarCheck, Wrench, MessageSquare } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { ActivityItem, ActivityKind } from "@/lib/data/activity";
@@ -148,11 +148,16 @@ export function ActivityList({
                       )}
                     </span>
 
-                    <span className="mt-0.5 block truncate font-bold">
+                    {/* dir=auto: store/product names are merchant text and may
+                        be Latin inside the RTL page. */}
+                    <span dir="auto" className="mt-0.5 block truncate font-bold">
                       {it.storeName || it.title}
                     </span>
                     {it.storeName && it.title && (
-                      <span className="block truncate text-sm text-muted-foreground">
+                      <span
+                        dir="auto"
+                        className="block truncate text-sm text-muted-foreground"
+                      >
                         {it.title}
                       </span>
                     )}
@@ -180,7 +185,9 @@ export function ActivityList({
                     </span>
                   </span>
 
-                  <ChevronLeft className="mt-3 h-5 w-5 shrink-0 text-muted-foreground rtl:rotate-180" />
+                  {/* Forward affordance: ChevronRight + rtl:rotate-180 points
+                      into the row's destination in both directions. */}
+                  <ChevronRight className="mt-3 h-5 w-5 shrink-0 text-muted-foreground rtl:rotate-180" />
                 </Link>
               </li>
             );

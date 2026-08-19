@@ -144,8 +144,9 @@ export function VerificationsManager({
   const form = (
     <div className="space-y-3 rounded-2xl border border-primary/30 bg-surface p-5">
       <div>
-        <label className={labelClass}>{t.kindLabel}</label>
+        <label className={labelClass} htmlFor="verif-kind">{t.kindLabel}</label>
         <Select
+          id="verif-kind"
           value={draft.kind}
           onChange={(e) => setDraft({ ...draft, kind: e.target.value })}
           className="mt-1"
@@ -158,24 +159,27 @@ export function VerificationsManager({
         </Select>
       </div>
       <div>
-        <label className={labelClass}>{t.titleField}</label>
+        <label className={labelClass} htmlFor="verif-title">{t.titleField}</label>
         <input
+          id="verif-title"
           value={draft.title}
           onChange={(e) => setDraft({ ...draft, title: e.target.value })}
           className={fieldClass}
         />
       </div>
       <div>
-        <label className={labelClass}>{t.issuer}</label>
+        <label className={labelClass} htmlFor="verif-issuer">{t.issuer}</label>
         <input
+          id="verif-issuer"
           value={draft.issuer}
           onChange={(e) => setDraft({ ...draft, issuer: e.target.value })}
           className={fieldClass}
         />
       </div>
       <div>
-        <label className={labelClass}>{t.number}</label>
+        <label className={labelClass} htmlFor="verif-number">{t.number}</label>
         <input
+          id="verif-number"
           value={draft.number}
           onChange={(e) => setDraft({ ...draft, number: e.target.value })}
           className={fieldClass}
@@ -183,8 +187,9 @@ export function VerificationsManager({
       </div>
       <div className="flex gap-3">
         <div className="flex-1">
-          <label className={labelClass}>{t.issuedOn}</label>
+          <label className={labelClass} htmlFor="verif-issued-on">{t.issuedOn}</label>
           <input
+            id="verif-issued-on"
             type="date"
             value={draft.issued_on}
             onChange={(e) => setDraft({ ...draft, issued_on: e.target.value })}
@@ -192,8 +197,9 @@ export function VerificationsManager({
           />
         </div>
         <div className="flex-1">
-          <label className={labelClass}>{t.expiresOn}</label>
+          <label className={labelClass} htmlFor="verif-expires-on">{t.expiresOn}</label>
           <input
+            id="verif-expires-on"
             type="date"
             value={draft.expires_on}
             onChange={(e) => setDraft({ ...draft, expires_on: e.target.value })}
@@ -215,8 +221,9 @@ export function VerificationsManager({
         hint={t.docHint}
       />
       <div>
-        <label className={labelClass}>{t.verifyUrl}</label>
+        <label className={labelClass} htmlFor="verif-url">{t.verifyUrl}</label>
         <input
+          id="verif-url"
           value={draft.verify_url}
           onChange={(e) => setDraft({ ...draft, verify_url: e.target.value })}
           className={fieldClass}

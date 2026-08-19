@@ -143,8 +143,9 @@ export function CouponManager({
     <div className="space-y-3 rounded-2xl border border-primary/30 bg-surface p-5">
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label className={labelClass}>{t.code}</label>
+          <label className={labelClass} htmlFor="coupon-code">{t.code}</label>
           <input
+            id="coupon-code"
             value={draft.code}
             onChange={(e) => setDraft({ ...draft, code: e.target.value })}
             placeholder={t.codePlaceholder}
@@ -152,8 +153,9 @@ export function CouponManager({
           />
         </div>
         <div>
-          <label className={labelClass}>{t.type}</label>
+          <label className={labelClass} htmlFor="coupon-type">{t.type}</label>
           <select
+            id="coupon-type"
             value={draft.type}
             onChange={(e) =>
               setDraft({ ...draft, type: e.target.value as "percent" | "fixed" })
@@ -165,20 +167,20 @@ export function CouponManager({
           </select>
         </div>
         <div>
-          <label className={labelClass}>{t.value}</label>
-          <input type="number" min="0" step="0.01" value={draft.value} onChange={(e) => setDraft({ ...draft, value: e.target.value })} className={fieldClass} />
+          <label className={labelClass} htmlFor="coupon-value">{t.value}</label>
+          <input id="coupon-value" type="number" min="0" step="0.01" value={draft.value} onChange={(e) => setDraft({ ...draft, value: e.target.value })} className={fieldClass} />
         </div>
         <div>
-          <label className={labelClass}>{t.minOrder}</label>
-          <input type="number" min="0" step="0.01" value={draft.min_order} onChange={(e) => setDraft({ ...draft, min_order: e.target.value })} className={fieldClass} />
+          <label className={labelClass} htmlFor="coupon-min-order">{t.minOrder}</label>
+          <input id="coupon-min-order" type="number" min="0" step="0.01" value={draft.min_order} onChange={(e) => setDraft({ ...draft, min_order: e.target.value })} className={fieldClass} />
         </div>
         <div>
-          <label className={labelClass}>{t.expires}</label>
-          <input type="date" value={draft.expires_at} onChange={(e) => setDraft({ ...draft, expires_at: e.target.value })} className={fieldClass} />
+          <label className={labelClass} htmlFor="coupon-expires">{t.expires}</label>
+          <input id="coupon-expires" type="date" value={draft.expires_at} onChange={(e) => setDraft({ ...draft, expires_at: e.target.value })} className={fieldClass} />
         </div>
         <div>
-          <label className={labelClass}>{t.maxUses}</label>
-          <input type="number" min="1" step="1" value={draft.max_uses} onChange={(e) => setDraft({ ...draft, max_uses: e.target.value })} className={fieldClass} />
+          <label className={labelClass} htmlFor="coupon-max-uses">{t.maxUses}</label>
+          <input id="coupon-max-uses" type="number" min="1" step="1" value={draft.max_uses} onChange={(e) => setDraft({ ...draft, max_uses: e.target.value })} className={fieldClass} />
         </div>
         <label className="flex items-center gap-2 self-end text-sm font-semibold">
           <input type="checkbox" checked={draft.is_active} onChange={(e) => setDraft({ ...draft, is_active: e.target.checked })} className="h-4 w-4 accent-primary" />

@@ -605,7 +605,7 @@ export function BookingPanel({
               href={bookedWaUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-700"
+              className="flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-800"
             >
               <MessageCircle className="h-4 w-4" />
               {dict.booking.notifyMerchantWa}
@@ -1039,9 +1039,12 @@ export function BookingPanel({
               {/* Coupon — validated against the selected service price. */}
               {serviceId && selectedPrice > 0 && (
                 <div>
-                  <label className={labelClass}>{dict.booking.couponLabel}</label>
+                  <label className={labelClass} htmlFor="booking-coupon">
+                    {dict.booking.couponLabel}
+                  </label>
                   <div className="mt-1.5 flex gap-2">
                     <input
+                      id="booking-coupon"
                       type="text"
                       value={couponInput}
                       onChange={(e) => {
@@ -1218,6 +1221,7 @@ export function BookingPanel({
             open={dateSheet}
             onClose={() => setDateSheet(false)}
             title={dict.booking.steps.chooseDate}
+            closeLabel={dict.common.close}
           >
             <div className="space-y-2 pb-2">
               {dayOptions.map((d) => (
@@ -1272,6 +1276,7 @@ export function BookingPanel({
             open={timeSheet}
             onClose={() => setTimeSheet(false)}
             title={dict.booking.pickSlot}
+            closeLabel={dict.common.close}
           >
             {dayClosed ? (
               <p className="rounded-xl bg-surface-muted p-3 text-sm font-semibold text-muted-foreground">

@@ -103,24 +103,27 @@ export function ResourcesManager({
   const form = (
     <div className="space-y-3 rounded-2xl border border-primary/30 bg-surface p-5">
       <div>
-        <label className={labelClass}>{t.name}</label>
+        <label className={labelClass} htmlFor="resource-name">{t.name}</label>
         <Input
+          id="resource-name"
           value={draft.name}
           onChange={(e) => setDraft({ ...draft, name: e.target.value })}
           className="mt-1"
         />
       </div>
       <div>
-        <label className={labelClass}>{`${t.name} (EN)`}</label>
+        <label className={labelClass} htmlFor="resource-name-en">{`${t.name} (EN)`}</label>
         <Input
+          id="resource-name-en"
           value={draft.name_en}
           onChange={(e) => setDraft({ ...draft, name_en: e.target.value })}
           className="mt-1"
         />
       </div>
       <div>
-        <label className={labelClass}>{t.price}</label>
+        <label className={labelClass} htmlFor="resource-price">{t.price}</label>
         <Input
+          id="resource-price"
           type="number"
           value={draft.price}
           onChange={(e) => setDraft({ ...draft, price: e.target.value })}
@@ -129,8 +132,9 @@ export function ResourcesManager({
       </div>
       <div className="flex gap-3">
         <div className="flex-1">
-          <label className={labelClass}>{t.openHour}</label>
+          <label className={labelClass} htmlFor="resource-open-hour">{t.openHour}</label>
           <Input
+            id="resource-open-hour"
             type="number"
             min={0}
             max={23}
@@ -140,8 +144,9 @@ export function ResourcesManager({
           />
         </div>
         <div className="flex-1">
-          <label className={labelClass}>{t.closeHour}</label>
+          <label className={labelClass} htmlFor="resource-close-hour">{t.closeHour}</label>
           <Input
+            id="resource-close-hour"
             type="number"
             min={1}
             max={24}
