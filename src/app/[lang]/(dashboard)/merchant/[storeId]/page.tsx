@@ -2,7 +2,14 @@ import { requestNow } from "@/lib/now";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight, ExternalLink, BarChart3, Sun, Clock } from "lucide-react";
+import {
+  ChevronRight,
+  ExternalLink,
+  BarChart3,
+  Sun,
+  Clock,
+  Ban,
+} from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -18,6 +25,7 @@ import { SITE_URL } from "@/lib/site";
 import { Container } from "@/components/ui/container";
 import { StoreShareCard } from "@/components/store-share-card";
 import { StoreChecklist } from "@/components/store-checklist";
+import { StoreStatusNotice } from "@/components/store-status-notice";
 import { Stat } from "@/components/os-dashboard/stat";
 import { WidgetCard } from "@/components/os-dashboard/widget-card";
 import { RevenueChart } from "@/components/os-dashboard/revenue-chart";
@@ -121,7 +129,10 @@ export default async function StoreOsHomePage({
       // lat/lng: the map pin is a completeness item (8 of 13 live stores have
       // none), so the coordinates ride along on the store row already fetched
       // rather than costing a second query.
-      "id, name, slug, status, accent_color, owner_id, short_code, plan, trial_ends_at, logo_url, cover_url, description, hours, whatsapp, lat, lng, business_types(slug, name_ar, name_en)",
+      // status_reason/status_changed_at: the owner of a suspended shop is the
+      // one person who most needs to know why and since when, and audit_logs is
+      // super-admin-only by RLS — so it rides on their own store row (0282).
+      "id, name, slug, status, accent_color, owner_id, short_code, plan, trial_ends_at, logo_url, cover_url, description, hours, whatsapp, lat, lng, status_reason, status_changed_at, business_types(slug, name_ar, name_en)",
     )
     .eq("id", storeId)
     .maybeSingle();
@@ -143,12 +154,17 @@ export default async function StoreOsHomePage({
     whatsapp: string | null;
     lat: number | null;
     lng: number | null;
+    status_reason: string | null;
+    status_changed_at: string | null;
     business_types: { slug: string; name_ar: string; name_en: string } | null;
   };
   const category = (s.business_types?.slug as CategoryKey) ?? "retail";
   const sector = getSector(category);
   /** Nothing public exists for this store yet — no page, no shareable link. */
   const isPending = s.status !== "active";
+  /** Suspended and rejected are outcomes, not waiting rooms: the merchant is
+   *  owed an explanation rather than the "under review" reassurance. */
+  const isStopped = s.status === "suspended" || s.status === "rejected";
   const typeName =
     (lang === "ar" ? s.business_types?.name_ar : s.business_types?.name_en) ??
     "";
@@ -982,7 +998,18 @@ export default async function StoreOsHomePage({
                   led to a 404 and the share/QR tools beside it minted codes
                   pointing at the same nothing. A merchant who printed one on a
                   shopfront had no way to find out. */}
-              {isPending ? (
+              {isStopped ? (
+                // "قيد المراجعة" on a suspended shop is a false reassurance —
+                // nobody is reviewing it. The notice below says what happened.
+                <span className="flex shrink-0 items-center gap-1.5 rounded-xl border border-danger/30 bg-danger-soft px-4 py-2 text-sm font-bold text-danger">
+                  <Ban className="h-4 w-4" />
+                  {
+                    dict.merchant.status[
+                      s.status as "suspended" | "rejected"
+                    ]
+                  }
+                </span>
+              ) : isPending ? (
                 <span className="flex shrink-0 items-center gap-1.5 rounded-xl border border-warning/30 bg-warning-soft px-4 py-2 text-sm font-bold text-warning">
                   <Clock className="h-4 w-4" />
                   {dict.os.storePending}
@@ -1005,6 +1032,26 @@ export default async function StoreOsHomePage({
             )}
           </div>
 
+          {/* A stopped shop gets an explanation before anything else. It sits
+              above the checklist on purpose: nudging someone to finish their
+              profile while their storefront is switched off, without saying so,
+              is the version of this screen we are replacing. Only the owner ever
+              reaches it: stores_select exposes a non-active row to the owner and
+              to a super admin, so a staff member of a suspended store is
+              redirected out of this page before it renders — a separate gap,
+              older than this change, and not one a reason column can close. */}
+          {isStopped && (
+            <StoreStatusNotice
+              lang={lang}
+              dict={dict}
+              status={s.status as "suspended" | "rejected"}
+              storeName={s.name}
+              reason={s.status_reason}
+              changedAt={s.status_changed_at}
+              className="mt-6"
+            />
+          )}
+
           {/* Onboarding checklist (owner nudge until the store is complete). */}
           {isOwner && (
             <div className="mt-6">
@@ -1014,6 +1061,7 @@ export default async function StoreOsHomePage({
                 storeId={storeId}
                 storeName={s.name}
                 storeSlug={s.slug}
+                status={s.status}
                 completeness={completeness}
               />
             </div>
@@ -1032,18 +1080,23 @@ export default async function StoreOsHomePage({
               shopfront or a receipt. Until the store is approved both resolve
               to nothing, so it stays hidden rather than inviting the merchant
               to print a dead link. */}
-          <div className="mt-8">
-            {isPending ? (
-              <div className="rounded-2xl border border-dashed border-warning/40 bg-warning-soft/40 p-5 text-center">
-                <p className="font-bold text-warning">{dict.os.storePending}</p>
-                <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-                  {dict.os.storePendingHint}
-                </p>
-              </div>
-            ) : (
-              <StoreShareCard code={s.short_code} baseUrl={SITE_URL} dict={dict} />
-            )}
-          </div>
+          {/* Suppressed entirely for a stopped store: the "we will tell you the
+              moment it is approved" copy is written for a shop waiting its turn,
+              and a suspended one is not waiting. Its explanation is above. */}
+          {!isStopped && (
+            <div className="mt-8">
+              {isPending ? (
+                <div className="rounded-2xl border border-dashed border-warning/40 bg-warning-soft/40 p-5 text-center">
+                  <p className="font-bold text-warning">{dict.os.storePending}</p>
+                  <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
+                    {dict.os.storePendingHint}
+                  </p>
+                </div>
+              ) : (
+                <StoreShareCard code={s.short_code} baseUrl={SITE_URL} dict={dict} />
+              )}
+            </div>
+          )}
         </div>
       </Container>
     </div>

@@ -42,12 +42,16 @@ export function ServiceForm({
     setAdded(false);
     const form = new FormData(formEl);
     const duration = String(form.get("duration") ?? "").trim();
+    // Blank means "not recorded", which is not the same as zero: a cost of 0
+    // tells the margin report the service is pure profit.
+    const costRaw = String(form.get("cost") ?? "").trim();
     const { error: insertError } = await createClient()
       .from("products")
       .insert({
         store_id: storeId,
         name: String(form.get("name")),
         price: Number(form.get("price")) || 0,
+        cost: costRaw === "" ? null : Number(costRaw),
         description: String(form.get("description")) || null,
         image_url: imageUrl,
         section_id: sectionId || null,
@@ -116,6 +120,24 @@ export function ServiceForm({
             />
           </label>
         </div>
+        {/* Clinics and service pros are the two sectors whose add form is this
+            one, and it was the only add path with no cost field — so their
+            completeness item "add cost prices" pointed at a number they had no
+            way to enter. Optional, and the line under it says what it buys. */}
+        <label className="block text-sm font-semibold">
+          {p.cost}
+          <input
+            name="cost"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0"
+            className={field}
+          />
+          <span className="mt-1 block text-xs font-normal text-muted-foreground">
+            {p.costHint}
+          </span>
+        </label>
         {sections.length > 0 && (
           <label className="block text-sm font-semibold">
             {p.section}
