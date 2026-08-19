@@ -119,10 +119,17 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
               <button
                 ref={confirmBtnRef}
                 onClick={() => settle(true)}
-                className={`rounded-xl px-4 py-2 text-sm font-bold text-white transition-colors ${
+                className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
                   opts.danger
-                    ? "bg-red-600 hover:bg-red-700"
-                    : "bg-primary hover:bg-primary-hover"
+                    ? // Was bg-red-600/700 + a blanket text-white — raw reds
+                      // that never followed the theme. red-600 under white is
+                      // 4.83:1, so this is not a contrast fix (the token pair
+                      // is 6.47:1 light / 5.92:1 dark, which is better); it is
+                      // the design-system fix: the one primitive that every
+                      // destructive confirm in the app runs through was the
+                      // last place in ui/ still hard-coding a palette colour.
+                      "bg-danger-strong text-danger-strong-foreground hover:brightness-90"
+                    : "bg-primary text-primary-foreground hover:bg-primary-hover"
                 }`}
               >
                 {opts.confirmLabel}

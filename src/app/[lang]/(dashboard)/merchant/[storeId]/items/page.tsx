@@ -15,7 +15,8 @@ import { ProductRowActions } from "@/components/product-row-actions";
 import { ProGate } from "@/components/pro-gate";
 import { planProductLimit } from "@/lib/plan";
 import { effectivePlan as resolvePlan } from "@/lib/plan-tiers";
-import { formatUsd } from "@/lib/currency";
+import { Money } from "@/components/ui/money";
+import { CardList, CardRow } from "@/components/ui/card";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -160,11 +161,11 @@ export default async function StoreItemsPage({
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
           <div>
             {products.length ? (
-              <div className="space-y-3">
+              <CardList>
                 {products.map((p) => (
-                  <div
+                  <CardRow
                     key={p.id}
-                    className={`flex items-center gap-3 rounded-xl border border-border bg-surface p-3 ${p.is_available ? "" : "opacity-60"}`}
+                    className={`flex items-center gap-3 p-3 ${p.is_available ? "" : "opacity-60"}`}
                   >
                     {p.image_url ? (
                       <Image
@@ -191,7 +192,7 @@ export default async function StoreItemsPage({
                       </span>
                     )}
                     <span className="font-bold text-primary">
-                      {formatUsd(p.price)}
+                      <Money value={p.price} />
                     </span>
                     <Link
                       href={`/${lang}/merchant/${storeId}/products/${p.id}`}
@@ -211,9 +212,9 @@ export default async function StoreItemsPage({
                       okLabel={dict.common.confirm}
                       cancelLabel={dict.common.cancel}
                     />
-                  </div>
+                  </CardRow>
                 ))}
-              </div>
+              </CardList>
             ) : (
               <div className="rounded-2xl border border-dashed border-border py-12 text-center text-muted-foreground">
                 {dict.merchant.products.empty}

@@ -18,6 +18,7 @@ import { resolveCardFacts, type StoreFactSource } from "@/lib/discovery";
 import { categoryIcons } from "@/components/category-icon";
 import { ProBadge } from "@/components/pro-badge";
 import { hasPlan } from "@/lib/plan-tiers";
+import { NEUTRAL_BLUR } from "@/lib/image-placeholder";
 import { FavoriteButton } from "@/components/favorite-button";
 
 const UUID_RE =
@@ -68,6 +69,11 @@ export function StoreCard({
               // The merchant's own crop, the same one the store page uses.
               style={{ objectPosition: `50% ${store.coverPosition ?? 50}%` }}
               sizes="(max-width: 640px) 100vw, 320px"
+              // A flat neutral tone while the cover loads, not a preview of it —
+              // these are remote Storage URLs with no per-image hash. See
+              // lib/image-placeholder.ts for exactly what that is and is not.
+              placeholder="blur"
+              blurDataURL={NEUTRAL_BLUR}
             />
           ) : (
             <Icon className="absolute end-4 top-4 h-16 w-16 text-black/[0.06] transition-transform duration-500 group-hover:scale-110" />
@@ -78,7 +84,7 @@ export function StoreCard({
         </div>
         <span
           className={`absolute start-3 top-3 rounded-full px-2.5 py-1 text-xs font-bold text-white ${
-            store.isOpen ? "bg-emerald-700" : "bg-muted-foreground"
+            store.isOpen ? "bg-success-strong" : "bg-muted-foreground"
           }`}
         >
           {store.isOpen ? dict.featured.open : dict.featured.closed}
@@ -109,7 +115,10 @@ export function StoreCard({
               alt={store.name[lang]}
               width={48}
               height={48}
+              sizes="48px"
               className="h-full w-full rounded-[10px] object-cover"
+              placeholder="blur"
+              blurDataURL={NEUTRAL_BLUR}
             />
           ) : (
             <span

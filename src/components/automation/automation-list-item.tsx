@@ -1,13 +1,14 @@
 "use client";
 
 import {
-  ChevronRight,
   Filter,
   Pencil,
   Trash2,
   Zap,
   type LucideIcon,
 } from "lucide-react";
+import { ChevronNext } from "@/components/ui/directional-icon";
+import { Switch } from "@/components/ui/switch";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { AutomationRow } from "../automation-manager";
 
@@ -74,7 +75,7 @@ export function AutomationListItem({
                 {c}
               </span>
             ))}
-            <ChevronRight className="h-3 w-3 text-muted-foreground rtl:rotate-180" />
+            <ChevronNext className="h-3 w-3 text-muted-foreground" />
             {actionChips.map((chip, i) => {
               const ChipIcon = chip.Icon;
               return (
@@ -91,24 +92,12 @@ export function AutomationListItem({
         </div>
         <div className="flex shrink-0 items-center gap-1">
           {/* enable/disable switch */}
-          <button
-            type="button"
-            role="switch"
-            aria-checked={a.enabled}
-            aria-label={a.enabled ? t.toggleOff : t.toggleOn}
-            title={a.enabled ? t.toggleOff : t.toggleOn}
+          <Switch
+            checked={a.enabled}
+            onChange={onToggle}
+            label={a.enabled ? t.toggleOff : t.toggleOn}
             disabled={busy}
-            onClick={onToggle}
-            className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-60 ${
-              a.enabled ? "bg-primary" : "bg-border"
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${
-                a.enabled ? "start-[22px]" : "start-0.5"
-              }`}
-            />
-          </button>
+          />
         </div>
       </div>
       <div className="mt-3 flex justify-end gap-1 border-t border-border pt-2">

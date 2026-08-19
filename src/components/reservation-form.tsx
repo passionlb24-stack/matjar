@@ -97,7 +97,7 @@ export function ReservationForm({
 
       {sent ? (
         <div className="mt-4 rounded-xl border border-success/30 bg-success-soft p-5 text-center">
-          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-emerald-600 text-white">
+          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-success-strong text-success-strong-foreground">
             <Check className="h-6 w-6" />
           </div>
           <p className="mt-3 font-bold text-success">{t.sent}</p>

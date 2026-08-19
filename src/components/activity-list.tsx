@@ -6,6 +6,8 @@ import { ChevronRight, Package, CalendarCheck, Wrench, MessageSquare } from "luc
 import type { LucideIcon } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { ActivityItem, ActivityKind } from "@/lib/data/activity";
+import { Badge } from "@/components/ui/badge";
+import { ACTIVITY_DOMAINS, statusTone } from "@/lib/status-labels";
 
 const ICONS: Record<ActivityKind, LucideIcon> = {
   order: Package,
@@ -150,10 +152,13 @@ export function ActivityList({
                       >
                         {dateFmt.format(new Date(it.createdAt))}
                       </span>
+                      {/* "بدّو منّك شي" is not a status — it is the one thing
+                          on the row that is about the customer rather than
+                          about the transaction, so it takes `accent` and never
+                          `warning`, which this screen already spends on "the
+                          shop has not answered yet". */}
                       {it.needsCustomer && (
-                        <span className="rounded-full bg-accent-soft px-2 py-0.5 text-accent-foreground">
-                          {labels.needsYou}
-                        </span>
+                        <Badge variant="accent">{labels.needsYou}</Badge>
                       )}
                     </span>
 
@@ -172,9 +177,26 @@ export function ActivityList({
                     )}
 
                     <span className="mt-1.5 flex flex-wrap items-center gap-2">
-                      <span className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-bold">
+                      {/* Colour by phase, words by domain. Four vocabularies
+                          share this column, and every one of them used to be
+                          the same neutral grey — a cancelled booking, a
+                          finished order and an order on the van were one
+                          shade, so the pill cost a line of height and told the
+                          customer nothing. The tone table lives beside the
+                          label table (lib/status-labels.ts) so a status can
+                          never gain words without also gaining a colour. */}
+                      {/* `md`, not `sm`: sm is 11px, and 12px is the floor at
+                          which Arabic dots and harakat still resolve on a
+                          phone — the same rule the footer's app badges keep. */}
+                      <Badge
+                        size="md"
+                        variant={statusTone(
+                          ACTIVITY_DOMAINS[it.kind],
+                          it.status,
+                        )}
+                      >
                         {status}
-                      </span>
+                      </Badge>
                       {/* Money only where the transaction has any — a booking
                           and an inquiry carry none, and a $0.00 would read as a
                           price that was agreed. */}

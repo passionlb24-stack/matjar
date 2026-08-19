@@ -270,7 +270,12 @@ export function ClockDevice({
         setMsg({
           ok: false,
           text:
-            optRes.error === "not_configured"
+            // `untrusted_host` means the page was reached on a hostname this
+            // deployment does not serve as its WebAuthn relying party. That is
+            // a server-side setup fault with exactly the shape notConfigured
+            // already describes: not the code, not the phone, tell the owner.
+            optRes.error === "not_configured" ||
+            optRes.error === "untrusted_host"
               ? labels.notConfigured
               : optRes.error === "locked"
                 ? labels.enrolLocked
@@ -339,7 +344,8 @@ export function ClockDevice({
           setMsg({
             ok: false,
             text:
-              optRes.error === "not_configured"
+              optRes.error === "not_configured" ||
+              optRes.error === "untrusted_host"
                 ? labels.notConfigured
                 : labels.failed,
           });

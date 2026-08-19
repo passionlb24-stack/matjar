@@ -4,6 +4,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { CardList, CardRow } from "@/components/ui/card";
 import { OrderCancelButton } from "@/components/order-cancel-button";
 import { BookingReschedule } from "@/components/booking-reschedule";
 import { AttendanceConfirm } from "@/components/attendance-confirm";
@@ -67,11 +68,11 @@ export default async function BookingsPage({
         </h1>
 
         {bookings.length ? (
-          <div className="mt-8 space-y-3">
+          <CardList className="mt-8">
             {bookings.map((b) => (
-              <div
+              <CardRow
                 key={b.id}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface p-5"
+                className="flex items-center justify-between gap-4 p-5"
               >
                 <div>
                   <p className="font-bold">{b.stores?.name ?? "—"}</p>
@@ -109,9 +110,9 @@ export default async function BookingsPage({
                       <AttendanceConfirm bookingId={b.id} dict={dict} />
                     ))}
                 </div>
-              </div>
+              </CardRow>
             ))}
-          </div>
+          </CardList>
         ) : (
           <div className="mt-8 rounded-2xl border border-dashed border-border py-10 sm:py-16 text-center">
             <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-soft text-primary">

@@ -1,0 +1,102 @@
+import "server-only";
+import { cache } from "react";
+import { unstable_cache } from "next/cache";
+import { createPublicClient } from "@/lib/supabase/public-client";
+import { hasEnough } from "@/lib/rail";
+
+// Whether a whole SECTION has enough behind it to be worth linking to.
+//
+// Matjar ships 65 customer routes. Several of them are verticals that were
+// built before the supply existed and then linked from the header dropdown, the
+// phone menu, the footer and the home page regardless — so a customer in
+// testing could tap "صيانة وحِرَف" from four different places and reach a
+// directory with zero tradesmen in it. That is not an empty state problem; four
+// entrances to nothing is the platform telling the customer it is bigger than
+// it is, and they only have to be disappointed once.
+//
+// The rule is not new. lib/rail.ts already refuses to draw a home rail under
+// three real items; this applies the SAME constant one level up, to the links
+// themselves. Nothing is deleted — every route still renders, still answers its
+// own URL, and still turns up in search. It simply stops being advertised until
+// it can answer.
+//
+// The counts are public, identical for everyone, and change on the timescale of
+// a merchant signing up, so they are cached across requests exactly like the
+// USD rate (lib/data/settings.ts) — a page render costs zero queries almost
+// always, and at worst one round trip every ten minutes platform-wide.
+
+/** The sections whose navigation entries are supply-gated. */
+export type GatedSection =
+  | "crafts"
+  | "jobs"
+  | "freelance"
+  | "wholesale"
+  | "delivery"
+  | "market";
+
+/** `true` = link it. Never used to decide whether the ROUTE exists. */
+export type NavSections = Record<GatedSection, boolean>;
+
+/**
+ * How many real, browsable rows each gated section can return right now.
+ *
+ * Every predicate here is the one its own landing page uses, so the number
+ * answers "what would the customer see if they tapped it?" and not "what is in
+ * the table". Where the page reads through an RPC the filter is named:
+ * browse_crafts (0241) and browse_gigs (0215) both select `status = 'active'`.
+ */
+const countSections = unstable_cache(
+  async (): Promise<Record<GatedSection, number>> => {
+    const supabase = createPublicClient();
+    const n = async (
+      table: string,
+      column: string,
+      value: string | boolean,
+    ): Promise<number> => {
+      const { count } = await supabase
+        .from(table)
+        .select("id", { count: "exact", head: true })
+        .eq(column, value);
+      return count ?? 0;
+    };
+
+    const [crafts, jobs, freelance, wholesale, delivery, market] =
+      await Promise.all([
+        n("craft_providers", "status", "active"),
+        n("job_postings", "status", "active"),
+        n("gigs", "status", "active"),
+        n("wholesale_products", "status", "active"),
+        n("delivery_companies", "is_active", true),
+        n("listings", "status", "active"),
+      ]);
+
+    return { crafts, jobs, freelance, wholesale, delivery, market };
+  },
+  ["nav_section_supply"],
+  // Ten minutes. A section crossing the threshold is a good day, not an
+  // emergency; the tags let a merchant-facing write bust it sooner where one
+  // already exists.
+  { revalidate: 600, tags: ["stores", "products", "listings"] },
+);
+
+/**
+ * Which sections navigation may link to.
+ *
+ * A failed count reads as 0 and therefore as "do not link" — deliberately the
+ * quiet direction. Advertising an empty vertical because a query timed out is
+ * the exact failure this exists to prevent, and a missing footer link for ten
+ * minutes costs a customer nothing they can notice.
+ */
+export const getNavSections = cache(async function getNavSections(): Promise<
+  NavSections
+> {
+  const counts = await countSections();
+  return {
+    crafts: hasEnough(counts.crafts),
+    jobs: hasEnough(counts.jobs),
+    freelance: hasEnough(counts.freelance),
+    wholesale: hasEnough(counts.wholesale),
+    delivery: hasEnough(counts.delivery),
+    market: hasEnough(counts.market),
+  };
+});

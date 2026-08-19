@@ -26,7 +26,7 @@ import { ListingFavoriteButton } from "@/components/listing-favorite-button";
 import { ListingReport } from "@/components/listing-report";
 import { ListingViewTracker } from "@/components/listing-view-tracker";
 import { BackButton } from "@/components/back-button";
-import { formatUsd } from "@/lib/currency";
+import { Money } from "@/components/ui/money";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -133,7 +133,7 @@ export default async function ListingPage({
               <p
                 className={`mt-3 text-2xl font-extrabold ${listing.status === "active" ? "text-primary" : "text-muted-foreground line-through"}`}
               >
-                {formatUsd(listing.price)}
+                <Money value={listing.price} />
               </p>
             )}
 
@@ -180,7 +180,7 @@ export default async function ListingPage({
                       )}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-emerald-800"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-whatsapp px-4 py-2 text-sm font-bold text-whatsapp-foreground transition-colors hover:bg-whatsapp-hover"
                     >
                       <MessageCircle className="h-4 w-4" />
                       {dict.market.contactWhatsapp}

@@ -7,6 +7,40 @@
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <title>متجر</title>
+    <!--
+      MP-034 — this file is a SPLASH. It says nothing, deliberately.
+
+      It used to read "عم نحمّل… تأكّد من اتصالك بالإنترنت" ("loading… check your
+      connection"), which left the app running two offline screens with two
+      different messages and two different treatments: this one, and the service
+      worker's /offline.html. Which of them a person saw came down to *when* the
+      network died — before the remote site had loaded, or after.
+
+      The message is gone rather than harmonised, because this surface is not an
+      offline screen at all:
+
+        · It is shown on EVERY cold start, in the moment before server.url takes
+          over. On a healthy launch — the overwhelming majority — a line about
+          the connection is a false alarm about a problem that does not exist.
+        · It cannot know the network state. It is a static bundled file with no
+          verdict to report.
+        · It cannot honestly offer a retry: reloading a bundled asset does not
+          re-attempt server.url, so a "try again" button here would be a button
+          that does nothing.
+
+      /offline.html is the surface that actually knows a request failed, and it
+      carries the retry and the "your orders are safe" reassurance. It is now the
+      only offline presentation in the product; this one just holds the brand.
+
+      The colour is `backgroundColor` / the SplashScreen colour from
+      capacitor.config.ts, written literally so the native splash hands over to
+      this without a flash. Keep the three in step.
+
+      The trade-off, stated plainly: if the remote never loads at all, this shows
+      a spinner and no explanation. That is the accepted cost of not crying wolf
+      on every normal launch; the far more common failure — the network dropping
+      mid-session — is covered by offline.html.
+    -->
     <style>
       :root {
         color-scheme: light;
@@ -59,23 +93,25 @@
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
       }
-      .msg {
-        font-size: 14px;
-        opacity: 0.85;
-      }
       @keyframes spin {
         to {
           transform: rotate(360deg);
+        }
+      }
+      /* A spinner is decoration here, not information — slow it right down
+         rather than stopping it, so the screen still reads as "working". */
+      @media (prefers-reduced-motion: reduce) {
+        .spinner {
+          animation-duration: 2.4s;
         }
       }
     </style>
   </head>
   <body>
     <div class="wrap">
-      <div class="logo">م</div>
+      <div class="logo" aria-hidden="true">م</div>
       <div class="brand">متجر</div>
-      <div class="spinner"></div>
-      <div class="msg">عم نحمّل… تأكّد من اتصالك بالإنترنت</div>
+      <div class="spinner" role="status" aria-label="عم نحمّل"></div>
     </div>
   </body>
 </html>

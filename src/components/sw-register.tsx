@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { SW_URL } from "@/lib/sw";
 
 // Register the service worker for everyone, not only people who accept
 // notifications.
@@ -18,7 +19,11 @@ export function SwRegister() {
       return;
     }
     const register = () => {
-      navigator.serviceWorker.register("/sw.js").catch(() => {
+      // SW_URL carries the build id. Registering it when the id has changed is
+      // what replaces the previous worker (and, through it, retires the previous
+      // cache); registering it when nothing has changed is a no-op the browser
+      // resolves against the existing registration. See src/lib/sw.ts.
+      navigator.serviceWorker.register(SW_URL).catch(() => {
         /* An unavailable worker must never break the page. */
       });
     };

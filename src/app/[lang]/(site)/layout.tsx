@@ -4,6 +4,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { getUsdLbpRate } from "@/lib/data/settings";
+import { getNavSections } from "@/lib/data/section-supply";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { BottomNav } from "@/components/bottom-nav";
@@ -26,12 +27,21 @@ export default async function SiteLayout({
   const dict = await getDictionary(lang);
 
   const supabase = await createClient();
+  // Which verticals are worth linking to at all (MP-026). Same cached, public,
+  // cross-request read as the exchange rate beside it — the header, the phone
+  // menu and the footer all ask the same question and must not answer it
+  // differently on one page.
   const [
     {
       data: { user },
     },
     lbpRate,
-  ] = await Promise.all([supabase.auth.getUser(), getUsdLbpRate()]);
+    sections,
+  ] = await Promise.all([
+    supabase.auth.getUser(),
+    getUsdLbpRate(),
+    getNavSections(),
+  ]);
   const displayName =
     (user?.user_metadata?.full_name as string | undefined) ?? user?.email ?? "";
 
@@ -100,11 +110,12 @@ export default async function SiteLayout({
         unreadMessages={unreadMessages}
         dashboardHref={dashboardHref}
         lbpRate={lbpRate}
+        sections={sections}
       />
       <main id="main-content" className="flex-1">
         {children}
       </main>
-      <SiteFooter lang={lang} dict={dict} />
+      <SiteFooter lang={lang} dict={dict} sections={sections} />
       {/* Spacer so page content can scroll clear of the fixed mobile tab bar. */}
       <div
         aria-hidden

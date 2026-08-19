@@ -232,7 +232,7 @@ export function SuppliersManager({
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
                       aria-label="WhatsApp"
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white transition-colors hover:bg-emerald-700"
+                      className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-whatsapp text-whatsapp-foreground transition-colors before:absolute before:-inset-1.5 before:content-[''] hover:bg-whatsapp-hover"
                     >
                       <MessageCircle className="h-4 w-4" />
                     </a>

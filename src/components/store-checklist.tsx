@@ -17,6 +17,7 @@ import { SITE_URL } from "@/lib/site";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ShareButton } from "@/components/share-button";
+import { CardListUl } from "@/components/ui/card";
 
 // Onboarding nudge shown on the OS home. While the store is being set up it
 // reports one weighted number and ONE next action; once everything is done it
@@ -254,12 +255,15 @@ export function StoreChecklist({
           <p className="text-xs font-bold text-muted-foreground">
             {t.moreLabel}
           </p>
-          <ul className="mt-2 space-y-1.5">
+          {/* Was one bordered box per outstanding task, stacked. Eight boxes on
+              a tinted panel is a wall; one card ruled into rows reads as the
+              single "what's left" list it is. */}
+          <CardListUl className="mt-2">
             {rest.map((item) => (
               <li key={item.key}>
                 <Link
                   href={hrefOf(item)}
-                  className="flex min-h-[44px] items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 transition-colors hover:border-primary lg:min-h-0"
+                  className="flex min-h-[44px] items-center gap-2 px-3 py-2 transition-colors hover:bg-surface-muted lg:min-h-0"
                 >
                   <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />
                   <span className="min-w-0 flex-1 text-xs font-semibold sm:text-sm">
@@ -274,7 +278,7 @@ export function StoreChecklist({
                 </Link>
               </li>
             ))}
-          </ul>
+          </CardListUl>
         </div>
       )}
     </div>

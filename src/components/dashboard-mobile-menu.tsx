@@ -44,11 +44,15 @@ export function DashboardMobileMenu({
 
       {open && (
         <>
+          {/* Hangs off the dashboard header, so it needs the same derived
+              offset the header itself uses: the h-16 row (--m-header-h) plus
+              env(safe-area-inset-top). At a flat `top-16` the panel and its
+              scrim started under the notch and covered the header. (MP-032) */}
           <div
-            className="fixed inset-0 top-16 z-40 bg-black/30"
+            className="fixed inset-0 top-[calc(var(--m-header-h)+env(safe-area-inset-top))] z-40 bg-black/30"
             onClick={() => setOpen(false)}
           />
-          <nav className="fixed inset-x-0 top-16 z-40 max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-border bg-background p-3 shadow-lg">
+          <nav className="fixed inset-x-0 top-[calc(var(--m-header-h)+env(safe-area-inset-top))] z-40 max-h-[calc(100dvh-var(--m-header-h)-env(safe-area-inset-top))] overflow-y-auto border-b border-border bg-background p-3 shadow-lg">
             {name && (
               <div className="mb-1 flex items-center gap-2 px-3 py-2 text-sm font-semibold text-muted-foreground">
                 <User className="h-4 w-4 text-primary" />

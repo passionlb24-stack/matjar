@@ -81,7 +81,16 @@ export async function POST(req: Request) {
   if (!admin) {
     return NextResponse.json({ error: "not_configured" }, { status: 503 });
   }
-  const { rpID, origin } = await rpFromRequest();
+  // The relying party is checked against the deployment's own host list, not
+  // taken from the request. A refusal here means the request arrived claiming a
+  // host this deployment does not serve, which is a configuration fault or an
+  // attempt to choose the credential scope — never a fingerprint problem, so it
+  // must not be reported as one.
+  const rp = await rpFromRequest();
+  if (!rp) {
+    return NextResponse.json({ error: "untrusted_host" }, { status: 400 });
+  }
+  const { rpID, origin } = rp;
 
   const { data: ctx } = await admin.rpc("clock_store_context", {
     p_short_code: body.shortCode,

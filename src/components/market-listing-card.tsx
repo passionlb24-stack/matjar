@@ -6,7 +6,8 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import type { ListingCard } from "@/lib/data/market";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatUsd } from "@/lib/currency";
+import { Money } from "@/components/ui/money";
+import { NEUTRAL_BLUR } from "@/lib/image-placeholder";
 
 export function MarketListingCard({
   listing,
@@ -31,6 +32,8 @@ export function MarketListingCard({
             height={220}
             className="h-40 w-full object-cover transition-transform duration-500 group-hover:scale-105"
             sizes="(max-width: 640px) 50vw, 25vw"
+            placeholder="blur"
+            blurDataURL={NEUTRAL_BLUR}
           />
         ) : (
           <div className="flex h-40 w-full items-center justify-center bg-surface-muted">
@@ -54,7 +57,7 @@ export function MarketListingCard({
         </h3>
         {listing.price != null && (
           <p className="mt-1 text-lg font-extrabold text-primary">
-            {formatUsd(listing.price)}
+            <Money value={listing.price} />
           </p>
         )}
         <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">

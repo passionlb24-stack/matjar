@@ -3,18 +3,35 @@ import { Tags, Briefcase, Sparkles, Boxes } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
+import type { NavSections } from "@/lib/data/section-supply";
 
 // "كمان على متجر" — the non-storefront verticals in one compact group.
 // They are real destinations with real content, but none of them is what a
 // first-time visitor came for, so they get four small tiles rather than four
 // competing sections. No descriptions, no counts: the label is the promise.
-export function HomeMore({ lang, dict }: { lang: Locale; dict: Dictionary }) {
+//
+// And the promise is now checked. A tile whose section cannot return three real
+// results is dropped, on the same count and the same threshold as the rails
+// above it (MP-026) — "the label is the promise" only holds while the section
+// can keep it. With nothing left to show, the whole block goes, heading
+// included.
+export function HomeMore({
+  lang,
+  dict,
+  sections,
+}: {
+  lang: Locale;
+  dict: Dictionary;
+  sections: NavSections;
+}) {
   const items = [
-    { href: `/${lang}/market`, label: dict.market.nav, Icon: Tags },
-    { href: `/${lang}/jobs`, label: dict.jobs.title, Icon: Briefcase },
-    { href: `/${lang}/freelance`, label: dict.freelance.title, Icon: Sparkles },
-    { href: `/${lang}/wholesale`, label: dict.wholesale.title, Icon: Boxes },
-  ];
+    { href: `/${lang}/market`, label: dict.market.nav, Icon: Tags, on: sections.market },
+    { href: `/${lang}/jobs`, label: dict.jobs.title, Icon: Briefcase, on: sections.jobs },
+    { href: `/${lang}/freelance`, label: dict.freelance.title, Icon: Sparkles, on: sections.freelance },
+    { href: `/${lang}/wholesale`, label: dict.wholesale.title, Icon: Boxes, on: sections.wholesale },
+  ].filter((i) => i.on);
+
+  if (items.length === 0) return null;
 
   return (
     <section className="py-8 sm:py-12">

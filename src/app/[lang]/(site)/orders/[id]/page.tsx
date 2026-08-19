@@ -4,7 +4,7 @@ import { MapPin, Phone, StickyNote, Store as StoreIcon, Download } from "lucide-
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
-import { formatUsd } from "@/lib/currency";
+import { Money } from "@/components/ui/money";
 import { Container } from "@/components/ui/container";
 import { Card } from "@/components/ui/card";
 import { Breadcrumbs } from "@/components/breadcrumbs";
@@ -219,42 +219,43 @@ export default async function OrderDetailPage({
                       </a>
                     )}
                 </span>
-                <span className="shrink-0 font-semibold">
-                  {formatUsd(it.unit_price * it.quantity)}
-                </span>
+                <Money
+                  value={it.unit_price * it.quantity}
+                  className="shrink-0 font-semibold"
+                />
               </div>
             ))}
           </div>
           <div className="mt-4 space-y-1 border-t border-border pt-3 text-sm">
             <div className="flex justify-between text-muted-foreground">
               <span>{t.subtotal}</span>
-              <span>{formatUsd(order.subtotal)}</span>
+              <Money value={order.subtotal} />
             </div>
             {order.discount ? (
               <div className="flex justify-between text-success">
                 <span>{t.discount}</span>
-                <span>-{formatUsd(order.discount)}</span>
+                <Money value={order.discount} prefix="−" />
               </div>
             ) : null}
             {order.delivery_fee && Number(order.delivery_fee) > 0 ? (
               <div className="flex justify-between text-muted-foreground">
                 <span>{t.deliveryFeeLabel}</span>
-                <span>+{formatUsd(Number(order.delivery_fee))}</span>
+                <Money value={Number(order.delivery_fee)} prefix="+" />
               </div>
             ) : null}
             <div className="flex justify-between text-base font-extrabold">
               <span>{t.total}</span>
-              <span className="text-primary">{formatUsd(order.total)}</span>
+              <Money value={order.total} className="text-primary" />
             </div>
             {refunded > 0 && (
               <>
                 <div className="flex justify-between font-bold text-danger">
                   <span>{t.refunded}</span>
-                  <span>-{formatUsd(refunded)}</span>
+                  <Money value={refunded} prefix="−" />
                 </div>
                 <div className="flex justify-between text-sm font-semibold text-muted-foreground">
                   <span>{t.netPaid}</span>
-                  <span>{formatUsd(Math.max(0, order.total - refunded))}</span>
+                  <Money value={Math.max(0, order.total - refunded)} />
                 </div>
               </>
             )}

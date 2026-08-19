@@ -6,6 +6,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { LeadStatusControl } from "@/components/lead-status-control";
+import { CardList, CardRow } from "@/components/ui/card";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -78,12 +79,9 @@ export default async function StoreLeadsPage({
         <p className="mt-2 text-muted-foreground">{t.subtitle}</p>
 
         {leads.length ? (
-          <div className="mt-8 space-y-3">
+          <CardList className="mt-8">
             {leads.map((l) => (
-              <div
-                key={l.id}
-                className="rounded-2xl border border-border bg-surface p-4"
-              >
+              <CardRow key={l.id}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
@@ -119,9 +117,9 @@ export default async function StoreLeadsPage({
                     />
                   </div>
                 </div>
-              </div>
+              </CardRow>
             ))}
-          </div>
+          </CardList>
         ) : (
           <div className="mt-8 rounded-2xl border border-dashed border-border py-10 sm:py-16 text-center text-muted-foreground">
             {t.empty}

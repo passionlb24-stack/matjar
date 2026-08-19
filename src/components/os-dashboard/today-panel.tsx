@@ -5,8 +5,8 @@ import {
   FileText,
   CalendarCheck,
   Clock,
-  ChevronLeft,
-} from "lucide-react";
+  } from "lucide-react";
+import { ChevronNext } from "@/components/ui/directional-icon";
 
 // ===== OS dashboard — TodayPanel =====
 // "What's on my plate right now": pending orders (+ kitchen for food),
@@ -61,7 +61,7 @@ function CounterRow({ row }: { row: TodayCounterRow }) {
           {row.count}
         </span>
       )}
-      <ChevronLeft className="h-4 w-4 shrink-0 text-muted-foreground ltr:rotate-180" />
+      <ChevronNext className="h-4 w-4 shrink-0 text-muted-foreground" />
     </Link>
   );
 }

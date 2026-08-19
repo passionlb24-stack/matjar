@@ -10,7 +10,8 @@ import { StartTrialButton } from "@/components/start-trial-button";
 import { PLAN_TIERS, promoState, annualPrice, planRank } from "@/lib/plan-tiers";
 import { PLAN_HIGHLIGHTS } from "@/lib/feature-availability";
 import { requestNow } from "@/lib/now";
-import { formatUsd } from "@/lib/currency";
+import { Money } from "@/components/ui/money";
+import { CardList, CardRow } from "@/components/ui/card";
 
 // Single source of truth for Pro pricing (promo-aware): plan-tiers.
 const PRO_PRICE_MONTHLY = PLAN_TIERS.pro.monthly;
@@ -227,22 +228,19 @@ export default async function StoreSubscriptionPage({
         {/* Payment history */}
         <h2 className="mb-3 mt-8 text-lg font-bold">{t.paymentsTitle}</h2>
         {payments.length ? (
-          <div className="space-y-2">
+          <CardList>
             {payments.map((p) => (
-              <div
-                key={p.id}
-                className="flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-3 text-sm"
-              >
+              <CardRow key={p.id} className="flex items-center justify-between px-4 py-3 text-sm">
                 <span className="font-semibold">{fmtDate(p.paid_at)}</span>
                 <span className="text-muted-foreground">
                   {p.period === "yearly" ? t.yearly : t.monthly}
                 </span>
                 <span className="font-bold text-primary">
-                  {formatUsd(p.amount)}
+                  <Money value={p.amount} />
                 </span>
-              </div>
+              </CardRow>
             ))}
-          </div>
+          </CardList>
         ) : (
           <div className="rounded-2xl border border-dashed border-border py-12 text-center text-muted-foreground">
             {t.noPayments}

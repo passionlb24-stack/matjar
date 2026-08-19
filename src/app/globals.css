@@ -51,6 +51,15 @@
   --info: #0369a1; /* darkened for AA text on --info-soft (5.2:1) */
   --info-soft: #e3f2fb;
 
+  /* WhatsApp. A brand colour, not a semantic one: the green means "this opens
+     WhatsApp", so unlike every token above it does NOT change between themes —
+     the dark blocks deliberately leave it alone. Fourteen CTAs had inlined
+     `bg-emerald-700 … hover:bg-emerald-800`; this is that pair, named. White on
+     the fill is 5.48:1 and on the hover 7.68:1, so both clear AA either side. */
+  --whatsapp: #047857;
+  --whatsapp-hover: #065f46;
+  --whatsapp-foreground: #ffffff;
+
   /* ===== Mobile app metrics =====
      Named once so sticky bars, sheets and page gutters stop guessing at each
      other. --m-tabbar-h is the visible bar only; the safe-area inset is added
@@ -98,6 +107,9 @@
   --color-danger-strong-foreground: var(--danger-strong-foreground);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
+  --color-whatsapp: var(--whatsapp);
+  --color-whatsapp-hover: var(--whatsapp-hover);
+  --color-whatsapp-foreground: var(--whatsapp-foreground);
 
   --font-sans: var(--font-tajawal);
   --font-display: var(--font-alexandria);

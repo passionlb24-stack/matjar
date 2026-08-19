@@ -16,10 +16,12 @@ import { createClient } from "@/lib/supabase/client";
 import { waLink } from "@/lib/phone";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CardList, CardRow } from "@/components/ui/card";
+import { Money } from "@/components/ui/money";
+import { Switch } from "@/components/ui/switch";
 import { notifyError, notifySuccess } from "@/lib/notify";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { Dictionary } from "@/i18n/get-dictionary";
-import { formatUsd } from "@/lib/currency";
 
 export type BookCustomer = {
   id: string;
@@ -275,11 +277,11 @@ export function CrmManager({
       {dueFollowUps.length > 0 && (
         <section className="mb-4 rounded-2xl border border-primary/30 bg-primary-soft/40 p-4">
           <h2 className="font-bold text-primary">{t.followUpsTitle}</h2>
-          <div className="mt-3 space-y-2">
+          <CardList className="mt-3">
             {dueFollowUps.map((c) => (
-              <div
+              <CardRow
                 key={c.id}
-                className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3"
+                className="flex items-center gap-3 p-3"
               >
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-bold">{c.name}</span>
@@ -300,7 +302,7 @@ export function CrmManager({
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="WhatsApp"
-                    className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white transition-colors before:absolute before:-inset-1.5 before:content-[''] hover:bg-emerald-700"
+                    className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-whatsapp text-whatsapp-foreground transition-colors before:absolute before:-inset-1.5 before:content-[''] hover:bg-whatsapp-hover"
                   >
                     <MessageCircle className="h-4 w-4" />
                   </a>
@@ -312,9 +314,9 @@ export function CrmManager({
                 >
                   {t.followUpDone}
                 </button>
-              </div>
+              </CardRow>
             ))}
-          </div>
+          </CardList>
         </section>
       )}
 
@@ -400,7 +402,7 @@ export function CrmManager({
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
                         aria-label="WhatsApp"
-                        className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white transition-colors before:absolute before:-inset-1.5 before:content-[''] hover:bg-emerald-700"
+                        className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-whatsapp text-whatsapp-foreground transition-colors before:absolute before:-inset-1.5 before:content-[''] hover:bg-whatsapp-hover"
                       >
                         <MessageCircle className="h-4 w-4" />
                       </a>
@@ -497,14 +499,11 @@ export function CrmManager({
             </div>
           )}
           {filteredDerived.length ? (
-            <div className="mt-4 space-y-2">
+            <CardList className="mt-4">
               {filteredDerived.map((c, i) => {
             const points = c.customerId ? (balances[c.customerId] ?? 0) : 0;
             return (
-              <div
-                key={i}
-                className="rounded-2xl border border-border bg-surface p-4"
-              >
+              <CardRow key={i}>
                 {/* Four shrink-0 columns on one unwrapped row left the name
                     about 40px wide on a 360px screen. Below lg the row wraps
                     and `order` promotes the two fields a merchant actually
@@ -545,7 +544,7 @@ export function CrmManager({
                     </span>
                   )}
                   <span className="order-2 shrink-0 font-bold tabular-nums text-primary lg:order-none">
-                    {formatUsd(c.total)}
+                    <Money value={c.total} />
                   </span>
                   {c.phone && !bookPhones.has(c.phone) && (
                     <button
@@ -568,10 +567,10 @@ export function CrmManager({
                     dict={dict}
                   />
                 )}
-              </div>
+              </CardRow>
             );
           })}
-            </div>
+            </CardList>
           ) : (
             <div className="mt-4 rounded-2xl border border-dashed border-border py-12 text-center text-muted-foreground">
               {t.emptyDerived}
@@ -753,22 +752,12 @@ function RedemptionSettings({
             {t.redemptionHint}
           </p>
         </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={enabled}
-          aria-label={t.enableRedemption}
-          onClick={() => setEnabled((v) => !v)}
-          className={`relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition-colors ${
-            enabled ? "bg-primary" : "bg-border"
-          }`}
-        >
-          <span
-            className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${
-              enabled ? "start-[22px]" : "start-0.5"
-            }`}
-          />
-        </button>
+        <Switch
+          checked={enabled}
+          onChange={setEnabled}
+          label={t.enableRedemption}
+          className="mt-0.5"
+        />
       </div>
       <div className="mt-3 flex flex-wrap items-end gap-2 border-t border-border pt-3">
         {enabled && (

@@ -53,7 +53,7 @@
     "actionBooking": "View booking",
     "actionCraft": "View service request",
     "actionRateWork": "Rate the work",
-    "actionLead": "View conversation",
+    "actionLead": "View your inquiry",
     "emptyTitle": "Nothing here yet",
     "emptyBody": "Your first order or booking will show up here so you can follow it.",
     "emptyCta": "Browse stores"
@@ -532,6 +532,23 @@
       "patients": "Patients",
       "clients": "Clients",
       "leads": "Leads"
+    },
+    "team": {
+      "doctors": "Doctors",
+      "stylists": "Stylists",
+      "trainers": "Trainers",
+      "teachers": "Teachers",
+      "vets": "Vets",
+      "consultants": "Consultants",
+      "technicians": "Technicians",
+      "crew": "Crew",
+      "chefs": "Kitchen team",
+      "agents": "Agents",
+      "sales": "Sales team",
+      "organizers": "Organising team",
+      "hotelStaff": "Hotel team",
+      "pharmacists": "Pharmacists",
+      "team": "Team"
     },
     "crm": {
       "book": "Customer book",
@@ -3446,6 +3463,8 @@
     }
   },
   "favorites": {
+    "tabStores": "Stores",
+    "tabProducts": "Products",
     "title": "Favorites",
     "empty": "You don't have any favorite stores yet."
   },
@@ -4116,6 +4135,12 @@
     "bookingLead": "Pick a time that suits you and confirm in seconds.",
     "durationLabel": "Duration: {n} min",
     "boughtTogether": "Frequently bought together"
+  },
+  "inquiry": {
+    "title": "Your inquiry",
+    "sentOn": "Sent on",
+    "noMessage": "You didn't write a message — you just asked them to get in touch.",
+    "aboutProduct": "About:"
   },
   "wishlist": {
     "title": "Wishlist",

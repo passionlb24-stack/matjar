@@ -3,6 +3,7 @@ import { Star, BadgeCheck } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { ProductReviewsData } from "@/lib/data/product-reviews";
+import { Card, CardList, CardRow } from "@/components/ui/card";
 import { ProductReviewForm } from "@/components/product-review-form";
 
 /** Wording the offering resolver picks per variant, so a clinic's page says
@@ -44,7 +45,7 @@ export function ProductReviews({
       </h2>
 
       {data.count > 0 && (
-        <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5 sm:flex-row sm:items-center">
+        <Card className="mb-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
           <div className="text-center sm:w-40">
             <div className="text-4xl font-extrabold">
               {data.avg!.toFixed(1)}
@@ -84,7 +85,7 @@ export function ProductReviews({
               );
             })}
           </div>
-        </div>
+        </Card>
       )}
 
       {canWrite && !data.mine && (
@@ -102,9 +103,9 @@ export function ProductReviews({
           {copy?.empty ?? t.empty}
         </p>
       ) : (
-        <div className="space-y-3">
+        <CardList>
           {data.reviews.map((r) => (
-            <div key={r.id} className="rounded-2xl border border-border bg-surface p-4">
+            <CardRow key={r.id}>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-bold">{r.customerName ?? "—"}</span>
                 {r.verified && (
@@ -146,9 +147,9 @@ export function ProductReviews({
                   ))}
                 </div>
               )}
-            </div>
+            </CardRow>
           ))}
-        </div>
+        </CardList>
       )}
     </section>
   );

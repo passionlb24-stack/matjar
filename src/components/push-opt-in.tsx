@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Bell, BellOff, Check, Loader2, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { VAPID_PUBLIC_KEY, urlBase64ToUint8Array } from "@/lib/push";
+import { SW_URL } from "@/lib/sw";
 import {
   NATIVE_PUSH_ENABLED,
   checkNativePermission,
@@ -52,6 +53,58 @@ type State =
 /** Which push channel this device actually uses. */
 type Channel = "web" | "native";
 
+/**
+ * One device, one channel — never two (MP-029).
+ *
+ * A phone that holds a Web Push subscription AND an FCM/APNs token is
+ * registered twice for the same account: `push_on_notification` fans out to
+ * `push_subscriptions` over VAPID, and the FCM sender (MOBILE_APP.md, still
+ * unbuilt) will fan out to `device_push_tokens`. Every notification would then
+ * arrive twice on the same screen, and turning it off in one place would not
+ * stop the other — the switch in here only ever tears down the channel it
+ * believes it is on.
+ *
+ * So the moment this component knows it is inside the shell, any web-side
+ * registration on this device is retired: the row first — that is the thing the
+ * sender reads and the only thing that actually stops delivery — then the
+ * browser subscription.
+ *
+ * Cheap on the common path: `getSubscription()` is a local read that answers
+ * null for every device that never had one, and nothing else runs.
+ *
+ * This is deliberately one-way. The mirror image — dropping the device token
+ * when the web branch is taken — is NOT done, because `isNativeApp()` reports
+ * false whenever the Capacitor import fails for any reason, and inside a real
+ * app binary that would quietly delete a working FCM registration on a
+ * transient failure. Losing a stale web subscription is recoverable with one
+ * tap; losing the native one is not, because re-registering can need the
+ * one-shot iOS prompt that has already been spent.
+ */
+async function dropWebPushOnThisDevice(): Promise<void> {
+  if (
+    typeof navigator === "undefined" ||
+    !("serviceWorker" in navigator) ||
+    !("PushManager" in window)
+  ) {
+    return;
+  }
+  try {
+    // `getRegistration()`, never `ready` — `ready` never settles on a device
+    // with no worker, which is most of them inside a WebView.
+    const reg = await navigator.serviceWorker.getRegistration();
+    const sub = await reg?.pushManager.getSubscription();
+    if (!sub) return;
+    const supabase = createClient();
+    await supabase
+      .from("push_subscriptions")
+      .delete()
+      .eq("endpoint", sub.endpoint);
+    await sub.unsubscribe();
+  } catch {
+    /* Best effort. A failure here must not stop the native state from showing. */
+  }
+}
+
 export function PushOptIn({ dict }: { dict: Dictionary }) {
   const t = dict.push;
   const [state, setState] = useState<State>("checking");
@@ -62,6 +115,12 @@ export function PushOptIn({ dict }: { dict: Dictionary }) {
 
     if (await isNativeApp()) {
       setChannel("native");
+      // This device is a native device, so it must not also be a web-push
+      // device. Runs before the flag check on purpose: with native push still
+      // switched off, a shell carrying a leftover web subscription would be
+      // told "notifications aren't available" by this component while quietly
+      // continuing to receive them.
+      await dropWebPushOnThisDevice();
       // The one-shot prompt must not be spent on a channel with no sender
       // behind it. Until NEXT_PUBLIC_NATIVE_PUSH_ENABLED is set, the app shell
       // reports itself as unable rather than showing a button that would burn
@@ -139,7 +198,7 @@ export function PushOptIn({ dict }: { dict: Dictionary }) {
     // accepted notifications.
     const reg =
       (await navigator.serviceWorker.getRegistration()) ??
-      (await navigator.serviceWorker.register("/sw.js"));
+      (await navigator.serviceWorker.register(SW_URL));
     await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,

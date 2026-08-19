@@ -13,7 +13,12 @@ import {
   X,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
-import { OS_MODULE_META, type OsModuleKey } from "@/lib/sectors";
+import type { CategoryKey } from "@/lib/catalog";
+import {
+  OS_MODULE_META,
+  sectorTeamMeta,
+  type OsModuleKey,
+} from "@/lib/sectors";
 import {
   MerchantTabBar,
   type MerchantTab,
@@ -49,24 +54,33 @@ export type SidebarNav = {
 
 function ItemIcon({
   itemKey,
+  category,
   className,
 }: {
   itemKey: string;
+  /** The store's sector — only the roster module's glyph depends on it. */
+  category: CategoryKey;
   className?: string;
 }) {
   const Icon =
     itemKey === "home"
       ? LayoutDashboard
-      : (OS_MODULE_META[itemKey as OsModuleKey]?.Icon ?? LayoutDashboard);
+      : // The roster module's key is `doctors` everywhere (table, route, RPCs);
+        // only a clinic's roster is doctors. The sector says which glyph.
+        itemKey === "doctors"
+        ? sectorTeamMeta(category).Icon
+        : (OS_MODULE_META[itemKey as OsModuleKey]?.Icon ?? LayoutDashboard);
   return <Icon className={className} aria-hidden />;
 }
 
 function NavRow({
   item,
+  category,
   active,
   onNavigate,
 }: {
   item: SidebarItem;
+  category: CategoryKey;
   active: boolean;
   onNavigate?: () => void;
 }) {
@@ -87,7 +101,11 @@ function NavRow({
           className="absolute inset-y-1.5 start-0 w-[3px] rounded-full bg-primary"
         />
       )}
-      <ItemIcon itemKey={item.key} className="h-4 w-4 shrink-0" />
+      <ItemIcon
+        itemKey={item.key}
+        category={category}
+        className="h-4 w-4 shrink-0"
+      />
       <span className="min-w-0 flex-1 truncate">{item.label}</span>
       {item.locked && (
         <Lock className="h-3.5 w-3.5 shrink-0 text-amber-500" aria-hidden />
@@ -104,6 +122,7 @@ export function MerchantSidebar({
   plan,
   trialDaysLeft = 0,
   slug,
+  category,
   nav,
   tabs,
 }: {
@@ -114,6 +133,8 @@ export function MerchantSidebar({
   plan: "free" | "pro";
   trialDaysLeft?: number;
   slug: string | null;
+  /** The store's sector, so the roster module can carry its own glyph. */
+  category: CategoryKey;
   nav: SidebarNav;
   /** Phone tab bar, derived from the sector in the layout. Empty = none. */
   tabs?: MerchantTab[];
@@ -219,6 +240,7 @@ export function MerchantSidebar({
       <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
         <NavRow
           item={nav.home}
+          category={category}
           active={activeHref === nav.home.href}
           onNavigate={() => setOpen(false)}
         />
@@ -232,6 +254,7 @@ export function MerchantSidebar({
                 <NavRow
                   key={item.key}
                   item={item}
+                  category={category}
                   active={activeHref === item.href}
                   onNavigate={() => setOpen(false)}
                 />
@@ -245,6 +268,7 @@ export function MerchantSidebar({
           <NavRow
             key={item.key}
             item={item}
+            category={category}
             active={activeHref === item.href}
             onNavigate={() => setOpen(false)}
           />
@@ -263,14 +287,21 @@ export function MerchantSidebar({
 
   return (
     <>
-      {/* Desktop rail — sticks below the h-16 dashboard header. */}
-      <aside className="sticky top-16 hidden h-[calc(100dvh-4rem)] w-60 shrink-0 flex-col border-e border-border bg-surface lg:flex print:hidden">
+      {/* Both rails stick *below* the dashboard header, whose real height is the
+          h-16 row PLUS env(safe-area-inset-top) — the header pads for the notch
+          above its row (see (dashboard)/layout.tsx). `top-16` was a hardcoded
+          64px that ignored the inset, so on a notched phone the strip sat ~47px
+          (iPhone 14/15) too high and tucked under the header. The offset is now
+          derived: --m-header-h is the row (4rem, the token that already names
+          h-16), and the inset is added on top. Off a notch the inset is 0 and
+          this resolves to the old 64px exactly. (MP-033) */}
+      <aside className="sticky top-[calc(var(--m-header-h)+env(safe-area-inset-top))] hidden h-[calc(100dvh-var(--m-header-h)-env(safe-area-inset-top))] w-60 shrink-0 flex-col border-e border-border bg-surface lg:flex print:hidden">
         {identity}
         {navContent}
       </aside>
 
       {/* Mobile top bar. */}
-      <div className="sticky top-16 z-30 flex h-12 items-center gap-2 border-b border-border bg-surface/90 px-4 backdrop-blur lg:hidden print:hidden">
+      <div className="sticky top-[calc(var(--m-header-h)+env(safe-area-inset-top))] z-30 flex h-12 items-center gap-2 border-b border-border bg-surface/90 px-4 backdrop-blur lg:hidden print:hidden">
         <button
           type="button"
           aria-label="menu"
@@ -298,6 +329,7 @@ export function MerchantSidebar({
       {tabs && tabs.length > 0 && (
         <MerchantTabBar
           tabs={tabs}
+          category={category}
           onMore={() => setOpen(true)}
           moreLabel={nav.backLabel}
         />

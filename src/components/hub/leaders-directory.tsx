@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -218,10 +219,12 @@ function LeaderCardView({
     >
       <div className="flex items-start gap-3.5">
         {p.photo_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={p.photo_url}
             alt={name}
+            width={64}
+            height={64}
+            sizes="64px"
             className="h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-surface"
           />
         ) : (

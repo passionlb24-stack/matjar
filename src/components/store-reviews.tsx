@@ -4,9 +4,13 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { ReviewForm } from "@/components/review-form";
 
+// MP-010: no account id. This list is public and renders on a `select using
+// (true)` table, so a customer_id here was a stable per-person identifier handed
+// to every anonymous visitor. The one thing it was used for — finding the
+// viewer's own review to prefill the form — is now answered server-side and
+// arrives as `myReview`.
 export type Review = {
   id: string;
-  customer_id: string;
   customer_name: string | null;
   rating: number;
   comment: string | null;
@@ -17,22 +21,25 @@ export type Review = {
   reply_at: string | null;
 };
 
+/** The viewer's own review of this store, or null — including when signed out. */
+export type MyReview = { rating: number; comment: string | null };
+
 export function StoreReviews({
   storeId,
   lang,
   dict,
   reviews,
   currentUser,
+  myReview,
 }: {
   storeId: string;
   lang: Locale;
   dict: Dictionary;
   reviews: Review[];
   currentUser: { id: string; name: string } | null;
+  myReview: MyReview | null;
 }) {
-  const mine = currentUser
-    ? reviews.find((r) => r.customer_id === currentUser.id)
-    : undefined;
+  const mine = currentUser ? myReview : null;
 
   return (
     <div className="mt-12">

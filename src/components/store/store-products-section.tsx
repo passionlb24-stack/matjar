@@ -21,12 +21,7 @@ import type { DoctorView } from "@/components/store/store-doctors";
 // when it is the one that renders — it is still server-rendered, so the service
 // list and its prices stay in the HTML. See store/lazy-engines.tsx.
 import { BookingPanel } from "@/components/store/lazy-engines";
-
-function formatPrice(price: number) {
-  return price >= 1000
-    ? `$${Number(price).toLocaleString("en-US")}`
-    : `$${price}`;
-}
+import { Money } from "@/components/ui/money";
 
 export function StoreProductsSection({
   sectionTitle,
@@ -267,9 +262,7 @@ export function StoreProductsSection({
                           )}
                           <p className="mt-2 text-sm text-muted-foreground">
                             {dict.store.from}{" "}
-                            <span className="text-money font-bold text-foreground">
-                              {formatPrice(p.price)}
-                            </span>
+                            <Money value={p.price} className="font-bold text-foreground" />
                           </p>
                         </div>
                       </Link>
@@ -365,9 +358,7 @@ export function StoreProductsSection({
                 </h3>
                 <p className="mt-0.5 text-sm text-muted-foreground">
                   {dict.store.from}{" "}
-                  <span className="text-money font-bold text-foreground">
-                    {formatPrice(p.price)}
-                  </span>
+                  <Money value={p.price} className="font-bold text-foreground" />
                 </p>
               </div>
               <button className="shrink-0 rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover">

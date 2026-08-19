@@ -18,6 +18,7 @@ import {
   Map as MapIcon,
   Store,
   Wrench,
+  Hammer,
   Tag,
   LayoutDashboard,
   User,
@@ -29,18 +30,30 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LogoutButton } from "@/components/logout-button";
 import { isActivePath } from "@/components/nav-link";
+import type { NavSections } from "@/lib/data/section-supply";
 
-type Item = { href: string; label: string; icon: typeof Compass; bold?: boolean };
+type Item = {
+  href: string;
+  label: string;
+  icon: typeof Compass;
+  bold?: boolean;
+  /** Omitted = always shown. `false` = nothing behind it yet (MP-026). */
+  on?: boolean;
+};
 
 export function MobileMenu({
   lang,
   dict,
+  sections,
   user,
   dashboardHref = null,
   lbpRate = 0,
 }: {
   lang: Locale;
-  dict: Pick<Dictionary, "auth" | "bestSellers" | "common" | "dashboard" | "delivery" | "flash" | "freelance" | "jobs" | "map" | "market" | "mobileNav" | "offers" | "pricing" | "wholesale">;
+  dict: Pick<Dictionary, "auth" | "bestSellers" | "common" | "crafts" | "dashboard" | "delivery" | "flash" | "freelance" | "jobs" | "map" | "market" | "mobileNav" | "offers" | "pricing" | "wholesale">;
+  /** Which verticals have three real results behind them — a plain object of
+   *  booleans, so it crosses the server/client boundary as data. */
+  sections: NavSections;
   user: { name: string } | null;
   dashboardHref?: string | null;
   lbpRate?: number;
@@ -96,12 +109,17 @@ export function MobileMenu({
     };
   }, [open]);
 
-  const sections: { title: string; items: Item[] }[] = [
+  // Same gate as the desktop dropdown and the footer, from the same counts:
+  // a section that cannot return three real results is not offered here either
+  // (MP-026). Its route still answers — this menu just stops promising it.
+  // A group left with no surviving items drops out rather than showing a
+  // heading over empty space.
+  const allGroups: { title: string; items: Item[] }[] = [
     {
       title: dict.mobileNav.shop,
       items: [
         { href: `/${lang}/explore`, label: dict.common.explore, icon: Compass },
-        { href: `/${lang}/market`, label: dict.market.nav, icon: ShoppingBag, bold: true },
+        { href: `/${lang}/market`, label: dict.market.nav, icon: ShoppingBag, bold: true, on: sections.market },
         { href: `/${lang}/offers`, label: dict.offers.title, icon: Percent },
         { href: `/${lang}/flash`, label: dict.flash.title, icon: Zap },
         { href: `/${lang}/best-sellers`, label: dict.bestSellers.title, icon: TrendingUp },
@@ -110,10 +128,11 @@ export function MobileMenu({
     {
       title: dict.common.workServices,
       items: [
-        { href: `/${lang}/jobs`, label: dict.jobs.title, icon: Briefcase },
-        { href: `/${lang}/freelance`, label: dict.freelance.title, icon: Sparkles },
-        { href: `/${lang}/wholesale`, label: dict.wholesale.title, icon: Boxes },
-        { href: `/${lang}/delivery`, label: dict.delivery.title, icon: Truck },
+        { href: `/${lang}/jobs`, label: dict.jobs.title, icon: Briefcase, on: sections.jobs },
+        { href: `/${lang}/freelance`, label: dict.freelance.title, icon: Sparkles, on: sections.freelance },
+        { href: `/${lang}/crafts`, label: dict.crafts.title, icon: Hammer, on: sections.crafts },
+        { href: `/${lang}/wholesale`, label: dict.wholesale.title, icon: Boxes, on: sections.wholesale },
+        { href: `/${lang}/delivery`, label: dict.delivery.title, icon: Truck, on: sections.delivery },
       ],
     },
     {
@@ -126,6 +145,9 @@ export function MobileMenu({
       ],
     },
   ];
+  const groups = allGroups
+    .map((g) => ({ ...g, items: g.items.filter((i) => i.on !== false) }))
+    .filter((g) => g.items.length > 0);
 
   const account: Item[] = user
     ? [
@@ -152,8 +174,12 @@ export function MobileMenu({
 
       {open && (
         <>
+          {/* Same derived offset as the header it hangs off: site-header pads
+              env(safe-area-inset-top) above its h-16 row, so a flat `top-16`
+              here put the panel under the notch and over the header. (MP-032,
+              same root cause on the customer side.) */}
           <div
-            className="fixed inset-0 top-16 z-40 bg-black/30"
+            className="fixed inset-0 top-[calc(var(--m-header-h)+env(safe-area-inset-top))] z-40 bg-black/30"
             onClick={() => setOpen(false)}
           />
           <nav
@@ -161,7 +187,7 @@ export function MobileMenu({
             role="dialog"
             aria-modal="true"
             aria-label={dict.common.menu}
-            className="fixed inset-x-0 top-16 z-40 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-border bg-background p-3 shadow-lg"
+            className="fixed inset-x-0 top-[calc(var(--m-header-h)+env(safe-area-inset-top))] z-40 max-h-[calc(100dvh-var(--m-header-h)-env(safe-area-inset-top))] overflow-y-auto border-b border-border bg-background p-3 shadow-lg"
           >
             {lbpRate > 0 && (
               <div className="mb-2 rounded-xl bg-surface-muted px-3 py-2 text-center text-sm font-bold text-muted-foreground">
@@ -169,13 +195,13 @@ export function MobileMenu({
                 {lang === "ar" ? "ل.ل." : "LBP"}
               </div>
             )}
-            {sections.map((section, si) => (
-              <div key={section.title} className={si > 0 ? "mt-3" : ""}>
+            {groups.map((group, si) => (
+              <div key={group.title} className={si > 0 ? "mt-3" : ""}>
                 <p className="px-3 pb-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                  {section.title}
+                  {group.title}
                 </p>
                 <div className="space-y-1">
-                  {section.items.map((item) => {
+                  {group.items.map((item) => {
                     const Icon = item.icon;
                     return (
                       <Link

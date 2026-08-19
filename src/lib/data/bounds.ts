@@ -47,8 +47,9 @@ export const FETCH_BOUNDS = {
   allStoreSections: 5000,
   /** Practitioner rosters platform-wide (doctors + service_providers). */
   allProviders: 5000,
-  /** Stores the current viewer follows. */
-  follows: 2000,
+  // No `follows` bound any more: MP-041's fix asks the follows table only about
+  // the store ids on the rendered page, so that read is bounded by the page and
+  // has no ceiling of its own to name here.
   /** One seller's own market listings. */
   myListings: 500,
   /** Reference taxonomies. lb_areas in particular is close enough to 1000 that
@@ -80,4 +81,98 @@ export function warnIfTruncated(
       `Rows beyond the ceiling are NOT rendered. Raise the bound in ` +
       `src/lib/data/bounds.ts or paginate this surface.`,
   );
+}
+
+// ---------------------------------------------------------------------------
+// Reading past one round trip.
+//
+// A `.limit()` makes truncation audible; it does not make the rows arrive. A
+// store past `storeProducts` still cannot show its catalog. These two helpers
+// close that half: they issue the SAME query repeatedly over `.range()` windows
+// and concatenate, so the ceiling in FETCH_BOUNDS stops being "what one HTTP
+// response can carry" and becomes "the point at which a human should look".
+//
+// The warning still fires — at the ceiling, not at 1000 — and it now means
+// something genuinely extraordinary rather than "PostgREST's default happened".
+
+/** Rows per round trip. PostgREST's own `db-max-rows` default; asking for more
+ *  in one request is silently capped here anyway, so this is the real page. */
+export const PAGE_ROWS = 1000;
+
+/** Ids per `.in(...)` filter. The filter travels in the query string, so a
+ *  2000-id `.in()` is a ~75KB URL — rejected by proxies long before the
+ *  database sees it. Chunking keeps every request a normal-sized one. */
+export const ID_FILTER_CHUNK = 200;
+
+/** What a supabase-js query resolves to, narrowed to the part paging needs. */
+type PageResponse<T> = { data: T[] | null };
+
+/**
+ * Page through one query until it runs out of rows or hits `ceiling`.
+ *
+ * `fetchPage` must apply `.range(from, to)` to an otherwise IDENTICAL query on
+ * every call — same select, same filters, same order. The order must also be
+ * total (add a unique tiebreaker such as `id`): `.range()` pages a result set
+ * by position, so two rows the database is free to return in either order can
+ * otherwise appear twice or not at all.
+ *
+ * A short page ends the loop, which costs one extra request when the row count
+ * is an exact multiple of the page size — the price of not needing a count.
+ */
+export async function fetchAllPages<T>(
+  fetchPage: (from: number, to: number) => PromiseLike<PageResponse<T>>,
+  ceiling: number,
+  what: string,
+): Promise<T[]> {
+  const rows = await pageThrough(fetchPage, ceiling);
+  warnIfTruncated(rows, ceiling, what);
+  return rows;
+}
+
+/**
+ * The same, for a query filtered by a list of ids: chunk the ids, page each
+ * chunk, concatenate. Row order across chunks follows the id order, which is
+ * why every caller here regroups the result into a map or a set rather than
+ * rendering it in arrival order.
+ */
+export async function fetchAllByIds<T>(
+  ids: readonly string[],
+  fetchPage: (
+    chunk: string[],
+    from: number,
+    to: number,
+  ) => PromiseLike<PageResponse<T>>,
+  ceiling: number,
+  what: string,
+): Promise<T[]> {
+  const rows: T[] = [];
+  for (let i = 0; i < ids.length && rows.length < ceiling; i += ID_FILTER_CHUNK) {
+    const chunk = ids.slice(i, i + ID_FILTER_CHUNK);
+    const got = await pageThrough<T>(
+      (from, to) => fetchPage(chunk, from, to),
+      ceiling - rows.length,
+    );
+    rows.push(...got);
+  }
+  warnIfTruncated(rows, ceiling, what);
+  return rows;
+}
+
+/** Shared loop. Returns what it managed to read; the callers above own the
+ *  warning so it fires once per surface, not once per chunk. */
+async function pageThrough<T>(
+  fetchPage: (from: number, to: number) => PromiseLike<PageResponse<T>>,
+  ceiling: number,
+): Promise<T[]> {
+  const rows: T[] = [];
+  while (rows.length < ceiling) {
+    const want = Math.min(PAGE_ROWS, ceiling - rows.length);
+    const { data } = await fetchPage(rows.length, rows.length + want - 1);
+    // Null is an error or an empty set; neither can be paged past. Stopping
+    // here keeps the pre-existing `data ?? []` behaviour of every caller.
+    if (!data?.length) break;
+    rows.push(...data);
+    if (data.length < want) break;
+  }
+  return rows;
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { notifyError } from "@/lib/notify";
+import { CardListUl } from "@/components/ui/card";
 
 export type CraftRequestRow = {
   id: string;
@@ -80,9 +81,9 @@ export function CraftRequestsList({
   }
 
   return (
-    <ul className="space-y-3">
+    <CardListUl>
       {requests.map((r) => (
-        <li key={r.id} className="rounded-2xl border border-border bg-surface p-4">
+        <li key={r.id} className="p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="font-bold">
               {r.customer_name || "—"}
@@ -135,6 +136,6 @@ export function CraftRequestsList({
           )}
         </li>
       ))}
-    </ul>
+    </CardListUl>
   );
 }

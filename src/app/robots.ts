@@ -31,6 +31,8 @@ export default function robots(): MetadataRoute.Robots {
         "/ar/orders", "/en/orders",
         "/ar/bookings", "/en/bookings",
         "/ar/messages", "/en/messages",
+        // One customer's own inquiry, reachable only by its uuid (MP-023).
+        "/ar/inquiries", "/en/inquiries",
         "/ar/notifications", "/en/notifications",
         "/ar/wishlist", "/en/wishlist",
         "/ar/favorites", "/en/favorites",

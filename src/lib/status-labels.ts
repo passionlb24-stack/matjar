@@ -1,4 +1,6 @@
+import type { ComponentProps } from "react";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import type { Badge } from "@/components/ui/badge";
 
 // One place that turns a raw database value into words a person can read.
 //
@@ -126,3 +128,118 @@ export function labelFor(
   if (!value) return "";
   return labelMap(dict, domain)[value] ?? value;
 }
+
+/**
+ * The Badge variants, taken FROM the badge so the two cannot drift. A variant
+ * renamed in ui/badge.tsx breaks this line rather than silently painting every
+ * pill neutral.
+ */
+export type StatusTone = NonNullable<ComponentProps<typeof Badge>["variant"]>;
+
+/**
+ * How a status LOOKS, alongside the words it reads as (MP-022).
+ *
+ * The customer activity screen is the only place in Matjar that puts four
+ * status vocabularies in one scrollable column, and it painted all of them the
+ * same neutral grey — so a cancelled booking, a finished order and an order on
+ * the van were one indistinguishable shade, and the pill did no work at all.
+ *
+ * Tone is deliberately assigned by PHASE, not per value, and the phases are the
+ * same four in every domain, because the whole point is a mixed list that can
+ * be scanned in one pass:
+ *
+ *   warning  the ball is with the merchant/tradesman — nothing has been said yet
+ *   info     under way: accepted, being prepared, being discussed
+ *   primary  the customer's turn, right now — ready to collect, on its way
+ *   success  ended well
+ *   danger   ended by a refusal
+ *   neutral  ended by nobody — cancelled, dropped
+ *
+ * Two values inside one phase share a tone on purpose. The tone answers "how
+ * far along, and is it mine?"; the LABEL beside it answers "which step". A
+ * palette with a distinct colour per value would be eight colours nobody can
+ * hold in their head.
+ *
+ * Domains not listed here have no customer-facing pill; they fall through to
+ * neutral rather than forcing a colour onto vocabulary nobody has looked at.
+ */
+const TONES: Partial<Record<LabelDomain, Record<string, StatusTone>>> = {
+  // orders.status — 0006.
+  order: {
+    pending: "warning",
+    accepted: "info",
+    preparing: "info",
+    ready: "primary",
+    out_for_delivery: "primary",
+    completed: "success",
+    cancelled: "neutral",
+    rejected: "danger",
+  },
+  // bookings.status — 0010 + 0177. `no_show` is a warning, not a danger: it is
+  // the one terminal state the customer can still ring up and fix.
+  booking: {
+    pending: "warning",
+    accepted: "info",
+    scheduled: "info",
+    completed: "success",
+    cancelled: "neutral",
+    rejected: "danger",
+    no_show: "warning",
+  },
+  // craft_requests.status — 0239.
+  craftRequest: {
+    pending: "warning",
+    accepted: "info",
+    in_progress: "info",
+    completed: "success",
+    declined: "danger",
+    cancelled: "neutral",
+  },
+  // leads.status — 0190. Read from the CUSTOMER's side, which is the side that
+  // sees this screen: `won` is their inquiry having turned into something,
+  // `lost` is it having quietly ended — neither is a verdict on them.
+  lead: {
+    new: "warning",
+    contacted: "info",
+    scheduled: "info",
+    negotiating: "info",
+    won: "success",
+    lost: "neutral",
+  },
+};
+
+/**
+ * The tone for one raw value.
+ *
+ * An unrecognised value is `neutral`, never a throw and never a guess — same
+ * contract as labelFor(): a status nobody anticipated must not be able to take
+ * down the screen that shows it, and grey is the one tone that claims nothing.
+ */
+export function statusTone(
+  domain: LabelDomain,
+  value: string | null | undefined,
+): StatusTone {
+  if (!value) return "neutral";
+  return TONES[domain]?.[value] ?? "neutral";
+}
+
+/**
+ * Which domain each row of the customer activity screen speaks.
+ *
+ * The screen calls its four row types `order | booking | craft | lead`; three
+ * of those are also domain names and one (`craft` → `craftRequest`) is not,
+ * which is exactly the sort of near-miss that gets typed out twice and then
+ * drifts. Stated once here, and used by both the server page that resolves the
+ * WORDS and the client list that resolves the COLOUR, so the two can never
+ * disagree about which vocabulary a row belongs to.
+ *
+ * Not typed against `ActivityKind` here — lib/data/activity.ts is `server-only`
+ * and this table is read in the browser. The page assigns it INTO a
+ * `Record<ActivityKind, …>`, which is where TypeScript checks the two agree.
+ */
+export const ACTIVITY_DOMAINS = {
+  order: "order",
+  booking: "booking",
+  craft: "craftRequest",
+  lead: "lead",
+} as const satisfies Record<string, LabelDomain>;

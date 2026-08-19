@@ -7,7 +7,8 @@ import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getClearance } from "@/lib/data/offers";
 import { getUsdLbpRate } from "@/lib/data/settings";
-import { formatUsd, formatLbp } from "@/lib/currency";
+import { formatLbp } from "@/lib/currency";
+import { Money } from "@/components/ui/money";
 import { localized } from "@/lib/i18n-field";
 import { Container } from "@/components/ui/container";
 import { PageHero } from "@/components/ui/page-hero";
@@ -67,11 +68,11 @@ export default async function ClearancePage({
                   <p className="mt-0.5 text-xs text-muted-foreground">{p.storeName}</p>
                   <p className="mt-2">
                     <span className="font-bold text-primary">
-                      {formatUsd(p.discountPrice ?? p.price)}
+                      <Money value={p.discountPrice ?? p.price} />
                     </span>{" "}
                     {p.discountPrice != null && (
                       <span className="text-xs text-muted-foreground line-through">
-                        {formatUsd(p.price)}
+                        <Money value={p.price} />
                       </span>
                     )}
                   </p>

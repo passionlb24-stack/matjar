@@ -13,6 +13,7 @@ import {
   resolveProfileOrder,
   resolveStoreModules,
   sectorHasTeam,
+  sectorTeamMeta,
   type ProfileSectionKey,
 } from "@/lib/sectors";
 import { createClient } from "@/lib/supabase/server";
@@ -30,7 +31,11 @@ import { getUsdLbpRate } from "@/lib/data/settings";
 import { formatUsd } from "@/lib/currency";
 import { categoryIcons } from "@/components/category-icon";
 import { Container } from "@/components/ui/container";
-import { StoreReviews, type Review } from "@/components/store-reviews";
+import {
+  StoreReviews,
+  type MyReview,
+  type Review,
+} from "@/components/store-reviews";
 import {
   StoreVerifications,
   type StoreVerification,
@@ -188,7 +193,13 @@ export default async function StorePage({
           // reply/reply_at ride along on the query that was already being made —
           // the shop's answer renders under the review it answers, not from a
           // second round-trip.
-          .select("id, customer_id, customer_name, rating, comment, reply, reply_at")
+          // customer_id deliberately absent (MP-010): this read runs as `anon`
+          // for most visitors and its result is handed straight to a client
+          // component, so selecting it published every reviewer's account id to
+          // anyone who opened the page. The one thing it was used for — finding
+          // the viewer's own review to prefill the form — is looked up by id in
+          // wave 3 instead: one row, server-side, and only when signed in.
+          .select("id, customer_name, rating, comment, reply, reply_at")
           .eq("store_id", id)
           .order("created_at", { ascending: false })
           .then((r) => (r.data ?? []) as Review[]),
@@ -349,8 +360,9 @@ export default async function StorePage({
     }
   }
 
-  // Wave 3 — follow state + exchange rate + fulfilled count (all independent).
-  const [isFollowing, lbpRate, ordersFulfilled] = await Promise.all([
+  // Wave 3 — follow state + exchange rate + fulfilled count + the viewer's own
+  // review (all independent, all per-user).
+  const [isFollowing, lbpRate, ordersFulfilled, myReview] = await Promise.all([
     user && realStore
       ? supabase
           .from("follows")
@@ -366,6 +378,21 @@ export default async function StorePage({
           .rpc("store_fulfilled_count", { p_store_id: id })
           .then((r) => (r.data as number | null) ?? 0)
       : Promise.resolve(0),
+    // MP-010: the ONE review the viewer is allowed to know the owner of — their
+    // own — asked for by their own id, instead of shipping every reviewer's id
+    // to the browser and searching there. `reviews` is unique on (store_id,
+    // customer_id), so this is at most one row. A signed-out visitor asks
+    // nothing: no round trip, and no reference to customer_id anywhere on the
+    // anonymous path.
+    user && realStore
+      ? supabase
+          .from("reviews")
+          .select("rating, comment")
+          .eq("store_id", id)
+          .eq("customer_id", user.id)
+          .maybeSingle()
+          .then((r) => (r.data as MyReview | null) ?? null)
+      : Promise.resolve(null),
   ]);
   const avg = reviews.length
     ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
@@ -766,6 +793,7 @@ export default async function StorePage({
     doctors: (
       <StoreDoctors
         doctors={doctors}
+        category={store.category}
         servicesByDoctor={servicesByDoctor}
         dict={dict}
       />
@@ -786,6 +814,7 @@ export default async function StorePage({
         dict={dict}
         reviews={reviews}
         currentUser={currentUser}
+        myReview={myReview}
       />
     ),
   };
@@ -874,9 +903,17 @@ export default async function StorePage({
     .filter((key) => key !== "header" && present[key])
     .map((key) => ({
       key,
-      // The catalogue's chip reuses the heading the page already renders
-      // (المنيو / الخدمات / العروض / المنتجات) instead of a second vocabulary.
-      label: key === "catalog" ? sectionTitle : tabLabels[key],
+      // Both overrides exist for the same reason: a chip must say what the
+      // section it scrolls to says. The catalogue's chip reuses the heading the
+      // page already renders (المنيو / الخدمات / العروض / المنتجات) instead of a
+      // second vocabulary, and the roster's chip takes the sector's own word so
+      // it does not read الفريق above a heading that says فريق الصالون.
+      label:
+        key === "catalog"
+          ? sectionTitle
+          : key === "doctors"
+            ? dict.os.team[sectorTeamMeta(store.category).labelKey]
+            : tabLabels[key],
     }))
     .filter((t) => !!t.label);
 

@@ -10,11 +10,13 @@ import { OrderPayments, type OrderPayment } from "@/components/order-payments";
 import { OrderNoteEditor } from "@/components/order-note-editor";
 import { OrderAssignTags } from "@/components/order-assign-tags";
 import { formatUsd } from "@/lib/currency";
+import { Money } from "@/components/ui/money";
 import {
   OrderDispatch,
   type DispatchCourier,
   type DeliveryRequest,
 } from "@/components/order-dispatch";
+import { CardList, CardRow } from "@/components/ui/card";
 
 type OrderItem = {
   name: string;
@@ -139,14 +141,11 @@ export function OrdersFilter({
       </div>
 
       {filtered.length ? (
-        <div className="mt-6 space-y-4">
+        <CardList className="mt-6">
           {filtered.map((order) => {
             const branch = order.branch;
             return (
-              <div
-                key={order.id}
-                className="rounded-2xl border border-border bg-surface p-5"
-              >
+              <CardRow key={order.id} className="p-5">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                   <span className="min-w-0 text-sm font-semibold text-muted-foreground">
                     {dict.orders.order} #{order.id.slice(0, 8)}
@@ -204,7 +203,7 @@ export function OrdersFilter({
                           {item.quantity}× {item.name}
                         </span>
                         <span className="text-muted-foreground">
-                          {formatUsd(item.unit_price * item.quantity)}
+                          <Money value={item.unit_price * item.quantity} />
                         </span>
                       </div>
                       {item.note && (
@@ -333,10 +332,10 @@ export function OrdersFilter({
                     errorLabel={dict.common.actionFailed}
                   />
                 </details>
-              </div>
+              </CardRow>
             );
           })}
-        </div>
+        </CardList>
       ) : (
         <div className="mt-6">
           {/* The house empty state, not a bare dashed box — and it offers the

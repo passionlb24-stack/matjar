@@ -238,7 +238,7 @@ export default async function CraftsPage({
             href={supportWaLink(t.waRequestGeneric)}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-800"
+            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-whatsapp px-5 py-2.5 text-sm font-bold text-whatsapp-foreground transition-colors hover:bg-whatsapp-hover"
           >
             <MessageCircle aria-hidden className="h-4 w-4" />
             {t.requestHelpCta}

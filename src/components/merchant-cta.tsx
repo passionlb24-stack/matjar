@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
+import { ChevronNext } from "@/components/ui/directional-icon";
 
 // The merchant pitch is one line at the foot of a customer page. The feature
 // list, the pricing and the proof all live on /merchants — this is only the
@@ -20,7 +20,7 @@ export function MerchantCta({ lang, dict }: { lang: Locale; dict: Dictionary }) 
             className="inline-flex h-11 shrink-0 items-center gap-1 rounded-2xl border border-border bg-surface px-5 text-sm font-bold transition-colors hover:border-primary/40 hover:text-primary"
           >
             {dict.merchantCta.link}
-            <ChevronLeft className="h-4 w-4 ltr:rotate-180" />
+            <ChevronNext className="h-4 w-4" />
           </Link>
         </div>
       </Container>

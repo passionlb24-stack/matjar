@@ -4,9 +4,13 @@ import {
   DEFAULT_PROFILE_ORDER,
   resolveProfileOrder,
   sectorHasTeam,
+  sectorTeamMeta,
   resolveStoreModules,
+  SECTOR_TEAM_META,
   type ProfileSectionKey,
 } from "@/lib/sectors";
+import ar from "@/i18n/dictionaries/ar.json";
+import en from "@/i18n/dictionaries/en.json";
 
 // The whole point of this resolver is that it cannot lose a section. A hand
 // written per-sector order is exactly the kind of list somebody edits in a hurry,
@@ -104,5 +108,75 @@ describe("sectorHasTeam honours the store's own switch", () => {
   it("falls back to the sector default when no store is in hand", () => {
     expect(sectorHasTeam("healthcare")).toBe(true);
     expect(sectorHasTeam("retail")).toBe(false);
+  });
+});
+
+// The roster module is keyed `doctors` because that is what its table, its route
+// and its RPCs are called. That key used to reach the screen: a hair salon's
+// staff were listed as the clinic's word, under a stethoscope. The word and the
+// glyph now come from the sector, and these tests are what stop the next sector
+// from silently inheriting "doctors" again — a sector added without a team label
+// must fail here, not ship.
+describe("every sector names its own team", () => {
+  const dicts = { ar, en } as const;
+
+  it("has a label and an icon for every sector, with no gaps", () => {
+    for (const category of categoryKeys) {
+      const meta = SECTOR_TEAM_META[category];
+      expect(meta, `sector ${category} has no team label/icon`).toBeDefined();
+      expect(typeof meta.labelKey, `sector ${category} label key`).toBe(
+        "string",
+      );
+      expect(meta.Icon, `sector ${category} team icon`).toBeTruthy();
+    }
+    // Nothing extra either: an entry for a category that no longer exists is a
+    // label nobody will ever see and a rename nobody will notice.
+    expect(Object.keys(SECTOR_TEAM_META).sort()).toEqual(
+      [...categoryKeys].sort(),
+    );
+  });
+
+  it("resolves that label in BOTH locales", () => {
+    // The merchant sidebar, the roster screen and the storefront heading all
+    // read `os.team[labelKey]`. A key that exists in one dictionary and not the
+    // other renders as blank on the other locale's page.
+    for (const category of categoryKeys) {
+      const { labelKey } = sectorTeamMeta(category);
+      for (const [locale, dict] of Object.entries(dicts)) {
+        const label = (dict.os.team as Record<string, string>)[labelKey];
+        expect(
+          label,
+          `sector ${category} has no ${locale} label for "${labelKey}"`,
+        ).toBeTruthy();
+      }
+    }
+  });
+
+  it("does not call a salon, a gym or a school's people doctors", () => {
+    // The specific defect, stated so it cannot come back by accident. Only a
+    // clinic gets the clinic's word.
+    expect(sectorTeamMeta("healthcare").labelKey).toBe("doctors");
+    for (const category of categoryKeys) {
+      if (category === "healthcare") continue;
+      expect(
+        sectorTeamMeta(category).labelKey,
+        `sector ${category} still labels its team as doctors`,
+      ).not.toBe("doctors");
+    }
+    // …and the stethoscope belongs to the clinic too.
+    const clinicIcon = SECTOR_TEAM_META.healthcare.Icon;
+    for (const category of ["beauty", "fitness", "education", "petCare", "professional"] as const) {
+      expect(
+        SECTOR_TEAM_META[category].Icon,
+        `sector ${category} still shows the clinic's icon`,
+      ).not.toBe(clinicIcon);
+    }
+  });
+
+  it("still answers for a category that is not in the registry", () => {
+    // A store row whose business_type slug drifted should render a plain team
+    // section, not throw on a public page.
+    const unknown = "not_a_sector" as unknown as (typeof categoryKeys)[number];
+    expect(sectorTeamMeta(unknown).labelKey).toBe("team");
   });
 });

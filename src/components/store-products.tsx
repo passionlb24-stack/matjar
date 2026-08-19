@@ -1015,12 +1015,25 @@ export function StoreProducts({
                 {dict.store.notifyMerchantWa}
               </a>
             )}
+            {/* The order they JUST placed, not the list it landed in. A guest
+                has always been handed /track/{id}; a signed-in customer got
+                /orders and was left to find their own row — the person who
+                gave us an account got the worse follow-through. Same promise
+                for both now, each through the route their own session can
+                read. The list stays only as the fallback for the case with no
+                id to point at. */}
             {loggedIn ? (
               <Link
-                href={`/${lang}/orders`}
+                href={
+                  placedOrderId
+                    ? `/${lang}/orders/${placedOrderId}`
+                    : `/${lang}/orders`
+                }
                 className="rounded-xl border border-border bg-surface px-5 py-3 text-sm font-bold transition-colors hover:border-primary hover:text-primary"
               >
-                {dict.store.viewMyOrders}
+                {placedOrderId
+                  ? dict.os.track.trackLink
+                  : dict.store.viewMyOrders}
               </Link>
             ) : (
               placedOrderId && (

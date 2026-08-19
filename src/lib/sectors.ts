@@ -432,6 +432,74 @@ export function sectorPrimarySetup(
   return null;
 }
 
+// ===== The team module's per-sector identity =====
+//
+// The roster module is keyed `doctors` because its table, its route and its RPCs
+// are called that, and renaming those is a migration this file has no business
+// forcing. What the merchant and the customer SEE is a different question, and
+// it leaked: every sector that has a team — a salon, a gym, a school, a vet, a
+// law firm — rendered its people under a stethoscope and one shared word,
+// because the storage key was being used as the label.
+//
+// So the key stays and the presentation moves here. The Record is exhaustive
+// over CategoryKey deliberately: a sector added later without deciding what it
+// calls its people fails `tsc`, rather than shipping as "doctors". Sectors with
+// no team in their default bundle still need an entry — `team` is a per-store
+// toggle (resolveStoreModules), so any of them can turn one on.
+export type TeamLabelKey =
+  | "doctors"
+  | "stylists"
+  | "trainers"
+  | "teachers"
+  | "vets"
+  | "consultants"
+  | "technicians"
+  | "crew"
+  | "chefs"
+  | "agents"
+  | "sales"
+  | "organizers"
+  | "hotelStaff"
+  | "pharmacists"
+  | "team";
+
+export type SectorTeamMeta = {
+  /** Glyph for the roster — sidebar, phone tab bar, and the storefront's
+   *  fallback avatar when a provider uploaded no photo. */
+  Icon: LucideIcon;
+  /** dict key under `os.team.*`. Present in both locales or `tsc` fails. */
+  labelKey: TeamLabelKey;
+};
+
+export const SECTOR_TEAM_META: Record<CategoryKey, SectorTeamMeta> = {
+  food: { Icon: ChefHat, labelKey: "chefs" },
+  retail: { Icon: Users, labelKey: "team" },
+  services: { Icon: Wrench, labelKey: "technicians" },
+  healthcare: { Icon: Stethoscope, labelKey: "doctors" },
+  realEstate: { Icon: Building2, labelKey: "agents" },
+  automotive: { Icon: Car, labelKey: "sales" },
+  beauty: { Icon: Scissors, labelKey: "stylists" },
+  fitness: { Icon: Dumbbell, labelKey: "trainers" },
+  sportsCourts: { Icon: Trophy, labelKey: "trainers" },
+  education: { Icon: GraduationCap, labelKey: "teachers" },
+  events: { Icon: PartyPopper, labelKey: "organizers" },
+  hospitality: { Icon: BedDouble, labelKey: "hotelStaff" },
+  pharmacy: { Icon: Pill, labelKey: "pharmacists" },
+  petCare: { Icon: PawPrint, labelKey: "vets" },
+  professional: { Icon: Scale, labelKey: "consultants" },
+  contractors: { Icon: HardHat, labelKey: "crew" },
+  farm: { Icon: Sprout, labelKey: "team" },
+};
+
+/** What this sector calls its roster, and the glyph that stands for it.
+ *
+ *  Falls back to the neutral "team" entry for an unknown category rather than
+ *  throwing: a store row whose business_type slug has drifted should render a
+ *  plain team page, not a 500. */
+export function sectorTeamMeta(category: CategoryKey): SectorTeamMeta {
+  return SECTOR_TEAM_META[category] ?? { Icon: Users, labelKey: "team" };
+}
+
 /** Whether this store has a roster of service providers (a "team") — clinics,
  *  salons, gyms, schools, pet care, professional services. Drives the provider
  *  (team) module + booking provider picker across sectors.

@@ -31,7 +31,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useConfirm } from "@/components/ui/confirm-dialog";
-import { formatUsd } from "@/lib/currency";
+import { Money } from "@/components/ui/money";
 
 export type AdminListing = {
   id: string;
@@ -315,7 +315,7 @@ export function AdminMarketClient({
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
                       <span className="font-bold text-primary tabular-nums">
-                        {formatUsd(l.price)}
+                        <Money value={l.price} />
                       </span>
                       {(l.city || l.region) && (
                         <span>

@@ -4,7 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, MoreHorizontal } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { OS_MODULE_META, type OsModuleKey } from "@/lib/sectors";
+import type { CategoryKey } from "@/lib/catalog";
+import {
+  OS_MODULE_META,
+  sectorTeamMeta,
+  type OsModuleKey,
+} from "@/lib/sectors";
 
 export type MerchantTab = {
   key: OsModuleKey | "home" | "more";
@@ -25,10 +30,13 @@ export type MerchantTab = {
 // is not deleted; it moves behind المزيد, so nothing becomes unreachable.
 export function MerchantTabBar({
   tabs,
+  category,
   onMore,
   moreLabel,
 }: {
   tabs: MerchantTab[];
+  /** The store's sector — the roster module's glyph is sector-specific. */
+  category: CategoryKey;
   /** Opens the existing sidebar drawer — overflow, not primary navigation. */
   onMore: () => void;
   moreLabel: string;
@@ -40,7 +48,9 @@ export function MerchantTabBar({
       ? LayoutDashboard
       : key === "more"
         ? MoreHorizontal
-        : (OS_MODULE_META[key as OsModuleKey]?.Icon ?? LayoutDashboard);
+        : key === "doctors"
+          ? sectorTeamMeta(category).Icon
+          : (OS_MODULE_META[key as OsModuleKey]?.Icon ?? LayoutDashboard);
 
   // The home tab matches only itself; a module tab matches its subtree, so an
   // order detail screen keeps العمليات lit rather than dropping the merchant's

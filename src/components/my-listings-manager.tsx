@@ -13,6 +13,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { ListingCard } from "@/lib/data/market";
 import { formatUsd } from "@/lib/currency";
+import { CardList, CardRow } from "@/components/ui/card";
 
 const STATUSES = ["all", "active", "pending", "sold", "expired", "rejected", "draft"] as const;
 
@@ -99,12 +100,9 @@ export function MyListingsManager({
       </div>
 
       {filtered.length ? (
-        <div className="mt-4 space-y-2">
+        <CardList className="mt-4">
           {filtered.map((l) => (
-            <div
-              key={l.id}
-              className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3"
-            >
+            <CardRow key={l.id} className="flex items-center gap-3 p-3">
               {l.image ? (
                 <Image src={l.image} alt={l.title} width={56} height={56} className="h-14 w-14 shrink-0 rounded-lg object-cover" sizes="56px" />
               ) : (
@@ -146,9 +144,9 @@ export function MyListingsManager({
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
-            </div>
+            </CardRow>
           ))}
-        </div>
+        </CardList>
       ) : (
         <div className="mt-4 rounded-2xl border border-dashed border-border py-12 text-center text-muted-foreground">
           {t.myListingsEmpty}

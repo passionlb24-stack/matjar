@@ -14,6 +14,7 @@ import { NavLink } from "@/components/nav-link";
 import { HeaderBells } from "@/components/header-bells";
 import { HeaderSearch } from "@/components/header-search";
 import { MobileSearch } from "@/components/mobile-search";
+import type { NavSections } from "@/lib/data/section-supply";
 
 export function SiteHeader({
   lang,
@@ -24,6 +25,7 @@ export function SiteHeader({
   unreadMessages = 0,
   dashboardHref = null,
   lbpRate = 0,
+  sections,
 }: {
   lang: Locale;
   dict: Dictionary;
@@ -33,7 +35,38 @@ export function SiteHeader({
   unreadMessages?: number;
   dashboardHref?: string | null;
   lbpRate?: number;
+  /** Which verticals have three real results behind them — see
+   *  lib/data/section-supply.ts. Unlisted sections keep their routes; they
+   *  simply stop being advertised from the top of every page. */
+  sections: NavSections;
 }) {
+  // The dropdown is built from what survives the gate, and disappears entirely
+  // rather than opening onto one item — a menu with a single entry is a link
+  // wearing a chevron.
+  const workItems = [
+    { href: `/${lang}/jobs`, label: dict.jobs.title, on: sections.jobs },
+    {
+      href: `/${lang}/freelance`,
+      label: dict.freelance.title,
+      on: sections.freelance,
+    },
+    // Beside freelance on purpose, and deliberately not the same thing: that
+    // one is remote and digital, this one comes to your house.
+    { href: `/${lang}/crafts`, label: dict.crafts.title, on: sections.crafts },
+    {
+      href: `/${lang}/wholesale`,
+      label: dict.wholesale.title,
+      on: sections.wholesale,
+    },
+    {
+      href: `/${lang}/delivery`,
+      label: dict.delivery.title,
+      on: sections.delivery,
+    },
+  ]
+    .filter((i) => i.on)
+    .map(({ href, label }) => ({ href, label }));
+
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 pt-[env(safe-area-inset-top)] backdrop-blur-md print:hidden">
       <Container className="flex h-16 items-center justify-between gap-4">
@@ -63,12 +96,14 @@ export function SiteHeader({
             >
               {dict.common.explore}
             </NavLink>
-            <NavLink
-              href={`/${lang}/market`}
-              className="rounded-lg px-3 py-2 text-sm font-bold text-primary transition-colors hover:bg-surface-muted aria-[current=page]:bg-primary-soft"
-            >
-              {dict.market.nav}
-            </NavLink>
+            {sections.market && (
+              <NavLink
+                href={`/${lang}/market`}
+                className="rounded-lg px-3 py-2 text-sm font-bold text-primary transition-colors hover:bg-surface-muted aria-[current=page]:bg-primary-soft"
+              >
+                {dict.market.nav}
+              </NavLink>
+            )}
             <NavDropdown
               label={dict.common.deals}
               items={[
@@ -77,19 +112,17 @@ export function SiteHeader({
                 { href: `/${lang}/best-sellers`, label: dict.bestSellers.title },
               ]}
             />
-            <NavDropdown
-              label={dict.common.workServices}
-              items={[
-                { href: `/${lang}/jobs`, label: dict.jobs.title },
-                { href: `/${lang}/freelance`, label: dict.freelance.title },
-                // Beside freelance on purpose, and deliberately not the same
-                // thing: that one is remote and digital, this one comes to your
-                // house.
-                { href: `/${lang}/crafts`, label: dict.crafts.title },
-                { href: `/${lang}/wholesale`, label: dict.wholesale.title },
-                { href: `/${lang}/delivery`, label: dict.delivery.title },
-              ]}
-            />
+            {workItems.length > 1 && (
+              <NavDropdown label={dict.common.workServices} items={workItems} />
+            )}
+            {workItems.length === 1 && (
+              <NavLink
+                href={workItems[0].href}
+                className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground aria-[current=page]:bg-surface-muted aria-[current=page]:text-foreground"
+              >
+                {workItems[0].label}
+              </NavLink>
+            )}
             <NavLink
               href={`/${lang}/hub`}
               className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground aria-[current=page]:bg-surface-muted aria-[current=page]:text-foreground"
@@ -179,7 +212,8 @@ export function SiteHeader({
           )}
           <MobileMenu
             lang={lang}
-            dict={dictSlice(dict, ["auth", "bestSellers", "common", "dashboard", "delivery", "flash", "freelance", "jobs", "map", "market", "mobileNav", "offers", "pricing", "wholesale"])}
+            dict={dictSlice(dict, ["auth", "bestSellers", "common", "crafts", "dashboard", "delivery", "flash", "freelance", "jobs", "map", "market", "mobileNav", "offers", "pricing", "wholesale"])}
+            sections={sections}
             user={user}
             dashboardHref={dashboardHref}
             lbpRate={lbpRate}

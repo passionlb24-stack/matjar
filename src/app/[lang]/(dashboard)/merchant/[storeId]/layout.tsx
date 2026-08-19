@@ -8,6 +8,7 @@ import {
   getSector,
   OS_GROUPS,
   OS_MODULE_META,
+  sectorTeamMeta,
   type OsModuleKey,
 } from "@/lib/sectors";
 import {
@@ -125,7 +126,10 @@ export default async function StoreOsLayout({
     tickets: dict.os.tickets.link,
     members: dict.os.members.link,
     items: dict.store[sector.flow.itemsKey],
-    doctors: dict.merchant.doctorsLink,
+    // The roster module is keyed `doctors` in the registry (so is its table and
+    // its route) but a salon does not have doctors. The sector registry decides
+    // the word; the key stays where the data is.
+    doctors: dict.os.team[sectorTeamMeta(category).labelKey],
     customers: dict.os.nouns[sector.customersNoun],
     campaigns: dict.os.campaigns.link,
     staff: dict.merchant.staffLink,
@@ -264,6 +268,7 @@ export default async function StoreOsLayout({
         plan={planRank(effectivePlan) >= planRank("pro") ? "pro" : "free"}
         trialDaysLeft={trialDaysLeft}
         slug={s.slug}
+        category={category}
         nav={nav}
         tabs={tabs}
       />

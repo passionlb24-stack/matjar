@@ -11,7 +11,8 @@ type BadgeVariant =
   | "success"
   | "warning"
   | "danger"
-  | "info";
+  | "info"
+  | "accent";
 type BadgeSize = "sm" | "md";
 
 const badgeVariants: Record<BadgeVariant, string> = {
@@ -21,6 +22,12 @@ const badgeVariants: Record<BadgeVariant, string> = {
   warning: "bg-warning-soft text-warning",
   danger: "bg-danger-soft text-danger",
   info: "bg-info-soft text-info",
+  // Pro / flash / featured — the amber "this is special" pill, as opposed to
+  // `warning`, which means "something needs your attention". The six hand-rolled
+  // versions disagreed on the ink: half used text-accent-foreground (8.42:1
+  // light, 9.23:1 dark) and half text-warning (4.90:1 / 6.11:1). Both pass, so
+  // the variant standardises on the higher-contrast pair.
+  accent: "bg-accent-soft text-accent-foreground",
 };
 
 const badgeSizes: Record<BadgeSize, string> = {

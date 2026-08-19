@@ -14,7 +14,7 @@ import {
   type HourRule,
   type HourException,
 } from "@/components/provider-hours";
-import { sectorHasTeam } from "@/lib/sectors";
+import { sectorHasTeam, sectorTeamMeta } from "@/lib/sectors";
 import type { CategoryKey } from "@/lib/catalog";
 
 const UUID_RE =
@@ -132,8 +132,10 @@ export default async function StoreDoctorsPage({
           <ChevronRight className="h-4 w-4 rtl:rotate-180" />
           {(store as { name: string }).name}
         </Link>
+        {/* The sector's own word for its roster — a salon's people are not
+            "الفريق / مقدّمو الخدمة", they are فريق الصالون. */}
         <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
-          {dict.merchant.doctors.title}
+          {dict.os.team[sectorTeamMeta(category).labelKey]}
         </h1>
         <div className="mt-6">
           <DoctorManager

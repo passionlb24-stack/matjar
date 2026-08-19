@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { createPublicClient } from "@/lib/supabase/public-client";
 import type { Locale } from "@/i18n/config";
-import { FETCH_BOUNDS, warnIfTruncated } from "./bounds";
+import { FETCH_BOUNDS, fetchAllPages, warnIfTruncated } from "./bounds";
 
 export type MarketCategory = {
   id: string;
@@ -345,14 +345,23 @@ export async function getMyListings(
   lang: Locale,
 ): Promise<ListingCard[]> {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("listings")
-    .select(SELECT)
-    .eq("seller_id", userId)
-    .order("created_at", { ascending: false })
-    .limit(FETCH_BOUNDS.myListings);
-  // Newest-first, so a seller past the ceiling loses their oldest listings from
-  // this screen — the ones they are least likely to notice missing.
-  warnIfTruncated(data, FETCH_BOUNDS.myListings, `listings (seller ${userId})`);
-  return ((data ?? []) as unknown as Row[]).map((r) => toCard(r, lang));
+  // MP-041. Newest-first, so a seller past the ceiling lost their OLDEST
+  // listings from this screen — the ones they are least likely to notice
+  // missing. Paged now: same select, same filter, same order, more round trips.
+  // `created_at` is not unique (a bulk import stamps a whole batch identically),
+  // so the id tiebreaker is what keeps `.range()` from dropping or repeating a
+  // row at a page boundary.
+  const rows = await fetchAllPages<Row>(
+    (from, to) =>
+      supabase
+        .from("listings")
+        .select(SELECT)
+        .eq("seller_id", userId)
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+        .range(from, to) as unknown as PromiseLike<{ data: Row[] | null }>,
+    FETCH_BOUNDS.myListings,
+    `listings (seller ${userId})`,
+  );
+  return rows.map((r) => toCard(r, lang));
 }

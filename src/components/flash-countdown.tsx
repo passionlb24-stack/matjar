@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Zap } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
 function fmt(ms: number): string {
@@ -36,12 +37,10 @@ export function FlashCountdown({
   if (remaining <= 0) return null;
 
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-sm font-bold text-accent-foreground ${className}`}
-    >
-      <Zap className="h-4 w-4 fill-amber-500 text-amber-500" />
+    <Badge variant="accent" className={`gap-1.5 px-3 py-1 text-sm ${className}`}>
+      <Zap className="h-4 w-4 fill-accent text-accent" />
       {dict.flash.endsIn}{" "}
       <span className="tabular-nums">{fmt(remaining)}</span>
-    </span>
+    </Badge>
   );
 }

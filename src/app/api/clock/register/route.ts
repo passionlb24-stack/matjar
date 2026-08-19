@@ -32,7 +32,14 @@ export async function POST(req: Request) {
   if (!admin) {
     return NextResponse.json({ error: "not_configured" }, { status: 503 });
   }
-  const { rpID, origin } = await rpFromRequest();
+  // See the punch route: the relying party comes from this deployment's own
+  // host allow-list. Enrolling a device against a host we do not serve would
+  // mint a credential scoped to somebody else's rpID.
+  const rp = await rpFromRequest();
+  if (!rp) {
+    return NextResponse.json({ error: "untrusted_host" }, { status: 400 });
+  }
+  const { rpID, origin } = rp;
 
   const { data: ctx } = await admin.rpc("clock_store_context", {
     p_short_code: body.shortCode,
