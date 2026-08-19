@@ -9,7 +9,9 @@ import Image from "next/image";
 import { Image as ImageIcon, BadgeCheck } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
-import { formatUsd, formatLbp } from "@/lib/currency";
+import { formatLbp } from "@/lib/currency";
+import { Money } from "@/components/ui/money";
+import { NEUTRAL_BLUR } from "@/lib/image-placeholder";
 import { TrustChips, fill } from "@/components/trust-chips";
 
 export type BrowsedGig = {
@@ -70,6 +72,8 @@ export function GigCard({
             height={260}
             className="h-40 w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            placeholder="blur"
+            blurDataURL={NEUTRAL_BLUR}
           />
         ) : (
           <div className="flex h-40 w-full items-center justify-center">
@@ -147,7 +151,7 @@ export function GigCard({
                   {t.from}
                 </span>
                 <span className="block text-lg font-extrabold tabular-nums">
-                  {formatUsd(Number(gig.price))}
+                  <Money value={Number(gig.price)} />
                 </span>
                 {lbpRate > 0 && (
                   <span className="block text-xs text-muted-foreground">

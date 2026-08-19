@@ -53,7 +53,7 @@
     "actionBooking": "شوف حجزك",
     "actionCraft": "شوف طلب الخدمة",
     "actionRateWork": "قيّم الشغل",
-    "actionLead": "شوف المحادثة",
+    "actionLead": "شوف استفسارك",
     "emptyTitle": "ما عندك ولا شي هون بعد",
     "emptyBody": "أول ما تطلب أو تحجز، بتلاقيه هون وبتقدر تتابعه.",
     "emptyCta": "تصفّح المتاجر"
@@ -532,6 +532,23 @@
       "patients": "المرضى",
       "clients": "العملاء",
       "leads": "المهتمّون"
+    },
+    "team": {
+      "doctors": "الأطبّاء",
+      "stylists": "فريق الصالون",
+      "trainers": "المدرّبين",
+      "teachers": "الأساتذة",
+      "vets": "الأطبّاء البيطريين",
+      "consultants": "الاستشاريين",
+      "technicians": "الفنّيين",
+      "crew": "فريق الشغل",
+      "chefs": "طاقم المطبخ",
+      "agents": "الوكلاء",
+      "sales": "فريق المبيعات",
+      "organizers": "فريق التنظيم",
+      "hotelStaff": "طاقم الفندق",
+      "pharmacists": "الصيادلة",
+      "team": "فريق العمل"
     },
     "crm": {
       "book": "دفتر الزبائن",
@@ -1381,7 +1398,6 @@
       "courses": "الدورات",
       "portfolio": "شغلنا",
       "healthcareInfo": "عن العيادة",
-      "doctors": "الفريق",
       "verifications": "التراخيص",
       "reviews": "التقييمات"
     },
@@ -1429,7 +1445,6 @@
     "belowMin": "طلبك تحت الحد الأدنى للطلب",
     "payment": "الدفع",
     "prep": "التحضير",
-    "doctorsTitle": "الفريق",
     "specialtiesTitle": "التخصصات",
     "insuranceTitle": "التأمين المقبول",
     "visitLength": "مدّة الزيارة",
@@ -2019,7 +2034,6 @@
       "locationSet": "تم تحديد الموقع ✓",
       "coordsAdvanced": "تعديل الإحداثيات يدوياً (متقدّم)"
     },
-    "doctorsLink": "الفريق",
     "doctors": {
       "title": "الفريق / مقدّمو الخدمة",
       "subtitle": "أضف مقدّمي الخدمة عندك (طبيب، مصفّف، مدرّب، فنّي…) وحدّد الخدمات يلي بيقدّمها كل واحد.",
@@ -3446,6 +3460,8 @@
     }
   },
   "favorites": {
+    "tabStores": "متاجر",
+    "tabProducts": "منتجات",
     "title": "المفضّلة",
     "empty": "لسا ما عندك متاجر مفضّلة."
   },
@@ -4116,6 +4132,12 @@
     "bookingLead": "اختار الوقت يلي بيناسبك وأكّد حجزك بثواني.",
     "durationLabel": "مدّة الخدمة: {n} دقيقة",
     "boughtTogether": "يُشترى عادةً مع"
+  },
+  "inquiry": {
+    "title": "استفسارك",
+    "sentOn": "بعتّو بـ",
+    "noMessage": "ما كتبت رسالة — بس طلبت يتواصلوا فيك.",
+    "aboutProduct": "بخصوص:"
   },
   "wishlist": {
     "title": "قائمة الأمنيات",

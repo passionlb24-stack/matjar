@@ -1,8 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
-import { BadgeCheck, ChevronLeft, MapPin, Star, Wrench } from "lucide-react";
+import { BadgeCheck, MapPin, Star, Wrench } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { CraftProvider } from "@/lib/data/crafts";
+import { ChevronNext } from "@/components/ui/directional-icon";
 
 // One tradesman, as a card.
 //
@@ -133,7 +134,7 @@ export function CraftCard({
         {/* The whole card is the link; this row just says so out loud. */}
         <p className="mt-2 inline-flex items-center gap-0.5 text-sm font-bold text-primary">
           {labels.viewProfile}
-          <ChevronLeft className="h-4 w-4 ltr:rotate-180" />
+          <ChevronNext className="h-4 w-4" />
         </p>
       </div>
     </Link>

@@ -42,6 +42,7 @@ import { ProductReviews } from "@/components/product-reviews";
 import { ProductQA } from "@/components/product-qa";
 import { RecentlyViewed } from "@/components/recently-viewed";
 import { formatUsd, formatLbp } from "@/lib/currency";
+import { Money } from "@/components/ui/money";
 import { localized } from "@/lib/i18n-field";
 import { ProductMiniCard } from "@/components/product-mini-card";
 import { Container } from "@/components/ui/container";
@@ -226,7 +227,9 @@ export default async function ProductPage({
       ? getBoughtTogether(product.id)
       : Promise.resolve([] as RelatedProduct[]),
     getProductReviews(product.id, user?.id ?? null),
-    getProductQuestions(product.id, user?.id ?? null),
+    // No viewer id: the Q&A projection no longer distinguishes the asker at all
+    // (MP-010) — nothing on the page ever rendered that distinction.
+    getProductQuestions(product.id),
     supabase.rpc("product_sold_count", { p_product_id: product.id }),
     shows("provider") && sectorHasTeam(product.category)
       ? getServiceProviders(product.storeId, product.id)
@@ -301,11 +304,11 @@ export default async function ProductPage({
         <span
           className={`text-money text-2xl font-extrabold ${flashEnd != null ? "text-warning" : "text-primary"}`}
         >
-          {formatUsd(basePrice)}
+          <Money value={basePrice} />
         </span>
         {compareAt != null && (
           <span className="text-money text-lg text-muted-foreground line-through">
-            {formatUsd(compareAt)}
+            <Money value={compareAt} />
           </span>
         )}
         {flashEnd != null && <FlashCountdown endsAt={flashEnd} dict={dict} />}

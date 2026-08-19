@@ -2,8 +2,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { ImageIcon } from "lucide-react";
 import type { Locale } from "@/i18n/config";
-import { formatUsd, formatLbp } from "@/lib/currency";
+import { formatLbp } from "@/lib/currency";
+import { Money } from "@/components/ui/money";
 import { localized } from "@/lib/i18n-field";
+import { NEUTRAL_BLUR } from "@/lib/image-placeholder";
 
 // Compact product card used in discovery rows (related products, etc.).
 export function ProductMiniCard({
@@ -43,6 +45,8 @@ export function ProductMiniCard({
             height={200}
             className="h-32 w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
             sizes="(max-width: 640px) 50vw, 25vw"
+            placeholder="blur"
+            blurDataURL={NEUTRAL_BLUR}
           />
         ) : (
           <div className="flex h-32 w-full items-center justify-center bg-surface-muted">
@@ -64,11 +68,11 @@ export function ProductMiniCard({
         ) : null}
         <p className="mt-1.5">
           <span className="text-money text-base font-bold text-primary">
-            {formatUsd(shown)}
+            <Money value={shown} />
           </span>{" "}
           {discountPrice != null && (
             <span className="text-money text-xs text-muted-foreground line-through">
-              {formatUsd(price)}
+              <Money value={price} />
             </span>
           )}
         </p>

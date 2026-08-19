@@ -82,9 +82,9 @@ export function KitchenBoard({
           : t.handOffPickup;
 
   const columns: { key: ColumnKey; title: string; accent: string }[] = [
-    { key: "new", title: t.new, accent: "bg-sky-500" },
-    { key: "inProgress", title: t.inProgress, accent: "bg-amber-500" },
-    { key: "ready", title: t.ready, accent: "bg-emerald-500" },
+    { key: "new", title: t.new, accent: "bg-info" },
+    { key: "inProgress", title: t.inProgress, accent: "bg-warning" },
+    { key: "ready", title: t.ready, accent: "bg-success" },
   ];
 
   if (!orders.length) {

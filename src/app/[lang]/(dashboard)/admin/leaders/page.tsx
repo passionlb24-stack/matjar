@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Crown } from "lucide-react";
 import { isLocale } from "@/i18n/config";
@@ -76,10 +77,12 @@ export default async function AdminLeadersPage({
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     {r.photo_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={r.photo_url}
                         alt={r.name}
+                        width={48}
+                        height={48}
+                        sizes="48px"
                         className="h-12 w-12 shrink-0 rounded-full object-cover"
                       />
                     ) : (

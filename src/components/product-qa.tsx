@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MessageCircleQuestion, Send, CornerDownLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { CardList, CardRow } from "@/components/ui/card";
 import { notifyError } from "@/lib/notify";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { ProductQuestion } from "@/lib/data/product-qa";
@@ -108,9 +109,9 @@ export function ProductQA({
           {t.empty}
         </p>
       ) : (
-        <div className="space-y-3">
+        <CardList>
           {questions.map((item) => (
-            <div key={item.id} className="rounded-2xl border border-border bg-surface p-4">
+            <CardRow key={item.id}>
               <p className="font-semibold">
                 <span className="text-primary">{t.q}</span> {item.question}
               </p>
@@ -150,9 +151,9 @@ export function ProductQA({
               ) : (
                 <p className="mt-1 text-xs text-muted-foreground">{t.awaiting}</p>
               )}
-            </div>
+            </CardRow>
           ))}
-        </div>
+        </CardList>
       )}
     </section>
   );

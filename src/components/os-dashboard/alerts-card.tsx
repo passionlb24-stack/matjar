@@ -43,14 +43,20 @@ export function AlertsCard({
   return (
     <WidgetCard title={title} Icon={AlertTriangle}>
       {alerts.length ? (
-        <ul className="space-y-2">
+        // Each row used to be its own `rounded-xl border border-border
+        // bg-surface` box — a card inside a card, on the same surface, so the
+        // border was the only thing distinguishing a row from its container and
+        // three alerts read as three separate widgets. Hairline rules and a
+        // hover fill say "rows of one list" instead. The negative margin lets a
+        // row's hover state reach the card's padding edge.
+        <ul className="-mx-2 divide-y divide-border">
           {alerts.map((a) => {
             const { Icon, chip } = KIND_STYLE[a.kind];
             return (
               <li key={a.id}>
                 <Link
                   href={a.href}
-                  className="group flex items-center gap-3 rounded-xl border border-border bg-surface p-3 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-sm"
+                  className="group flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-surface-muted"
                 >
                   <span
                     className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${chip}`}

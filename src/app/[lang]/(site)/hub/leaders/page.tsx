@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronRight, Crown, User } from "lucide-react";
+import { Crown, User } from "lucide-react";
+import { ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
@@ -52,13 +53,13 @@ export default async function LeadersPage({
           href={`/${lang}/hub`}
           className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+          <ChevronPrev className="h-4 w-4" />
           {dict.hub.backToHub}
         </Link>
 
         {/* Gold hero */}
-        <div className="mt-5 overflow-hidden rounded-3xl border border-border bg-gradient-to-bl from-amber-500/12 via-transparent to-transparent p-8 sm:p-12">
-          <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-amber-700 dark:text-amber-400">
+        <div className="mt-5 overflow-hidden rounded-3xl border border-border bg-gradient-to-bl from-accent/12 via-transparent to-transparent p-8 sm:p-12">
+          <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-accent-foreground">
             <Crown className="h-4 w-4" />
             {l.heroKicker}
           </span>
@@ -71,7 +72,7 @@ export default async function LeadersPage({
           <div className="mt-6 flex flex-wrap gap-3">
             <a
               href="#submit"
-              className="inline-flex h-11 items-center rounded-xl bg-amber-600 px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-amber-700"
+              className="inline-flex h-11 items-center rounded-xl bg-accent-strong px-5 text-sm font-bold text-accent-strong-foreground shadow-sm transition-colors hover:bg-accent-strong-hover"
             >
               {l.heroSubmit}
             </a>
@@ -114,10 +115,10 @@ export default async function LeadersPage({
             </div>
             <div className="absolute inset-0 grid place-items-center bg-background/60 p-6 text-center backdrop-blur-[1px]">
               <div className="max-w-md">
-                <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400">
+                <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-accent-soft text-accent-foreground">
                   <Crown className="h-7 w-7" />
                 </span>
-                <span className="mt-4 inline-block rounded-full bg-amber-100 px-3 py-1 text-[11px] font-bold text-amber-700 dark:bg-amber-500/15 dark:text-amber-400">
+                <span className="mt-4 inline-block rounded-full bg-accent-soft px-3 py-1 text-[11px] font-bold text-accent-foreground">
                   {l.comingBadge}
                 </span>
                 <h2 className="mt-3 text-2xl font-extrabold tracking-tight">
@@ -128,7 +129,7 @@ export default async function LeadersPage({
                 </p>
                 <a
                   href="#submit"
-                  className="mt-5 inline-flex h-11 items-center rounded-xl bg-amber-600 px-6 text-sm font-bold text-white shadow-sm transition-colors hover:bg-amber-700"
+                  className="mt-5 inline-flex h-11 items-center rounded-xl bg-accent-strong px-6 text-sm font-bold text-accent-strong-foreground shadow-sm transition-colors hover:bg-accent-strong-hover"
                 >
                   {l.submitButton}
                 </a>
@@ -149,7 +150,7 @@ export default async function LeadersPage({
 function SampleCard() {
   return (
     <div className="overflow-hidden rounded-3xl border border-border bg-surface">
-      <div className="h-20 bg-gradient-to-bl from-amber-500/15 to-primary/10" />
+      <div className="h-20 bg-gradient-to-bl from-accent/15 to-primary/10" />
       <div className="px-5 pb-5">
         <div className="-mt-9 mb-3 grid h-16 w-16 place-items-center rounded-full bg-surface-muted text-muted-foreground ring-4 ring-surface">
           <User className="h-6 w-6" />

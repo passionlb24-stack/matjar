@@ -14,6 +14,7 @@ import { HomeMore } from "@/components/home-more";
 import { MerchantCta } from "@/components/merchant-cta";
 import { SectionSkeleton } from "@/components/section-skeleton";
 import { dictSlice } from "@/lib/dict-slice";
+import { getNavSections } from "@/lib/data/section-supply";
 
 export async function generateMetadata({
   params,
@@ -34,6 +35,10 @@ export default async function Home({
   if (!isLocale(lang)) notFound();
 
   const dict = await getDictionary(lang);
+  // Cached and shared with the header and footer (MP-026), so the tiles at the
+  // bottom of this page and the navigation at the top of it cannot disagree
+  // about which verticals have anything in them.
+  const sections = await getNavSections();
 
   // V2 answers one question, in order: what is this (hero + search) → what can
   // I browse (categories) → who is actually here (recommended, then real
@@ -88,7 +93,7 @@ export default async function Home({
         <BestSellersTeaser lang={lang} dict={dict} />
       </Suspense>
 
-      <HomeMore lang={lang} dict={dict} />
+      <HomeMore lang={lang} dict={dict} sections={sections} />
 
       <MerchantCta lang={lang} dict={dict} />
     </>

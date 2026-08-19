@@ -19,7 +19,13 @@ import { describe, expect, it } from "vitest";
 import ar from "@/i18n/dictionaries/ar.json";
 import en from "@/i18n/dictionaries/en.json";
 import type { Dictionary } from "@/i18n/get-dictionary";
-import { labelFor, labelMap, type LabelDomain } from "@/lib/status-labels";
+import {
+  ACTIVITY_DOMAINS,
+  labelFor,
+  labelMap,
+  statusTone,
+  type LabelDomain,
+} from "@/lib/status-labels";
 
 /** The dictionaries are the real JSON; the cast only satisfies the import shape. */
 const DICTS: Record<"ar" | "en", Dictionary> = {
@@ -225,6 +231,44 @@ describe("status labels cover the schema", () => {
     // through the "lead" domain, so this is true by construction — the test
     // exists so that splitting them again is a deliberate, visible act.
     expect(labelMap(DICTS.ar, "lead")).toBe(ar.os.leads.status);
+  });
+});
+
+// The same idea one step further: on the customer activity screen a status is
+// not only words, it is also a colour, and a value that has words but no tone
+// is a pill that reads as "nothing in particular" (MP-022) — which is exactly
+// the state that screen shipped in for all four of its vocabularies.
+describe("activity statuses have a tone, not just words", () => {
+  const ACTIVITY: LabelDomain[] = Object.values(ACTIVITY_DOMAINS);
+
+  it.each(ACTIVITY)("%s maps every DB value to a non-neutral tone", (domain) => {
+    const { values, source } = DB_VALUES[domain];
+    // Neutral is the fallback for a value nobody anticipated, so a KNOWN value
+    // landing on neutral means it was left out of the table — with one honest
+    // exception per domain: the states that genuinely ended in nothing.
+    const legitimatelyNeutral = new Set(["cancelled", "lost"]);
+    const untoned = values.filter(
+      (v) => statusTone(domain, v) === "neutral" && !legitimatelyNeutral.has(v),
+    );
+    expect(untoned, `${domain} — values from ${source}`).toEqual([]);
+  });
+
+  it("keeps the four vocabularies apart on the one screen that mixes them", () => {
+    // The bug in one line: a cancelled booking, a completed order and an order
+    // out for delivery were the same neutral pill in the same column.
+    const tones = [
+      statusTone("booking", "cancelled"),
+      statusTone("order", "completed"),
+      statusTone("order", "out_for_delivery"),
+    ];
+    expect(new Set(tones).size).toBe(tones.length);
+  });
+
+  it("does not throw on a value from a schema newer than this build", () => {
+    for (const domain of ACTIVITY) {
+      expect(statusTone(domain, "value_from_the_future")).toBe("neutral");
+    }
+    expect(statusTone("order", null)).toBe("neutral");
   });
 });
 

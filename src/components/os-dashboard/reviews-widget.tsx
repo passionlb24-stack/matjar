@@ -128,7 +128,7 @@ function ReviewRow({
               key={n}
               className={`h-3.5 w-3.5 ${
                 review.rating >= n
-                  ? "fill-amber-400 text-amber-400"
+                  ? "fill-accent text-accent"
                   : "text-border"
               }`}
             />

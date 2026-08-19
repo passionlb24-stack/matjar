@@ -32,7 +32,14 @@ export async function POST(req: Request) {
   if (!admin) {
     return NextResponse.json({ error: "not_configured" }, { status: 503 });
   }
-  const { rpID, origin } = await rpFromRequest();
+  // See the punch route: the relying party comes from this deployment's own
+  // host allow-list. Enrolling a device against a host we do not serve would
+  // mint a credential scoped to somebody else's rpID.
+  const rp = await rpFromRequest();
+  if (!rp) {
+    return NextResponse.json({ error: "untrusted_host" }, { status: 400 });
+  }
+  const { rpID, origin } = rp;
 
   const { data: ctx } = await admin.rpc("clock_store_context", {
     p_short_code: body.shortCode,
@@ -127,6 +134,11 @@ export async function POST(req: Request) {
       p_public_key: Buffer.from(credential.publicKey).toString("base64url"),
       p_counter: credential.counter,
       p_label: body.label?.slice(0, 60) ?? null,
+      // Record which host minted this credential. WebAuthn already refuses to
+      // verify it anywhere else, so this is not what stops cross-host use — it is
+      // what lets us tell an employee WHY their fingerprint stopped working after
+      // a domain change, instead of showing them a generic failure.
+      p_rp_id: rpID,
     });
     if (error) {
       return NextResponse.json({ error: "save_failed" }, { status: 500 });

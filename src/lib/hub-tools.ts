@@ -11,16 +11,19 @@ export type HubTool = {
   slug: string;
   Icon: LucideIcon;
   category: HubToolCategory;
-  /** Tint classes for the tool's icon badge. */
+  /** Tint classes for the tool's icon badge — one slot of the shared
+   *  categorical ramp in globals.css, so the badge follows the dark theme and
+   *  the ink clears 4.5:1 on its own fill in both. Was a hand-picked palette
+   *  pair per tool with a hand-written `dark:` override beside it. */
   tint: string;
 };
 
 export const HUB_TOOLS: HubTool[] = [
-  { slug: "profit", Icon: Calculator, category: "calc", tint: "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400" },
-  { slug: "pricing", Icon: TagsIcon, category: "calc", tint: "bg-sky-100 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400" },
-  { slug: "qr", Icon: QrCode, category: "generate", tint: "bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400" },
-  { slug: "barcode", Icon: Barcode, category: "generate", tint: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400" },
-  { slug: "invoice", Icon: FileText, category: "docs", tint: "bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400" },
+  { slug: "profit", Icon: Calculator, category: "calc", tint: "bg-tint-4-soft text-tint-4" },
+  { slug: "pricing", Icon: TagsIcon, category: "calc", tint: "bg-tint-5-soft text-tint-5" },
+  { slug: "qr", Icon: QrCode, category: "generate", tint: "bg-tint-7-soft text-tint-7" },
+  { slug: "barcode", Icon: Barcode, category: "generate", tint: "bg-tint-2-soft text-tint-2" },
+  { slug: "invoice", Icon: FileText, category: "docs", tint: "bg-tint-1-soft text-tint-1" },
 ];
 
 export const HUB_TOOL_CATEGORIES: HubToolCategory[] = ["calc", "generate", "docs"];

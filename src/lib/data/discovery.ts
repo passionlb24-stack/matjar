@@ -12,6 +12,7 @@ import {
 import { isOpenNow, parseHours } from "@/lib/hours";
 import type { StorePlan } from "@/lib/plan-tiers";
 import { FETCH_BOUNDS, warnIfTruncated } from "./bounds";
+import { followedAmong } from "./stores";
 import {
   DISCOVERY_PAGE_SIZE,
   EMPTY_COVERAGE,
@@ -417,17 +418,10 @@ async function attachLocations(list: DiscoveryStore[]): Promise<void> {
  *  it runs after everything cacheable. */
 async function markFavorites(list: DiscoveryStore[]): Promise<void> {
   if (!list.length) return;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
-  const { data } = await supabase
-    .from("follows")
-    .select("store_id")
-    .eq("user_id", user.id)
-    .limit(FETCH_BOUNDS.follows);
-  warnIfTruncated(data, FETCH_BOUNDS.follows, `follows (discovery, user ${user.id})`);
-  const ids = new Set(((data ?? []) as { store_id: string }[]).map((f) => f.store_id));
+  // MP-041: ask about this page's stores, not about the viewer's whole follow
+  // list. See followedAmong — a truncated follow list rendered a followed store
+  // as un-followed, and the ceiling scaled with the user, not with the page.
+  const ids = await followedAmong(list.map((s) => s.id));
+  if (!ids) return;
   for (const s of list) s.favorited = ids.has(s.id);
 }

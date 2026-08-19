@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight, Ticket, Phone } from "lucide-react";
+import { Ticket, Phone } from "lucide-react";
+import { ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -9,6 +10,7 @@ import {
   TicketTypeManager,
   type TicketTypeRow,
 } from "@/components/ticket-type-manager";
+import { CardList, CardRow } from "@/components/ui/card";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -82,7 +84,7 @@ export default async function StoreTicketsPage({
           href={`/${lang}/merchant/${storeId}`}
           className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+          <ChevronPrev className="h-4 w-4" />
           {(store as { name: string }).name}
         </Link>
         <h1 className="mt-3 flex items-center gap-2 text-3xl font-extrabold tracking-tight">
@@ -97,12 +99,9 @@ export default async function StoreTicketsPage({
           {t.attendees}
         </h2>
         {sales.length ? (
-          <div className="mt-4 space-y-3">
+          <CardList className="mt-4">
             {sales.map((s) => (
-              <div
-                key={s.id}
-                className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-border bg-surface p-4"
-              >
+              <CardRow key={s.id} className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-bold">{s.attendee_name}</span>
@@ -123,9 +122,9 @@ export default async function StoreTicketsPage({
                     <span dir="ltr">{s.phone}</span>
                   </a>
                 </div>
-              </div>
+              </CardRow>
             ))}
-          </div>
+          </CardList>
         ) : (
           <div className="mt-4 rounded-2xl border border-dashed border-border py-10 sm:py-16 text-center text-muted-foreground">
             {t.noAttendees}

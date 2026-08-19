@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -14,8 +13,9 @@ import {
   type HourRule,
   type HourException,
 } from "@/components/provider-hours";
-import { sectorHasTeam } from "@/lib/sectors";
+import { sectorHasTeam, sectorTeamMeta } from "@/lib/sectors";
 import type { CategoryKey } from "@/lib/catalog";
+import { ChevronPrev } from "@/components/ui/directional-icon";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -129,11 +129,13 @@ export default async function StoreDoctorsPage({
           href={`/${lang}/merchant/${storeId}`}
           className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+          <ChevronPrev className="h-4 w-4" />
           {(store as { name: string }).name}
         </Link>
+        {/* The sector's own word for its roster — a salon's people are not
+            "الفريق / مقدّمو الخدمة", they are فريق الصالون. */}
         <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
-          {dict.merchant.doctors.title}
+          {dict.os.team[sectorTeamMeta(category).labelKey]}
         </h1>
         <div className="mt-6">
           <DoctorManager

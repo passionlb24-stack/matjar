@@ -7,7 +7,7 @@ import { getBestSellers } from "@/lib/data/best-sellers";
 import { localized } from "@/lib/i18n-field";
 import { railOnlyIfEnough } from "@/lib/rail";
 import { Container } from "@/components/ui/container";
-import { formatUsd } from "@/lib/currency";
+import { Money } from "@/components/ui/money";
 
 // Homepage "best sellers" teaser — renders nothing when there are no sales yet.
 export async function BestSellersTeaser({
@@ -81,7 +81,7 @@ export async function BestSellersTeaser({
                 </h3>
                 <p className="mt-0.5 text-xs text-muted-foreground">{p.storeName}</p>
                 <p className="mt-2 font-bold text-primary">
-                  {formatUsd(p.discountPrice ?? p.price)}
+                  <Money value={p.discountPrice ?? p.price} />
                 </p>
               </div>
             </Link>

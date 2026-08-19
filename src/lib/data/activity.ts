@@ -111,7 +111,10 @@ export async function getCustomerActivity(
       id: b.id,
       kind: "booking",
       storeName: b.stores?.name ?? "",
-      href: `/${lang}/bookings`,
+      // The appointment, not the pile of appointments (MP-023). Route added
+      // alongside this change; it 404s on anything that is not this customer's
+      // own booking, same as orders/[id].
+      href: `/${lang}/bookings/${b.id}`,
       title: b.service_name ?? "",
       status: b.status,
       createdAt: b.created_at,
@@ -133,7 +136,7 @@ export async function getCustomerActivity(
       id: c.id,
       kind: "craft",
       storeName: c.craft_providers?.name ?? "",
-      href: `/${lang}/crafts/requests`,
+      href: `/${lang}/crafts/requests/${c.id}`,
       title: c.description.slice(0, 60),
       status: c.status,
       createdAt: c.created_at,
@@ -156,7 +159,12 @@ export async function getCustomerActivity(
       id: l.id,
       kind: "lead",
       storeName: l.stores?.name ?? "",
-      href: `/${lang}/messages`,
+      // NOT /messages. create_lead() (0190) writes a lead and never opens a
+      // conversation, so that link sent the customer to a message list their
+      // inquiry was not in — checked against production: none of the real leads
+      // has a conversation with the store it was written to. /inquiries/{id} is
+      // where the inquiry actually is.
+      href: `/${lang}/inquiries/${l.id}`,
       // The kind is NOT folded into the title any more. `lead_kind` is a
       // Postgres enum, so a customer who tapped "request a viewing" and typed
       // nothing got the literal string `test_drive` as their row's heading.

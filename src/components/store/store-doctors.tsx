@@ -1,6 +1,7 @@
 import Image from "next/image";
-import { Stethoscope } from "lucide-react";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import type { CategoryKey } from "@/lib/catalog";
+import { sectorTeamMeta } from "@/lib/sectors";
 
 export type DoctorView = {
   id: string;
@@ -17,10 +18,16 @@ export type DoctorView = {
 // clinic without that section, not like a clinic with no doctors.
 export function StoreDoctors({
   doctors,
+  category,
   servicesByDoctor = {},
   dict,
 }: {
   doctors: DoctorView[];
+  /** The store's sector. The heading and the no-photo avatar come from it: a
+   *  salon's roster read "الفريق" under a stethoscope for every business type
+   *  that has one, because the module's storage key was doing duty as its
+   *  label. */
+  category: CategoryKey;
   /** doctor id → the names of the services that provider actually delivers
    *  (from service_providers). Absent/empty = no per-provider restriction was
    *  recorded, so nothing is claimed on that doctor's behalf. */
@@ -28,10 +35,12 @@ export function StoreDoctors({
   dict: Dictionary;
 }) {
   if (doctors.length === 0) return null;
+  const team = sectorTeamMeta(category);
+  const TeamIcon = team.Icon;
   return (
     <section>
       <h2 className="mb-4 mt-10 text-xl font-bold">
-        {dict.store.doctorsTitle}
+        {dict.os.team[team.labelKey]}
       </h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {doctors.map((d) => {
@@ -52,7 +61,7 @@ export function StoreDoctors({
                 />
               ) : (
                 <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-surface-muted text-muted-foreground">
-                  <Stethoscope className="h-6 w-6" />
+                  <TeamIcon className="h-6 w-6" />
                 </span>
               )}
               <div className="min-w-0">

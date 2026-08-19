@@ -73,7 +73,7 @@ export function StoreHero({
       </div>
     ) : (
       <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${style.cover}`}>
-        <Icon className="h-28 w-28 text-black/[0.06]" />
+        <Icon className="h-28 w-28 text-foreground/[0.08]" />
       </div>
     );
 

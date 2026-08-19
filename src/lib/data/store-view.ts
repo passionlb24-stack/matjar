@@ -4,7 +4,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createPublicClient } from "@/lib/supabase/public-client";
 import type { CategoryKey } from "@/lib/catalog";
 import type { StorePlan } from "@/lib/plan-tiers";
-import { FETCH_BOUNDS, warnIfTruncated } from "./bounds";
+import { FETCH_BOUNDS, fetchAllByIds, fetchAllPages, warnIfTruncated } from "./bounds";
+
+// The catalogue projection, named once so the row-shape contract has something
+// to point at: every column here is read by the mapper at the bottom of
+// fetchStoreView, and dropping one renders a blank field rather than failing.
+const PRODUCT_COLUMNS =
+  "id, name, name_en, brand, description_en, price, discount_price, image_url, attributes, flash_price, flash_start, flash_end, stock, section_id, item_kind, booking_allocation_mode, duration_minutes, buffer_minutes, capacity_per_slot, is_bundle";
 
 // The public store view: the store row + its active catalogue + sections. This
 // is the heaviest, most-visited public read on the site (the store page is the
@@ -118,23 +124,32 @@ async function fetchStoreView(
   if (!data) return null;
 
   const bt = data.business_types as unknown as { slug: string } | null;
-  const { data: prods } = await supabase
-    .from("products")
-    .select(
-      "id, name, name_en, brand, description_en, price, discount_price, image_url, attributes, flash_price, flash_start, flash_end, stock, section_id, item_kind, booking_allocation_mode, duration_minutes, buffer_minutes, capacity_per_slot, is_bundle",
-    )
-    .eq("store_id", id)
-    .eq("status", "active")
-    .eq("is_available", true)
-    .is("deleted_at", null)
-    .order("sort_order", { ascending: true })
-    .limit(FETCH_BOUNDS.storeProducts);
-  // The storefront renders this whole array; a truncated catalog is a store
-  // quietly missing stock, which is exactly what nobody would think to check.
-  warnIfTruncated(prods, FETCH_BOUNDS.storeProducts, `products (store ${id})`);
+  // MP-040. The storefront renders this whole array, so a catalogue that stops
+  // at PostgREST's 1000-row default is a store quietly missing stock — the one
+  // failure nobody thinks to check for. Same select, same filters, same order;
+  // only the number of round trips changes. `sort_order` is not unique, so the
+  // id tiebreaker is what makes `.range()` paging safe: without a total order
+  // the database may place two equal-sort_order rows either way round and a row
+  // can land on both pages or on neither.
+  type ProductRow = Record<string, unknown> & { id: string };
+  const prods = await fetchAllPages<ProductRow>(
+    (from, to) =>
+      supabase
+        .from("products")
+        .select(PRODUCT_COLUMNS)
+        .eq("store_id", id)
+        .eq("status", "active")
+        .eq("is_available", true)
+        .is("deleted_at", null)
+        .order("sort_order", { ascending: true })
+        .order("id", { ascending: true })
+        .range(from, to) as unknown as PromiseLike<{ data: ProductRow[] | null }>,
+    FETCH_BOUNDS.storeProducts,
+    `products (store ${id})`,
+  );
   // Bundle contents ("includes: 2× X, 1× Y") for any bundle products, with the
   // component name pulled through the FK so hidden components still show.
-  const bundleIds = (prods ?? [])
+  const bundleIds = prods
     .filter((p) => p.is_bundle)
     .map((p) => p.id as string);
   const includesByBundle: Record<
@@ -142,18 +157,29 @@ async function fetchStoreView(
     { name: string; nameEn: string | null; quantity: number }[]
   > = {};
   if (bundleIds.length) {
-    const { data: bItems } = await supabase
-      .from("bundle_items")
-      .select("bundle_id, quantity, sort_order, products(name, name_en)")
-      .in("bundle_id", bundleIds)
-      .order("sort_order", { ascending: true })
-      .limit(FETCH_BOUNDS.storeBundleItems);
-    warnIfTruncated(bItems, FETCH_BOUNDS.storeBundleItems, `bundle_items (store ${id})`);
-    for (const it of (bItems ?? []) as unknown as {
+    // Chunked as well as paged: the bundle-id list now scales with the whole
+    // catalogue, and an `.in()` filter rides in the URL.
+    type BundleItemRow = {
       bundle_id: string;
       quantity: number;
       products: { name: string; name_en: string | null } | null;
-    }[]) {
+    };
+    const bItems = await fetchAllByIds<BundleItemRow>(
+      bundleIds,
+      (chunk, from, to) =>
+        supabase
+          .from("bundle_items")
+          .select("bundle_id, quantity, sort_order, products(name, name_en)")
+          .in("bundle_id", chunk)
+          .order("sort_order", { ascending: true })
+          .order("id", { ascending: true })
+          .range(from, to) as unknown as PromiseLike<{
+          data: BundleItemRow[] | null;
+        }>,
+      FETCH_BOUNDS.storeBundleItems,
+      `bundle_items (store ${id})`,
+    );
+    for (const it of bItems) {
       if (!it.products) continue;
       (includesByBundle[it.bundle_id] ??= []).push({
         name: it.products.name,
@@ -168,21 +194,27 @@ async function fetchStoreView(
   // and the real stock both live on the variant row. The grid uses this to send
   // those products to their own page instead, where the picker exists.
   const variantProductIds = new Set<string>();
-  if ((prods ?? []).length) {
-    const { data: vars } = await supabase
-      .from("product_variants")
-      .select("product_id")
-      .in(
-        "product_id",
-        (prods ?? []).map((p) => p.id as string),
-      )
-      .limit(FETCH_BOUNDS.storeVariants);
+  if (prods.length) {
     // Truncation here is the expensive one: a product whose variant rows fell
     // past the ceiling looks variant-less, so the grid offers quick-add and
     // charges the base price instead of routing to the picker. Money, not
-    // cosmetics — hence the alarm.
-    warnIfTruncated(vars, FETCH_BOUNDS.storeVariants, `product_variants (store ${id})`);
-    for (const v of (vars ?? []) as { product_id: string }[]) {
+    // cosmetics — so this one is both chunked (the id list is the whole
+    // catalogue) and paged (a store has several variants per product).
+    const vars = await fetchAllByIds<{ product_id: string }>(
+      prods.map((p) => p.id as string),
+      (chunk, from, to) =>
+        supabase
+          .from("product_variants")
+          .select("product_id")
+          .in("product_id", chunk)
+          .order("id", { ascending: true })
+          .range(from, to) as unknown as PromiseLike<{
+          data: { product_id: string }[] | null;
+        }>,
+      FETCH_BOUNDS.storeVariants,
+      `product_variants (store ${id})`,
+    );
+    for (const v of vars) {
       variantProductIds.add(v.product_id);
     }
   }
@@ -268,7 +300,7 @@ async function fetchStoreView(
       options: Array.isArray(f.options) ? f.options : [],
       required: f.required,
     })),
-    products: (prods ?? []).map((p) => ({
+    products: prods.map((p) => ({
       id: p.id as string,
       name: p.name as string,
       nameEn: (p.name_en as string | null) ?? null,

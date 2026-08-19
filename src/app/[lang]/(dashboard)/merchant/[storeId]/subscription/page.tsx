@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight, Crown, Check, Sparkles } from "lucide-react";
+import { Crown, Check, Sparkles } from "lucide-react";
+import { ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -10,7 +11,8 @@ import { StartTrialButton } from "@/components/start-trial-button";
 import { PLAN_TIERS, promoState, annualPrice, planRank } from "@/lib/plan-tiers";
 import { PLAN_HIGHLIGHTS } from "@/lib/feature-availability";
 import { requestNow } from "@/lib/now";
-import { formatUsd } from "@/lib/currency";
+import { Money } from "@/components/ui/money";
+import { CardList, CardRow } from "@/components/ui/card";
 
 // Single source of truth for Pro pricing (promo-aware): plan-tiers.
 const PRO_PRICE_MONTHLY = PLAN_TIERS.pro.monthly;
@@ -110,7 +112,7 @@ export default async function StoreSubscriptionPage({
           href={`/${lang}/merchant/${storeId}`}
           className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+          <ChevronPrev className="h-4 w-4" />
           {(store as { name: string }).name}
         </Link>
         <h1 className="mt-3 text-3xl font-extrabold tracking-tight">{t.title}</h1>
@@ -126,7 +128,7 @@ export default async function StoreSubscriptionPage({
                 you are not paying, on the page where you pay, is the worst
                 place in the product to get this wrong. */}
             <span className="flex items-center gap-1.5 text-2xl font-extrabold">
-              {isPaid && <Crown className="h-6 w-6 text-amber-500" />}
+              {isPaid && <Crown className="h-6 w-6 text-accent" />}
               {planName}
             </span>
             {isPaid && (
@@ -181,7 +183,7 @@ export default async function StoreSubscriptionPage({
         {!isPro && trialEndsAt !== null && (
           <div className="mt-4 rounded-2xl border border-warning/30 bg-warning-soft p-6">
             <h2 className="flex items-center gap-2 text-lg font-extrabold">
-              <Crown className="h-5 w-5 text-amber-500" />
+              <Crown className="h-5 w-5 text-accent" />
               {t.upgradeTitle}
             </h2>
             <p className="mt-2 text-sm text-warning/80">{t.upgradeBody}</p>
@@ -209,7 +211,7 @@ export default async function StoreSubscriptionPage({
                     key={id}
                     className="flex items-start gap-2 text-sm font-medium text-warning"
                   >
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
                     {dict.pricing.features[id]}
                   </li>
                 ))}
@@ -227,22 +229,19 @@ export default async function StoreSubscriptionPage({
         {/* Payment history */}
         <h2 className="mb-3 mt-8 text-lg font-bold">{t.paymentsTitle}</h2>
         {payments.length ? (
-          <div className="space-y-2">
+          <CardList>
             {payments.map((p) => (
-              <div
-                key={p.id}
-                className="flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-3 text-sm"
-              >
+              <CardRow key={p.id} className="flex items-center justify-between px-4 py-3 text-sm">
                 <span className="font-semibold">{fmtDate(p.paid_at)}</span>
                 <span className="text-muted-foreground">
                   {p.period === "yearly" ? t.yearly : t.monthly}
                 </span>
                 <span className="font-bold text-primary">
-                  {formatUsd(p.amount)}
+                  <Money value={p.amount} />
                 </span>
-              </div>
+              </CardRow>
             ))}
-          </div>
+          </CardList>
         ) : (
           <div className="rounded-2xl border border-dashed border-border py-12 text-center text-muted-foreground">
             {t.noPayments}

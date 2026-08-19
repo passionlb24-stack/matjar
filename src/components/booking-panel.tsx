@@ -24,6 +24,7 @@ import { groupBySection, type SectionInfo } from "@/lib/sections";
 import { categoryIcons } from "@/components/category-icon";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { formatUsd } from "@/lib/currency";
+import { Money } from "@/components/ui/money";
 
 type Service = {
   id: string;
@@ -585,7 +586,7 @@ export function BookingPanel({
   if (booked) {
     return (
       <div className="rounded-2xl border border-success/30 bg-success-soft p-6 text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-success-strong text-success-strong-foreground">
           <Check className="h-6 w-6" />
         </div>
         <h3 className="mt-3 text-lg font-extrabold">
@@ -600,7 +601,7 @@ export function BookingPanel({
               href={bookedWaUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-800"
+              className="flex items-center gap-2 rounded-xl bg-whatsapp px-5 py-3 text-sm font-bold text-whatsapp-foreground transition-colors hover:bg-whatsapp-hover"
             >
               <MessageCircle className="h-4 w-4" />
               {dict.booking.notifyMerchantWa}
@@ -630,7 +631,7 @@ export function BookingPanel({
               <Image src={s.imageUrl} alt={localized(s.name, s.nameEn, lang)} width={64} height={64} className="h-16 w-16 shrink-0 rounded-xl object-cover" sizes="64px" />
             ) : (
               <span className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${style.cover}`}>
-                <Icon className="h-7 w-7 text-black/20" />
+                <Icon className="h-7 w-7 text-foreground/20" />
               </span>
             )}
             <div className="min-w-0 flex-1">
@@ -766,7 +767,7 @@ export function BookingPanel({
                 </div>
                 {selectedPrice > 0 && (
                   <p className="shrink-0 text-sm font-extrabold tabular-nums">
-                    {formatUsd(netPrice)}
+                    <Money value={netPrice} />
                   </p>
                 )}
               </div>
@@ -1071,7 +1072,7 @@ export function BookingPanel({
                       </span>
                       <span className="text-foreground">
                         {dict.booking.netLabel}:{" "}
-                        {formatUsd(Math.max(0, selectedPrice - coupon.discount))}
+                        <Money value={Math.max(0, selectedPrice - coupon.discount)} />
                       </span>
                     </div>
                   )}
@@ -1107,7 +1108,7 @@ export function BookingPanel({
                       {dict.booking.steps.price}
                     </dt>
                     <dd className="text-sm font-extrabold tabular-nums">
-                      {formatUsd(netPrice)}
+                      <Money value={netPrice} />
                     </dd>
                   </div>
                 )}

@@ -13,6 +13,7 @@ const labelClass = "text-sm font-semibold";
 import { localized } from "@/lib/i18n-field";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { CardList, CardRow } from "@/components/ui/card";
 
 export type Component = {
   id: string;
@@ -156,7 +157,7 @@ export function BundleManager({
     <div>
       {/* Existing bundles */}
       {bundles.length > 0 ? (
-        <div className="space-y-3">
+        <CardList>
           {bundles.map((b) => {
             const parts = b.items.reduce(
               (s, it) => s + (byId.get(it.productId)?.price ?? 0) * it.quantity,
@@ -164,10 +165,7 @@ export function BundleManager({
             );
             const save = parts - b.price;
             return (
-              <div
-                key={b.id}
-                className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-4"
-              >
+              <CardRow key={b.id} className="flex items-start gap-3">
                 {b.imageUrl ? (
                   <Image
                     src={b.imageUrl}
@@ -212,10 +210,10 @@ export function BundleManager({
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
-              </div>
+              </CardRow>
             );
           })}
-        </div>
+        </CardList>
       ) : (
         <div className="rounded-2xl border border-dashed border-border py-10 text-center text-muted-foreground">
           {t.empty}

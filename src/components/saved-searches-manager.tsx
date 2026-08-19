@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { CardList, CardRow } from "@/components/ui/card";
 import { notifyError } from "@/lib/notify";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -55,7 +56,7 @@ export function SavedSearchesManager({
         <Bell className="h-5 w-5 text-primary" />
         {t.title}
       </h2>
-      <div className="space-y-2">
+      <CardList>
         {rows.map((r) => {
           const parts = [
             r.q,
@@ -64,9 +65,9 @@ export function SavedSearchesManager({
             r.city,
           ].filter(Boolean);
           return (
-            <div
+            <CardRow
               key={r.id}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-surface p-4"
+              className="flex items-center justify-between gap-3"
             >
               <div className="flex flex-wrap gap-1.5">
                 {parts.length ? (
@@ -91,10 +92,10 @@ export function SavedSearchesManager({
               >
                 <Trash2 className="h-4 w-4" />
               </button>
-            </div>
+            </CardRow>
           );
         })}
-      </div>
+      </CardList>
     </div>
   );
 }

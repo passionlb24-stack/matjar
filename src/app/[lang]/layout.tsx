@@ -50,6 +50,24 @@ export const metadata: Metadata = {
     images: ["/opengraph-image.png"],
   },
   manifest: "/manifest.webmanifest",
+  // iOS reads none of the manifest for an installed home-screen app — it wants
+  // its own meta tags, and without them the notch strip fell back to the
+  // browser default instead of the brand. (MP-036)
+  //
+  // `statusBarStyle: "default"`, not "black-translucent": translucent draws the
+  // status-bar glyphs in white over the page, and this app's light surface is
+  // #fbfbf9 — the same colour the light `themeColor` below declares — so white
+  // on it is unreadable. "default" gives an opaque bar iOS tints from the page,
+  // which stays consistent with that themeColor and stays legible either side.
+  //
+  // `title` is the home-screen label. Arabic short name, matching `short_name`
+  // in manifest.ts — the Latin half of "متجر · Matjar" gets truncated away
+  // under an icon anyway.
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "متجر",
+  },
   verification: {
     google: "fRJTZiuJNv-lbiuGfanG8FAZFTV85klXdnQLiw1bXmM",
   },

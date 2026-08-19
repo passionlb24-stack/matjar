@@ -4,11 +4,11 @@ import {
   Sparkles,
   PartyPopper,
   ExternalLink,
-  ChevronLeft,
   AlertTriangle,
   CircleCheck,
   Hourglass,
 } from "lucide-react";
+import { ChevronNext } from "@/components/ui/directional-icon";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { Completeness, CompletenessItem } from "@/lib/completeness";
@@ -17,6 +17,7 @@ import { SITE_URL } from "@/lib/site";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ShareButton } from "@/components/share-button";
+import { CardListUl } from "@/components/ui/card";
 
 // Onboarding nudge shown on the OS home. While the store is being set up it
 // reports one weighted number and ONE next action; once everything is done it
@@ -115,7 +116,7 @@ export function StoreChecklist({
           className="mt-4 inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-bold transition-colors hover:border-primary hover:text-primary lg:min-h-0"
         >
           {t.addItems}
-          <ChevronLeft className="h-4 w-4 ltr:rotate-180" />
+          <ChevronNext className="h-4 w-4" />
         </Link>
       </div>
     );
@@ -243,7 +244,7 @@ export function StoreChecklist({
             </span>
             <span className="inline-flex shrink-0 items-center gap-1 text-xs font-bold">
               {t.fix}
-              <ChevronLeft className="h-4 w-4 ltr:rotate-180" />
+              <ChevronNext className="h-4 w-4" />
             </span>
           </Link>
         </div>
@@ -254,12 +255,15 @@ export function StoreChecklist({
           <p className="text-xs font-bold text-muted-foreground">
             {t.moreLabel}
           </p>
-          <ul className="mt-2 space-y-1.5">
+          {/* Was one bordered box per outstanding task, stacked. Eight boxes on
+              a tinted panel is a wall; one card ruled into rows reads as the
+              single "what's left" list it is. */}
+          <CardListUl className="mt-2">
             {rest.map((item) => (
               <li key={item.key}>
                 <Link
                   href={hrefOf(item)}
-                  className="flex min-h-[44px] items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 transition-colors hover:border-primary lg:min-h-0"
+                  className="flex min-h-[44px] items-center gap-2 px-3 py-2 transition-colors hover:bg-surface-muted lg:min-h-0"
                 >
                   <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />
                   <span className="min-w-0 flex-1 text-xs font-semibold sm:text-sm">
@@ -274,7 +278,7 @@ export function StoreChecklist({
                 </Link>
               </li>
             ))}
-          </ul>
+          </CardListUl>
         </div>
       )}
     </div>

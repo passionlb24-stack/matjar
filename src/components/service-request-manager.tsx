@@ -203,7 +203,7 @@ export function ServiceRequestManager({
             <button
               onClick={() => act("complete")}
               disabled={busy}
-              className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm font-bold text-white transition-colors hover:bg-emerald-800 disabled:opacity-60"
+              className="rounded-lg bg-success-strong px-3 py-1.5 text-sm font-bold text-success-strong-foreground transition-colors hover:brightness-90 disabled:opacity-60"
             >
               {t.complete}
             </button>

@@ -85,7 +85,7 @@ export default async function DeliveryPage({
                       href={waLink(c.whatsapp) ?? "#"}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-800"
+                      className="flex items-center gap-1.5 rounded-xl bg-whatsapp px-4 py-2 text-sm font-semibold text-whatsapp-foreground transition-colors hover:bg-whatsapp-hover"
                     >
                       <MessageCircle className="h-4 w-4" />
                       {dict.store.whatsapp}

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { CardList, CardRow } from "@/components/ui/card";
 
 type Perms = Record<(typeof PERM_KEYS)[number], boolean>;
 type Staff = {
@@ -152,15 +153,12 @@ export function StaffManager({
         <p className="mt-2 text-sm font-medium text-muted-foreground">{msg}</p>
       )}
 
-      <div className="mt-5 space-y-3">
-        {staff.length ? (
-          staff.map((s) => {
+      {staff.length ? (
+        <CardList className="mt-5">
+          {staff.map((s) => {
             const sp = perms[s.id] ?? normalize(s.permissions);
             return (
-              <div
-                key={s.id}
-                className="rounded-xl border border-border bg-surface p-4"
-              >
+              <CardRow key={s.id}>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold">{s.email}</span>
                   <button
@@ -197,13 +195,15 @@ export function StaffManager({
                     ))}
                   </div>
                 </div>
-              </div>
+              </CardRow>
             );
-          })
-        ) : (
-          <p className="text-sm text-muted-foreground">{dict.merchant.noStaff}</p>
-        )}
-      </div>
+          })}
+        </CardList>
+      ) : (
+        <p className="mt-5 text-sm text-muted-foreground">
+          {dict.merchant.noStaff}
+        </p>
+      )}
     </div>
   );
 }

@@ -172,7 +172,7 @@ export function ServiceForm({
         <button
           type="submit"
           disabled={loading}
-          className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-violet-600 py-2.5 text-sm font-bold text-white transition-colors hover:bg-violet-700 disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
         >
           <Plus className="h-4 w-4" />
           {loading ? t.adding : t.add}

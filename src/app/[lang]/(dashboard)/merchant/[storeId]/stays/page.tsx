@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight, CalendarRange, Phone, Users } from "lucide-react";
+import { CalendarRange, Phone, Users } from "lucide-react";
+import { ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { StayStatusControl } from "@/components/stay-status-control";
+import { CardList, CardRow } from "@/components/ui/card";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -77,7 +79,7 @@ export default async function StoreStaysPage({
           href={`/${lang}/merchant/${storeId}`}
           className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+          <ChevronPrev className="h-4 w-4" />
           {(store as { name: string }).name}
         </Link>
         <h1 className="mt-3 flex items-center gap-2 text-3xl font-extrabold tracking-tight">
@@ -87,12 +89,9 @@ export default async function StoreStaysPage({
         <p className="mt-2 text-muted-foreground">{t.subtitle}</p>
 
         {stays.length ? (
-          <div className="mt-8 space-y-3">
+          <CardList className="mt-8">
             {stays.map((s) => (
-              <div
-                key={s.id}
-                className="rounded-2xl border border-border bg-surface p-4"
-              >
+              <CardRow key={s.id}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
@@ -138,9 +137,9 @@ export default async function StoreStaysPage({
                     />
                   </div>
                 </div>
-              </div>
+              </CardRow>
             ))}
-          </div>
+          </CardList>
         ) : (
           <div className="mt-8 rounded-2xl border border-dashed border-border py-10 sm:py-16 text-center text-muted-foreground">
             {t.empty}

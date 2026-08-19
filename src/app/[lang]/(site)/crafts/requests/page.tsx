@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CraftReviewForm } from "@/components/crafts/craft-review-form";
+import { CardListUl } from "@/components/ui/card";
 
 type RequestRow = {
   id: string;
@@ -79,15 +80,12 @@ export default async function MyCraftRequestsPage({
             />
           </div>
         ) : (
-          <ul className="mt-6 space-y-3">
+          <CardListUl className="mt-6">
             {rows.map((r) => {
               const provider = r.craft_providers;
               const reviewed = (r.craft_reviews ?? []).length > 0;
               return (
-                <li
-                  key={r.id}
-                  className="rounded-2xl border border-border bg-surface p-4"
-                >
+                <li key={r.id} className="p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     {provider ? (
                       <Link
@@ -148,7 +146,7 @@ export default async function MyCraftRequestsPage({
                 </li>
               );
             })}
-          </ul>
+          </CardListUl>
         )}
       </Container>
     </div>

@@ -1,6 +1,8 @@
+import Image from "next/image";
 import { Images, ArrowUpRight } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { NEUTRAL_BLUR } from "@/lib/image-placeholder";
 
 export type PortfolioItem = {
   id: string;
@@ -37,15 +39,23 @@ export function StorePortfolio({
           const card = (
             <>
               {it.image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={it.image_url}
-                  alt={title}
-                  className="h-44 w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                />
+                // `fill` needs a positioned box, and the box is what reserves
+                // the 176px row before the photo lands — the raw <img> reserved
+                // nothing until it decoded.
+                <div className="relative h-44 w-full overflow-hidden">
+                  <Image
+                    src={it.image_url}
+                    alt={title}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    placeholder="blur"
+                    blurDataURL={NEUTRAL_BLUR}
+                    className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                  />
+                </div>
               ) : (
                 <div className="flex h-44 w-full items-center justify-center bg-surface-muted">
-                  <Images className="h-8 w-8 text-black/15" />
+                  <Images className="h-8 w-8 text-foreground/15" />
                 </div>
               )}
               <div className="flex flex-1 flex-col p-4">

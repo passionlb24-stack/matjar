@@ -12,7 +12,11 @@ import {
 } from "@/lib/catalog";
 import { isOpenNow, parseHours } from "@/lib/hours";
 import type { StorePlan } from "@/lib/plan-tiers";
-import { FETCH_BOUNDS, warnIfTruncated } from "./bounds";
+import { FETCH_BOUNDS, fetchAllByIds, warnIfTruncated } from "./bounds";
+
+/** Demo/sample catalog rows use short ids; only these reach a uuid column. */
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Maps a database store row into the shape the StoreCard expects.
 function rowToStore(row: {
@@ -144,26 +148,60 @@ async function attachLocations(list: Store[]): Promise<void> {
 
 // Marks which stores the current user has saved (followed).
 async function markFavorites(list: Store[]): Promise<Store[]> {
+  const ids = await followedAmong(list.map((s) => s.id));
+  if (ids) list.forEach((s) => (s.favorited = ids.has(s.id)));
+  return list;
+}
+
+/**
+ * MP-041. Which of `storeIds` the signed-in viewer follows — `null` when there
+ * is no viewer, so the caller leaves `favorited` alone rather than clearing it.
+ *
+ * This read used to fetch the viewer's ENTIRE follow list and test the page
+ * against it, which made the follow count the thing that had to stay under a
+ * thousand. Truncating it did not merely hide rows: a store the user follows
+ * came back absent and rendered as un-followed — a heart that silently forgets,
+ * which reads as a bug in following rather than in fetching, and which a
+ * re-follow would then hit a duplicate-key on.
+ *
+ * Asking only about the ids on the page removes that ceiling instead of raising
+ * it. The answer is now bounded by what is being rendered (at most a couple of
+ * hundred cards), so no follow count can ever truncate it. Chunked because the
+ * `.in()` filter travels in the URL.
+ */
+export async function followedAmong(
+  storeIds: readonly string[],
+): Promise<Set<string> | null> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return list;
-  const { data: favs } = await supabase
-    .from("follows")
-    .select("store_id")
-    .eq("user_id", user.id)
-    .limit(FETCH_BOUNDS.follows);
-  // Truncation shows as a saved store that renders un-saved — a heart that
-  // silently forgets, which reads as a bug in following, not in fetching.
-  warnIfTruncated(favs, FETCH_BOUNDS.follows, `follows (user ${user.id})`);
-  const ids = new Set(
-    ((favs ?? []) as { store_id: string }[]).map((f) => f.store_id),
+  if (!user) return null;
+  // Demo/sample stores carry non-UUID ids ("1", "2"…). They can never be
+  // followed — follows.store_id is a FK to stores — but handing one to a uuid
+  // filter is a 400, and a 400 here would blank out EVERY heart on the page.
+  const real = storeIds.filter((id) => UUID_RE.test(id));
+  if (!real.length) return new Set();
+  const rows = await fetchAllByIds<{ store_id: string }>(
+    real,
+    (chunk, from, to) =>
+      supabase
+        .from("follows")
+        .select("store_id")
+        .eq("user_id", user.id)
+        .in("store_id", chunk)
+        .order("store_id", { ascending: true })
+        .range(from, to) as unknown as PromiseLike<{
+        data: { store_id: string }[] | null;
+      }>,
+    // follows has a (user_id, store_id) unique key, so this query returns at
+    // most one row per id asked about. +1 keeps the ceiling strictly
+    // unreachable: at `real.length` a user who follows every store on the page
+    // — perfectly normal — would trip the truncation alarm.
+    real.length + 1,
+    `follows (user ${user.id})`,
   );
-  list.forEach((s) => {
-    s.favorited = ids.has(s.id);
-  });
-  return list;
+  return new Set(rows.map((f) => f.store_id));
 }
 
 // Real active stores, optionally padded with demo samples so listings aren't

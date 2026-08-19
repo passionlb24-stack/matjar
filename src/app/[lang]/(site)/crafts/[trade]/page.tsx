@@ -2,7 +2,8 @@ import { createElement } from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ChevronRight, MessageCircle, Wrench } from "lucide-react";
+import { MessageCircle, Wrench } from "lucide-react";
+import { ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
@@ -139,7 +140,7 @@ export default async function TradePage({
           href={`/${lang}/crafts`}
           className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+          <ChevronPrev className="h-4 w-4" />
           {t.title}
         </Link>
 
@@ -267,7 +268,7 @@ export default async function TradePage({
               href={supportWaLink(waText)}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-800"
+              className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-whatsapp px-5 py-2.5 text-sm font-bold text-whatsapp-foreground transition-colors hover:bg-whatsapp-hover"
             >
               <MessageCircle aria-hidden className="h-4 w-4" />
               {t.requestHelpCta}

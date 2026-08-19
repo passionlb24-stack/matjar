@@ -3,6 +3,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { DeliveryZone } from "@/components/store-products";
 import { formatUsd } from "@/lib/currency";
+import { Money } from "@/components/ui/money";
 import { localized } from "@/lib/i18n-field";
 
 export type CourierOption = { price: number | null; name: string };
@@ -169,7 +170,7 @@ export function StoreFulfillment({
                 <span className="font-semibold">{c.name}</span>
                 {c.price != null && (
                   <span className="font-bold text-primary tabular-nums">
-                    {formatUsd(c.price)}
+                    <Money value={c.price} />
                   </span>
                 )}
               </li>

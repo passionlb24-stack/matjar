@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { createClient } from "@/lib/supabase/client";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { FeatureModuleKey } from "@/lib/modules-catalog";
@@ -62,34 +64,22 @@ export function ModulesManager({
           <div className="flex items-center gap-2">
             <span className="font-bold">{labels[item.key] ?? item.key}</span>
             {item.tier === "pro" && (
-              <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-bold text-warning">
+              <Badge variant="accent" size="sm">
                 Pro
-              </span>
+              </Badge>
             )}
           </div>
           {locked && (
             <p className="mt-0.5 text-xs text-muted-foreground">{t.proNote}</p>
           )}
         </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={on}
-          aria-label={labels[item.key] ?? item.key}
+        <Switch
+          checked={on}
+          onChange={(next) => toggle(item, next)}
+          label={labels[item.key] ?? item.key}
           disabled={busy === item.key || locked}
-          onClick={() => toggle(item, !on)}
-          className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50 ${
-            on ? "bg-primary" : "bg-surface-muted"
-          }`}
-        >
-          <span
-            className={`absolute top-0.5 grid h-5 w-5 place-items-center rounded-full bg-white shadow transition-all ${
-              on ? "end-0.5" : "start-0.5"
-            }`}
-          >
-            {locked && <Lock className="h-3 w-3 text-muted-foreground" />}
-          </span>
-        </button>
+          knob={locked ? <Lock className="h-3 w-3 text-muted-foreground" /> : null}
+        />
       </div>
     );
   }

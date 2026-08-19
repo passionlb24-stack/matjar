@@ -8,6 +8,7 @@ import { noteHintKey } from "@/lib/note-hint";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { formatUsd, formatLbp } from "@/lib/currency";
+import { Money } from "@/components/ui/money";
 
 export type Variant = {
   id: string;
@@ -313,7 +314,7 @@ export function ProductOrder({
                       {v.size ?? v.label}
                       {v.price != null && (
                         <span className="ms-1 text-xs font-normal text-muted-foreground">
-                          {formatUsd(v.price)}
+                          <Money value={v.price} />
                         </span>
                       )}
                     </button>
@@ -359,7 +360,7 @@ export function ProductOrder({
                     {v.label}
                     {v.price != null && (
                       <span className="ms-1 text-xs font-normal text-muted-foreground">
-                        {formatUsd(v.price)}
+                        <Money value={v.price} />
                       </span>
                     )}
                   </button>

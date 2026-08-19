@@ -89,7 +89,15 @@ export default async function DashboardLayout({
       >
         {dict.common.skipToContent}
       </a>
-      <header className="sticky top-0 z-50 border-b border-border bg-background print:hidden">
+      {/* `viewportFit: cover` is set globally, so on a notched phone the layout
+          extends under the status bar. The customer header handles that with
+          `pt-[env(safe-area-inset-top)]` (site-header.tsx); the dashboard header
+          did not, and the merchant's logo/nav row sat behind the clock. The
+          padding sits ABOVE the h-16 row, so the header's total height is
+          `--m-header-h + env(safe-area-inset-top)` — which is exactly what the
+          merchant sidebar sticks to. Off a notch the inset is 0 and nothing
+          moves. (MP-032) */}
+      <header className="sticky top-0 z-50 border-b border-border bg-background pt-[env(safe-area-inset-top)] print:hidden">
         <Container className="flex h-16 items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-6">
             <Link href={`/${lang}/merchant`} className="flex items-center gap-2">

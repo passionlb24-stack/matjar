@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { Package, ChevronRight } from "lucide-react";
+import { Package } from "lucide-react";
+import { ChevronNext } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -9,7 +10,7 @@ import { PageHero } from "@/components/ui/page-hero";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
-import { formatUsd } from "@/lib/currency";
+import { Money } from "@/components/ui/money";
 
 type OrderStatus =
   | "pending"
@@ -85,14 +86,14 @@ export default async function OrdersPage({
                       {dict.orders.order} #{order.id.slice(0, 8)}
                     </p>
                     <p className="text-money mt-1 text-lg font-extrabold text-primary">
-                      {formatUsd(order.total)}
+                      <Money value={order.total} />
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <Badge variant={statusVariant[order.status]}>
                       {dict.orders.status[order.status]}
                     </Badge>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
+                    <ChevronNext className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </Link>
               </Card>

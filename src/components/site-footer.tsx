@@ -4,18 +4,32 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import type { NavSections } from "@/lib/data/section-supply";
 
-export function SiteFooter({ lang, dict }: { lang: Locale; dict: Dictionary }) {
+export function SiteFooter({
+  lang,
+  dict,
+  sections,
+}: {
+  lang: Locale;
+  dict: Dictionary;
+  /** Which verticals have enough behind them to be worth a link — see
+   *  lib/data/section-supply.ts. The routes all still exist and answer. */
+  sections: NavSections;
+}) {
   const L = dict.footer.links;
   const soon = lang === "ar" ? "قريباً" : "Soon";
 
+  // `on` is written per link rather than filtered after the fact so that the
+  // gate is visible at the point where the link is declared — the failure mode
+  // this fixes is exactly a section quietly outliving its supply.
   const columns = [
     {
       title: dict.mobileNav.shop,
       links: [
         { label: L.stores, href: `/${lang}/explore` },
         { label: L.categories, href: `/${lang}/categories` },
-        { label: dict.market.nav, href: `/${lang}/market` },
+        { label: dict.market.nav, href: `/${lang}/market`, on: sections.market },
         { label: L.offers, href: `/${lang}/offers` },
         { label: dict.flash.title, href: `/${lang}/flash` },
         { label: dict.bestSellers.title, href: `/${lang}/best-sellers` },
@@ -24,10 +38,29 @@ export function SiteFooter({ lang, dict }: { lang: Locale; dict: Dictionary }) {
     {
       title: dict.common.workServices,
       links: [
-        { label: dict.jobs.title, href: `/${lang}/jobs` },
-        { label: dict.freelance.title, href: `/${lang}/freelance` },
-        { label: dict.wholesale.title, href: `/${lang}/wholesale` },
-        { label: dict.delivery.title, href: `/${lang}/delivery` },
+        { label: dict.jobs.title, href: `/${lang}/jobs`, on: sections.jobs },
+        {
+          label: dict.freelance.title,
+          href: `/${lang}/freelance`,
+          on: sections.freelance,
+        },
+        {
+          label: dict.crafts.title,
+          href: `/${lang}/crafts`,
+          on: sections.crafts,
+        },
+        {
+          label: dict.wholesale.title,
+          href: `/${lang}/wholesale`,
+          on: sections.wholesale,
+        },
+        {
+          label: dict.delivery.title,
+          href: `/${lang}/delivery`,
+          on: sections.delivery,
+        },
+        // The map is a view of the stores that already exist, not a vertical
+        // with its own supply, so it is not gated on one.
         { label: dict.map.title, href: `/${lang}/map` },
       ],
     },
@@ -81,28 +114,36 @@ export function SiteFooter({ lang, dict }: { lang: Locale; dict: Dictionary }) {
             </p>
           </div>
 
-          {columns.map((col) => (
-            <div key={col.title} className="md:row-span-2">
-              <h3 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
-                {col.title}
-              </h3>
-              {/* Links carry vertical padding so the touch target clears 44px
-                  (WCAG 2.5.5) — measured at 20px before. The negative inline
-                  margin keeps the text where it was, so only the hit area grows. */}
-              <ul className="mt-3 space-y-0.5">
-                {col.links.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="-mx-2 inline-flex min-h-11 items-center px-2 text-sm text-muted-foreground transition-colors hover:text-primary"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {columns
+            .map((col) => ({
+              ...col,
+              links: col.links.filter((l) => !("on" in l) || l.on),
+            }))
+            // A heading with nothing under it is its own kind of dead end.
+            .filter((col) => col.links.length > 0)
+            .map((col) => (
+              <div key={col.title} className="md:row-span-2">
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
+                  {col.title}
+                </h3>
+                {/* Links carry vertical padding so the touch target clears 44px
+                    (WCAG 2.5.5) — measured at 20px before. The negative inline
+                    margin keeps the text where it was, so only the hit area
+                    grows. */}
+                <ul className="mt-3 space-y-0.5">
+                  {col.links.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        href={link.href}
+                        className="-mx-2 inline-flex min-h-11 items-center px-2 text-sm text-muted-foreground transition-colors hover:text-primary"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
 
           {/* Two "Soon" badges for apps nobody can install yet were the first
               thing under the brand on a phone — above every link the footer

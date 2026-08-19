@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { Store } from "@/lib/catalog";
 import { Container } from "@/components/ui/container";
 import { StoreCard } from "@/components/store-card";
+import { ChevronNext } from "@/components/ui/directional-icon";
 
 // A premium horizontal "rail" of store cards — the pattern shoppers know from
 // Netflix/Shopify/app stores. Scroll-snaps on touch, bleeds to the screen edge
@@ -53,7 +53,7 @@ export function StoreRail({
             className="inline-flex shrink-0 items-center gap-1 text-sm font-bold text-primary transition-colors hover:text-primary-hover"
           >
             {seeAll}
-            <ChevronLeft className="h-4 w-4 ltr:rotate-180" />
+            <ChevronNext className="h-4 w-4" />
           </Link>
         </div>
       </Container>

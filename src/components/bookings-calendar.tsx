@@ -3,11 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
-  ChevronLeft,
-  ChevronRight,
   Clock,
   Stethoscope,
 } from "lucide-react";
+import { ChevronNext, ChevronPrev } from "@/components/ui/directional-icon";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
 export type CalendarBooking = {
@@ -133,7 +132,7 @@ export function BookingsCalendar({
             aria-label={t.prevWeek}
             className="inline-flex items-center justify-center rounded-lg border border-border bg-surface p-2 text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
           >
-            <ChevronLeft className="h-4 w-4 rtl:rotate-180" />
+            <ChevronPrev className="h-4 w-4" />
           </button>
           <button
             type="button"
@@ -149,7 +148,7 @@ export function BookingsCalendar({
             aria-label={t.nextWeek}
             className="inline-flex items-center justify-center rounded-lg border border-border bg-surface p-2 text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
           >
-            <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+            <ChevronNext className="h-4 w-4" />
           </button>
         </div>
       </div>

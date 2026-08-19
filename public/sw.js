@@ -1,13 +1,34 @@
 /* Matjar service worker — Web Push, plus a deliberately small app-shell cache. */
 
-// Bump this to retire every previous cache in one go. Versioned because a
-// service worker that keeps yesterday's JS alive is worse than none: the app
-// half-updates and the failures make no sense to anyone.
-const CACHE = "matjar-shell-v1";
+// The cache name is the deploy, not a string somebody remembers to edit.
+//
+// It used to read `"matjar-shell-v1"`, with a comment telling the next person to
+// bump it. Nobody ever did — so a change to offline.html or to SHELL below
+// reached nobody already on v1: the `activate` sweep compares every cache
+// against this name, and while the name never changed there was nothing to
+// sweep and nothing to refill.
+//
+// `?v=` on the script URL carries the build id (src/lib/sw.ts sets it from
+// next.config's BUILD_ID, which is the commit). `self.location` inside a worker
+// is that script URL, query included, so the worker can read its own version
+// without a build step ever touching this file.
+//
+// Repeat visit, no deploy: the page registers the identical URL, the browser
+// matches the existing registration, no new worker installs, VERSION is
+// unchanged, and this cache is left exactly as it is. Nothing is re-fetched.
+//
+// The `|| "v1"` is not a fallback for a missing deploy — it is what a worker
+// registered by an OLD page (plain `/sw.js`, no query) computes, so such a
+// worker keeps owning the cache it already filled instead of orphaning it.
+const VERSION = new URL(self.location.href).searchParams.get("v") || "v1";
+const CACHE = `matjar-shell-${VERSION}`;
 
 // The only things worth holding: the offline page and the icons that dress it.
 // Deliberately NOT the pages themselves — see the fetch handler.
-const SHELL = ["/offline.html", "/icon.png", "/logo.png"];
+// icon-192 rather than the app icon: /icon.png is the 512 master Next serves
+// for the favicon, and offline.html renders it at 56px. Precaching a 512 to
+// draw a thumbnail cost every install the full file for nothing.
+const SHELL = ["/offline.html", "/icons/icon-192.png", "/logo.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

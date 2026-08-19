@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -129,14 +130,18 @@ export default async function LeaderProfilePage({
         <div className="mt-6 overflow-hidden rounded-3xl border border-border bg-surface shadow-xs">
           <div className="relative h-48 sm:h-64">
             {leader.cover_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              // The page's own banner: it is the LCP element on this route, so
+              // it is the one image here that must not be lazy.
+              <Image
                 src={leader.cover_url}
                 alt=""
-                className="h-full w-full object-cover"
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 1024px"
+                className="object-cover"
               />
             ) : (
-              <div className="h-full w-full bg-gradient-to-bl from-amber-500/15 via-transparent to-primary/10" />
+              <div className="h-full w-full bg-gradient-to-bl from-accent/15 via-transparent to-primary/10" />
             )}
           </div>
 
@@ -145,10 +150,12 @@ export default async function LeaderProfilePage({
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-end">
                 {leader.photo_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={leader.photo_url}
                     alt={name}
+                    width={112}
+                    height={112}
+                    sizes="112px"
                     className="-mt-14 h-28 w-28 shrink-0 rounded-full object-cover ring-4 ring-surface"
                   />
                 ) : (
@@ -161,7 +168,7 @@ export default async function LeaderProfilePage({
                 <div className="min-w-0">
                   <h1 className="flex items-center gap-2 text-3xl font-extrabold tracking-tight">
                     {name}
-                    <BadgeCheck className="h-6 w-6 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <BadgeCheck className="h-6 w-6 shrink-0 text-accent-foreground" />
                   </h1>
                   {headline && (
                     <p className="mt-1 font-semibold text-primary">{headline}</p>
@@ -198,7 +205,7 @@ export default async function LeaderProfilePage({
                     href={leader.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-700"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-accent-strong px-4 py-2 text-sm font-semibold text-accent-strong-foreground transition-colors hover:bg-accent-strong-hover"
                   >
                     <ExternalLink className="h-4 w-4" />
                     {t.website}
@@ -289,7 +296,7 @@ export default async function LeaderProfilePage({
             <ul className="mt-4 space-y-2.5">
               {achievements.map((a, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <Award className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
+                  <Award className="mt-0.5 h-5 w-5 shrink-0 text-accent-foreground" />
                   <span className="leading-relaxed">{a}</span>
                 </li>
               ))}
@@ -338,10 +345,12 @@ export default async function LeaderProfilePage({
                     className="group flex flex-col items-center gap-3 rounded-3xl border border-border bg-surface p-5 text-center shadow-xs transition-colors hover:border-primary/40 hover:bg-surface-muted"
                   >
                     {r.photo_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={r.photo_url}
                         alt={rName}
+                        width={64}
+                        height={64}
+                        sizes="64px"
                         className="h-16 w-16 rounded-full object-cover ring-2 ring-surface"
                       />
                     ) : (

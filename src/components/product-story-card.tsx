@@ -178,6 +178,12 @@ export function ProductStoryCard({
                 <X className="h-4 w-4" />
               </button>
             </div>
+            {/* Deliberately a raw <img>. `png` is a data URL this component
+                just drew on a <canvas> in the browser — there is no remote URL
+                for the optimizer to fetch, its dimensions are only known at
+                draw time, and the same string is the href of the download link
+                below. next/image would round-trip a local blob through /_next/
+                image for nothing. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={png} alt="" className="mx-auto max-h-[70vh] rounded-xl" />
             <div className="mt-3 flex flex-col gap-2 sm:flex-row">

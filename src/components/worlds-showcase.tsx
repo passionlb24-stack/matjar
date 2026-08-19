@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { groupKeys } from "@/lib/catalog";
 import { groupIcons } from "@/components/category-icon";
 import { Container } from "@/components/ui/container";
+import { ChevronNext } from "@/components/ui/directional-icon";
 
 // Categories — the scannable navigation layer above the 17 granular sectors.
 // V2 drops the per-card description: this row exists to be scanned in one
@@ -31,7 +31,7 @@ export function WorldsShowcase({ lang, dict }: { lang: Locale; dict: Dictionary 
             className="-me-2 inline-flex h-11 shrink-0 items-center gap-1 px-2 text-sm font-bold text-primary transition-colors hover:text-primary-hover"
           >
             {dict.home2.seeAll}
-            <ChevronLeft className="h-4 w-4 ltr:rotate-180" />
+            <ChevronNext className="h-4 w-4" />
           </Link>
         </div>
 

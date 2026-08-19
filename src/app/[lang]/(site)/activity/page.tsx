@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCustomerActivity } from "@/lib/data/activity";
 import { Container } from "@/components/ui/container";
 import { ActivityList } from "@/components/activity-list";
-import { labelMap } from "@/lib/status-labels";
+import { ACTIVITY_DOMAINS, labelMap } from "@/lib/status-labels";
 import type { ActivityKind } from "@/lib/data/activity";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
@@ -39,11 +39,17 @@ export default async function ActivityPage({
   // literal empty object is something a `Record<string, string>` cast is happy
   // to accept, so the screen shipped raw `negotiating` to Arabic customers
   // (MP-020) without a single type error.
+  //
+  // Which domain each kind speaks is stated once, in ACTIVITY_DOMAINS, because
+  // the list component needs the same answer to pick the pill's COLOUR
+  // (MP-022). Annotating this as Record<ActivityKind, …> is what makes
+  // TypeScript check that the shared table still covers every kind the data
+  // layer can produce.
   const statusLabels: Record<ActivityKind, Record<string, string>> = {
-    order: labelMap(dict, "order"),
-    booking: labelMap(dict, "booking"),
-    craft: labelMap(dict, "craftRequest"),
-    lead: labelMap(dict, "lead"),
+    order: labelMap(dict, ACTIVITY_DOMAINS.order),
+    booking: labelMap(dict, ACTIVITY_DOMAINS.booking),
+    craft: labelMap(dict, ACTIVITY_DOMAINS.craft),
+    lead: labelMap(dict, ACTIVITY_DOMAINS.lead),
   };
 
   return (

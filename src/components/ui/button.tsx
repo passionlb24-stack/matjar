@@ -13,7 +13,8 @@ type Variant =
   | "secondary"
   | "outline"
   | "ghost"
-  | "danger";
+  | "danger"
+  | "whatsapp";
 type Size = "sm" | "md" | "lg";
 
 const base =
@@ -34,6 +35,13 @@ const variants: Record<Variant, string> = {
     // white label clears AA on the fill (6.47:1 light, 5.92:1 dark). The hover
     // darkens like the old red-600→red-700 step without needing a second token.
     "bg-danger-strong text-danger-strong-foreground shadow-sm hover:brightness-90 hover:shadow-md",
+  whatsapp:
+    // The green is a brand signal ("this opens WhatsApp"), not a status, so it
+    // comes from --whatsapp rather than --success: success is theme-tuned and
+    // would drift away from the green people recognise. Fourteen CTAs had
+    // hand-rolled `bg-emerald-700 … hover:bg-emerald-800` with slightly
+    // different padding and weight each time.
+    "bg-whatsapp text-whatsapp-foreground shadow-sm hover:bg-whatsapp-hover hover:shadow-md",
 };
 
 const sizes: Record<Size, string> = {

@@ -168,7 +168,10 @@ export default async function AccountPage({
             title: dict.account.groupSaved,
             items: [
               { href: `/${lang}/favorites`, label: dict.favorites.title, Icon: Heart },
-              { href: `/${lang}/wishlist`, label: dict.wishlist.title, Icon: Bookmark },
+              // Saved products are a segment of /favorites now (MP-024), so
+              // this tile opens that segment directly instead of bouncing
+              // through the old route's redirect.
+              { href: `/${lang}/favorites?tab=products`, label: dict.wishlist.title, Icon: Bookmark },
               { href: `/${lang}/messages`, label: dict.messages.title, Icon: MessageCircle },
             ],
           },

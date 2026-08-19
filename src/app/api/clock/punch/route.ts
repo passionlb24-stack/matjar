@@ -81,7 +81,16 @@ export async function POST(req: Request) {
   if (!admin) {
     return NextResponse.json({ error: "not_configured" }, { status: 503 });
   }
-  const { rpID, origin } = await rpFromRequest();
+  // The relying party is checked against the deployment's own host list, not
+  // taken from the request. A refusal here means the request arrived claiming a
+  // host this deployment does not serve, which is a configuration fault or an
+  // attempt to choose the credential scope — never a fingerprint problem, so it
+  // must not be reported as one.
+  const rp = await rpFromRequest();
+  if (!rp) {
+    return NextResponse.json({ error: "untrusted_host" }, { status: 400 });
+  }
+  const { rpID, origin } = rp;
 
   const { data: ctx } = await admin.rpc("clock_store_context", {
     p_short_code: body.shortCode,
@@ -123,7 +132,7 @@ export async function POST(req: Request) {
 
     const { data: devRow } = await admin
       .from("employee_devices")
-      .select("credential_id, public_key, counter, store_id, employee_id")
+      .select("credential_id, public_key, counter, store_id, employee_id, rp_id")
       .eq("credential_id", body.response.id)
       .maybeSingle();
     const dev = devRow as {
@@ -132,10 +141,21 @@ export async function POST(req: Request) {
       counter: number;
       store_id: string;
       employee_id: string;
+      rp_id: string | null;
     } | null;
     // A device registered at another shop must not clock in here.
     if (!dev || dev.store_id !== store.store_id) {
       return NextResponse.json({ error: "device_not_registered" }, { status: 400 });
+    }
+    
+    // Enrolled against a different host. verifyAuthenticationResponse below would
+    // refuse this anyway — WebAuthn binds a credential to its relying party — but
+    // it would refuse it as "bad signature", which reads to the employee as a
+    // broken fingerprint. Named here so the cause is legible in the logs and the
+    // device can be told to re-enrol. Null means enrolled before rp_id was
+    // recorded, and is trusted rather than locked out.
+    if (dev.rp_id && dev.rp_id !== rpID) {
+      return NextResponse.json({ error: "device_other_host" }, { status: 400 });
     }
 
     const verification = await verifyAuthenticationResponse({

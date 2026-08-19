@@ -39,6 +39,7 @@ import { TriggerPicker } from "@/components/automation/trigger-picker";
 import { ConditionFields } from "@/components/automation/condition-fields";
 import { ActionEditor } from "@/components/automation/action-editor";
 import { AutomationListItem } from "@/components/automation/automation-list-item";
+import { CardListUl } from "@/components/ui/card";
 
 // ===== Contract (fixed vocabulary — matches migration 0117) =====
 export type TriggerKey =
@@ -569,7 +570,7 @@ export function AutomationManager({
         {/* WHEN */}
         <FlowStep
           Icon={Zap}
-          nodeClass="bg-gradient-to-br from-primary to-sky-500 text-white"
+          nodeClass="bg-gradient-to-br from-primary to-info text-white"
           label={t.whenLabel}
           hint={t.whenHint}
         >
@@ -789,17 +790,14 @@ export function AutomationManager({
               {t.activityEmpty}
             </div>
           ) : (
-            <ul className="space-y-2">
+            <CardListUl>
               {runs.map((run) => {
                 const auto = initial.find((a) => a.id === run.automation_id);
                 const name =
                   auto?.name?.trim() ||
                   (auto ? t.triggers[auto.trigger] : t.unknownAutomation);
                 return (
-                  <li
-                    key={run.id}
-                    className="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3"
-                  >
+                  <li key={run.id} className="flex items-center gap-3 px-4 py-3">
                     <StatusPill status={run.status} dict={dict} />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold">{name}</p>
@@ -816,7 +814,7 @@ export function AutomationManager({
                   </li>
                 );
               })}
-            </ul>
+            </CardListUl>
           )}
         </div>
       </section>
