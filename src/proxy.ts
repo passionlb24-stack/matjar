@@ -23,6 +23,14 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // Run on everything except Next internals, API routes, short-link
-  // redirects (/s/...), and static files.
-  matcher: ["/((?!_next|api|s/|.*\\..*).*)"],
+  // redirects (/s/...), `.well-known` verification files, and static files.
+  //
+  // `.well-known` is listed explicitly even though `.*\..*` already excludes it
+  // (the directory name itself contains a dot). Android's App Links verifier
+  // fetches `/.well-known/assetlinks.json` and treats *any* redirect as a
+  // failure — so if this locale redirect ever caught the path it would send a
+  // 307 to `/ar/.well-known/assetlinks.json` and silently break deep links for
+  // every installed app. Naming it here means a future edit to the dot rule
+  // cannot re-break it by accident.
+  matcher: ["/((?!_next|api|s/|\\.well-known|.*\\..*).*)"],
 };

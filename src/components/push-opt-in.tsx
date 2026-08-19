@@ -1,107 +1,282 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Bell, BellOff, Check } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Bell, BellOff, Check, Loader2, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { VAPID_PUBLIC_KEY, urlBase64ToUint8Array } from "@/lib/push";
+import {
+  NATIVE_PUSH_ENABLED,
+  checkNativePermission,
+  deleteDeviceTokenRow,
+  isNativeApp,
+  readDeviceToken,
+  registerNativeDevice,
+  requestNativePermission,
+  unregisterNativeDevice,
+} from "@/lib/native-push";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
-type State = "unsupported" | "idle" | "on" | "busy";
+// The switch. It is the only place in the app that triggers a notification
+// permission prompt, on either platform — nothing asks on launch, and nothing
+// asks after login. It is rendered inside `PushNotice`, which states in words
+// what the notification is for, so by the time the OS alert appears the person
+// has read a reason and tapped a button.
+//
+// That ordering is not politeness. On iOS the system alert can be shown once per
+// install; a "Don't Allow" is final and cannot be re-asked from inside the app.
+//
+// Five states, because they need five different things said to them:
+//
+//   checking     — we do not know yet. Show the control disabled rather than
+//                  nothing, so it does not pop into existence under a thumb.
+//   unsupported  — this platform cannot do push (a browser without the Push
+//                  API; the app shell before the FCM sender ships). Say so.
+//                  Never render a button that would do nothing.
+//   idle         — never asked. This is the only state that may show the prompt.
+//   on           — granted and switched on. Stays visible: the permission can be
+//                  revoked from outside the app, and a row that vanished when it
+//                  succeeded would leave no way back.
+//   off          — granted at the OS, switched off in the app. Turning it back
+//                  on needs no prompt.
+//   blocked      — denied at the OS. The app cannot ask again. The only honest
+//                  thing to show is where the phone's own setting lives.
+type State =
+  | "checking"
+  | "unsupported"
+  | "idle"
+  | "on"
+  | "off"
+  | "blocked"
+  | "busy";
 
-// Lets a logged-in user turn on Web Push (deal of the day, order updates…).
+/** Which push channel this device actually uses. */
+type Channel = "web" | "native";
+
 export function PushOptIn({ dict }: { dict: Dictionary }) {
   const t = dict.push;
-  const [state, setState] = useState<State>("idle");
+  const [state, setState] = useState<State>("checking");
+  const [channel, setChannel] = useState<Channel>("web");
 
-  // Detect support + existing subscription on mount. State updates here are
-  // intentional (kept in an effect to avoid an SSR/CSR hydration mismatch).
+  const detect = useCallback(async () => {
+    if (typeof window === "undefined") return;
+
+    if (await isNativeApp()) {
+      setChannel("native");
+      // The one-shot prompt must not be spent on a channel with no sender
+      // behind it. Until NEXT_PUBLIC_NATIVE_PUSH_ENABLED is set, the app shell
+      // reports itself as unable rather than showing a button that would burn
+      // the only ask the app gets.
+      if (!NATIVE_PUSH_ENABLED) {
+        setState("unsupported");
+        return;
+      }
+      const perm = await checkNativePermission();
+      if (perm === "unsupported") return setState("unsupported");
+      if (perm === "denied") return setState("blocked");
+      if (perm === "prompt") return setState("idle");
+      // Granted at the OS. A remembered token is what separates "on" from
+      // "the user switched it off in here".
+      return setState(readDeviceToken() ? "on" : "off");
+    }
+
+    setChannel("web");
+    if (
+      !("serviceWorker" in navigator) ||
+      !("PushManager" in window) ||
+      !("Notification" in window)
+    ) {
+      return setState("unsupported");
+    }
+    if (Notification.permission === "denied") return setState("blocked");
+    if (Notification.permission === "default") return setState("idle");
+    // Granted. On the web the subscription itself is the switch.
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      setState(sub ? "on" : "off");
+    } catch {
+      setState("off");
+    }
+  }, []);
+
+  // State updates here are intentional (kept in an effect to avoid an SSR/CSR
+  // hydration mismatch — none of this is knowable on the server).
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    if (
-      typeof window === "undefined" ||
-      !("serviceWorker" in navigator) ||
-      !("PushManager" in window)
-    ) {
-      setState("unsupported");
-      return;
-    }
-    navigator.serviceWorker.ready
-      .then((reg) => reg.pushManager.getSubscription())
-      .then((sub) => setState(sub ? "on" : "idle"))
-      .catch(() => setState("idle"));
-  }, []);
+    void detect();
+    // The OS permission can change while the app is backgrounded (Settings →
+    // Notifications). Re-read it when the tab comes back, so a person who just
+    // enabled it in Settings does not return to a screen still telling them it
+    // is blocked.
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void detect();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [detect]);
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  async function enableNative() {
+    // Only ask when we have never asked. Re-asking after a grant is a no-op,
+    // but after a denial it is worse than a no-op: it resolves instantly with
+    // "denied" and looks to the user like the button is broken.
+    const current = await checkNativePermission();
+    const perm = current === "prompt" ? await requestNativePermission() : current;
+    if (perm === "denied") return setState("blocked");
+    if (perm !== "granted") return setState("idle");
+    // Fires the `registration` listener that NativeBridge installed; that
+    // listener is what writes the token row.
+    await registerNativeDevice();
+    setState("on");
+  }
+
+  async function enableWeb() {
+    const perm = await Notification.requestPermission();
+    if (perm === "denied") return setState("blocked");
+    if (perm !== "granted") return setState("idle");
+    // SwRegister already registered the worker on load; this only waits for it.
+    // Registering here too was how the worker came to exist ONLY for people who
+    // accepted notifications.
+    const reg =
+      (await navigator.serviceWorker.getRegistration()) ??
+      (await navigator.serviceWorker.register("/sw.js"));
+    await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      // Cast: a Uint8Array is a valid BufferSource at runtime; TS's newer lib
+      // types narrow this and reject the ArrayBufferLike buffer.
+      applicationServerKey: urlBase64ToUint8Array(
+        VAPID_PUBLIC_KEY,
+      ) as BufferSource,
+    });
+    const json = sub.toJSON();
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user || !json.keys) return setState("off");
+    await supabase.from("push_subscriptions").upsert(
+      {
+        user_id: user.id,
+        endpoint: sub.endpoint,
+        p256dh: json.keys.p256dh,
+        auth: json.keys.auth,
+      },
+      { onConflict: "endpoint" },
+    );
+    setState("on");
+  }
 
   async function enable() {
     setState("busy");
     try {
-      const perm = await Notification.requestPermission();
-      if (perm !== "granted") {
-        setState("idle");
-        return;
-      }
-      // SwRegister already registered it on load; this only waits for it.
-      // Registering here too was how the worker came to exist ONLY for people
-      // who accepted notifications.
-      const reg =
-        (await navigator.serviceWorker.getRegistration()) ??
-        (await navigator.serviceWorker.register("/sw.js"));
-      await navigator.serviceWorker.ready;
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        // Cast: a Uint8Array is a valid BufferSource at runtime; TS's newer
-        // lib types narrow this and reject the ArrayBufferLike buffer.
-        applicationServerKey: urlBase64ToUint8Array(
-          VAPID_PUBLIC_KEY,
-        ) as BufferSource,
-      });
-      const json = sub.toJSON();
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user || !json.keys) {
-        setState("idle");
-        return;
-      }
-      await supabase.from("push_subscriptions").upsert(
-        {
-          user_id: user.id,
-          endpoint: sub.endpoint,
-          p256dh: json.keys.p256dh,
-          auth: json.keys.auth,
-        },
-        { onConflict: "endpoint" },
-      );
-      setState("on");
+      if (channel === "native") await enableNative();
+      else await enableWeb();
     } catch {
-      setState("idle");
+      // Fall back to a fresh read rather than guessing: a thrown subscribe can
+      // still have left a granted permission behind.
+      await detect();
     }
   }
 
-  if (state === "unsupported") return null;
+  // Turning it off has to remove the server-side row, not just the local
+  // registration — the row is the thing the sender reads, and a device that
+  // still has a row keeps receiving.
+  async function disable() {
+    setState("busy");
+    const supabase = createClient();
+    try {
+      if (channel === "native") {
+        await deleteDeviceTokenRow(supabase);
+        await unregisterNativeDevice();
+      } else {
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+          await supabase
+            .from("push_subscriptions")
+            .delete()
+            .eq("endpoint", sub.endpoint);
+          await sub.unsubscribe();
+        }
+      }
+      setState("off");
+    } catch {
+      await detect();
+    }
+  }
 
-  if (state === "on") {
+  if (state === "checking") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary">
-        <Check className="h-4 w-4" />
-        {t.enabled}
-      </span>
+      <button
+        disabled
+        className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-border px-4 py-2 text-sm font-bold opacity-50"
+      >
+        <Bell className="h-4 w-4" />
+        {t.enable}
+      </button>
     );
   }
 
+  if (state === "unsupported") {
+    return (
+      <p className="text-xs font-semibold text-muted-foreground">
+        {t.unsupported}
+      </p>
+    );
+  }
+
+  // Denied at the OS. The app has spent its ask and cannot show the prompt
+  // again — the only route back is the phone's own settings, so say that
+  // instead of offering a button that would silently do nothing.
+  if (state === "blocked") {
+    return (
+      <p className="flex items-start gap-1.5 text-xs font-semibold text-muted-foreground">
+        <Settings className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+        <span className="max-w-xs leading-relaxed">{t.blocked}</span>
+      </p>
+    );
+  }
+
+  if (state === "on") {
+    return (
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary">
+          <Check className="h-4 w-4" />
+          {t.enabled}
+        </span>
+        <button
+          onClick={disable}
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <BellOff className="h-4 w-4" />
+          {t.disable}
+        </button>
+      </div>
+    );
+  }
+
+  // idle | off | busy — all show the enable button; `off` explains why it is
+  // being offered again to someone who already granted the permission.
   return (
-    <button
-      onClick={enable}
-      disabled={state === "busy"}
-      className="inline-flex items-center gap-1.5 rounded-xl border border-border px-4 py-2 text-sm font-bold transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
-    >
-      {state === "busy" ? (
-        <BellOff className="h-4 w-4" />
-      ) : (
-        <Bell className="h-4 w-4" />
+    <div className="flex flex-wrap items-center gap-2">
+      {state === "off" && (
+        <span className="text-xs font-semibold text-muted-foreground">
+          {t.turnedOff}
+        </span>
       )}
-      {t.enable}
-    </button>
+      <button
+        onClick={enable}
+        disabled={state === "busy"}
+        className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-border px-4 py-2 text-sm font-bold transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
+      >
+        {state === "busy" ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Bell className="h-4 w-4" />
+        )}
+        {t.enable}
+      </button>
+    </div>
   );
 }

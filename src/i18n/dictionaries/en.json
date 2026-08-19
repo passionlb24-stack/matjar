@@ -3855,6 +3855,10 @@
   "push": {
     "enable": "Enable notifications",
     "enabled": "Notifications on",
+    "disable": "Turn off",
+    "turnedOff": "Off on this device",
+    "blocked": "Notifications are blocked in your phone's settings, and the app can't ask again. Open Settings → Notifications → Matjar and turn them on there.",
+    "unsupported": "Notifications aren't available on this device yet.",
     "prompt": "Turn on notifications for the daily deal and order updates.",
     "adminNoticeTitle": "Get new shops on your phone",
     "adminNoticeBody": "Without this you only learn a merchant is waiting for approval when you open this page yourself. Turn it on once, on the phone you actually carry.",

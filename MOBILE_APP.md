@@ -54,9 +54,22 @@ For a production build, leave `CAP_SERVER_URL` unset — it defaults to
 
 ## Push notifications (follow-up — needs your Firebase project)
 
-The client side is already wired: `native-bridge.tsx` requests permission for
-signed-in users, registers the device, and stores the FCM/APNs token via the
-`register_device_token` RPC. Two pieces remain, both requiring your credentials:
+The client side is wired, and it is deliberately **switched off** (MP-028).
+
+`native-bridge.tsx` no longer asks for notification permission — it used to ask
+on launch for any signed-in user, which on iOS spends the one and only prompt an
+install ever gets, with no explanation, on a channel that cannot yet deliver
+because item 3 below is unbuilt. The ask now lives on the merchant and admin
+dashboards in `PushOptIn`, behind copy that says what the notification is for,
+and only fires the OS prompt on a tap.
+
+The native opt-in stays hidden until you set
+`NEXT_PUBLIC_NATIVE_PUSH_ENABLED=1`. **Set it on the same deploy that item 3
+ships, not before** — the point of the flag is that the iOS prompt is a
+one-shot resource and should not be spent before there is a sender behind it.
+Web Push is separate and already live.
+
+Three pieces remain, all requiring your credentials:
 
 1. **Android (FCM)**: create a Firebase project, add an Android app with id
    `com.matjarlb.app`, download `google-services.json` into `android/app/`, and add
@@ -71,11 +84,14 @@ signed-in users, registers the device, and stores the FCM/APNs token via the
 
 ## Deep links / App Links
 
-- **Android**: the manifest already declares an `autoVerify` intent-filter for
-  `matjarlb.com`. Host `https://matjarlb.com/.well-known/assetlinks.json` with the
-  app's SHA-256 signing fingerprint to make links open the app automatically.
+- **Android**: the manifest declares an `autoVerify` intent-filter for
+  `matjarlb.com`, and the site now serves `/.well-known/assetlinks.json` from
+  `src/app/.well-known/assetlinks.json/route.ts`. It returns 503 until the
+  `ANDROID_APP_CERT_SHA256` env var holds the real signing fingerprint, which
+  only you can read. **See `docs/android-app-links.md` for the step-by-step.**
 - **iOS**: add the Associated Domains capability (`applinks:matjarlb.com`) in Xcode
-  and host `https://matjarlb.com/.well-known/apple-app-site-association`.
+  and host `https://matjarlb.com/.well-known/apple-app-site-association`. Not
+  built — there is no iOS app and no Team ID yet.
 
 ## Store submission checklist
 
