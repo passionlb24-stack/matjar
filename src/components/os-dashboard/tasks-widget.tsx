@@ -13,7 +13,7 @@ export type TaskRow = {
 };
 
 const PRIORITY_DOT: Record<TaskRow["priority"], string> = {
-  high: "bg-red-500",
+  high: "bg-danger",
   normal: "bg-primary",
   low: "bg-muted-foreground/40",
 };
@@ -74,7 +74,7 @@ export function TasksWidget({
         </ul>
       ) : (
         <p className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <CircleCheck className="h-4 w-4 text-emerald-500" />
+          <CircleCheck className="h-4 w-4 text-success" />
           {empty}
         </p>
       )}

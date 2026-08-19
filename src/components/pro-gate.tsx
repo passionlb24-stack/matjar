@@ -72,7 +72,7 @@ export function ProGate({
       <div className="mt-6">
         <Link
           href={`/${lang}/merchant/${storeId}/subscription`}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-6 py-3 text-sm font-extrabold text-white transition-colors hover:bg-amber-600"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-strong px-6 py-3 text-sm font-extrabold text-accent-strong-foreground transition-colors hover:bg-accent-strong-hover"
         >
           <Crown className="h-4 w-4" />
           {isBiz ? t.upgradeBusiness : t.upgrade}

@@ -23,7 +23,7 @@ const statusStyle: Record<string, string> = {
   sold: "bg-foreground text-background",
   expired: "bg-warning-soft text-warning",
   rejected: "bg-danger-soft text-danger",
-  draft: "bg-zinc-200 text-zinc-600",
+  draft: "bg-surface-muted text-muted-foreground",
 };
 
 export function MyListingsManager({

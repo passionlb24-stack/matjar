@@ -1398,7 +1398,6 @@
       "courses": "الدورات",
       "portfolio": "شغلنا",
       "healthcareInfo": "عن العيادة",
-      "doctors": "الفريق",
       "verifications": "التراخيص",
       "reviews": "التقييمات"
     },
@@ -1446,7 +1445,6 @@
     "belowMin": "طلبك تحت الحد الأدنى للطلب",
     "payment": "الدفع",
     "prep": "التحضير",
-    "doctorsTitle": "الفريق",
     "specialtiesTitle": "التخصصات",
     "insuranceTitle": "التأمين المقبول",
     "visitLength": "مدّة الزيارة",
@@ -2036,7 +2034,6 @@
       "locationSet": "تم تحديد الموقع ✓",
       "coordsAdvanced": "تعديل الإحداثيات يدوياً (متقدّم)"
     },
-    "doctorsLink": "الفريق",
     "doctors": {
       "title": "الفريق / مقدّمو الخدمة",
       "subtitle": "أضف مقدّمي الخدمة عندك (طبيب، مصفّف، مدرّب، فنّي…) وحدّد الخدمات يلي بيقدّمها كل واحد.",

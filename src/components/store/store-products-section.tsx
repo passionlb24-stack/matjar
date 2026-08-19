@@ -248,7 +248,7 @@ export function StoreProductsSection({
                               sizes="(max-width: 640px) 100vw, 33vw"
                             />
                           ) : (
-                            <Icon className="h-8 w-8 text-black/20" />
+                            <Icon className="h-8 w-8 text-foreground/20" />
                           )}
                         </span>
                         <div className="flex min-w-0 flex-1 flex-col p-4">
@@ -350,7 +350,7 @@ export function StoreProductsSection({
               <span
                 className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${style.cover}`}
               >
-                <Icon className="h-7 w-7 text-black/20" />
+                <Icon className="h-7 w-7 text-foreground/20" />
               </span>
               <div className="min-w-0 flex-1">
                 <h3 dir="auto" className="truncate font-bold">

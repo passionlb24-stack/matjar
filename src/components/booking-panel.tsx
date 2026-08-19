@@ -631,7 +631,7 @@ export function BookingPanel({
               <Image src={s.imageUrl} alt={localized(s.name, s.nameEn, lang)} width={64} height={64} className="h-16 w-16 shrink-0 rounded-xl object-cover" sizes="64px" />
             ) : (
               <span className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${style.cover}`}>
-                <Icon className="h-7 w-7 text-black/20" />
+                <Icon className="h-7 w-7 text-foreground/20" />
               </span>
             )}
             <div className="min-w-0 flex-1">

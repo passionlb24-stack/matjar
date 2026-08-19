@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { Package, ChevronRight } from "lucide-react";
+import { Package } from "lucide-react";
+import { ChevronNext } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -92,7 +93,7 @@ export default async function OrdersPage({
                     <Badge variant={statusVariant[order.status]}>
                       {dict.orders.status[order.status]}
                     </Badge>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
+                    <ChevronNext className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </Link>
               </Card>

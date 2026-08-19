@@ -55,7 +55,7 @@ export function StorePortfolio({
                 </div>
               ) : (
                 <div className="flex h-44 w-full items-center justify-center bg-surface-muted">
-                  <Images className="h-8 w-8 text-black/15" />
+                  <Images className="h-8 w-8 text-foreground/15" />
                 </div>
               )}
               <div className="flex flex-1 flex-col p-4">

@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import { jsonLdScript } from "@/lib/jsonld";
 import { SITE_URL } from "@/lib/site";
+import { ChevronNext } from "@/components/ui/directional-icon";
 
 export type Crumb = { label: string; href?: string };
 
@@ -42,9 +42,11 @@ export function Breadcrumbs({ items }: { items: Crumb[] }) {
                   {c.label}
                 </span>
               )}
-              {/* Forward separator: points right in LTR, left in RTL — the
-                  dominant ChevronRight + rtl:rotate-180 convention. */}
-              {!last && <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" />}
+              {/* Forward separator: points right in LTR, left in RTL. This is
+                  the app's ONLY breadcrumb — the separator follows its label,
+                  which is what distinguishes a crumb trail from the leading
+                  chevron the inner pages use for "up a level". */}
+              {!last && <ChevronNext className="h-3.5 w-3.5" />}
             </li>
           );
         })}

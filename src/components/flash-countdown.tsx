@@ -38,7 +38,7 @@ export function FlashCountdown({
 
   return (
     <Badge variant="accent" className={`gap-1.5 px-3 py-1 text-sm ${className}`}>
-      <Zap className="h-4 w-4 fill-accent text-accent" />
+      <Zap className="h-4 w-4 fill-accent-foreground text-accent-foreground" />
       {dict.flash.endsIn}{" "}
       <span className="tabular-nums">{fmt(remaining)}</span>
     </Badge>

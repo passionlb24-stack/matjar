@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronRight, Package, CalendarCheck, Wrench, MessageSquare } from "lucide-react";
+import { Package, CalendarCheck, Wrench, MessageSquare } from "lucide-react";
+import { ChevronNext } from "@/components/ui/directional-icon";
 import type { LucideIcon } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { ActivityItem, ActivityKind } from "@/lib/data/activity";
@@ -216,9 +217,9 @@ export function ActivityList({
                     </span>
                   </span>
 
-                  {/* Forward affordance: ChevronRight + rtl:rotate-180 points
-                      into the row's destination in both directions. */}
-                  <ChevronRight className="mt-3 h-5 w-5 shrink-0 text-muted-foreground rtl:rotate-180" />
+                  {/* Forward affordance: points into the row's destination in
+                      both directions. */}
+                  <ChevronNext className="mt-3 h-5 w-5 shrink-0 text-muted-foreground" />
                 </Link>
               </li>
             );

@@ -4,11 +4,11 @@ import {
   Sparkles,
   PartyPopper,
   ExternalLink,
-  ChevronLeft,
   AlertTriangle,
   CircleCheck,
   Hourglass,
 } from "lucide-react";
+import { ChevronNext } from "@/components/ui/directional-icon";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { Completeness, CompletenessItem } from "@/lib/completeness";
@@ -116,7 +116,7 @@ export function StoreChecklist({
           className="mt-4 inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-bold transition-colors hover:border-primary hover:text-primary lg:min-h-0"
         >
           {t.addItems}
-          <ChevronLeft className="h-4 w-4 ltr:rotate-180" />
+          <ChevronNext className="h-4 w-4" />
         </Link>
       </div>
     );
@@ -244,7 +244,7 @@ export function StoreChecklist({
             </span>
             <span className="inline-flex shrink-0 items-center gap-1 text-xs font-bold">
               {t.fix}
-              <ChevronLeft className="h-4 w-4 ltr:rotate-180" />
+              <ChevronNext className="h-4 w-4" />
             </span>
           </Link>
         </div>

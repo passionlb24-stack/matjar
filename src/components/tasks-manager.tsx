@@ -20,8 +20,8 @@ export type TaskRow = {
 };
 
 const priorityDot: Record<TaskRow["priority"], string> = {
-  high: "bg-red-500",
-  normal: "bg-amber-400",
+  high: "bg-danger",
+  normal: "bg-warning",
   low: "bg-border",
 };
 

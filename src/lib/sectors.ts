@@ -155,9 +155,14 @@ export const OS_MODULE_META: Record<
 export type SectorConfig = {
   /** Sector identity icon (hero, empty states). */
   Icon: LucideIcon;
-  /** Tailwind classes tinting the OS-home hero per sector. */
+  /** Tailwind classes tinting the OS-home hero per sector. Tokens only — the
+   *  slot comes from SECTOR_TINT in ./catalog, which is the one source of truth
+   *  for a sector's colour; keep these in step with it. Raw palette shades here
+   *  are what used to leave the hero wash stuck in its light-theme colour. */
   heroTint: string;
-  /** Tailwind classes for the sector icon badge. */
+  /** Tailwind classes for the sector icon badge: `bg-tint-N-soft text-tint-N`.
+   *  That pair clears 4.5:1 in both themes, so it is safe under the small text
+   *  pill on the OS home as well as under an icon. */
   iconTint: string;
   /** dict.os.nouns.* key — what this sector calls its customers. */
   customersNoun: "customers" | "patients" | "clients" | "leads";
@@ -183,8 +188,8 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   food: {
     Icon: UtensilsCrossed,
     features: ["menu", "orders", "delivery", "reservations", "reviews", "location", "media", "messaging"],
-    heroTint: "from-orange-500/15 via-amber-400/10 to-transparent",
-    iconTint: "bg-orange-100 text-orange-600",
+    heroTint: "from-tint-2-soft via-tint-2-soft/40 to-transparent",
+    iconTint: "bg-tint-2-soft text-tint-2",
     customersNoun: "customers",
     modules: {
       daily: ["orders", "bookings", "kitchen", "pos", "items", "inventory", "tasks"],
@@ -196,8 +201,8 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   retail: {
     Icon: ShoppingBag,
     features: ["catalog", "orders", "inventory", "delivery", "reviews", "location", "marketing", "messaging", "media"],
-    heroTint: "from-primary/15 via-sky-400/10 to-transparent",
-    iconTint: "bg-primary-soft text-primary",
+    heroTint: "from-tint-6-soft via-tint-6-soft/40 to-transparent",
+    iconTint: "bg-tint-6-soft text-tint-6",
     customersNoun: "customers",
     modules: {
       daily: ["orders", "pos", "items", "inventory", "tasks"],
@@ -209,8 +214,8 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   services: {
     Icon: Wrench,
     features: ["requests", "portfolio", "reviews", "verifications", "location", "messaging", "media"],
-    heroTint: "from-violet-500/15 via-fuchsia-400/10 to-transparent",
-    iconTint: "bg-violet-100 text-violet-600",
+    heroTint: "from-tint-7-soft via-tint-7-soft/40 to-transparent",
+    iconTint: "bg-tint-7-soft text-tint-7",
     customersNoun: "clients",
     modules: {
       daily: ["requests", "bookings", "portfolio", "items", "tasks"],
@@ -222,8 +227,8 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   healthcare: {
     Icon: Stethoscope,
     features: ["appointments", "team", "verifications", "reviews", "location", "messaging", "media"],
-    heroTint: "from-emerald-500/15 via-teal-400/10 to-transparent",
-    iconTint: "bg-emerald-100 text-emerald-600",
+    heroTint: "from-tint-4-soft via-tint-4-soft/40 to-transparent",
+    iconTint: "bg-tint-4-soft text-tint-4",
     customersNoun: "patients",
     modules: {
       daily: ["requests", "bookings", "doctors", "items", "tasks"],
@@ -235,8 +240,8 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   realEstate: {
     Icon: Building2,
     features: ["listings", "appointments", "reviews", "location", "media", "messaging"],
-    heroTint: "from-amber-500/15 via-yellow-400/10 to-transparent",
-    iconTint: "bg-amber-100 text-amber-700",
+    heroTint: "from-tint-3-soft via-tint-3-soft/40 to-transparent",
+    iconTint: "bg-tint-3-soft text-tint-3",
     customersNoun: "leads",
     modules: {
       daily: ["leads", "bookings", "items", "tasks"],
@@ -248,8 +253,8 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   automotive: {
     Icon: Car,
     features: ["listings", "requests", "rentals", "reviews", "location", "media", "messaging"],
-    heroTint: "from-slate-500/15 via-zinc-400/10 to-transparent",
-    iconTint: "bg-slate-200 text-slate-700",
+    heroTint: "from-tint-3-soft via-tint-3-soft/40 to-transparent",
+    iconTint: "bg-tint-3-soft text-tint-3",
     customersNoun: "leads",
     modules: {
       // Directory-only (no cart) + single inquiry channel = Leads (car inquiries
@@ -264,8 +269,8 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   beauty: {
     Icon: Scissors,
     features: ["appointments", "catalog", "team", "reviews", "media", "location", "messaging"],
-    heroTint: "from-pink-500/15 via-rose-400/10 to-transparent",
-    iconTint: "bg-pink-100 text-pink-600",
+    heroTint: "from-tint-4-soft via-tint-4-soft/40 to-transparent",
+    iconTint: "bg-tint-4-soft text-tint-4",
     customersNoun: "clients",
     modules: {
       daily: ["bookings", "doctors", "items", "tasks"],
@@ -277,8 +282,8 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   fitness: {
     Icon: Dumbbell,
     features: ["memberships", "classes", "team", "reviews", "location", "media", "messaging"],
-    heroTint: "from-lime-500/15 via-green-400/10 to-transparent",
-    iconTint: "bg-lime-100 text-lime-700",
+    heroTint: "from-tint-5-soft via-tint-5-soft/40 to-transparent",
+    iconTint: "bg-tint-5-soft text-tint-5",
     customersNoun: "customers",
     modules: {
       daily: ["bookings", "doctors", "memberships", "classes", "members", "items", "tasks"],
@@ -290,8 +295,8 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   sportsCourts: {
     Icon: Trophy,
     features: ["timeslot", "memberships", "reviews", "location", "media", "messaging"],
-    heroTint: "from-teal-500/15 via-cyan-400/10 to-transparent",
-    iconTint: "bg-teal-100 text-teal-600",
+    heroTint: "from-tint-5-soft via-tint-5-soft/40 to-transparent",
+    iconTint: "bg-tint-5-soft text-tint-5",
     customersNoun: "customers",
     modules: {
       daily: ["bookings", "resources", "tasks"],
@@ -303,8 +308,8 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   education: {
     Icon: GraduationCap,
     features: ["courses", "team", "memberships", "reviews", "verifications", "messaging", "media"],
-    heroTint: "from-indigo-500/15 via-blue-400/10 to-transparent",
-    iconTint: "bg-indigo-100 text-indigo-600",
+    heroTint: "from-tint-5-soft via-tint-5-soft/40 to-transparent",
+    iconTint: "bg-tint-5-soft text-tint-5",
     customersNoun: "clients",
     modules: {
       daily: ["bookings", "doctors", "courses", "memberships", "members", "items", "tasks"],
@@ -316,8 +321,8 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   events: {
     Icon: PartyPopper,
     features: ["timeslot", "catalog", "media", "reviews", "location", "messaging"],
-    heroTint: "from-fuchsia-500/15 via-purple-400/10 to-transparent",
-    iconTint: "bg-fuchsia-100 text-fuchsia-600",
+    heroTint: "from-tint-1-soft via-tint-1-soft/40 to-transparent",
+    iconTint: "bg-tint-1-soft text-tint-1",
     customersNoun: "clients",
     modules: {
       daily: ["tickets", "items", "tasks"],
@@ -329,8 +334,8 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   hospitality: {
     Icon: BedDouble,
     features: ["timeslot", "rentals", "catalog", "media", "reviews", "location", "messaging"],
-    heroTint: "from-orange-500/15 via-amber-400/10 to-transparent",
-    iconTint: "bg-orange-100 text-orange-600",
+    heroTint: "from-tint-1-soft via-tint-1-soft/40 to-transparent",
+    iconTint: "bg-tint-1-soft text-tint-1",
     customersNoun: "customers",
     modules: {
       daily: ["stays", "units", "items", "tasks"],
@@ -342,8 +347,8 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   pharmacy: {
     Icon: Pill,
     features: ["catalog", "orders", "verifications", "location", "reviews", "messaging"],
-    heroTint: "from-emerald-500/15 via-teal-400/10 to-transparent",
-    iconTint: "bg-emerald-100 text-emerald-700",
+    heroTint: "from-tint-4-soft via-tint-4-soft/40 to-transparent",
+    iconTint: "bg-tint-4-soft text-tint-4",
     customersNoun: "customers",
     modules: {
       daily: ["orders", "pos", "items", "inventory", "tasks"],
@@ -355,8 +360,8 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   petCare: {
     Icon: PawPrint,
     features: ["appointments", "catalog", "team", "reviews", "location", "messaging", "media"],
-    heroTint: "from-yellow-500/15 via-amber-400/10 to-transparent",
-    iconTint: "bg-yellow-100 text-yellow-700",
+    heroTint: "from-tint-4-soft via-tint-4-soft/40 to-transparent",
+    iconTint: "bg-tint-4-soft text-tint-4",
     customersNoun: "clients",
     modules: {
       daily: ["bookings", "doctors", "items", "tasks"],
@@ -368,8 +373,8 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   professional: {
     Icon: Scale,
     features: ["appointments", "requests", "verifications", "team", "reviews", "messaging"],
-    heroTint: "from-blue-500/15 via-sky-400/10 to-transparent",
-    iconTint: "bg-blue-100 text-blue-600",
+    heroTint: "from-tint-7-soft via-tint-7-soft/40 to-transparent",
+    iconTint: "bg-tint-7-soft text-tint-7",
     customersNoun: "clients",
     modules: {
       daily: ["requests", "bookings", "doctors", "tasks"],
@@ -381,8 +386,8 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   contractors: {
     Icon: HardHat,
     features: ["requests", "portfolio", "verifications", "reviews", "location", "messaging", "media"],
-    heroTint: "from-amber-500/15 via-yellow-400/10 to-transparent",
-    iconTint: "bg-amber-100 text-amber-700",
+    heroTint: "from-tint-7-soft via-tint-7-soft/40 to-transparent",
+    iconTint: "bg-tint-7-soft text-tint-7",
     customersNoun: "clients",
     modules: {
       daily: ["requests", "portfolio", "items", "tasks"],
@@ -394,8 +399,8 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
   farm: {
     Icon: Sprout,
     features: ["catalog", "orders", "delivery", "reviews", "location", "media"],
-    heroTint: "from-lime-500/15 via-green-400/10 to-transparent",
-    iconTint: "bg-lime-100 text-lime-700",
+    heroTint: "from-tint-6-soft via-tint-6-soft/40 to-transparent",
+    iconTint: "bg-tint-6-soft text-tint-6",
     customersNoun: "customers",
     modules: {
       daily: ["orders", "items", "inventory", "tasks"],

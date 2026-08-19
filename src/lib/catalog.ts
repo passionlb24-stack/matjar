@@ -27,28 +27,67 @@ export type CategoryKey = (typeof categoryKeys)[number];
 
 export type Bilingual = { ar: string; en: string };
 
-// Full Tailwind class strings (literal so the scanner keeps them).
+// ===== Sector colour identity =====
+// One slot per sector on the seven-slot categorical ramp defined in
+// globals.css (--tint-1 … --tint-7). Read the comment above those tokens for why
+// there are seven slots and not seventeen — short version: the 17 hand-picked
+// hues this replaced were only 13 distinct colours, four pairs were byte-
+// identical, and this file and src/lib/sectors.ts disagreed about which hue a
+// sector owned, so a sector changed colour between the directory and its own
+// dashboard. The mapping lives HERE, next to categoryGroup, and sectors.ts
+// imports it, so there is exactly one answer to "what colour is this sector".
+//
+// Slots follow the nine navigation groups below, with realEstate+automotive
+// folded together (both are listings/leads sectors, neither transacts) and
+// fitness+sportsCourts+education together (all three run on the same
+// memberships/classes/courses modules).
+export type TintSlot = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+export const SECTOR_TINT: Record<CategoryKey, TintSlot> = {
+  food: 2, // amber
+  retail: 6, // blue
+  services: 7, // violet
+  healthcare: 4, // green
+  realEstate: 3, // olive
+  automotive: 3,
+  beauty: 4,
+  fitness: 5, // cyan
+  sportsCourts: 5,
+  education: 5,
+  events: 1, // rose
+  hospitality: 1,
+  pharmacy: 4,
+  petCare: 4,
+  professional: 7,
+  contractors: 7,
+  farm: 6,
+};
+
+// Full Tailwind class strings (literal so the scanner keeps them). `cover` is
+// the placeholder wash behind a missing store/product image; `iconWrap` is the
+// sector icon badge — the same fill/ink pair sectors.ts uses for iconTint, so a
+// sector's badge is identical wherever it appears.
 export const categoryStyles: Record<
   CategoryKey,
   { cover: string; iconWrap: string }
 > = {
-  food: { cover: "from-amber-100 to-orange-100", iconWrap: "bg-amber-500/10 text-amber-600" },
-  retail: { cover: "from-violet-100 to-fuchsia-100", iconWrap: "bg-violet-500/10 text-violet-600" },
-  services: { cover: "from-sky-100 to-blue-100", iconWrap: "bg-sky-500/10 text-sky-600" },
-  healthcare: { cover: "from-emerald-100 to-teal-100", iconWrap: "bg-emerald-500/10 text-emerald-600" },
-  realEstate: { cover: "from-rose-100 to-pink-100", iconWrap: "bg-rose-500/10 text-rose-600" },
-  automotive: { cover: "from-slate-100 to-zinc-200", iconWrap: "bg-slate-500/10 text-slate-600" },
-  beauty: { cover: "from-pink-100 to-rose-100", iconWrap: "bg-pink-500/10 text-pink-600" },
-  fitness: { cover: "from-lime-100 to-green-100", iconWrap: "bg-lime-500/10 text-lime-700" },
-  sportsCourts: { cover: "from-teal-100 to-cyan-100", iconWrap: "bg-teal-500/10 text-teal-600" },
-  education: { cover: "from-indigo-100 to-blue-100", iconWrap: "bg-indigo-500/10 text-indigo-600" },
-  events: { cover: "from-fuchsia-100 to-purple-100", iconWrap: "bg-fuchsia-500/10 text-fuchsia-600" },
-  hospitality: { cover: "from-orange-100 to-amber-100", iconWrap: "bg-orange-500/10 text-orange-600" },
-  pharmacy: { cover: "from-emerald-100 to-teal-100", iconWrap: "bg-emerald-500/10 text-emerald-700" },
-  petCare: { cover: "from-yellow-100 to-amber-100", iconWrap: "bg-yellow-500/10 text-yellow-700" },
-  professional: { cover: "from-slate-100 to-blue-100", iconWrap: "bg-blue-500/10 text-blue-600" },
-  contractors: { cover: "from-amber-100 to-yellow-100", iconWrap: "bg-amber-500/10 text-amber-700" },
-  farm: { cover: "from-lime-100 to-emerald-100", iconWrap: "bg-green-500/10 text-green-700" },
+  food: { cover: "from-tint-2-soft to-tint-2/15", iconWrap: "bg-tint-2-soft text-tint-2" },
+  retail: { cover: "from-tint-6-soft to-tint-6/15", iconWrap: "bg-tint-6-soft text-tint-6" },
+  services: { cover: "from-tint-7-soft to-tint-7/15", iconWrap: "bg-tint-7-soft text-tint-7" },
+  healthcare: { cover: "from-tint-4-soft to-tint-4/15", iconWrap: "bg-tint-4-soft text-tint-4" },
+  realEstate: { cover: "from-tint-3-soft to-tint-3/15", iconWrap: "bg-tint-3-soft text-tint-3" },
+  automotive: { cover: "from-tint-3-soft to-tint-3/15", iconWrap: "bg-tint-3-soft text-tint-3" },
+  beauty: { cover: "from-tint-4-soft to-tint-4/15", iconWrap: "bg-tint-4-soft text-tint-4" },
+  fitness: { cover: "from-tint-5-soft to-tint-5/15", iconWrap: "bg-tint-5-soft text-tint-5" },
+  sportsCourts: { cover: "from-tint-5-soft to-tint-5/15", iconWrap: "bg-tint-5-soft text-tint-5" },
+  education: { cover: "from-tint-5-soft to-tint-5/15", iconWrap: "bg-tint-5-soft text-tint-5" },
+  events: { cover: "from-tint-1-soft to-tint-1/15", iconWrap: "bg-tint-1-soft text-tint-1" },
+  hospitality: { cover: "from-tint-1-soft to-tint-1/15", iconWrap: "bg-tint-1-soft text-tint-1" },
+  pharmacy: { cover: "from-tint-4-soft to-tint-4/15", iconWrap: "bg-tint-4-soft text-tint-4" },
+  petCare: { cover: "from-tint-4-soft to-tint-4/15", iconWrap: "bg-tint-4-soft text-tint-4" },
+  professional: { cover: "from-tint-7-soft to-tint-7/15", iconWrap: "bg-tint-7-soft text-tint-7" },
+  contractors: { cover: "from-tint-7-soft to-tint-7/15", iconWrap: "bg-tint-7-soft text-tint-7" },
+  farm: { cover: "from-tint-6-soft to-tint-6/15", iconWrap: "bg-tint-6-soft text-tint-6" },
 };
 
 // ===== Top-level groups: what customers browse. A group bundles several

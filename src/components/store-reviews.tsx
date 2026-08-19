@@ -80,7 +80,7 @@ export function StoreReviews({
                       key={n}
                       className={`h-4 w-4 ${
                         r.rating >= n
-                          ? "fill-amber-400 text-amber-400"
+                          ? "fill-accent text-accent"
                           : "text-border"
                       }`}
                     />

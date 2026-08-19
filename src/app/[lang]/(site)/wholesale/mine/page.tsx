@@ -1,7 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight, Plus, ImageIcon, Package } from "lucide-react";
+import { Plus, ImageIcon, Package } from "lucide-react";
+import { ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -47,7 +48,7 @@ export default async function MyWholesalePage({
           href={`/${lang}/wholesale`}
           className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+          <ChevronPrev className="h-4 w-4" />
           {t.title}
         </Link>
         <PageHeader

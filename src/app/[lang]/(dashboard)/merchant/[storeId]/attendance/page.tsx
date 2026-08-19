@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight } from "lucide-react";
 import { requestNow } from "@/lib/now";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -10,6 +9,7 @@ import { getStorePlan } from "@/lib/plan-server";
 import { ProGate } from "@/components/pro-gate";
 import { Container } from "@/components/ui/container";
 import { addDays, beirutDay, weekRange, type TimesheetRow } from "@/lib/attendance";
+import { ChevronPrev } from "@/components/ui/directional-icon";
 import {
   AttendanceManager,
   type OpenShift,
@@ -126,7 +126,7 @@ export default async function StoreAttendancePage({
           href={`/${lang}/merchant/${storeId}/hr`}
           className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+          <ChevronPrev className="h-4 w-4" />
           {t.title}
         </Link>
         <h1 className="mt-3 text-3xl font-extrabold tracking-tight">

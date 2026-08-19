@@ -70,7 +70,7 @@ export default async function MerchantsPage({
       <Container>
         {/* Problem */}
         <div className="mx-auto mt-14 max-w-2xl rounded-3xl border border-border bg-surface p-7 text-center shadow-sm sm:p-9">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400"><AlertCircle className="h-6 w-6" /></span>
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-accent-soft text-accent-foreground"><AlertCircle className="h-6 w-6" /></span>
           <h2 className="mt-4 text-xl font-extrabold sm:text-2xl">{m.problemTitle}</h2>
           <p className="mx-auto mt-3 max-w-lg text-muted-foreground">{m.problemBody}</p>
         </div>

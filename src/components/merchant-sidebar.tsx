@@ -108,7 +108,7 @@ function NavRow({
       />
       <span className="min-w-0 flex-1 truncate">{item.label}</span>
       {item.locked && (
-        <Lock className="h-3.5 w-3.5 shrink-0 text-amber-500" aria-hidden />
+        <Lock className="h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
       )}
     </Link>
   );

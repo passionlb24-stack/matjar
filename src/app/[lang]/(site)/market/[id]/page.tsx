@@ -108,12 +108,12 @@ export default async function ListingPage({
                 {listing.title}
               </h1>
               {listing.status === "sold" && (
-                <Badge className="bg-zinc-800 text-white">
+                <Badge className="bg-foreground text-background">
                   {dict.market.soldBadge}
                 </Badge>
               )}
               {listing.status === "expired" && (
-                <Badge className="bg-amber-600 text-white">
+                <Badge className="bg-accent-strong text-accent-strong-foreground">
                   {dict.market.expiredBadge}
                 </Badge>
               )}
@@ -122,7 +122,7 @@ export default async function ListingPage({
             {/* Unavailable notice — a sold/expired listing shows a clear label
                 instead of silently 404-ing or looking orderable. */}
             {listing.status !== "active" && (
-              <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm font-semibold text-amber-800 dark:text-amber-300">
+              <div className="mt-4 rounded-xl border border-warning/30 bg-warning-soft px-4 py-3 text-sm font-semibold text-warning">
                 {listing.status === "sold"
                   ? dict.market.soldNote
                   : dict.market.unavailableNote}

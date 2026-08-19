@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight, Wallet, TrendingUp, TrendingDown } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown } from "lucide-react";
+import { ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -106,7 +107,7 @@ export default async function AccountingPage({
           href={`/${lang}/merchant/${storeId}`}
           className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+          <ChevronPrev className="h-4 w-4" />
           {(store as { name: string }).name}
         </Link>
         <h1 className="mt-3 flex items-center gap-2 text-3xl font-extrabold tracking-tight">

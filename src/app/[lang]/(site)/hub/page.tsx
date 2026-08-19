@@ -24,8 +24,8 @@ import {
   Stethoscope,
   Wrench,
   Building2,
-  ChevronRight,
 } from "lucide-react";
+import { ChevronNext } from "@/components/ui/directional-icon";
 import type { LucideIcon } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -130,7 +130,7 @@ export default async function HubPage({
                   <p className="text-xs text-muted-foreground">تابع أداءك ونموّك</p>
                 </div>
                 <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
-                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400"><Crown className="h-5 w-5" /></span>
+                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-accent-soft text-accent-foreground"><Crown className="h-5 w-5" /></span>
                   <h3 className="mt-3 text-sm font-extrabold">{h.leadersTitle}</h3>
                   <p className="text-xs text-muted-foreground">{h.leaders.comingBadge}</p>
                 </div>
@@ -187,7 +187,7 @@ export default async function HubPage({
                   </div>
                   <h3 className="mt-2 text-sm font-bold">{t}</h3>
                 </div>
-                {!last && <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/50 rtl:rotate-180" />}
+                {!last && <ChevronNext className="h-5 w-5 shrink-0 text-muted-foreground/50" />}
               </div>
             );
           })}
@@ -282,7 +282,7 @@ function SectionCard({
         accent ? "border-primary/30 bg-gradient-to-b from-primary-soft to-transparent" : "border-border bg-surface hover:border-primary/40"
       }`}
     >
-      <span className={`grid h-12 w-12 place-items-center rounded-2xl ${gold ? "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400" : "bg-primary-soft text-primary"}`}>
+      <span className={`grid h-12 w-12 place-items-center rounded-2xl ${gold ? "bg-accent-soft text-accent-foreground" : "bg-primary-soft text-primary"}`}>
         <Icon className="h-6 w-6" />
       </span>
       <h3 className="mt-4 flex items-center gap-2 font-bold transition-colors group-hover:text-primary">
@@ -290,7 +290,7 @@ function SectionCard({
         {pro && <span className="rounded-full bg-surface-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">Pro</span>}
       </h3>
       <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{note}</p>
-      <span className={`mt-4 inline-flex items-center gap-1.5 text-sm font-bold ${gold ? "text-amber-700 dark:text-amber-400" : "text-primary"}`}>
+      <span className={`mt-4 inline-flex items-center gap-1.5 text-sm font-bold ${gold ? "text-accent-foreground" : "text-primary"}`}>
         {cta}
         <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1 rtl:rotate-180" />
       </span>

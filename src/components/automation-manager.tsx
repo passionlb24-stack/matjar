@@ -570,7 +570,7 @@ export function AutomationManager({
         {/* WHEN */}
         <FlowStep
           Icon={Zap}
-          nodeClass="bg-gradient-to-br from-primary to-sky-500 text-white"
+          nodeClass="bg-gradient-to-br from-primary to-info text-white"
           label={t.whenLabel}
           hint={t.whenHint}
         >

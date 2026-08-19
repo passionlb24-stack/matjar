@@ -3,7 +3,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import {
-  ChevronRight,
   Clock,
   MapPin,
   User,
@@ -12,6 +11,7 @@ import {
   ExternalLink,
   BadgeCheck,
 } from "lucide-react";
+import { ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -133,7 +133,7 @@ export default async function GigDetailPage({
           href={`/${lang}/freelance`}
           className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+          <ChevronPrev className="h-4 w-4" />
           {t.title}
         </Link>
 

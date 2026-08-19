@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight, Crown, Check, Sparkles } from "lucide-react";
+import { Crown, Check, Sparkles } from "lucide-react";
+import { ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -111,7 +112,7 @@ export default async function StoreSubscriptionPage({
           href={`/${lang}/merchant/${storeId}`}
           className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+          <ChevronPrev className="h-4 w-4" />
           {(store as { name: string }).name}
         </Link>
         <h1 className="mt-3 text-3xl font-extrabold tracking-tight">{t.title}</h1>
@@ -127,7 +128,7 @@ export default async function StoreSubscriptionPage({
                 you are not paying, on the page where you pay, is the worst
                 place in the product to get this wrong. */}
             <span className="flex items-center gap-1.5 text-2xl font-extrabold">
-              {isPaid && <Crown className="h-6 w-6 text-amber-500" />}
+              {isPaid && <Crown className="h-6 w-6 text-accent" />}
               {planName}
             </span>
             {isPaid && (
@@ -182,7 +183,7 @@ export default async function StoreSubscriptionPage({
         {!isPro && trialEndsAt !== null && (
           <div className="mt-4 rounded-2xl border border-warning/30 bg-warning-soft p-6">
             <h2 className="flex items-center gap-2 text-lg font-extrabold">
-              <Crown className="h-5 w-5 text-amber-500" />
+              <Crown className="h-5 w-5 text-accent" />
               {t.upgradeTitle}
             </h2>
             <p className="mt-2 text-sm text-warning/80">{t.upgradeBody}</p>
@@ -210,7 +211,7 @@ export default async function StoreSubscriptionPage({
                     key={id}
                     className="flex items-start gap-2 text-sm font-medium text-warning"
                   >
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
                     {dict.pricing.features[id]}
                   </li>
                 ))}

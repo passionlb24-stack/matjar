@@ -54,12 +54,12 @@ export function RequestProButton({
         placeholder={phonePlaceholder}
         inputMode="tel"
         dir="ltr"
-        className="h-11 flex-1 rounded-xl border border-warning/30 bg-surface px-3.5 text-sm outline-none transition-colors focus:border-amber-500"
+        className="h-11 flex-1 rounded-xl border border-warning/30 bg-surface px-3.5 text-sm outline-none transition-colors focus:border-accent"
       />
       <button
         onClick={request}
         disabled={state === "busy"}
-        className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-amber-500 px-5 text-sm font-bold text-white transition-colors hover:bg-amber-600 disabled:opacity-60"
+        className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-accent-strong px-5 text-sm font-bold text-accent-strong-foreground transition-colors hover:bg-accent-strong-hover disabled:opacity-60"
       >
         <Crown className="h-4 w-4" />
         {requestLabel}

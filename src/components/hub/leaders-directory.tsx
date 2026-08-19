@@ -88,7 +88,7 @@ export function LeadersDirectory({
       {!active && featured.length > 0 && (
         <section className="mb-12">
           <h2 className="flex items-center gap-2 text-lg font-extrabold tracking-tight">
-            <Crown className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            <Crown className="h-5 w-5 text-accent-foreground" />
             {t.featuredTitle}
           </h2>
           <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -213,7 +213,7 @@ function LeaderCardView({
       href={`/${lang}/hub/leaders/${p.slug}`}
       className={`group flex flex-col rounded-3xl border bg-surface p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
         highlight
-          ? "border-amber-500/40 bg-gradient-to-b from-amber-500/[0.06] to-transparent"
+          ? "border-accent/40 bg-gradient-to-b from-accent/[0.06] to-transparent"
           : "border-border hover:border-primary/30"
       }`}
     >
@@ -233,7 +233,7 @@ function LeaderCardView({
         <div className="min-w-0 flex-1">
           <h3 className="flex items-center gap-1.5 font-bold leading-snug transition-colors group-hover:text-primary">
             <span className="truncate">{name}</span>
-            <BadgeCheck className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            <BadgeCheck className="h-4 w-4 shrink-0 text-accent-foreground" />
           </h3>
           {p.headline && (
             <p className="mt-0.5 line-clamp-2 text-sm font-semibold text-primary">
@@ -263,7 +263,7 @@ function LeaderCardView({
           </span>
         )}
         {p.featured && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-700 dark:bg-amber-500/15 dark:text-amber-400">
+          <span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1 text-[11px] font-bold text-accent-foreground">
             <Crown className="h-3 w-3" />
             {t.featuredBadge}
           </span>
@@ -271,7 +271,7 @@ function LeaderCardView({
       </div>
 
       <div className="mt-4 flex items-center justify-between border-t border-border/60 pt-3">
-        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-400">
+        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-accent-foreground">
           <BadgeCheck className="h-3.5 w-3.5" /> {t.verified}
         </span>
         <span className="inline-flex items-center gap-1 text-xs font-bold text-primary">
@@ -296,8 +296,8 @@ function Chip({
       onClick={onClick}
       className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors ${
         active
-          ? "bg-amber-600 text-white"
-          : "border border-border bg-surface text-muted-foreground hover:border-amber-500/40 hover:text-foreground"
+          ? "bg-accent-strong text-accent-strong-foreground"
+          : "border border-border bg-surface text-muted-foreground hover:border-accent/40 hover:text-foreground"
       }`}
     >
       {children}

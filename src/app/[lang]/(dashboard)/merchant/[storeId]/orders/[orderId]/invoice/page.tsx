@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -9,6 +8,7 @@ import { Container } from "@/components/ui/container";
 import { IssueInvoiceButton } from "@/components/issue-invoice-button";
 import { PrintInvoiceButton } from "@/components/print-invoice-button";
 import { formatUsd } from "@/lib/currency";
+import { ChevronPrev } from "@/components/ui/directional-icon";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -132,7 +132,7 @@ export default async function OrderInvoicePage({
             href={`/${lang}/merchant/${storeId}/orders`}
             className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
           >
-            <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+            <ChevronPrev className="h-4 w-4" />
             {dict.merchant.ordersTitle}
           </Link>
           <span className="flex items-center gap-2">

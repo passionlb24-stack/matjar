@@ -17,10 +17,27 @@
   --primary-foreground: #ffffff;
   --primary-soft: #e9f1fd; /* tinted blue bg */
 
-  /* Accent (ratings, offers) */
-  --accent: #f59e0b; /* amber */
+  /* Accent (ratings, offers, "featured/Pro" gold).
+     --accent was #f59e0b, which is 2.15:1 on --surface and 1.96:1 on
+     --surface-muted. Every call site is a MARK, not a fill — rating stars
+     (fill-accent), the flash bolt, chart bars, a card hairline — and WCAG 1.4.11
+     wants 3:1 for those. Darkened to the lightest gold that clears 3:1 on all
+     three light grounds: 3.39 on --surface, 3.27 on --background, 3.10 on
+     --surface-muted. Nothing uses `bg-accent` as a fill, so no text pairing
+     moved. The dark value already measured 10.36:1 and is unchanged. */
+  --accent: #bd7f00;
   --accent-foreground: #7c2d12;
   --accent-soft: #fef3c7;
+  /* Solid-fill gold under WHITE text — the /hub "leaders" CTA, the Pro upsell
+     buttons, the featured badge on a store card. Same shape as --danger-strong
+     and --success-strong: --accent is tuned to be a mark on a light ground and
+     is far too light to carry white text. Held at ONE value across both themes
+     (like --success-strong) because white-on-gold is what has to hold, and that
+     is a property of the fill, not of the page behind it. White on the fill is
+     4.59:1, on the hover 5.22:1. */
+  --accent-strong: #a36900;
+  --accent-strong-hover: #976100;
+  --accent-strong-foreground: #ffffff;
 
   /* Lines */
   --border: #e8e8e2;
@@ -60,6 +77,70 @@
   --whatsapp-hover: #065f46;
   --whatsapp-foreground: #ffffff;
 
+  /* ===== Categorical identity ramp (MP-065) =====
+     WHY SEVEN AND NOT SEVENTEEN — read this before adding an eighth.
+
+     Four data files used to hand-pick raw-palette hues to give a category its
+     own look: sectorConfig.heroTint/iconTint (17 sectors), categoryStyles
+     .cover/.iconWrap (the same 17), CATEGORY_STYLE (8 academy tracks) and
+     HUB_TOOLS.tint (5 tools). None of it followed the dark theme, and none of
+     it was ever audited. Before replacing it, the existing washes were measured
+     (CIEDE2000 over the composited light-theme colour):
+
+       · The 17 sector heroTints are only 13 distinct colours. food/hospitality,
+         healthcare/pharmacy, realEstate/contractors and fitness/farm were
+         byte-identical — ΔE 0.00.
+       · 10 of the 120 sector pairs sat under ΔE 5, which nobody can tell apart
+         in a 15%-opacity wash: healthcare/sportsCourts 2.58, realEstate/petCare
+         2.94, services/education 3.74, beauty/events 4.95.
+       · sectors.ts and catalog.ts disagreed about which hue a sector owns —
+         retail was brand-blue in one and violet in the other, services violet in
+         one and sky in the other. The same sector changed colour between the
+         directory and its own dashboard.
+
+     So the per-sector identity did not exist; it was 13 approximate hues with
+     four accidental collisions and no cross-file agreement. Rather than mint 34
+     tokens to preserve that, this is a FIXED-SIZE categorical palette that all
+     four files share, so a category has one colour everywhere in the app.
+
+     Seven is the measured ceiling, not a taste call. Pale identity fills live in
+     a narrow lightness band, and a hill-climb over hue and lightness maximising
+     the minimum pairwise ΔE tops out at ~16 for six slots and ~13 for seven,
+     then collapses to ~10 at eight and nine with the hues visibly crowding.
+     Seven hand-placed hues hold a floor of ΔE 8.22 in light and 10.59 in dark —
+     against 0.00 today. An eighth slot would push the floor back under 5, i.e.
+     back to the bug this replaces. If you need another category, map it onto an
+     existing slot.
+
+     Each slot is a pair: `-soft` is the fill, the bare token is the ink ON that
+     fill, and every pair clears 4.5:1 on its own soft fill AND on --surface and
+     --background, in BOTH themes (4.55–5.80 measured). That is what lets the
+     same two classes — `bg-tint-N-soft text-tint-N` — be a badge, a text pill,
+     a wash and an accent line without checking each one.
+
+     Slot → family (see SECTOR_TINT in src/lib/catalog.ts for the mapping):
+       1 rose   · bookings (events, hospitality)
+       2 amber  · food
+       3 olive  · listings (real estate, automotive)
+       4 green  · health (clinics, pharmacy, beauty, pet care)
+       5 cyan   · learn & train (fitness, courts, education)
+       6 blue   · shopping (retail, farm)
+       7 violet · services (services, contractors, professional) */
+  --tint-1: #bd3755;
+  --tint-1-soft: #fee6e8;
+  --tint-2: #a25502;
+  --tint-2-soft: #fee8d9;
+  --tint-3: #637103;
+  --tint-3-soft: #e8f4bc;
+  --tint-4: #007c45;
+  --tint-4-soft: #c6fcd7;
+  --tint-5: #047781;
+  --tint-5-soft: #c2f8ff;
+  --tint-6: #3166cd;
+  --tint-6-soft: #e3edff;
+  --tint-7: #874fbd;
+  --tint-7-soft: #f2e8ff;
+
   /* ===== Mobile app metrics =====
      Named once so sticky bars, sheets and page gutters stop guessing at each
      other. --m-tabbar-h is the visible bar only; the safe-area inset is added
@@ -92,6 +173,9 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-soft: var(--accent-soft);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-strong-hover: var(--accent-strong-hover);
+  --color-accent-strong-foreground: var(--accent-strong-foreground);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-ring: var(--ring);
@@ -110,6 +194,22 @@
   --color-whatsapp: var(--whatsapp);
   --color-whatsapp-hover: var(--whatsapp-hover);
   --color-whatsapp-foreground: var(--whatsapp-foreground);
+
+  /* Categorical identity ramp — see the block in :root for why there are seven. */
+  --color-tint-1: var(--tint-1);
+  --color-tint-1-soft: var(--tint-1-soft);
+  --color-tint-2: var(--tint-2);
+  --color-tint-2-soft: var(--tint-2-soft);
+  --color-tint-3: var(--tint-3);
+  --color-tint-3-soft: var(--tint-3-soft);
+  --color-tint-4: var(--tint-4);
+  --color-tint-4-soft: var(--tint-4-soft);
+  --color-tint-5: var(--tint-5);
+  --color-tint-5-soft: var(--tint-5-soft);
+  --color-tint-6: var(--tint-6);
+  --color-tint-6-soft: var(--tint-6-soft);
+  --color-tint-7: var(--tint-7);
+  --color-tint-7-soft: var(--tint-7-soft);
 
   --font-sans: var(--font-tajawal);
   --font-display: var(--font-alexandria);
@@ -185,6 +285,28 @@
     /* See the [data-theme=dark] block for why this is light, not dark. */
     --accent-foreground: #fbbf24;
     --accent-soft: #2b2410;
+    /* See the light block: one value across both themes, because what has to
+       hold is white-on-gold. 4.59:1 fill, 5.22:1 hover. */
+    --accent-strong: #a36900;
+    --accent-strong-hover: #976100;
+    --accent-strong-foreground: #ffffff;
+    /* Categorical identity ramp — inverted: `-soft` becomes a dark tint and the
+       ink becomes the light one. Same seven hues, same 4.5:1 floor on the soft
+       fill and on both dark grounds. See the :root block for why seven. */
+    --tint-1: #e55c75;
+    --tint-1-soft: #3b191e;
+    --tint-2: #d57200;
+    --tint-2-soft: #391d06;
+    --tint-3: #849600;
+    --tint-3-soft: #232905;
+    --tint-4: #06a35d;
+    --tint-4-soft: #092d19;
+    --tint-5: #009ca9;
+    --tint-5-soft: #002b30;
+    --tint-6: #528af5;
+    --tint-6-soft: #162540;
+    --tint-7: #aa71e3;
+    --tint-7-soft: #2b1e3b;
     --border: #2a3038;
     /* See the light block: form-control boundaries only. 3.77 on surface,
        4.12 on background. */
@@ -225,6 +347,31 @@
      dark. Same shape as --warning on --warning-soft two tokens down. */
   --accent-foreground: #fbbf24;
   --accent-soft: #2b2410;
+  /* See the light block: one value across both themes, because what has to hold
+     is white-on-gold, which is a property of the fill and not of the page behind
+     it. White on the fill is 4.59:1, on the hover 5.22:1. */
+  --accent-strong: #a36900;
+  --accent-strong-hover: #976100;
+  --accent-strong-foreground: #ffffff;
+  /* Categorical identity ramp — inverted: `-soft` becomes a dark tint and the
+     ink becomes the light one, so `bg-tint-N-soft text-tint-N` keeps working
+     unchanged. Floor is 4.55:1 ink-on-soft and 5.04:1 ink-on-surface here;
+     minimum pairwise ΔE between the seven soft fills is 10.59 (light: 8.22).
+     See the :root block for why there are seven of these and not seventeen. */
+  --tint-1: #e55c75;
+  --tint-1-soft: #3b191e;
+  --tint-2: #d57200;
+  --tint-2-soft: #391d06;
+  --tint-3: #849600;
+  --tint-3-soft: #232905;
+  --tint-4: #06a35d;
+  --tint-4-soft: #092d19;
+  --tint-5: #009ca9;
+  --tint-5-soft: #002b30;
+  --tint-6: #528af5;
+  --tint-6-soft: #162540;
+  --tint-7: #aa71e3;
+  --tint-7-soft: #2b1e3b;
   --border: #2a3038;
   /* See the light block: form-control boundaries only. 3.77 on surface,
      4.12 on background. */

@@ -131,9 +131,15 @@ export default async function FavoritesPage({
         {/* Links, not buttons: each segment is a real address. `--m-touch` is
             the 44px the rest of the app holds to, applied to the chip itself
             rather than to a pseudo-element, since these already sit on their
-            own row. */}
-        <div
-          role="tablist"
+            own row.
+            NOT a tablist. An ARIA tab switches a `tabpanel` inside the current
+            document without navigating; these navigate, and a screen reader
+            told "tab 1 of 2, selected" then taken to a new URL has been lied
+            to. Two links to two addresses are a navigation landmark, and the
+            selected one is `aria-current="page"` — the same shape the other
+            URL-driven segment rows in the app use (discovery-filters, the
+            crafts area/sort rails). */}
+        <nav
           aria-label={dict.favorites.title}
           className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
@@ -147,8 +153,7 @@ export default async function FavoritesPage({
                     ? `/${lang}/favorites`
                     : `/${lang}/favorites?tab=${s.key}`
                 }
-                role="tab"
-                aria-selected={on}
+                aria-current={on ? "page" : undefined}
                 scroll={false}
                 className={`flex h-[var(--m-touch)] shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-bold transition-colors ${
                   on
@@ -163,7 +168,7 @@ export default async function FavoritesPage({
               </Link>
             );
           })}
-        </div>
+        </nav>
 
         <div className="mt-6">
           {tab === "stores" ? (

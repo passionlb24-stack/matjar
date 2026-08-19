@@ -72,7 +72,7 @@ export function FavoriteButton({
       className={`flex h-8 w-8 items-center justify-center rounded-full bg-surface/90 backdrop-blur transition-colors hover:bg-surface ${className}`}
     >
       <Heart
-        className={`h-4 w-4 ${fav ? "fill-red-500 text-red-500" : "text-foreground/60"}`}
+        className={`h-4 w-4 ${fav ? "fill-danger text-danger" : "text-foreground/60"}`}
       />
     </button>
   );

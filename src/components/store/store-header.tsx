@@ -94,7 +94,7 @@ export function StoreHeader({
             <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
               {headerRating != null && (
                 <span className="flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1">
-                  <Star className="h-4 w-4 fill-accent text-accent" />
+                  <Star className="h-4 w-4 fill-accent-foreground text-accent-foreground" />
                   <span className="font-bold">{headerRating.toFixed(1)}</span>
                   <span className="text-muted-foreground">
                     ({headerCount} {dict.featured.reviews})

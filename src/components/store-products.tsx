@@ -13,6 +13,7 @@ import {
   Zap,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { buttonVariants } from "@/components/ui/button";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { categoryStyles, type CategoryKey } from "@/lib/catalog";
@@ -20,7 +21,7 @@ import { attributeSummary, categoryAttributes } from "@/lib/attributes";
 import { effectivePrice, compareAtPrice, isFlashActive } from "@/lib/pricing";
 import { parseStockError } from "@/lib/order-math";
 import { waLink, buildOrderMessage } from "@/lib/whatsapp";
-import { formatLbp } from "@/lib/currency";
+import { formatLbp, formatUsd } from "@/lib/currency";
 import { localized } from "@/lib/i18n-field";
 import { groupBySection, type SectionInfo } from "@/lib/sections";
 import { categoryIcons } from "@/components/category-icon";
@@ -85,14 +86,14 @@ function PriceTag({ p }: { p: Product }) {
       <span
         className={`text-money font-bold ${flash ? "text-warning" : "text-primary"}`}
       >
-        {formatPrice(eff)}
+        {formatUsd(eff)}
       </span>
       {compare != null && (
         <span className="text-money text-xs font-normal text-muted-foreground line-through">
-          {formatPrice(compare)}
+          {formatUsd(compare)}
         </span>
       )}
-      {flash && <Zap className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />}
+      {flash && <Zap className="h-3.5 w-3.5 fill-accent text-accent" />}
     </span>
   );
 }
@@ -126,12 +127,6 @@ const GRID_CATEGORIES = new Set<CategoryKey>([
 
 const fieldClass =
   "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
-
-function formatPrice(price: number) {
-  return price >= 1000
-    ? `$${Number(price).toLocaleString("en-US")}`
-    : `$${price}`;
-}
 
 export function StoreProducts({
   storeId,
@@ -449,10 +444,10 @@ export function StoreProducts({
             lines: items.map((p) => ({
               name: p.name,
               qty: cart[p.id],
-              lineTotal: formatPrice(effectivePrice(p) * cart[p.id]),
+              lineTotal: formatUsd(effectivePrice(p) * cart[p.id]),
             })),
             totalLabel: dict.store.total,
-            total: formatPrice(total),
+            total: formatUsd(total),
             address: defaultAddress || null,
           }),
         )
@@ -690,7 +685,7 @@ export function StoreProducts({
       >
         <Icon
           className={
-            isGrid ? "h-10 w-10 text-black/20" : "h-7 w-7 text-black/20"
+            isGrid ? "h-10 w-10 text-foreground/20" : "h-7 w-7 text-foreground/20"
           }
         />
       </div>
@@ -953,7 +948,7 @@ export function StoreProducts({
 
       {orderPlaced ? (
         <div className="mt-6 rounded-2xl border border-success/30 bg-success-soft p-6 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-success-strong text-success-strong-foreground">
             <Check className="h-6 w-6" />
           </div>
           <h3 className="mt-3 text-lg font-extrabold">
@@ -996,7 +991,7 @@ export function StoreProducts({
                 {dict.store.total}
               </span>
               <span className="text-money text-lg font-extrabold">
-                {formatPrice(placedTotal)}
+                {formatUsd(placedTotal)}
               </span>
             </div>
             <p className="mt-2 border-t border-border pt-2 text-xs text-muted-foreground">
@@ -1009,7 +1004,7 @@ export function StoreProducts({
                 href={placedWaUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-800"
+                className={buttonVariants({ variant: "whatsapp" })}
               >
                 <MessageCircle className="h-4 w-4" />
                 {dict.store.notifyMerchantWa}
@@ -1089,7 +1084,7 @@ export function StoreProducts({
                       </span>
                     </span>
                     <span className="shrink-0 tabular-nums text-muted-foreground">
-                      {formatPrice(effectivePrice(p) * cart[p.id])}
+                      {formatUsd(effectivePrice(p) * cart[p.id])}
                     </span>
                   </li>
                 ))}
@@ -1157,13 +1152,13 @@ export function StoreProducts({
                 deliveryFee > 0) && (
                 <div className="flex justify-between text-muted-foreground">
                   <span>{dict.store.subtotal}</span>
-                  <span>{formatPrice(total)}</span>
+                  <span>{formatUsd(total)}</span>
                 </div>
               )}
               {couponDiscount > 0 && (
                 <div className="flex justify-between text-primary">
                   <span>{dict.store.discount}</span>
-                  <span>−{formatPrice(couponDiscount)}</span>
+                  <span>−{formatUsd(couponDiscount)}</span>
                 </div>
               )}
               {pointsDiscount > 0 && (
@@ -1174,18 +1169,18 @@ export function StoreProducts({
                       pointsUsed.toLocaleString("en-US"),
                     )}
                   </span>
-                  <span>−{formatPrice(pointsDiscount)}</span>
+                  <span>−{formatUsd(pointsDiscount)}</span>
                 </div>
               )}
               {deliveryFee > 0 && (
                 <div className="flex justify-between text-muted-foreground">
                   <span>{dict.store.deliveryFeeLabel}</span>
-                  <span>+{formatPrice(deliveryFee)}</span>
+                  <span>+{formatUsd(deliveryFee)}</span>
                 </div>
               )}
               <div className="flex justify-between text-lg font-extrabold">
                 <span>{dict.store.total}</span>
-                <span>{formatPrice(grandTotal)}</span>
+                <span>{formatUsd(grandTotal)}</span>
               </div>
               {lbpRate > 0 && (
                 <p className="text-end text-xs font-normal text-muted-foreground">
@@ -1260,7 +1255,7 @@ export function StoreProducts({
             )}
             {belowMin && (
               <p className="rounded-xl bg-danger-soft px-4 py-2.5 text-sm font-semibold text-danger">
-                {dict.store.belowMin} ({formatPrice(minOrder!)})
+                {dict.store.belowMin} ({formatUsd(minOrder!)})
               </p>
             )}
             {fulfillment === "delivery" && zones.length > 0 && (
@@ -1279,7 +1274,7 @@ export function StoreProducts({
                     <option key={z.id} value={z.id}>
                       {lang === "en" && z.nameEn?.trim() ? z.nameEn : z.name}
                       {" — "}
-                      {z.fee > 0 ? formatPrice(z.fee) : dict.store.freeDelivery}
+                      {z.fee > 0 ? formatUsd(z.fee) : dict.store.freeDelivery}
                     </option>
                   ))}
                 </select>
@@ -1299,7 +1294,7 @@ export function StoreProducts({
                         🚚{" "}
                         {dict.store.freeOverHint.replace(
                           "{n}",
-                          formatPrice(selectedZone.freeOver),
+                          formatUsd(selectedZone.freeOver),
                         )}
                       </p>
                     )}
@@ -1314,7 +1309,7 @@ export function StoreProducts({
                   <p className="mt-1.5 rounded-xl bg-danger-soft px-3 py-2 text-sm font-semibold text-danger">
                     {dict.store.zoneMinWarn.replace(
                       "{n}",
-                      formatPrice(selectedZone.minOrder),
+                      formatUsd(selectedZone.minOrder),
                     )}
                   </p>
                 )}
@@ -1575,7 +1570,7 @@ export function StoreProducts({
                 )}
               </p>
               <p key={total} className="animate-pop text-lg font-extrabold tabular-nums">
-                {formatPrice(total)}
+                {formatUsd(total)}
               </p>
             </button>
             <div className="flex items-center gap-2">
@@ -1584,7 +1579,7 @@ export function StoreProducts({
                   href={waUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-3 font-bold text-white transition-colors hover:bg-emerald-800"
+                  className={buttonVariants({ variant: "whatsapp" })}
                 >
                   <MessageCircle className="h-4 w-4" />
                   <span className="hidden sm:inline">
@@ -1635,7 +1630,7 @@ export function StoreProducts({
             }}
             className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary font-bold text-primary-foreground"
           >
-            {dict.store.checkout} · {formatPrice(total)}
+            {dict.store.checkout} · {formatUsd(total)}
           </button>
         }
       >
@@ -1645,12 +1640,12 @@ export function StoreProducts({
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-semibold">{p.name}</span>
                 <span className="text-sm tabular-nums text-muted-foreground">
-                  {formatPrice(effectivePrice(p))}
+                  {formatUsd(effectivePrice(p))}
                 </span>
               </span>
               <Stepper id={p.id} qty={cart[p.id]} />
               <span className="w-16 shrink-0 text-end font-bold tabular-nums">
-                {formatPrice(effectivePrice(p) * cart[p.id])}
+                {formatUsd(effectivePrice(p) * cart[p.id])}
               </span>
             </li>
           ))}

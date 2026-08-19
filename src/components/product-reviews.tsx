@@ -56,7 +56,7 @@ export function ProductReviews({
                   key={n}
                   className={`h-4 w-4 ${
                     n <= Math.round(data.avg!)
-                      ? "fill-amber-400 text-amber-400"
+                      ? "fill-accent text-accent"
                       : "text-border"
                   }`}
                 />
@@ -73,10 +73,10 @@ export function ProductReviews({
               return (
                 <div key={star} className="flex items-center gap-2 text-xs">
                   <span className="w-3 font-semibold">{star}</span>
-                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                  <Star className="h-3 w-3 fill-accent text-accent" />
                   <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-muted">
                     <div
-                      className="h-full bg-amber-400"
+                      className="h-full bg-accent"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
@@ -124,7 +124,7 @@ export function ProductReviews({
                     key={n}
                     className={`h-3.5 w-3.5 ${
                       n <= r.rating
-                        ? "fill-amber-400 text-amber-400"
+                        ? "fill-accent text-accent"
                         : "text-border"
                     }`}
                   />

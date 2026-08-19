@@ -46,7 +46,7 @@ export function RevenueChart({
             >
               {d.pos > 0 && (
                 <div
-                  className="w-full rounded-t-md bg-gradient-to-t from-amber-400 to-amber-300 transition-opacity group-hover:opacity-80"
+                  className="w-full rounded-t-md bg-gradient-to-t from-accent to-accent/70 transition-opacity group-hover:opacity-80"
                   style={{ height: `${(d.pos / max) * 100}%` }}
                 />
               )}
@@ -86,7 +86,7 @@ export function RevenueChart({
         </span>
         {hasPos && (
           <span className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-sm bg-amber-400" />
+            <span className="h-2.5 w-2.5 rounded-sm bg-accent" />
             {legendPos}
           </span>
         )}

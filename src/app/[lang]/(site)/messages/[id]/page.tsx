@@ -1,11 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { MessageThread, type ChatMessage } from "@/components/message-thread";
+import { ChevronPrev } from "@/components/ui/directional-icon";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -71,7 +71,7 @@ export default async function ThreadPage({
           href={`/${lang}/messages`}
           className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+          <ChevronPrev className="h-4 w-4" />
           {dict.messages.title}
         </Link>
         <h1 className="mt-2 text-xl font-extrabold tracking-tight">{header}</h1>

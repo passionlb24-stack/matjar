@@ -59,51 +59,57 @@ export const CATEGORY_ICON: Record<AcademyCategory, LucideIcon> = {
 
 // Per-category visual identity (literal class strings so Tailwind keeps them).
 // tint = icon badge, text = accent text, bar = solid accent, grad = header wash.
+//
+// Each track sits on one slot of the shared categorical ramp in globals.css
+// (--tint-1 … --tint-7) instead of its own hand-picked hue: seven slots plus
+// growth on the brand blue covers the eight tracks exactly. The old `dark:`
+// overrides are gone because the token already carries its dark value — that is
+// the whole point of the ramp. See the comment above --tint-1 for why seven.
 export const CATEGORY_STYLE: Record<
   AcademyCategory,
   { tint: string; text: string; bar: string; grad: string }
 > = {
   marketing: {
-    tint: "bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-300",
-    text: "text-violet-600 dark:text-violet-300",
-    bar: "bg-violet-500",
-    grad: "from-violet-500/20",
+    tint: "bg-tint-7-soft text-tint-7",
+    text: "text-tint-7",
+    bar: "bg-tint-7",
+    grad: "from-tint-7/20",
   },
   ecommerce: {
-    tint: "bg-sky-100 text-sky-600 dark:bg-sky-500/15 dark:text-sky-300",
-    text: "text-sky-600 dark:text-sky-300",
-    bar: "bg-sky-500",
-    grad: "from-sky-500/20",
+    tint: "bg-tint-5-soft text-tint-5",
+    text: "text-tint-5",
+    bar: "bg-tint-5",
+    grad: "from-tint-5/20",
   },
   accounting: {
-    tint: "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300",
-    text: "text-emerald-600 dark:text-emerald-300",
-    bar: "bg-emerald-500",
-    grad: "from-emerald-500/20",
+    tint: "bg-tint-4-soft text-tint-4",
+    text: "text-tint-4",
+    bar: "bg-tint-4",
+    grad: "from-tint-4/20",
   },
   service: {
-    tint: "bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300",
-    text: "text-rose-600 dark:text-rose-300",
-    bar: "bg-rose-500",
-    grad: "from-rose-500/20",
+    tint: "bg-tint-1-soft text-tint-1",
+    text: "text-tint-1",
+    bar: "bg-tint-1",
+    grad: "from-tint-1/20",
   },
   branding: {
-    tint: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
-    text: "text-amber-700 dark:text-amber-300",
-    bar: "bg-amber-500",
-    grad: "from-amber-500/20",
+    tint: "bg-tint-2-soft text-tint-2",
+    text: "text-tint-2",
+    bar: "bg-tint-2",
+    grad: "from-tint-2/20",
   },
   social: {
-    tint: "bg-fuchsia-100 text-fuchsia-600 dark:bg-fuchsia-500/15 dark:text-fuchsia-300",
-    text: "text-fuchsia-600 dark:text-fuchsia-300",
-    bar: "bg-fuchsia-500",
-    grad: "from-fuchsia-500/20",
+    tint: "bg-tint-3-soft text-tint-3",
+    text: "text-tint-3",
+    bar: "bg-tint-3",
+    grad: "from-tint-3/20",
   },
   management: {
-    tint: "bg-teal-100 text-teal-600 dark:bg-teal-500/15 dark:text-teal-300",
-    text: "text-teal-600 dark:text-teal-300",
-    bar: "bg-teal-500",
-    grad: "from-teal-500/20",
+    tint: "bg-tint-6-soft text-tint-6",
+    text: "text-tint-6",
+    bar: "bg-tint-6",
+    grad: "from-tint-6/20",
   },
   growth: {
     tint: "bg-primary-soft text-primary",

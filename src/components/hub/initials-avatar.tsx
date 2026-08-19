@@ -1,19 +1,24 @@
 // Deterministic initials avatar for Business Leaders. The dataset ships with no
 // official photos (every row is image_status = 'placeholder'), so instead of a
-// generic silhouette we render the person's initials over a gradient picked
+// generic silhouette we render the person's initials in a tint picked
 // deterministically from their name — same name always gets the same tint.
 
-const GRADIENTS = [
-  "from-amber-500 to-orange-600",
-  "from-rose-500 to-pink-600",
-  "from-emerald-500 to-teal-600",
-  "from-sky-500 to-blue-600",
-  "from-violet-500 to-purple-600",
-  "from-cyan-500 to-sky-600",
-  "from-fuchsia-500 to-purple-600",
-  "from-lime-500 to-emerald-600",
-  "from-red-500 to-rose-600",
-  "from-indigo-500 to-violet-600",
+// One slot of the shared categorical ramp per avatar (globals.css --tint-1 … 7).
+// This replaced ten hand-picked gradients that carried WHITE initials: white on
+// `from-amber-500` measures 2.15:1 and on `from-lime-500` 1.75:1, so the initials
+// — the only content in the element — were unreadable at most hashes, and being
+// raw palette shades they stayed exactly as illegible in the dark theme. The
+// ramp's fill/ink pair clears 4.55:1 in both themes, so the initials read
+// whichever slot a name lands on. Ten slots became seven; the hash still gives
+// the same name the same tint, which is all it ever promised.
+const TINTS = [
+  "bg-tint-1-soft text-tint-1",
+  "bg-tint-2-soft text-tint-2",
+  "bg-tint-3-soft text-tint-3",
+  "bg-tint-4-soft text-tint-4",
+  "bg-tint-5-soft text-tint-5",
+  "bg-tint-6-soft text-tint-6",
+  "bg-tint-7-soft text-tint-7",
 ];
 
 const SIZES = {
@@ -35,7 +40,7 @@ function hashHue(name: string): number {
   for (let i = 0; i < name.length; i++) {
     h = (h * 31 + name.charCodeAt(i)) >>> 0;
   }
-  return h % GRADIENTS.length;
+  return h % TINTS.length;
 }
 
 export function InitialsAvatar({
@@ -47,11 +52,11 @@ export function InitialsAvatar({
   size?: keyof typeof SIZES;
   className?: string;
 }) {
-  const gradient = GRADIENTS[hashHue(name)];
+  const tint = TINTS[hashHue(name)];
   return (
     <span
       aria-hidden
-      className={`grid shrink-0 place-items-center rounded-full bg-gradient-to-br font-extrabold text-white ${gradient} ${SIZES[size]} ${className ?? ""}`}
+      className={`grid shrink-0 place-items-center rounded-full font-extrabold ${tint} ${SIZES[size]} ${className ?? ""}`}
     >
       {getInitials(name)}
     </span>

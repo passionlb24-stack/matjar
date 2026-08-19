@@ -141,7 +141,7 @@ export default async function LeaderProfilePage({
                 className="object-cover"
               />
             ) : (
-              <div className="h-full w-full bg-gradient-to-bl from-amber-500/15 via-transparent to-primary/10" />
+              <div className="h-full w-full bg-gradient-to-bl from-accent/15 via-transparent to-primary/10" />
             )}
           </div>
 
@@ -168,7 +168,7 @@ export default async function LeaderProfilePage({
                 <div className="min-w-0">
                   <h1 className="flex items-center gap-2 text-3xl font-extrabold tracking-tight">
                     {name}
-                    <BadgeCheck className="h-6 w-6 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <BadgeCheck className="h-6 w-6 shrink-0 text-accent-foreground" />
                   </h1>
                   {headline && (
                     <p className="mt-1 font-semibold text-primary">{headline}</p>
@@ -205,7 +205,7 @@ export default async function LeaderProfilePage({
                     href={leader.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-700"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-accent-strong px-4 py-2 text-sm font-semibold text-accent-strong-foreground transition-colors hover:bg-accent-strong-hover"
                   >
                     <ExternalLink className="h-4 w-4" />
                     {t.website}
@@ -296,7 +296,7 @@ export default async function LeaderProfilePage({
             <ul className="mt-4 space-y-2.5">
               {achievements.map((a, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <Award className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
+                  <Award className="mt-0.5 h-5 w-5 shrink-0 text-accent-foreground" />
                   <span className="leading-relaxed">{a}</span>
                 </li>
               ))}

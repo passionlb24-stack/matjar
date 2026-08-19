@@ -76,7 +76,7 @@ export function StoreCard({
               blurDataURL={NEUTRAL_BLUR}
             />
           ) : (
-            <Icon className="absolute end-4 top-4 h-16 w-16 text-black/[0.06] transition-transform duration-500 group-hover:scale-110" />
+            <Icon className="absolute end-4 top-4 h-16 w-16 text-foreground/[0.08] transition-transform duration-500 group-hover:scale-110" />
           )}
           {store.coverUrl && (
             <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-black/0 to-transparent" />
@@ -90,7 +90,7 @@ export function StoreCard({
           {store.isOpen ? dict.featured.open : dict.featured.closed}
         </span>
         {store.featured && (
-          <span className="absolute bottom-3 start-3 inline-flex items-center gap-1 rounded-full bg-amber-700 px-2.5 py-1 text-xs font-bold text-white shadow-sm">
+          <span className="absolute bottom-3 start-3 inline-flex items-center gap-1 rounded-full bg-accent-strong px-2.5 py-1 text-xs font-bold text-accent-strong-foreground shadow-sm">
             <Sparkles className="h-3 w-3" />
             {dict.featured.featured}
           </span>
@@ -202,7 +202,7 @@ export function StoreCard({
         )}
         {store.rating != null && (
           <div className="mt-3 flex items-center gap-1.5 text-sm">
-            <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+            <Star className="h-4 w-4 fill-accent text-accent" />
             <span className="font-bold">{store.rating.toFixed(1)}</span>
             <span className="text-muted-foreground">
               ({store.reviews} {dict.featured.reviews})

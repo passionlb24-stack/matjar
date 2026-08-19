@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronRight } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { regions } from "@/lib/catalog";
 import { Container } from "@/components/ui/container";
 import { EditStoreForm } from "@/components/edit-store-form";
+import { ChevronPrev } from "@/components/ui/directional-icon";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -88,7 +88,7 @@ export default async function EditStorePage({
           href={`/${lang}/merchant/${storeId}`}
           className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+          <ChevronPrev className="h-4 w-4" />
           {(store as StoreRow).name}
         </Link>
         <h1 className="mt-3 text-3xl font-extrabold tracking-tight">

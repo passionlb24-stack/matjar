@@ -95,7 +95,7 @@ export function ReviewForm({
               <Star
                 className={`h-7 w-7 transition-colors ${
                   (hover || rating) >= n
-                    ? "fill-amber-400 text-amber-400"
+                    ? "fill-accent text-accent"
                     : "text-border"
                 }`}
               />
