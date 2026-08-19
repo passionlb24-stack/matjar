@@ -66,8 +66,8 @@ function rowToStore(row: RecommendedRow): Store {
 
 // Per-user "For you" strip. This is a CLIENT island on purpose: it fetches its
 // data in the browser after load via the recommended_stores RPC, so the
-// homepage server component adds ZERO per-user reads and stays cacheable. Anon
-// users (RPC returns empty) and users with no follows/orders render nothing.
+// homepage server component adds ZERO per-user reads and stays cacheable.
+// Signed-out visitors and users with no follows/orders render nothing.
 export function ForYouStrip({
   lang,
   dict,
@@ -81,6 +81,23 @@ export function ForYouStrip({
     let active = true;
     (async () => {
       const supabase = createClient();
+
+      // Ask only when there is somebody to recommend to. `recommended_stores`
+      // is revoked from anon (migration 0098:95), so calling it signed-out is
+      // not "returns empty" as the old comment here claimed — it is a
+      // guaranteed 401 plus a console error, on every logged-out view of the
+      // busiest page on the site. A permanent error on the homepage is exactly
+      // where a real one goes unnoticed. getSession() reads the local cookie
+      // and makes no network request, so the guard costs nothing.
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!active) return;
+      if (!session) {
+        setStores([]);
+        return;
+      }
+
       const { data, error } = await supabase.rpc("recommended_stores", {
         p_limit: 8,
       });
