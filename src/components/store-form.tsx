@@ -1,16 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { fieldClass } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
-import { groupKeys, type GroupKey } from "@/lib/catalog";
+import { groupKeys, type CategoryKey, type GroupKey } from "@/lib/catalog";
+import { resolveStoreModules } from "@/lib/sectors";
+import { storeIntakeFields } from "@/lib/store-onboarding";
 
 type Option = { value: string; label: string };
-type BizOption = { value: string; label: string; group: GroupKey };
+type BizOption = {
+  value: string;
+  label: string;
+  group: GroupKey;
+  category: CategoryKey;
+};
 
 // Shared control styling from the UI library, plus the label gap this form uses.
 const field = `${fieldClass} mt-1.5`;
@@ -27,6 +34,26 @@ function slugify(s: string) {
     .slice(0, 30);
 }
 
+// ===== Open a store =====
+//
+// This form used to ask eight questions of everybody, enforce two of them, and
+// then hand the merchant back to the store LIST — a screen with no next action
+// on it. Measured on the live platform, 16 of 36 stores hold zero products: the
+// eight answers were collected and the ninth thing, the one that makes a page
+// worth opening, never happened.
+//
+// Two changes, no new screens:
+//
+//   • The sector is asked FIRST and decides the rest (see store-onboarding.ts).
+//     Every question maps to a real `stores` column, and a question is only
+//     asked where the module that consumes the answer is switched on — so a
+//     clinic is not asked whether it delivers and a tutor is not asked which
+//     street they are on. Phone came out: WhatsApp is the channel the order
+//     path actually uses and the one the checklist counts, and asking for both
+//     at minute one bought a second number nobody reads.
+//
+//   • Creating lands the merchant INSIDE the new store, on its OS home, where
+//     the checklist is already waiting with the single next thing to do.
 export function StoreForm({
   lang,
   dict,
@@ -44,6 +71,20 @@ export function StoreForm({
   // Vanity handle, auto-suggested from the name until the merchant edits it.
   const [slug, setSlug] = useState("");
   const [slugEdited, setSlugEdited] = useState(false);
+  // The chosen sector, held in state because the rest of the form depends on it.
+  const [typeId, setTypeId] = useState("");
+  // Fulfilment (goods sectors only). Both default on: that is what the column
+  // defaults to, so an untouched form writes what the DB would have written.
+  const [delivery, setDelivery] = useState(true);
+  const [pickup, setPickup] = useState(true);
+
+  const chosen = businessTypes.find((t) => t.value === typeId) ?? null;
+  const ask = useMemo(() => {
+    if (!chosen) return new Set<string>();
+    return new Set<string>(
+      storeIntakeFields(chosen.category, resolveStoreModules(chosen.category)),
+    );
+  }, [chosen]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -66,24 +107,29 @@ export function StoreForm({
       setLoading(false);
       return;
     }
-    const businessType = String(form.get("business_type_id") ?? "");
-    if (!businessType) {
+    if (!typeId) {
       setError(dict.merchant.businessTypeRequired);
       setLoading(false);
       return;
     }
+    const text = (key: string) => String(form.get(key) ?? "").trim() || null;
     const { data: created, error } = await supabase
       .from("stores")
       .insert({
         owner_id: user.id,
         name,
         slug: slug.trim().toLowerCase() || null,
-        business_type_id: businessType,
-        region: String(form.get("region")) || null,
-        area: String(form.get("area")) || null,
-        phone: String(form.get("phone")) || null,
-        whatsapp: String(form.get("whatsapp")) || null,
-        description: String(form.get("description")) || null,
+        business_type_id: typeId,
+        whatsapp: text("whatsapp"),
+        description: text("description"),
+        // Only what this sector was actually asked. Writing a column the form
+        // never showed would be inventing an answer on the merchant's behalf.
+        ...(ask.has("region") ? { region: text("region") } : {}),
+        ...(ask.has("area") ? { area: text("area") } : {}),
+        ...(ask.has("fulfillment")
+          ? { accepts_delivery: delivery, accepts_pickup: pickup }
+          : {}),
+        ...(ask.has("specialties") ? { specialties: text("specialties") } : {}),
       })
       .select("id")
       .single();
@@ -107,15 +153,61 @@ export function StoreForm({
       setLoading(false);
       return;
     }
-    router.push(`/${lang}/merchant`);
+    // Into the store, not back to a list of them. The OS home is where the
+    // checklist lives, and the checklist is the rest of the setup.
+    router.push(`/${lang}/merchant/${created.id}`);
     router.refresh();
   }
+
+  const toggle = (on: boolean) =>
+    `flex min-h-[44px] items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition-colors lg:min-h-0 ${
+      on
+        ? "border-primary bg-primary-soft text-primary"
+        : "border-border text-muted-foreground"
+    }`;
 
   return (
     <form
       onSubmit={onSubmit}
       className="space-y-4 rounded-2xl border border-border bg-surface p-6 shadow-sm"
     >
+      {/* The sector comes first because everything below it depends on the
+          answer — and because it is the one question a merchant can answer
+          without thinking. */}
+      <div>
+        <label className={label} htmlFor="business_type_id">
+          {dict.merchant.businessType}
+        </label>
+        <select
+          id="business_type_id"
+          name="business_type_id"
+          required
+          value={typeId}
+          onChange={(e) => setTypeId(e.target.value)}
+          className={field}
+        >
+          <option value="" disabled>
+            {dict.merchant.selectType}
+          </option>
+          {groupKeys.map((g) => {
+            const opts = businessTypes.filter((t) => t.group === g);
+            if (!opts.length) return null;
+            return (
+              <optgroup key={g} label={dict.groups[g].name}>
+                {opts.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </optgroup>
+            );
+          })}
+        </select>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {dict.merchant.intakeTypeHint}
+        </p>
+      </div>
+
       <div>
         <label className={label} htmlFor="name">
           {dict.merchant.storeName}
@@ -162,74 +254,113 @@ export function StoreForm({
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label className={label} htmlFor="business_type_id">
-            {dict.merchant.businessType}
-          </label>
-          <select id="business_type_id" name="business_type_id" required defaultValue="" className={field}>
-            <option value="" disabled>
-              {dict.merchant.selectType}
-            </option>
-            {groupKeys.map((g) => {
-              const opts = businessTypes.filter((t) => t.group === g);
-              if (!opts.length) return null;
-              return (
-                <optgroup key={g} label={dict.groups[g].name}>
-                  {opts.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
-                    </option>
-                  ))}
-                </optgroup>
-              );
-            })}
-          </select>
+      {/* ---- Sector-specific, in the order store-onboarding.ts decided ---- */}
+
+      {(ask.has("region") || ask.has("area")) && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {ask.has("region") && (
+            <div>
+              <label className={label} htmlFor="region">
+                {dict.merchant.region}
+              </label>
+              <select id="region" name="region" defaultValue="" className={field}>
+                <option value="" disabled>
+                  {dict.merchant.selectRegion}
+                </option>
+                {regions.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          {ask.has("area") && (
+            <div>
+              <label className={label} htmlFor="area">
+                {dict.merchant.area}
+              </label>
+              <input
+                id="area"
+                name="area"
+                type="text"
+                placeholder={dict.merchant.areaPlaceholder}
+                className={field}
+              />
+            </div>
+          )}
         </div>
-        <div>
-          <label className={label} htmlFor="region">
-            {dict.merchant.region}
-          </label>
-          <select id="region" name="region" defaultValue="" className={field}>
-            <option value="" disabled>
-              {dict.merchant.selectRegion}
-            </option>
-            {regions.map((r) => (
-              <option key={r.value} value={r.value}>
-                {r.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      )}
 
       <div>
-        <label className={label} htmlFor="area">
-          {dict.merchant.area}
+        <label className={label} htmlFor="whatsapp">
+          {dict.merchant.whatsapp}
         </label>
-        <input id="area" name="area" type="text" placeholder={dict.merchant.areaPlaceholder} className={field} />
+        <input
+          id="whatsapp"
+          name="whatsapp"
+          type="tel"
+          inputMode="tel"
+          placeholder="+961 …"
+          className={field}
+        />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      {ask.has("fulfillment") && (
         <div>
-          <label className={label} htmlFor="phone">
-            {dict.merchant.phone}
-          </label>
-          <input id="phone" name="phone" type="tel" inputMode="tel" placeholder="+961 …" className={field} />
+          <span className={label}>{dict.merchant.settings.fulfillment}</span>
+          <div className="mt-1.5 grid grid-cols-2 gap-2">
+            <label className={toggle(delivery)}>
+              <input
+                type="checkbox"
+                checked={delivery}
+                onChange={(e) => setDelivery(e.target.checked)}
+                className="h-4 w-4 accent-primary"
+              />
+              {dict.merchant.settings.delivery}
+            </label>
+            <label className={toggle(pickup)}>
+              <input
+                type="checkbox"
+                checked={pickup}
+                onChange={(e) => setPickup(e.target.checked)}
+                className="h-4 w-4 accent-primary"
+              />
+              {dict.merchant.settings.pickup}
+            </label>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {dict.merchant.intakeFulfillmentHint}
+          </p>
         </div>
+      )}
+
+      {ask.has("specialties") && (
         <div>
-          <label className={label} htmlFor="whatsapp">
-            {dict.merchant.whatsapp}
+          <label className={label} htmlFor="specialties">
+            {dict.merchant.intakeSpecialties}
           </label>
-          <input id="whatsapp" name="whatsapp" type="tel" inputMode="tel" placeholder="+961 …" className={field} />
+          <input
+            id="specialties"
+            name="specialties"
+            type="text"
+            placeholder={dict.merchant.settings.specialtiesPlaceholder}
+            className={field}
+          />
         </div>
-      </div>
+      )}
 
       <div>
         <label className={label} htmlFor="description">
           {dict.merchant.description}
         </label>
-        <textarea id="description" name="description" rows={3} placeholder={dict.merchant.descriptionPlaceholder} className={field} />
+        <textarea
+          id="description"
+          name="description"
+          rows={3}
+          placeholder={dict.merchant.descriptionPlaceholder}
+          className={field}
+        />
       </div>
 
       {error && <p className="text-sm font-medium text-danger">{error}</p>}

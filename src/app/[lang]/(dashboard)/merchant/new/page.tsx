@@ -8,6 +8,7 @@ import {
   type CategoryKey,
   type GroupKey,
 } from "@/lib/catalog";
+import { sectorConfig } from "@/lib/sectors";
 import { Container } from "@/components/ui/container";
 import { StoreForm } from "@/components/store-form";
 
@@ -47,6 +48,10 @@ export default async function NewStorePage({
       (categoryGroup as Record<string, GroupKey | undefined>)[
         t.slug as CategoryKey
       ] ?? "shopping",
+    // The sector key itself, so the form can ask a restaurant and a clinic
+    // different questions. A slug the registry does not know falls back to
+    // retail — the generic bundle — rather than crashing the picker.
+    category: (t.slug in sectorConfig ? t.slug : "retail") as CategoryKey,
   }));
   const regionOptions = regions.map((r) => ({
     value: r.key,

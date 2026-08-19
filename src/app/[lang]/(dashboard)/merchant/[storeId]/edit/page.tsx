@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { ChevronRight } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -79,7 +81,17 @@ export default async function EditStorePage({
   return (
     <div className="py-10">
       <Container className="max-w-2xl">
-        <h1 className="text-3xl font-extrabold tracking-tight">
+        {/* The way back. This is where the setup checklist sends a merchant for
+            four of its items, and it was the one destination in that loop with
+            no link home — the items screen has had one all along. */}
+        <Link
+          href={`/${lang}/merchant/${storeId}`}
+          className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+          {(store as StoreRow).name}
+        </Link>
+        <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
           {dict.merchant.editTitle}
         </h1>
         <p className="mt-2 text-muted-foreground">

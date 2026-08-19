@@ -9,6 +9,7 @@ import {
   X,
   Ban,
   Play,
+  FileText,
   BadgeCheck,
   Crown,
   Sparkles,
@@ -26,10 +27,9 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/field";
+import { Input, Textarea } from "@/components/ui/field";
 import { EmptyState } from "@/components/ui/empty-state";
 import { OverflowMenu, type OverflowAction } from "@/components/overflow-menu";
-import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type AdminStore = {
   id: string;
@@ -43,6 +43,12 @@ export type AdminStore = {
   commercialRegVerified: boolean;
   typeName: string | null;
   ownerName: string | null;
+  /** NULL means no reason was ever recorded — never an empty string, and never
+   *  a default sentence. Twenty stores were suspended before there was anywhere
+   *  to write one, and pretending otherwise is what this screen is fixing. */
+  statusReason: string | null;
+  statusChangedAt: string | null;
+  statusChangedByName: string | null;
 };
 
 const statusVariant: Record<
@@ -71,9 +77,17 @@ export function AdminStoresClient({
   stores: AdminStore[];
 }) {
   const router = useRouter();
-  const confirm = useConfirm();
   const t = dict.admin.storesAdmin;
   const [busy, setBusy] = useState<string | null>(null);
+  // Which store is having its reason written, and for which outcome. Suspending
+  // and rejecting no longer go through a yes/no confirm: typing the sentence the
+  // merchant will read IS the confirmation, and there is no path past it.
+  const [reasonFor, setReasonFor] = useState<{
+    id: string;
+    status: "suspended" | "rejected";
+  } | null>(null);
+  const [reason, setReason] = useState("");
+  const [reasonError, setReasonError] = useState<string | null>(null);
   // Seed the search from ?q= so a "Pro request" notification lands pre-filtered
   // on the requesting store instead of the whole list.
   const initialQuery = useSearchParams().get("q") ?? "";
@@ -107,6 +121,71 @@ export function AdminStoresClient({
     router.refresh();
   }
 
+  /**
+   * Status goes through set_store_status (0282), never through a plain update:
+   * the RPC is what refuses a suspension with no explanation and what stamps the
+   * actor and the timestamp server-side. It returns an outcome instead of
+   * raising so each refusal can be told apart — a Postgres error string cannot
+   * distinguish "you forgot the reason" from "you are not an admin".
+   *
+   * Resolves to an error message to show, or null on success.
+   */
+  async function writeStatus(
+    id: string,
+    next: AdminStore["status"],
+    reasonText?: string,
+  ): Promise<string | null> {
+    setBusy(id);
+    const { data, error } = await createClient().rpc("set_store_status", {
+      p_store_id: id,
+      p_status: next,
+      p_reason: reasonText ?? null,
+    });
+    setBusy(null);
+    if (error) return dict.auth.errorGeneric;
+    const out = (data ?? {}) as { ok?: boolean; error?: string };
+    if (!out.ok) {
+      if (out.error === "reason_required") return t.reasonRequired;
+      if (out.error === "reason_too_long") return t.reasonTooLong;
+      if (out.error === "forbidden") return t.forbidden;
+      if (out.error === "not_found") return t.storeNotFound;
+      return dict.auth.errorGeneric;
+    }
+    void logAdminAction("status_changed", "store", id, {
+      status: next,
+      reason: reasonText ?? null,
+    });
+    await revalidateStores();
+    router.refresh();
+    return null;
+  }
+
+  function openReason(id: string, status: "suspended" | "rejected") {
+    setReasonFor({ id, status });
+    setReason("");
+    setReasonError(null);
+  }
+
+  async function submitReason() {
+    if (!reasonFor) return;
+    if (!reason.trim()) {
+      setReasonError(t.reasonRequired);
+      return;
+    }
+    const message = await writeStatus(reasonFor.id, reasonFor.status, reason);
+    if (message) {
+      setReasonError(message);
+      return;
+    }
+    setReasonFor(null);
+    setReason("");
+  }
+
+  async function applyStatus(id: string, next: AdminStore["status"]) {
+    const message = await writeStatus(id, next);
+    if (message) notifyError(message);
+  }
+
   const filtered = stores.filter((s) => {
     if (status !== "all" && s.status !== status) return false;
     if (region !== "all" && s.region !== region) return false;
@@ -124,6 +203,13 @@ export function AdminStoresClient({
   ];
 
   const initial = (name: string) => name.trim().charAt(0).toUpperCase() || "?";
+
+  const fmtDate = (iso: string) =>
+    new Date(iso).toLocaleDateString(lang === "ar" ? "ar" : "en", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
 
   return (
     <div className="py-10">
@@ -178,7 +264,8 @@ export function AdminStoresClient({
           <div data-animate className="mt-2 space-y-3">
             {filtered.map((s) => (
               <Card key={s.id}>
-                <CardBody className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <CardBody>
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex min-w-0 items-start gap-3">
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-base font-extrabold text-primary">
                     {initial(s.name)}
@@ -271,7 +358,7 @@ export function AdminStoresClient({
                           <Button
                             size="sm"
                             disabled={busy === s.id}
-                            onClick={() => patch(s.id, { status: "active" })}
+                            onClick={() => applyStatus(s.id, "active")}
                             leftIcon={<Check className="h-4 w-4" />}
                           >
                             {dict.admin.approve}
@@ -280,17 +367,7 @@ export function AdminStoresClient({
                             size="sm"
                             variant="secondary"
                             disabled={busy === s.id}
-                            onClick={async () => {
-                              if (
-                                await confirm({
-                                  message: dict.admin.confirmReject,
-                                  confirmLabel: dict.common.confirm,
-                                  cancelLabel: dict.common.cancel,
-                                  danger: true,
-                                })
-                              )
-                                patch(s.id, { status: "rejected" });
-                            }}
+                            onClick={() => openReason(s.id, "rejected")}
                             leftIcon={<X className="h-4 w-4" />}
                             className="!text-danger"
                           >
@@ -303,17 +380,7 @@ export function AdminStoresClient({
                           size="sm"
                           variant="secondary"
                           disabled={busy === s.id}
-                          onClick={async () => {
-                            if (
-                              await confirm({
-                                message: dict.admin.confirmSuspend,
-                                confirmLabel: dict.common.confirm,
-                                cancelLabel: dict.common.cancel,
-                                danger: true,
-                              })
-                            )
-                              patch(s.id, { status: "suspended" });
-                          }}
+                          onClick={() => openReason(s.id, "suspended")}
                           leftIcon={<Ban className="h-4 w-4" />}
                           className="!text-danger"
                         >
@@ -322,14 +389,35 @@ export function AdminStoresClient({
                       )}
                       {(s.status === "suspended" ||
                         s.status === "rejected") && (
-                        <Button
-                          size="sm"
-                          disabled={busy === s.id}
-                          onClick={() => patch(s.id, { status: "active" })}
-                          leftIcon={<Play className="h-4 w-4" />}
-                        >
-                          {t.activate}
-                        </Button>
+                        <>
+                          <Button
+                            size="sm"
+                            disabled={busy === s.id}
+                            onClick={() => applyStatus(s.id, "active")}
+                            leftIcon={<Play className="h-4 w-4" />}
+                          >
+                            {t.activate}
+                          </Button>
+                          {/* The 20 stores suspended before 0282 carry no
+                              reason, and their owners were never told one. This
+                              records it now without moving the status. */}
+                          {s.statusReason == null && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              disabled={busy === s.id}
+                              onClick={() =>
+                                openReason(
+                                  s.id,
+                                  s.status as "suspended" | "rejected",
+                                )
+                              }
+                              leftIcon={<FileText className="h-4 w-4" />}
+                            >
+                              {t.addReason}
+                            </Button>
+                          )}
+                        </>
                       )}
                       <select
                         value={s.plan}
@@ -363,6 +451,86 @@ export function AdminStoresClient({
                     </div>
                   );
                 })()}
+                </div>
+
+                {/* What was decided, by whom, and when. A status with no
+                    provenance is exactly what made 20 suspensions unexplainable
+                    to the merchants living with them. The who/when line shows on
+                    every row — an approval is a decision too; the reason box is
+                    only for the two outcomes that owe the merchant a sentence,
+                    because set_store_status clears the reason on the way back to
+                    active rather than leaving a stale one attached. */}
+                {(s.statusChangedAt ||
+                  s.status === "suspended" ||
+                  s.status === "rejected") && (
+                  <div className="mt-3 rounded-xl border border-border bg-surface-muted/50 p-3">
+                    {(s.status === "suspended" || s.status === "rejected") && (
+                      <>
+                        <p className="text-sm font-bold">{t.recordedReason}</p>
+                        {s.statusReason ? (
+                          <p className="mt-1 whitespace-pre-line text-sm">
+                            {s.statusReason}
+                          </p>
+                        ) : (
+                          <p className="mt-1 text-sm italic text-muted-foreground">
+                            {t.noReasonRecorded}
+                          </p>
+                        )}
+                      </>
+                    )}
+                    {s.statusChangedAt && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {t.changedBy}: {s.statusChangedByName ?? t.unknownActor}{" "}
+                        · {t.changedAt} {fmtDate(s.statusChangedAt)}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {reasonFor?.id === s.id && (
+                  <div className="mt-3 rounded-xl border border-danger/30 bg-danger-soft/30 p-3">
+                    <label
+                      htmlFor={`reason-${s.id}`}
+                      className="text-sm font-bold"
+                    >
+                      {t.reasonHeading}
+                    </label>
+                    <Textarea
+                      id={`reason-${s.id}`}
+                      value={reason}
+                      onChange={(e) => {
+                        setReason(e.target.value);
+                        setReasonError(null);
+                      }}
+                      maxLength={500}
+                      error={!!reasonError}
+                      placeholder={t.reasonPlaceholder}
+                      className="mt-2"
+                    />
+                    {reasonError && (
+                      <p className="mt-1 text-sm font-semibold text-danger">
+                        {reasonError}
+                      </p>
+                    )}
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        disabled={busy === s.id}
+                        onClick={submitReason}
+                      >
+                        {t.reasonSave}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={busy === s.id}
+                        onClick={() => setReasonFor(null)}
+                      >
+                        {dict.common.cancel}
+                      </Button>
+                    </div>
+                  </div>
+                )}
                 </CardBody>
               </Card>
             ))}

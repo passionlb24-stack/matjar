@@ -7,10 +7,12 @@ import {
   ChevronLeft,
   AlertTriangle,
   CircleCheck,
+  Hourglass,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { Completeness, CompletenessItem } from "@/lib/completeness";
+import { publishStage, isFirstRun } from "@/lib/store-onboarding";
 import { SITE_URL } from "@/lib/site";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -30,13 +32,26 @@ import { ShareButton } from "@/components/share-button";
 //   • Publishing and completeness are separate questions, so the blockers are
 //     drawn apart from the polish rather than sitting in the same flat list.
 //
-// This component computes nothing. It draws what the module already decided.
+// Two more, decided in src/lib/store-onboarding.ts:
+//
+//   • A merchant on their FIRST run — nothing required done yet — is shown one
+//     instruction and nothing else. The full list is correct and it is also the
+//     screen people close the tab on; it comes back the moment they finish one
+//     thing, which is the point at which a list reads as progress.
+//   • "Complete" and "published" were being conflated. Everything done on a
+//     store still in review is not the same state as a live page, and the
+//     ready-card used to hand out a public link that 404s until an admin
+//     approves the store. The stage now comes from `stores.status` as well as
+//     from the completeness module. Nothing here changes who may publish.
+//
+// This component computes nothing. It draws what those modules already decided.
 export function StoreChecklist({
   lang,
   dict,
   storeId,
   storeName,
   storeSlug,
+  status,
   completeness,
 }: {
   lang: Locale;
@@ -44,6 +59,8 @@ export function StoreChecklist({
   storeId: string;
   storeName: string;
   storeSlug: string | null;
+  /** `stores.status` — admin-controlled. Read here, never written. */
+  status: string;
   completeness: Completeness;
 }) {
   const t = dict.merchant.checklist;
@@ -76,8 +93,38 @@ export function StoreChecklist({
   const storeUrl = `${SITE_URL}${storePath}`;
   const displayUrl = `matjarlb.com/${storeSlug ?? `store/${storeId}`}`;
 
-  // Store fully set up → celebrate + push the shareable link.
-  if (!completeness.next) {
+  const stage = publishStage(status, completeness.readyToPublish);
+
+  // Finished, and waiting on the review that is not the merchant's to do. This
+  // is the moment the old screen had no words for: the checklist simply went
+  // quiet and the merchant was left guessing whether that meant anything.
+  if (stage === "review") {
+    return (
+      <div className="rounded-2xl border border-primary/30 bg-primary-soft/40 p-5">
+        <div className="flex items-center gap-2">
+          <PartyPopper className="h-5 w-5 text-primary" />
+          <h2 className="font-extrabold">{t.reviewTitle}</h2>
+        </div>
+        <p className="mt-1 text-sm text-muted-foreground">{t.reviewSubtitle}</p>
+        <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-warning sm:text-sm">
+          <Hourglass className="h-4 w-4 shrink-0" />
+          {t.reviewMeanwhile}
+        </p>
+        <Link
+          href={`${base}/items`}
+          className="mt-4 inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-bold transition-colors hover:border-primary hover:text-primary lg:min-h-0"
+        >
+          {t.addItems}
+          <ChevronLeft className="h-4 w-4 ltr:rotate-180" />
+        </Link>
+      </div>
+    );
+  }
+
+  // Live AND fully set up → celebrate + push the shareable link. Gated on the
+  // status too, because `stores_select` only exposes active rows: this card
+  // used to print a public URL for a store that had no public page at all.
+  if (stage === "live" && !completeness.next) {
     return (
       <div className="rounded-2xl border border-primary/30 bg-primary-soft/40 p-5">
         <div className="flex items-center gap-2">
@@ -112,20 +159,32 @@ export function StoreChecklist({
   // Everything else still open, blockers first then by what it costs to skip.
   // The heaviest item is already the headline, so it is not repeated here.
   const rest = completeness.items
-    .filter((i) => !i.done && i.key !== next.key)
+    .filter((i) => !i.done && i.key !== next?.key)
     .sort(
       (a, b) => Number(b.required) - Number(a.required) || b.weight - a.weight,
     );
   const blockers = completeness.missingRequired.length;
+
+  // A store nobody has started: one instruction, no list. The list is not
+  // wrong, it is just the wrong thing to hand somebody who has done none of it.
+  const firstRun = stage === "setup" && isFirstRun(completeness.items);
+  const requiredTotal = completeness.items.filter((i) => i.required).length;
+  // Only counted for the blockers, and only when the next thing IS one: a step
+  // counter that includes optional polish would never reach its own total.
+  const stepNumber = requiredTotal - blockers + 1;
+  const showStep =
+    stage === "setup" && blockers > 0 && !!next?.required && requiredTotal > 0;
 
   return (
     <div className="rounded-2xl border border-primary/30 bg-primary-soft/40 p-5">
       <div className="flex items-start gap-3">
         <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
         <div className="min-w-0 flex-1">
-          <h2 className="font-extrabold">{t.title}</h2>
+          <h2 className="font-extrabold">
+            {firstRun ? t.firstRunTitle : t.title}
+          </h2>
           <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
-            {t.subtitle}
+            {firstRun ? t.firstRunSubtitle : t.subtitle}
           </p>
         </div>
         {/* The number is the headline. A merchant who reads 72% asks what the
@@ -143,37 +202,54 @@ export function StoreChecklist({
       <Progress value={completeness.score} label={t.title} className="mt-4" />
 
       {/* Publish readiness is a different question from completeness, so it is
-          stated in its own words instead of being inferred from the bar. */}
-      {blockers > 0 ? (
-        <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-warning sm:text-sm">
-          <AlertTriangle className="h-4 w-4 shrink-0" />
-          {t.blockedHint.replace("{n}", String(blockers))}
-        </p>
-      ) : (
+          stated in its own words instead of being inferred from the bar. A
+          suspended or rejected store is told nothing here: the reason its page
+          is down is not a missing cover photo, and its own notice says so. */}
+      {stage === "live" ? (
         <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-success sm:text-sm">
           <CircleCheck className="h-4 w-4 shrink-0" />
-          {t.publishReady}
+          {t.publishLive}
         </p>
-      )}
+      ) : stage === "setup" ? (
+        blockers > 0 ? (
+          <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-warning sm:text-sm">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            {t.blockedHint.replace("{n}", String(blockers))}
+          </p>
+        ) : (
+          <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-success sm:text-sm">
+            <CircleCheck className="h-4 w-4 shrink-0" />
+            {t.publishReady}
+          </p>
+        )
+      ) : null}
 
       {/* One instruction. A merchant told eight things is told nothing. */}
-      <div className="mt-4">
-        <p className="text-xs font-bold text-muted-foreground">{t.nextLabel}</p>
-        <Link
-          href={hrefOf(next)}
-          className="mt-1.5 flex min-h-[44px] items-center gap-3 rounded-xl bg-primary px-4 py-3 text-primary-foreground transition-opacity hover:opacity-90 lg:min-h-0"
-        >
-          <span className="min-w-0 flex-1 text-sm font-bold">
-            {labelOf(next)}
-          </span>
-          <span className="inline-flex shrink-0 items-center gap-1 text-xs font-bold">
-            {t.fix}
-            <ChevronLeft className="h-4 w-4 ltr:rotate-180" />
-          </span>
-        </Link>
-      </div>
+      {next && (
+        <div className="mt-4">
+          <p className="text-xs font-bold text-muted-foreground">
+            {showStep
+              ? t.stepOf
+                  .replace("{n}", String(Math.min(stepNumber, requiredTotal)))
+                  .replace("{total}", String(requiredTotal))
+              : t.nextLabel}
+          </p>
+          <Link
+            href={hrefOf(next)}
+            className="mt-1.5 flex min-h-[44px] items-center gap-3 rounded-xl bg-primary px-4 py-3 text-primary-foreground transition-opacity hover:opacity-90 lg:min-h-0"
+          >
+            <span className="min-w-0 flex-1 text-sm font-bold">
+              {labelOf(next)}
+            </span>
+            <span className="inline-flex shrink-0 items-center gap-1 text-xs font-bold">
+              {t.fix}
+              <ChevronLeft className="h-4 w-4 ltr:rotate-180" />
+            </span>
+          </Link>
+        </div>
+      )}
 
-      {rest.length > 0 && (
+      {!firstRun && rest.length > 0 && (
         <div className="mt-4">
           <p className="text-xs font-bold text-muted-foreground">
             {t.moreLabel}

@@ -162,10 +162,9 @@ export default async function AdminOverviewPage({
                         storeId={store.id}
                         approveLabel={dict.admin.approve}
                         rejectLabel={dict.admin.reject}
-                        confirmRejectLabel={dict.admin.confirmReject}
                         errorLabel={dict.auth.errorGeneric}
-                        okLabel={dict.common.confirm}
                         cancelLabel={dict.common.cancel}
+                        t={dict.admin.storesAdmin}
                       />
                     </CardBody>
                   </Card>

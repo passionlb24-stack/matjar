@@ -64,6 +64,8 @@ export type ProductInitial = {
   nameEn: string;
   price: string;
   discountPrice: string;
+  /** Cost of goods (`products.cost`). "" = never recorded. */
+  cost: string;
   description: string;
   descriptionEn: string;
   imageUrl: string | null;
@@ -159,6 +161,9 @@ export function ProductEditForm({
       if (v) attributes[f.key] = v;
     });
     const stockRaw = String(form.get("stock") ?? "").trim();
+    // Blank means "not recorded", which is not the same as zero: a cost of 0
+    // would tell the margin report this item is pure profit.
+    const costRaw = String(form.get("cost") ?? "").trim();
 
     // Flash sale: all three fields required together, else it's cleared.
     const flashPriceRaw = String(form.get("flash_price") ?? "").trim();
@@ -194,6 +199,7 @@ export function ProductEditForm({
         name_en: String(form.get("name_en") ?? "").trim() || null,
         price: Number(form.get("price")) || 0,
         discount_price: Number(form.get("discount_price")) || null,
+        cost: costRaw === "" ? null : Number(costRaw),
         description: String(form.get("description")) || null,
         description_en: String(form.get("description_en") ?? "").trim() || null,
         image_url: imageUrl,
@@ -463,6 +469,18 @@ export function ProductEditForm({
         <div>
           <label className={label} htmlFor="discount_price">{p.discountPrice}</label>
           <input id="discount_price" name="discount_price" type="number" min="0" step="0.01" defaultValue={initial.discountPrice} className={field} />
+        </div>
+        {/* Cost of goods. The create form has asked for this since 0210 and the
+            editor never did, so the only chance to record it was the thirty
+            seconds a product was first typed in — and across the live platform
+            not one of 60 products carries one, which is why the profit report
+            computes zero for everybody. Optional on purpose: a merchant who
+            genuinely does not track margins is not blocked, they are told in
+            one line what the number buys them. */}
+        <div>
+          <label className={label} htmlFor="cost">{p.cost}</label>
+          <input id="cost" name="cost" type="number" min="0" step="0.01" defaultValue={initial.cost} placeholder="0" className={field} />
+          <p className="mt-1 text-xs text-muted-foreground">{p.costHint}</p>
         </div>
         {!simplified && (
           <div>

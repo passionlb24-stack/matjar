@@ -6,12 +6,15 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { PushNotice } from "@/components/push-notice";
+import { StoreStatusNotice } from "@/components/store-status-notice";
 
 type StoreRow = {
   id: string;
   name: string;
   status: "pending" | "active" | "suspended" | "rejected";
   area: string | null;
+  status_reason: string | null;
+  status_changed_at: string | null;
   business_types: { name_ar: string; name_en: string } | null;
 };
 
@@ -39,7 +42,9 @@ export default async function MerchantPage({
 
   const { data } = await supabase
     .from("stores")
-    .select("id, name, status, area, business_types(name_ar, name_en)")
+    .select(
+      "id, name, status, area, status_reason, status_changed_at, business_types(name_ar, name_en)",
+    )
     .eq("owner_id", user.id)
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
@@ -94,7 +99,9 @@ export default async function MerchantPage({
   if (extraIds.length) {
     const { data: ss } = await supabase
       .from("stores")
-      .select("id, name, status, area, business_types(name_ar, name_en)")
+      .select(
+        "id, name, status, area, status_reason, status_changed_at, business_types(name_ar, name_en)",
+      )
       .in("id", extraIds)
       .is("deleted_at", null);
     staffStores = (ss ?? []) as unknown as StoreRow[];
@@ -134,6 +141,24 @@ export default async function MerchantPage({
             />
           </div>
         )}
+
+        {/* A grey "معطّل" pill on a card is not being told anything. Only the
+            owner gets this — a staff member cannot act on it, and the reason is
+            the owner's business. */}
+        {stores
+          .filter((s) => s.status === "suspended" || s.status === "rejected")
+          .map((s) => (
+            <StoreStatusNotice
+              key={s.id}
+              lang={lang}
+              dict={dict}
+              status={s.status as "suspended" | "rejected"}
+              storeName={s.name}
+              reason={s.status_reason}
+              changedAt={s.status_changed_at}
+              className="mt-6"
+            />
+          ))}
 
         {storeIds.length > 0 && (
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">

@@ -37,6 +37,9 @@ type Notif = {
     /** Quote loop (0207): quoted / counter-offer amount and its note. */
     amount?: string | number;
     note?: string;
+    /** Why a store was suspended or rejected (0282). Absent means no reason was
+     *  recorded — the surfaces say so rather than printing nothing. */
+    reason?: string;
   } | null;
   is_read: boolean;
   created_at: string;
@@ -138,6 +141,26 @@ export default async function NotificationsPage({
         "{store}",
         n.data?.store_name ?? "",
       );
+    // A store outcome used to fall through to the bottom of this function and
+    // render the raw type string — a merchant whose shop was switched off read
+    // the literal words "store_suspended" in their own notification list. The
+    // recorded reason (0282) rides along when there is one; when there is none,
+    // the line stays as it is rather than trailing an empty dash.
+    if (
+      t === "store_approved" ||
+      t === "store_rejected" ||
+      t === "store_suspended"
+    ) {
+      const label =
+        t === "store_approved"
+          ? dict.notifications.storeApproved
+          : t === "store_rejected"
+            ? dict.notifications.storeRejected
+            : dict.notifications.storeSuspended;
+      const named = label.replace("{store}", n.data?.store_name ?? "");
+      const why = n.data?.reason?.trim();
+      return why ? `${named} — ${why}` : named;
+    }
     if (t === "booking_placed") return dict.notifications.bookingPlaced;
     if (t === "booking_rescheduled")
       return `${dict.notifications.bookingRescheduled}${
@@ -244,7 +267,15 @@ export default async function NotificationsPage({
   // Campaigns carry an explicit destination in data.url (the store, an offer,
   // etc.); fall back to the store page.
   const linkFor = (n: Notif): string =>
-    n.type === "admin_broadcast"
+    // A store outcome belongs on that store's own dashboard, which is where the
+    // full explanation and the "contact us" path live. The public store page is
+    // wrong for two of the three: it does not exist while a store is suspended.
+    (n.type === "store_approved" ||
+      n.type === "store_rejected" ||
+      n.type === "store_suspended") &&
+    n.data?.store_id
+      ? `/${lang}/merchant/${n.data.store_id}`
+      : n.type === "admin_broadcast"
       ? n.data?.url?.trim() || `/${lang}`
       : n.type === "store_campaign"
       ? n.data?.url?.trim() ||
