@@ -10,8 +10,17 @@ import { attributeSummary } from "@/lib/attributes";
 import { waLink } from "@/lib/whatsapp";
 import { parseHours } from "@/lib/hours";
 import { StoreProducts, type DeliveryZone } from "@/components/store-products";
-import { BookingPanel } from "@/components/booking-panel";
 import type { DoctorView } from "@/components/store/store-doctors";
+
+// The two engines below are mutually exclusive on any given render — `surface`
+// picks one — but both used to be statically imported, so every storefront
+// shipped both. `StoreProducts` (cart, coupon, loyalty, zones, idempotency key)
+// stays a static import on purpose: the order surface is the common case, it is
+// the money path, and nothing about its state may be made to arrive late.
+// The appointment engine, which only appointment sectors ever draw, is fetched
+// when it is the one that renders — it is still server-rendered, so the service
+// list and its prices stay in the HTML. See store/lazy-engines.tsx.
+import { BookingPanel } from "@/components/store/lazy-engines";
 
 function formatPrice(price: number) {
   return price >= 1000

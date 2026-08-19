@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { formatUsd } from "@/lib/currency";
 
 export type PosProduct = {
   id: string;
@@ -40,7 +41,7 @@ function eff(p: PosProduct) {
 }
 
 function fmt(n: number) {
-  return `$${Number(n.toFixed(2)).toLocaleString("en-US")}`;
+  return formatUsd(n, { cents: true });
 }
 
 // Point-of-sale terminal: tap products into a ticket, apply a discount, pick a

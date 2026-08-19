@@ -6,14 +6,10 @@ import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { getUsdLbpRate } from "@/lib/data/settings";
-import { formatLbp } from "@/lib/currency";
+import { formatUsd, formatLbp } from "@/lib/currency";
 import { Container } from "@/components/ui/container";
 import { PageHero } from "@/components/ui/page-hero";
 import { EmptyState } from "@/components/ui/empty-state";
-
-function formatPrice(price: number) {
-  return price >= 1000 ? `$${Number(price).toLocaleString("en-US")}` : `$${price}`;
-}
 
 type WishRow = {
   products: {
@@ -94,11 +90,11 @@ export default async function WishlistPage({
                     </p>
                     <p className="mt-2">
                       <span className="text-money font-bold text-primary">
-                        {formatPrice(discount ?? price)}
+                        {formatUsd(discount ?? price)}
                       </span>{" "}
                       {discount != null && (
                         <span className="text-money text-xs text-muted-foreground line-through">
-                          {formatPrice(price)}
+                          {formatUsd(price)}
                         </span>
                       )}
                     </p>

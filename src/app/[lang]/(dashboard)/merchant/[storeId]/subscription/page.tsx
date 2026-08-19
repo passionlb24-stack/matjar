@@ -10,16 +10,13 @@ import { StartTrialButton } from "@/components/start-trial-button";
 import { PLAN_TIERS, promoState, annualPrice, planRank } from "@/lib/plan-tiers";
 import { PLAN_HIGHLIGHTS } from "@/lib/feature-availability";
 import { requestNow } from "@/lib/now";
+import { formatUsd } from "@/lib/currency";
 
 // Single source of truth for Pro pricing (promo-aware): plan-tiers.
 const PRO_PRICE_MONTHLY = PLAN_TIERS.pro.monthly;
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function formatPrice(price: number) {
-  return price >= 1000 ? `$${Number(price).toLocaleString("en-US")}` : `$${price}`;
-}
 
 export default async function StoreSubscriptionPage({
   params,
@@ -241,7 +238,7 @@ export default async function StoreSubscriptionPage({
                   {p.period === "yearly" ? t.yearly : t.monthly}
                 </span>
                 <span className="font-bold text-primary">
-                  {formatPrice(p.amount)}
+                  {formatUsd(p.amount)}
                 </span>
               </div>
             ))}

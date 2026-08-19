@@ -12,6 +12,7 @@ import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { ListingCard } from "@/lib/data/market";
+import { formatUsd } from "@/lib/currency";
 
 const STATUSES = ["all", "active", "pending", "sold", "expired", "rejected", "draft"] as const;
 
@@ -23,10 +24,6 @@ const statusStyle: Record<string, string> = {
   rejected: "bg-danger-soft text-danger",
   draft: "bg-zinc-200 text-zinc-600",
 };
-
-function formatPrice(price: number) {
-  return price >= 1000 ? `$${Number(price).toLocaleString("en-US")}` : `$${price}`;
-}
 
 export function MyListingsManager({
   listings,
@@ -123,7 +120,7 @@ export function MyListingsManager({
                   </span>
                 </div>
                 {l.price != null && (
-                  <p className="text-sm text-primary">{formatPrice(l.price)}</p>
+                  <p className="text-sm text-primary">{formatUsd(l.price)}</p>
                 )}
               </div>
               <div className="flex shrink-0 flex-wrap justify-end gap-1.5">

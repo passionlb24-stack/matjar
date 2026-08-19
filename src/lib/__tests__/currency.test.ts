@@ -13,6 +13,40 @@ describe("formatUsd", () => {
   it("handles zero", () => {
     expect(formatUsd(0)).toBe("$0");
   });
+  it("is unchanged when opts is absent or cents is falsy", () => {
+    expect(formatUsd(1234.5, {})).toBe("$1,234.5");
+    expect(formatUsd(1234.5, { cents: false })).toBe(formatUsd(1234.5));
+  });
+});
+
+describe("formatUsd with { cents: true }", () => {
+  // Pins the exact strings the invoice / POS / supplier / merchant-dashboard
+  // screens have always rendered. These five surfaces each carried their own
+  // copy of this arithmetic (MP-061); the option replaced the copies, so any
+  // drift here is a visible change to a merchant's money screen.
+  it("rounds to at most two decimals", () => {
+    expect(formatUsd(1234.5678, { cents: true })).toBe("$1,234.57");
+    expect(formatUsd(7.399999, { cents: true })).toBe("$7.4");
+    expect(formatUsd(0.005, { cents: true })).toBe("$0.01");
+  });
+  it("drops trailing zeros, as the copies it replaced did", () => {
+    expect(formatUsd(12.5, { cents: true })).toBe("$12.5");
+    expect(formatUsd(12.0, { cents: true })).toBe("$12");
+    expect(formatUsd(0, { cents: true })).toBe("$0");
+  });
+  it("groups thousands", () => {
+    expect(formatUsd(1000, { cents: true })).toBe("$1,000");
+    expect(formatUsd(1_000_000, { cents: true })).toBe("$1,000,000");
+  });
+  it("differs from the default only by that rounding", () => {
+    // Whole and 1-2dp amounts — the overwhelming majority — render identically,
+    // which is why adopting the option changed nothing on screen.
+    for (const v of [0, 5, 50, 999, 1000, 165000, 7.5]) {
+      expect(formatUsd(v, { cents: true })).toBe(formatUsd(v));
+    }
+    // Only >2dp amounts diverge, and that divergence is the point.
+    expect(formatUsd(1234.5678, { cents: true })).not.toBe(formatUsd(1234.5678));
+  });
 });
 
 describe("formatLbp", () => {

@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { CategoryKey } from "@/lib/catalog";
 import { categoryModule } from "@/lib/modules";
 import { Container } from "@/components/ui/container";
+import { FETCH_BOUNDS, warnIfTruncated } from "@/lib/data/bounds";
 import {
   ProductEditForm,
   type ProductInitial,
@@ -65,7 +66,9 @@ export default async function EditProductPage({
     .from("store_sections")
     .select("id, name, name_en")
     .eq("store_id", storeId)
-    .order("sort_order", { ascending: true });
+    .order("sort_order", { ascending: true })
+    .limit(FETCH_BOUNDS.storeSections);
+  warnIfTruncated(sectionData, FETCH_BOUNDS.storeSections, `store_sections (merchant editor, store ${storeId})`);
   const sections = (sectionData ?? []) as unknown as {
     id: string;
     name: string;
@@ -78,18 +81,26 @@ export default async function EditProductPage({
         .from("product_variants")
         .select("label, price, stock, color, size")
         .eq("product_id", productId)
-        .order("sort_order", { ascending: true }),
+        .order("sort_order", { ascending: true })
+        .limit(FETCH_BOUNDS.productVariants),
       supabase
         .from("product_options")
         .select("name, price, group_id")
         .eq("product_id", productId)
-        .order("sort_order", { ascending: true }),
+        .order("sort_order", { ascending: true })
+        .limit(FETCH_BOUNDS.productOptions),
       supabase
         .from("product_modifier_groups")
         .select("id, name, name_en, required, min_select, max_select")
         .eq("product_id", productId)
-        .order("sort_order", { ascending: true }),
+        .order("sort_order", { ascending: true })
+        .limit(FETCH_BOUNDS.productModifierGroups),
     ]);
+  // This form saves back what it loaded: a truncated read here would delete the
+  // rows that fell past the ceiling on the next save. Loudest of the lot.
+  warnIfTruncated(variants, FETCH_BOUNDS.productVariants, `product_variants (merchant editor, product ${productId})`);
+  warnIfTruncated(options, FETCH_BOUNDS.productOptions, `product_options (merchant editor, product ${productId})`);
+  warnIfTruncated(modGroups, FETCH_BOUNDS.productModifierGroups, `product_modifier_groups (merchant editor, product ${productId})`);
 
   const gallery = Array.isArray(product.gallery)
     ? (product.gallery as string[])

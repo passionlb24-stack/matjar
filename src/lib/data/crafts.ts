@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { FETCH_BOUNDS, warnIfTruncated } from "./bounds";
 
 // Data access for the crafts directory.
 //
@@ -66,13 +67,17 @@ export async function getTradeGroups(): Promise<TradeGroup[]> {
       .from("trade_groups")
       .select("slug, name_ar, name_en, icon")
       .eq("active", true)
-      .order("sort_order"),
+      .order("sort_order")
+      .limit(FETCH_BOUNDS.referenceRows),
     supabase
       .from("trades")
       .select("slug, name_ar, name_en, icon, group_slug")
       .eq("active", true)
-      .order("sort_order"),
+      .order("sort_order")
+      .limit(FETCH_BOUNDS.referenceRows),
   ]);
+  warnIfTruncated(groups, FETCH_BOUNDS.referenceRows, "trade_groups");
+  warnIfTruncated(trades, FETCH_BOUNDS.referenceRows, "trades");
 
   const byGroup = new Map<string, (TradeRef & { group_slug: string })[]>();
   for (const t of (trades ?? []) as (TradeRef & { group_slug: string })[]) {
@@ -93,7 +98,11 @@ export async function getAreasByRegion(): Promise<Record<string, AreaRef[]>> {
   const { data } = await supabase
     .from("lb_areas")
     .select("slug, region, name_ar, name_en")
-    .order("sort_order");
+    .order("sort_order")
+    .limit(FETCH_BOUNDS.referenceRows);
+  // Lebanon's area list is the one reference table close enough to PostgREST's
+  // default 1000-row cap for the silent truncation to have been a live risk.
+  warnIfTruncated(data, FETCH_BOUNDS.referenceRows, "lb_areas");
 
   const out: Record<string, AreaRef[]> = {};
   for (const a of (data ?? []) as (AreaRef & { region: string })[]) {

@@ -15,13 +15,10 @@ import { isPro } from "@/lib/plan";
 import { getStorePlan } from "@/lib/plan-server";
 import { ProGate } from "@/components/pro-gate";
 import { Container } from "@/components/ui/container";
+import { formatUsd } from "@/lib/currency";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function formatPrice(n: number) {
-  return n >= 1000 ? `$${Number(n).toLocaleString("en-US")}` : `$${n}`;
-}
 
 function Bars({
   title,
@@ -240,7 +237,7 @@ export default async function StoreReportsPage({
 
   const kpis = [
     { label: t.totalOrders, value: String(r.total_orders ?? 0) },
-    { label: t.sales, value: formatPrice(totalSales) },
+    { label: t.sales, value: formatUsd(totalSales) },
     {
       label: t.thisWeek,
       value: String(r.week?.count ?? 0),
@@ -298,10 +295,10 @@ export default async function StoreReportsPage({
     value: Number(c.fees),
   }));
   const deliveryKpis = [
-    { label: td.totalFees, value: formatPrice(Number(d.total_fees ?? 0)) },
+    { label: td.totalFees, value: formatUsd(Number(d.total_fees ?? 0)) },
     { label: td.dispatches, value: String(dispatchCount) },
     { label: td.delivered, value: String(d.delivered ?? 0) },
-    { label: td.avgFee, value: formatPrice(Number(d.avg_fee ?? 0)) },
+    { label: td.avgFee, value: formatUsd(Number(d.avg_fee ?? 0)) },
   ];
 
   // ===== Audience side (visits / sources / conversion), from migration 0161.
@@ -369,7 +366,7 @@ export default async function StoreReportsPage({
 
         {pendingSales > 0 && (
           <p className="mt-2 text-xs font-semibold text-warning">
-            {dict.os.finance.pending}: {formatPrice(pendingSales)} —{" "}
+            {dict.os.finance.pending}: {formatUsd(pendingSales)} —{" "}
             {dict.os.finance.pendingHint}
           </p>
         )}
@@ -407,9 +404,9 @@ export default async function StoreReportsPage({
 
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
-                { label: t.profitRevenue, value: formatPrice(Number(m.revenue ?? 0)) },
-                { label: t.profitCogs, value: formatPrice(Number(m.cogs ?? 0)) },
-                { label: t.profitGross, value: formatPrice(grossProfit) },
+                { label: t.profitRevenue, value: formatUsd(Number(m.revenue ?? 0)) },
+                { label: t.profitCogs, value: formatUsd(Number(m.cogs ?? 0)) },
+                { label: t.profitGross, value: formatUsd(grossProfit) },
                 { label: t.profitMargin, value: marginPct.toFixed(1) + "%" },
               ].map((k) => (
                 <div

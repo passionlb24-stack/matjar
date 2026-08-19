@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createPublicClient } from "@/lib/supabase/public-client";
 import type { CategoryKey } from "@/lib/catalog";
+import { FETCH_BOUNDS, warnIfTruncated } from "./bounds";
 import type {
   Variant,
   AddOn,
@@ -78,18 +79,25 @@ async function fetchProductView(
         .from("product_variants")
         .select("id, label, price, stock, is_available, color, size")
         .eq("product_id", id)
-        .order("sort_order", { ascending: true }),
+        .order("sort_order", { ascending: true })
+        .limit(FETCH_BOUNDS.productVariants),
       supabase
         .from("product_options")
         .select("id, name, price, group_id")
         .eq("product_id", id)
-        .order("sort_order", { ascending: true }),
+        .order("sort_order", { ascending: true })
+        .limit(FETCH_BOUNDS.productOptions),
       supabase
         .from("product_modifier_groups")
         .select("id, name, name_en, required, min_select, max_select")
         .eq("product_id", id)
-        .order("sort_order", { ascending: true }),
+        .order("sort_order", { ascending: true })
+        .limit(FETCH_BOUNDS.productModifierGroups),
     ]);
+  // A picker that silently drops variants would quote the wrong price.
+  warnIfTruncated(variants, FETCH_BOUNDS.productVariants, `product_variants (product ${id})`);
+  warnIfTruncated(addons, FETCH_BOUNDS.productOptions, `product_options (product ${id})`);
+  warnIfTruncated(modGroups, FETCH_BOUNDS.productModifierGroups, `product_modifier_groups (product ${id})`);
 
   // Bundle contents for the "what's inside" list on the detail page.
   const isBundle = (data.is_bundle as boolean | null) ?? false;
@@ -99,7 +107,9 @@ async function fetchProductView(
       .from("bundle_items")
       .select("quantity, sort_order, products(name, name_en)")
       .eq("bundle_id", id)
-      .order("sort_order", { ascending: true });
+      .order("sort_order", { ascending: true })
+      .limit(FETCH_BOUNDS.bundleItems);
+    warnIfTruncated(bItems, FETCH_BOUNDS.bundleItems, `bundle_items (bundle ${id})`);
     includes = ((bItems ?? []) as unknown as {
       quantity: number;
       products: { name: string; name_en: string | null } | null;

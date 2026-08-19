@@ -6,10 +6,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import type { ListingCard } from "@/lib/data/market";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
-function formatPrice(price: number) {
-  return price >= 1000 ? `$${Number(price).toLocaleString("en-US")}` : `$${price}`;
-}
+import { formatUsd } from "@/lib/currency";
 
 export function MarketListingCard({
   listing,
@@ -57,7 +54,7 @@ export function MarketListingCard({
         </h3>
         {listing.price != null && (
           <p className="mt-1 text-lg font-extrabold text-primary">
-            {formatPrice(listing.price)}
+            {formatUsd(listing.price)}
           </p>
         )}
         <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">

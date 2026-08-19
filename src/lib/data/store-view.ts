@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createPublicClient } from "@/lib/supabase/public-client";
 import type { CategoryKey } from "@/lib/catalog";
 import type { StorePlan } from "@/lib/plan-tiers";
+import { FETCH_BOUNDS, warnIfTruncated } from "./bounds";
 
 // The public store view: the store row + its active catalogue + sections. This
 // is the heaviest, most-visited public read on the site (the store page is the
@@ -126,7 +127,11 @@ async function fetchStoreView(
     .eq("status", "active")
     .eq("is_available", true)
     .is("deleted_at", null)
-    .order("sort_order", { ascending: true });
+    .order("sort_order", { ascending: true })
+    .limit(FETCH_BOUNDS.storeProducts);
+  // The storefront renders this whole array; a truncated catalog is a store
+  // quietly missing stock, which is exactly what nobody would think to check.
+  warnIfTruncated(prods, FETCH_BOUNDS.storeProducts, `products (store ${id})`);
   // Bundle contents ("includes: 2× X, 1× Y") for any bundle products, with the
   // component name pulled through the FK so hidden components still show.
   const bundleIds = (prods ?? [])
@@ -141,7 +146,9 @@ async function fetchStoreView(
       .from("bundle_items")
       .select("bundle_id, quantity, sort_order, products(name, name_en)")
       .in("bundle_id", bundleIds)
-      .order("sort_order", { ascending: true });
+      .order("sort_order", { ascending: true })
+      .limit(FETCH_BOUNDS.storeBundleItems);
+    warnIfTruncated(bItems, FETCH_BOUNDS.storeBundleItems, `bundle_items (store ${id})`);
     for (const it of (bItems ?? []) as unknown as {
       bundle_id: string;
       quantity: number;
@@ -168,7 +175,13 @@ async function fetchStoreView(
       .in(
         "product_id",
         (prods ?? []).map((p) => p.id as string),
-      );
+      )
+      .limit(FETCH_BOUNDS.storeVariants);
+    // Truncation here is the expensive one: a product whose variant rows fell
+    // past the ceiling looks variant-less, so the grid offers quick-add and
+    // charges the base price instead of routing to the picker. Money, not
+    // cosmetics — hence the alarm.
+    warnIfTruncated(vars, FETCH_BOUNDS.storeVariants, `product_variants (store ${id})`);
     for (const v of (vars ?? []) as { product_id: string }[]) {
       variantProductIds.add(v.product_id);
     }
@@ -180,14 +193,18 @@ async function fetchStoreView(
     .from("store_sections")
     .select("id, name, name_en, sort_order")
     .eq("store_id", id)
-    .order("sort_order", { ascending: true });
+    .order("sort_order", { ascending: true })
+    .limit(FETCH_BOUNDS.storeSections);
+  warnIfTruncated(sects, FETCH_BOUNDS.storeSections, `store_sections (store ${id})`);
   // Merchant-defined custom checkout fields (active only), shown at checkout.
   const { data: cfields } = await supabase
     .from("store_checkout_fields")
     .select("id, label, label_en, field_type, options, required")
     .eq("store_id", id)
     .eq("active", true)
-    .order("sort_order", { ascending: true });
+    .order("sort_order", { ascending: true })
+    .limit(FETCH_BOUNDS.storeCheckoutFields);
+  warnIfTruncated(cfields, FETCH_BOUNDS.storeCheckoutFields, `store_checkout_fields (store ${id})`);
 
   return {
     name: data.name as string,

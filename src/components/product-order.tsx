@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { noteHintKey } from "@/lib/note-hint";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
-import { formatLbp } from "@/lib/currency";
+import { formatUsd, formatLbp } from "@/lib/currency";
 
 export type Variant = {
   id: string;
@@ -35,12 +35,6 @@ export type ModifierGroup = {
 
 const fieldClass =
   "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
-
-function formatPrice(price: number) {
-  return price >= 1000
-    ? `$${Number(price).toLocaleString("en-US")}`
-    : `$${price}`;
-}
 
 export function ProductOrder({
   lang,
@@ -319,7 +313,7 @@ export function ProductOrder({
                       {v.size ?? v.label}
                       {v.price != null && (
                         <span className="ms-1 text-xs font-normal text-muted-foreground">
-                          {formatPrice(v.price)}
+                          {formatUsd(v.price)}
                         </span>
                       )}
                     </button>
@@ -365,7 +359,7 @@ export function ProductOrder({
                     {v.label}
                     {v.price != null && (
                       <span className="ms-1 text-xs font-normal text-muted-foreground">
-                        {formatPrice(v.price)}
+                        {formatUsd(v.price)}
                       </span>
                     )}
                   </button>
@@ -427,7 +421,7 @@ export function ProductOrder({
                     </span>
                     {a.price > 0 && (
                       <span className="font-bold text-primary">
-                        + {formatPrice(a.price)}
+                        + {formatUsd(a.price)}
                       </span>
                     )}
                   </label>
@@ -458,7 +452,7 @@ export function ProductOrder({
                   {a.name}
                 </span>
                 <span className="font-bold text-primary">
-                  + {formatPrice(a.price)}
+                  + {formatUsd(a.price)}
                 </span>
               </label>
             ))}
@@ -535,7 +529,7 @@ export function ProductOrder({
           <div className="flex items-center justify-between border-t border-border pt-4">
             <div>
               <span className="text-lg font-extrabold">
-                {dict.product.total}: {formatPrice(total)}
+                {dict.product.total}: {formatUsd(total)}
               </span>
               {lbpRate > 0 && (
                 <p className="text-xs text-muted-foreground">
@@ -567,7 +561,7 @@ export function ProductOrder({
           className="space-y-4 border-t border-border pt-4"
         >
           <p className="text-lg font-extrabold">
-            {dict.product.total}: {formatPrice(total)}
+            {dict.product.total}: {formatUsd(total)}
           </p>
           {lbpRate > 0 && (
             <p className="-mt-3 text-xs text-muted-foreground">

@@ -4,6 +4,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdminSection } from "@/lib/admin-guard";
+import { labelFor } from "@/lib/status-labels";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
 import { Stat } from "@/components/ui/stat";
@@ -197,7 +198,7 @@ export default async function AdminGrowthPage({
                     <span className="font-bold">{c.title ?? "—"}</span>
                     {c.audience && (
                       <Badge variant="info" size="sm">
-                        {c.audience}
+                        {labelFor(dict, "campaignAudience", c.audience)}
                       </Badge>
                     )}
                     <span className="text-xs text-muted-foreground">
@@ -233,7 +234,8 @@ export default async function AdminGrowthPage({
                     <span className="font-bold">{a.name ?? "—"}</span>
                     {a.trigger && (
                       <Badge variant="neutral" size="sm">
-                        {t.trigger}: {a.trigger}
+                        {t.trigger}:{" "}
+                        {labelFor(dict, "automationTrigger", a.trigger)}
                       </Badge>
                     )}
                     <Badge variant={a.enabled ? "success" : "neutral"} size="sm">

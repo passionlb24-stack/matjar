@@ -11,6 +11,7 @@ import {
 } from "@/lib/catalog";
 import { isOpenNow, parseHours } from "@/lib/hours";
 import type { StorePlan } from "@/lib/plan-tiers";
+import { FETCH_BOUNDS, warnIfTruncated } from "./bounds";
 import {
   DISCOVERY_PAGE_SIZE,
   EMPTY_COVERAGE,
@@ -112,9 +113,19 @@ const fetchCatalogFacts = unstable_cache(
         .from("products")
         .select("store_id, in_offers, discount_price")
         .eq("status", "active")
-        .is("deleted_at", null),
-      supabase.from("store_sections").select("store_id"),
+        .is("deleted_at", null)
+        .limit(FETCH_BOUNDS.allProducts),
+      supabase
+        .from("store_sections")
+        .select("store_id")
+        .limit(FETCH_BOUNDS.allStoreSections),
     ]);
+    // Platform-wide rollups: these scale with total catalog size rather than
+    // store count, so they are the first of all the bounded fetches that will
+    // realistically hit a ceiling. Truncation understates every affected
+    // store's product count and can hide its "has offers" badge entirely.
+    warnIfTruncated(products, FETCH_BOUNDS.allProducts, "products (discovery catalog facts)");
+    warnIfTruncated(sections, FETCH_BOUNDS.allStoreSections, "store_sections (discovery catalog facts)");
     const out: Record<string, CatalogFact> = {};
     const get = (id: string) =>
       (out[id] ??= { catalogCount: 0, hasOffers: false, sectionCount: 0 });
@@ -144,9 +155,14 @@ const fetchProviderCounts = unstable_cache(
   async (): Promise<Record<string, number>> => {
     const supabase = createPublicClient();
     const [{ data: doctors }, { data: providers }] = await Promise.all([
-      supabase.from("doctors").select("store_id"),
-      supabase.from("service_providers").select("store_id"),
+      supabase.from("doctors").select("store_id").limit(FETCH_BOUNDS.allProviders),
+      supabase
+        .from("service_providers")
+        .select("store_id")
+        .limit(FETCH_BOUNDS.allProviders),
     ]);
+    warnIfTruncated(doctors, FETCH_BOUNDS.allProviders, "doctors (discovery provider counts)");
+    warnIfTruncated(providers, FETCH_BOUNDS.allProviders, "service_providers (discovery provider counts)");
     const out: Record<string, number> = {};
     for (const r of [...(doctors ?? []), ...(providers ?? [])] as {
       store_id: string;
@@ -369,7 +385,9 @@ async function attachLocations(list: DiscoveryStore[]): Promise<void> {
       "store_id",
       list.map((s) => s.id),
     )
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .limit(FETCH_BOUNDS.storeLocations);
+  warnIfTruncated(data, FETCH_BOUNDS.storeLocations, "store_locations (discovery page)");
   const byStore = new Map<string, NonNullable<Store["locations"]>>();
   for (const l of (data ?? []) as {
     id: string;
@@ -407,7 +425,9 @@ async function markFavorites(list: DiscoveryStore[]): Promise<void> {
   const { data } = await supabase
     .from("follows")
     .select("store_id")
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .limit(FETCH_BOUNDS.follows);
+  warnIfTruncated(data, FETCH_BOUNDS.follows, `follows (discovery, user ${user.id})`);
   const ids = new Set(((data ?? []) as { store_id: string }[]).map((f) => f.store_id));
   for (const s of list) s.favorited = ids.has(s.id);
 }

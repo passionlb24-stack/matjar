@@ -23,6 +23,7 @@ import { localized } from "@/lib/i18n-field";
 import { groupBySection, type SectionInfo } from "@/lib/sections";
 import { categoryIcons } from "@/components/category-icon";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { formatUsd } from "@/lib/currency";
 
 type Service = {
   id: string;
@@ -63,12 +64,6 @@ const triggerClass =
 
 /** The phone flow, in order. `provider` drops out of stores with one choice. */
 type Step = "service" | "provider" | "date" | "time" | "details" | "review";
-
-function formatPrice(price: number) {
-  return price >= 1000
-    ? `$${Number(price).toLocaleString("en-US")}`
-    : `$${price}`;
-}
 
 export function BookingPanel({
   storeId,
@@ -645,7 +640,7 @@ export function BookingPanel({
                   {attributeSummary(category, s.attributes, lang)}
                 </p>
               )}
-              <p className="mt-0.5 text-sm font-bold">{formatPrice(s.price)}</p>
+              <p className="mt-0.5 text-sm font-bold">{formatUsd(s.price)}</p>
             </div>
           </div>
         ))}
@@ -771,7 +766,7 @@ export function BookingPanel({
                 </div>
                 {selectedPrice > 0 && (
                   <p className="shrink-0 text-sm font-extrabold tabular-nums">
-                    {formatPrice(netPrice)}
+                    {formatUsd(netPrice)}
                   </p>
                 )}
               </div>
@@ -1072,11 +1067,11 @@ export function BookingPanel({
                   {coupon && (
                     <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-success-soft px-3 py-2 text-sm font-bold text-success">
                       <span>
-                        {dict.booking.discountLabel}: −{formatPrice(coupon.discount)}
+                        {dict.booking.discountLabel}: −{formatUsd(coupon.discount)}
                       </span>
                       <span className="text-foreground">
                         {dict.booking.netLabel}:{" "}
-                        {formatPrice(Math.max(0, selectedPrice - coupon.discount))}
+                        {formatUsd(Math.max(0, selectedPrice - coupon.discount))}
                       </span>
                     </div>
                   )}
@@ -1112,7 +1107,7 @@ export function BookingPanel({
                       {dict.booking.steps.price}
                     </dt>
                     <dd className="text-sm font-extrabold tabular-nums">
-                      {formatPrice(netPrice)}
+                      {formatUsd(netPrice)}
                     </dd>
                   </div>
                 )}

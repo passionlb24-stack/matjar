@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCustomerActivity } from "@/lib/data/activity";
 import { Container } from "@/components/ui/container";
 import { ActivityList } from "@/components/activity-list";
+import { labelMap } from "@/lib/status-labels";
 import type { ActivityKind } from "@/lib/data/activity";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
@@ -33,12 +34,16 @@ export default async function ActivityPage({
   const items = await getCustomerActivity(lang);
   const t = dict.activity as unknown as Record<string, string>;
 
-  // Each domain's own wording, passed through untouched.
+  // Each domain's own wording, passed through untouched. Resolved through
+  // lib/status-labels.ts rather than by hand: `lead` used to be `{}` here, and a
+  // literal empty object is something a `Record<string, string>` cast is happy
+  // to accept, so the screen shipped raw `negotiating` to Arabic customers
+  // (MP-020) without a single type error.
   const statusLabels: Record<ActivityKind, Record<string, string>> = {
-    order: dict.orders.status as unknown as Record<string, string>,
-    booking: dict.booking.status as unknown as Record<string, string>,
-    craft: dict.crafts.reqStatuses as unknown as Record<string, string>,
-    lead: {},
+    order: labelMap(dict, "order"),
+    booking: labelMap(dict, "booking"),
+    craft: labelMap(dict, "craftRequest"),
+    lead: labelMap(dict, "lead"),
   };
 
   return (
@@ -52,6 +57,7 @@ export default async function ActivityPage({
           lang={lang}
           labels={{ ...t, emptyHref: `/${lang}/explore` }}
           statusLabels={statusLabels}
+          leadKindLabels={labelMap(dict, "leadKind")}
         />
       </Container>
     </div>

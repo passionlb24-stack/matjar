@@ -15,6 +15,7 @@ import { ProductRowActions } from "@/components/product-row-actions";
 import { ProGate } from "@/components/pro-gate";
 import { planProductLimit } from "@/lib/plan";
 import { effectivePlan as resolvePlan } from "@/lib/plan-tiers";
+import { formatUsd } from "@/lib/currency";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -26,12 +27,6 @@ type ProductRow = {
   is_available: boolean;
   image_url: string | null;
 };
-
-function formatPrice(price: number) {
-  return price >= 1000
-    ? `$${Number(price).toLocaleString("en-US")}`
-    : `$${price}`;
-}
 
 // Catalog module of the Business OS: the store's menu / products / services /
 // listings, with the add form beside the list.
@@ -196,7 +191,7 @@ export default async function StoreItemsPage({
                       </span>
                     )}
                     <span className="font-bold text-primary">
-                      {formatPrice(p.price)}
+                      {formatUsd(p.price)}
                     </span>
                     <Link
                       href={`/${lang}/merchant/${storeId}/products/${p.id}`}

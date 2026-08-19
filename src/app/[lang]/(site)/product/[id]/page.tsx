@@ -41,7 +41,7 @@ import { getProductQuestions } from "@/lib/data/product-qa";
 import { ProductReviews } from "@/components/product-reviews";
 import { ProductQA } from "@/components/product-qa";
 import { RecentlyViewed } from "@/components/recently-viewed";
-import { formatLbp } from "@/lib/currency";
+import { formatUsd, formatLbp } from "@/lib/currency";
 import { localized } from "@/lib/i18n-field";
 import { ProductMiniCard } from "@/components/product-mini-card";
 import { Container } from "@/components/ui/container";
@@ -63,10 +63,6 @@ import {
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function formatPrice(price: number) {
-  return price >= 1000 ? `$${Number(price).toLocaleString("en-US")}` : `$${price}`;
-}
 
 // React cache(): generateMetadata and the page both call loadProduct(id) for
 // the same request — dedupe into one call. The public product view now comes
@@ -305,11 +301,11 @@ export default async function ProductPage({
         <span
           className={`text-money text-2xl font-extrabold ${flashEnd != null ? "text-warning" : "text-primary"}`}
         >
-          {formatPrice(basePrice)}
+          {formatUsd(basePrice)}
         </span>
         {compareAt != null && (
           <span className="text-money text-lg text-muted-foreground line-through">
-            {formatPrice(compareAt)}
+            {formatUsd(compareAt)}
           </span>
         )}
         {flashEnd != null && <FlashCountdown endsAt={flashEnd} dict={dict} />}
@@ -729,8 +725,8 @@ export default async function ProductPage({
         {offering.transacts && (
           <ProductBuyBar
             targetId="buy-box"
-            price={formatPrice(basePrice)}
-            compareAt={compareAt != null ? formatPrice(compareAt) : null}
+            price={formatUsd(basePrice)}
+            compareAt={compareAt != null ? formatUsd(compareAt) : null}
             label={ctaLabel}
             soldOut={soldOut}
             soldOutLabel={dict.product.outOfStock}

@@ -61,12 +61,12 @@ import {
 } from "@/components/os-dashboard/reviews-widget";
 import { dictSlice } from "@/lib/dict-slice";
 import type { StorePlan } from "@/lib/plan-tiers";
+import { formatUsd } from "@/lib/currency";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const fmtMoney = (n: number) =>
-  `$${Number(Number(n).toFixed(2)).toLocaleString("en-US")}`;
+const fmtMoney = (n: number) => formatUsd(n, { cents: true });
 
 // ===== The dashboard's building blocks, ordered per sector =====
 // Same widgets everywhere — a clinic and a boutique share one codebase — but

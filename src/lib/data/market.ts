@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { createPublicClient } from "@/lib/supabase/public-client";
 import type { Locale } from "@/i18n/config";
+import { FETCH_BOUNDS, warnIfTruncated } from "./bounds";
 
 export type MarketCategory = {
   id: string;
@@ -97,7 +98,9 @@ const fetchMarketCategoriesRaw = unstable_cache(
       .from("market_categories")
       .select("id, slug, name_ar, name_en")
       .eq("is_active", true)
-      .order("sort_order", { ascending: true });
+      .order("sort_order", { ascending: true })
+      .limit(FETCH_BOUNDS.referenceRows);
+    warnIfTruncated(data, FETCH_BOUNDS.referenceRows, "market_categories");
     return (data ?? []) as {
       id: string;
       slug: string;
@@ -128,7 +131,9 @@ const fetchMarketRegionsRaw = unstable_cache(
       .from("market_regions")
       .select("key, name_ar, name_en")
       .eq("is_active", true)
-      .order("sort_order", { ascending: true });
+      .order("sort_order", { ascending: true })
+      .limit(FETCH_BOUNDS.referenceRows);
+    warnIfTruncated(data, FETCH_BOUNDS.referenceRows, "market_regions");
     return (data ?? []) as { key: string; name_ar: string; name_en: string }[];
   },
   ["market-regions"],
@@ -154,7 +159,9 @@ const fetchMarketCitiesRaw = unstable_cache(
       .select("id, region, name_ar, name_en")
       .eq("is_active", true)
       .order("region", { ascending: true })
-      .order("sort_order", { ascending: true });
+      .order("sort_order", { ascending: true })
+      .limit(FETCH_BOUNDS.referenceRows);
+    warnIfTruncated(data, FETCH_BOUNDS.referenceRows, "market_cities");
     return (data ?? []) as {
       id: string;
       region: string;
@@ -342,6 +349,10 @@ export async function getMyListings(
     .from("listings")
     .select(SELECT)
     .eq("seller_id", userId)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(FETCH_BOUNDS.myListings);
+  // Newest-first, so a seller past the ceiling loses their oldest listings from
+  // this screen — the ones they are least likely to notice missing.
+  warnIfTruncated(data, FETCH_BOUNDS.myListings, `listings (seller ${userId})`);
   return ((data ?? []) as unknown as Row[]).map((r) => toCard(r, lang));
 }

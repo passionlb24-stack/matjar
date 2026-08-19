@@ -8,6 +8,7 @@ import { isPro } from "@/lib/plan";
 import { getStorePlan } from "@/lib/plan-server";
 import { ProGate } from "@/components/pro-gate";
 import { Container } from "@/components/ui/container";
+import { formatUsd } from "@/lib/currency";
 import {
   PosTerminal,
   type PosProduct,
@@ -19,7 +20,7 @@ const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function fmt(n: number) {
-  return `$${Number(n.toFixed(2)).toLocaleString("en-US")}`;
+  return formatUsd(n, { cents: true });
 }
 
 // POS module of the Business OS: record in-store sales against the catalog.

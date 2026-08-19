@@ -3,6 +3,8 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdminSection } from "@/lib/admin-guard";
+import { labelFor } from "@/lib/status-labels";
+import { regions } from "@/lib/catalog";
 import {
   AdminModerationClient,
   type ModerationItem,
@@ -37,11 +39,20 @@ export default async function AdminJobsPage({
     created_at: string;
   }[];
 
+  // The public job board translates both of these (site/jobs/page.tsx); the
+  // moderation queue used to join the raw column values, so a reviewer working
+  // in Arabic read "full_time · mountLebanon" under an Arabic job title.
+  const regionName = (key: string | null) =>
+    key ? (regions.find((x) => x.key === key)?.name[lang] ?? key) : null;
+
   const items: ModerationItem[] = rows.map((r) => ({
     id: r.id,
     title: r.title,
     author: r.company_name,
-    meta: [r.job_type, r.region].filter(Boolean).join(" · ") || null,
+    meta:
+      [labelFor(dict, "jobType", r.job_type), regionName(r.region)]
+        .filter(Boolean)
+        .join(" · ") || null,
     image: null,
     status: r.status,
     createdAt: r.created_at,
