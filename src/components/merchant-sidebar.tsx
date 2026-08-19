@@ -4,11 +4,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { supportWaLink } from "@/lib/support";
 import {
   ExternalLink,
   LayoutDashboard,
   Lock,
   Menu,
+  MessageCircle,
   Store,
   X,
 } from "lucide-react";
@@ -46,6 +48,7 @@ export type SidebarNav = {
   groups: { key: string; label: string; items: SidebarItem[] }[];
   pinned: SidebarItem[];
   backLabel: string;
+  supportLabel: string;
   viewStoreLabel: string;
   proBadge: string;
   freeBadge: string;
@@ -281,6 +284,27 @@ export function MerchantSidebar({
           <Store className="h-4 w-4 shrink-0" aria-hidden />
           <span className="min-w-0 flex-1 truncate">{nav.backLabel}</span>
         </Link>
+        {/* The merchant dashboard had no route to a human anywhere in it. A
+            merchant whose orders stopped arriving, or who cannot find where a
+            setting moved, was expected to navigate out to the customer site and
+            hunt for a contact page. These are the people paying for the
+            platform; the way to reach somebody belongs where they already are.
+            The shop's name rides along in the prefill, because the first thing
+            support would otherwise have to ask is "which store?". */}
+        <a
+          href={supportWaLink(
+            `${storeName} — ${nav.supportLabel}`,
+          )}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => setOpen(false)}
+          className="flex h-9 items-center gap-2.5 rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-whatsapp active:scale-[0.98]"
+        >
+          <MessageCircle className="h-4 w-4 shrink-0" aria-hidden />
+          <span className="min-w-0 flex-1 truncate">
+            {nav.supportLabel}
+          </span>
+        </a>
       </div>
     </>
   );

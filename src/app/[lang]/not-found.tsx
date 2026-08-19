@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { supportWaLink } from "@/lib/support";
 
 // Localized 404. Params aren't available to not-found boundaries, so it links to
 // the root and lets the locale proxy route to the default language.
@@ -43,6 +44,21 @@ export default function NotFound() {
       >
         العودة للرئيسية · Home
       </Link>
+      {/* A dead link is often a link somebody was GIVEN — a shop's card, a
+          WhatsApp forward — so the person standing here may be looking for a
+          real business and holding a URL that no longer resolves. Home does not
+          help them find it; a human can. Quiet on purpose: this is the second
+          thing to try, not the first.
+          No dictionary here — a not-found boundary gets no params, so there is
+          no locale to look one up with. Both languages, like the copy above. */}
+      <a
+        href={supportWaLink()}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="min-h-11 text-sm font-semibold text-muted-foreground underline decoration-border underline-offset-4 transition-colors hover:text-whatsapp"
+      >
+        بتدوّر على شي محدّد؟ احكينا · Ask us
+      </a>
     </div>
   );
 }

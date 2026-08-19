@@ -12,6 +12,9 @@
     "openNow": "Open now"
   },
   "common": {
+    "supportWhatsapp": "Message us on WhatsApp",
+    "supportWhatsappShort": "WhatsApp",
+    "supportStuck": "Stuck? Message us on WhatsApp",
     "brand": "Matjar",
     "confirm": "Confirm",
     "cancel": "Cancel",

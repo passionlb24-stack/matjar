@@ -7,6 +7,7 @@ import { localeAlternates } from "@/lib/site";
 import { jsonLdScript } from "@/lib/jsonld";
 import { Container } from "@/components/ui/container";
 import { ButtonLink } from "@/components/ui/button";
+import { supportWaLink } from "@/lib/support";
 
 export async function generateMetadata({
   params,
@@ -74,8 +75,14 @@ export default async function HelpPage({
           ))}
         </div>
 
+        {/* Somebody reading the bottom of the FAQ has already failed to find
+            their answer here. Sending them to a contact PAGE, which then offers
+            a WhatsApp link, is one hop of nothing. This opens the conversation. */}
         <ButtonLink
-          href={`/${lang}/contact`}
+          href={supportWaLink()}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="whatsapp"
           className="mt-8"
           leftIcon={<MessageCircle className="h-4 w-4" />}
         >
