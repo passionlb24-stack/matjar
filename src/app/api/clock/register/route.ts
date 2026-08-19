@@ -134,6 +134,11 @@ export async function POST(req: Request) {
       p_public_key: Buffer.from(credential.publicKey).toString("base64url"),
       p_counter: credential.counter,
       p_label: body.label?.slice(0, 60) ?? null,
+      // Record which host minted this credential. WebAuthn already refuses to
+      // verify it anywhere else, so this is not what stops cross-host use — it is
+      // what lets us tell an employee WHY their fingerprint stopped working after
+      // a domain change, instead of showing them a generic failure.
+      p_rp_id: rpID,
     });
     if (error) {
       return NextResponse.json({ error: "save_failed" }, { status: 500 });

@@ -367,7 +367,19 @@ export function ClockDevice({
           }),
         }).then((r) => r.json());
 
-        if (res.error === "device_not_registered") {
+        // Both mean "this phone is not the one enrolled here": either it was enrolled
+
+        // at another shop, or against another hostname. The employee needs the same
+
+        // thing in both cases — enrol this phone again — so they get the same words.
+
+        if (
+
+          res.error === "device_not_registered" ||
+
+          res.error === "device_other_host"
+
+        ) {
           setOverride(false);
           setSnap(null);
           setMsg({ ok: false, text: labels.notRegistered });
