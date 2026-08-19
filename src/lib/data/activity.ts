@@ -23,6 +23,11 @@ export type ActivityItem = {
   title: string;
   status: string;
   createdAt: string;
+  /** Raw `lead_kind`, leads only — the row's only description when the customer
+   *  sent no message. Carried raw so the SCREEN can translate it; this module
+   *  stays data-only and the site layout can keep calling it just to count
+   *  badges without pulling the whole dictionary in behind it. */
+  leadKind: string | null;
   /** Money, where the transaction has any. Bookings and leads usually don't. */
   total: number | null;
   /** True when the ball is in the CUSTOMER's court — drives the tab badge. */
@@ -87,6 +92,7 @@ export async function getCustomerActivity(
       title: `#${o.id.slice(0, 8)}`,
       status: o.status,
       createdAt: o.created_at,
+      leadKind: null,
       total: Number(o.total ?? 0),
       // A finished order the customer hasn't reviewed is still "theirs to do".
       needsCustomer: o.status === "completed",
@@ -109,6 +115,7 @@ export async function getCustomerActivity(
       title: b.service_name ?? "",
       status: b.status,
       createdAt: b.created_at,
+      leadKind: null,
       total: null,
       // A confirmed appointment is something to show up to.
       needsCustomer: b.status === "accepted" || b.status === "scheduled",
@@ -130,6 +137,7 @@ export async function getCustomerActivity(
       title: c.description.slice(0, 60),
       status: c.status,
       createdAt: c.created_at,
+      leadKind: null,
       total: null,
       // Finished work is waiting to be rated.
       needsCustomer: c.status === "completed",
@@ -149,9 +157,14 @@ export async function getCustomerActivity(
       kind: "lead",
       storeName: l.stores?.name ?? "",
       href: `/${lang}/messages`,
-      title: (l.message ?? l.kind ?? "").slice(0, 60),
+      // The kind is NOT folded into the title any more. `lead_kind` is a
+      // Postgres enum, so a customer who tapped "request a viewing" and typed
+      // nothing got the literal string `test_drive` as their row's heading.
+      // It travels as leadKind instead, and the screen puts words on it.
+      title: (l.message ?? "").slice(0, 60),
       status: l.status,
       createdAt: l.created_at,
+      leadKind: l.kind,
       total: null,
       needsCustomer: false,
     });

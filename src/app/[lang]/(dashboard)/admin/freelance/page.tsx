@@ -3,6 +3,8 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdminSection } from "@/lib/admin-guard";
+import { labelFor } from "@/lib/status-labels";
+import { regions } from "@/lib/catalog";
 import {
   AdminModerationClient,
   type ModerationItem,
@@ -41,12 +43,21 @@ export default async function AdminFreelancePage({
     created_at: string;
   }[];
 
+  // Both translated on the public gig page; the moderation queue was joining
+  // the raw columns, so an Arabic reviewer read "voice · bekaa".
+  const regionName = (key: string | null) =>
+    key ? (regions.find((x) => x.key === key)?.name[lang] ?? key) : null;
+
   const items: ModerationItem[] = rows.map((r) => ({
     id: r.id,
     title: r.title,
     author: r.freelancer_name,
     meta:
-      [r.category, r.region, r.price != null ? `$${r.price}` : null]
+      [
+        labelFor(dict, "freelanceCategory", r.category),
+        regionName(r.region),
+        r.price != null ? `$${r.price}` : null,
+      ]
         .filter(Boolean)
         .join(" · ") || null,
     image: r.image_url,

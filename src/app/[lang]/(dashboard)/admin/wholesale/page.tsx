@@ -3,6 +3,8 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdminSection } from "@/lib/admin-guard";
+import { labelFor } from "@/lib/status-labels";
+import { regions } from "@/lib/catalog";
 import {
   AdminModerationClient,
   type ModerationItem,
@@ -41,14 +43,21 @@ export default async function AdminWholesalePage({
     created_at: string;
   }[];
 
+  // Both translated on the public listing page; the moderation queue was
+  // joining the raw columns, so an Arabic reviewer read "cosmetics · north".
+  // `unit` stays as typed — it is merchant free text (carton / kg / …), not an
+  // enum, and translating a merchant's own word would be putting words in it.
+  const regionName = (key: string | null) =>
+    key ? (regions.find((x) => x.key === key)?.name[lang] ?? key) : null;
+
   const items: ModerationItem[] = rows.map((r) => ({
     id: r.id,
     title: r.title,
     author: r.seller_name,
     meta:
       [
-        r.category,
-        r.region,
+        labelFor(dict, "wholesaleCategory", r.category),
+        regionName(r.region),
         r.price != null ? `$${r.price}${r.unit ? `/${r.unit}` : ""}` : null,
       ]
         .filter(Boolean)

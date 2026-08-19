@@ -44,12 +44,15 @@ export function ActivityList({
   items,
   labels,
   statusLabels,
+  leadKindLabels,
   lang,
 }: {
   items: ActivityItem[];
   labels: Record<string, string>;
   /** Each domain keeps its own wording — see lib/data/activity.ts. */
   statusLabels: Record<ActivityKind, Record<string, string>>;
+  /** `lead_kind` → words, for the leads that arrived without a message. */
+  leadKindLabels: Record<string, string>;
   lang: Locale;
 }) {
   const [kind, setKind] = useState<ActivityKind | "all">("all");
@@ -117,8 +120,14 @@ export function ActivityList({
         <ul className="mt-4 space-y-3">
           {shown.map((it) => {
             const Icon = ICONS[it.kind];
-            const status =
-              statusLabels[it.kind]?.[it.status] ?? it.status;
+            const status = statusLabels[it.kind]?.[it.status] ?? it.status;
+            // Half the leads in this market carry no message — the customer
+            // taps "request a viewing" and waits for the phone to ring. The
+            // kind is then the only thing describing the row, so it stands in
+            // for the title, in words rather than as the raw enum.
+            const title =
+              it.title ||
+              (it.leadKind ? (leadKindLabels[it.leadKind] ?? it.leadKind) : "");
             return (
               <li key={`${it.kind}-${it.id}`}>
                 <Link
@@ -151,14 +160,14 @@ export function ActivityList({
                     {/* dir=auto: store/product names are merchant text and may
                         be Latin inside the RTL page. */}
                     <span dir="auto" className="mt-0.5 block truncate font-bold">
-                      {it.storeName || it.title}
+                      {it.storeName || title}
                     </span>
-                    {it.storeName && it.title && (
+                    {it.storeName && title && (
                       <span
                         dir="auto"
                         className="block truncate text-sm text-muted-foreground"
                       >
-                        {it.title}
+                        {title}
                       </span>
                     )}
 
