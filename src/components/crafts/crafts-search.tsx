@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, MapPin } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { tradeIcon } from "@/lib/trade-icons";
 import type { Locale } from "@/i18n/config";
 import type { AreaRef } from "@/lib/data/crafts";
 
@@ -111,17 +112,20 @@ export function CraftsSearch({
         {open && hits && q.trim().length >= 2 && (
           <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
             {hits.length ? (
-              hits.map((h) => (
-                <button
-                  key={h.slug}
-                  type="button"
-                  onClick={() => go(h.slug)}
-                  className="flex w-full items-center gap-2 px-4 py-2.5 text-start text-sm font-semibold transition-colors hover:bg-surface-muted"
-                >
-                  <span aria-hidden>{h.icon}</span>
-                  {ar ? h.name_ar : h.name_en}
-                </button>
-              ))
+              hits.map((h) => {
+                const Icon = tradeIcon(h.slug);
+                return (
+                  <button
+                    key={h.slug}
+                    type="button"
+                    onClick={() => go(h.slug)}
+                    className="flex min-h-11 w-full items-center gap-2 px-4 py-2.5 text-start text-sm font-semibold transition-colors hover:bg-surface-muted"
+                  >
+                    <Icon aria-hidden className="h-4 w-4 shrink-0 text-primary" />
+                    {ar ? h.name_ar : h.name_en}
+                  </button>
+                );
+              })
             ) : (
               <p className="px-4 py-3 text-sm text-muted-foreground">
                 {labels.noMatch}

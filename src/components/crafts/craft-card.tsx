@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { BadgeCheck, MapPin, Star, Wrench } from "lucide-react";
+import { BadgeCheck, ChevronLeft, MapPin, Star, Wrench } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { CraftProvider } from "@/lib/data/crafts";
 
@@ -27,6 +27,7 @@ export function CraftCard({
     covers: string;
     works: string;
     years: string;
+    viewProfile: string;
   };
 }) {
   const ar = lang === "ar";
@@ -57,7 +58,7 @@ export function CraftCard({
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="truncate font-bold group-hover:text-primary">
+          <span dir="auto" className="truncate font-bold group-hover:text-primary">
             {provider.name}
           </span>
           {/* Only a real, admin-reviewed document earns this. */}
@@ -70,8 +71,11 @@ export function CraftCard({
         </div>
 
         {(provider.headline || trade) && (
-          <p className="mt-0.5 truncate text-sm font-semibold text-muted-foreground">
-            {trade?.icon} {provider.headline || (trade ? (ar ? trade.name_ar : trade.name_en) : "")}
+          <p
+            dir="auto"
+            className="mt-0.5 truncate text-sm font-semibold text-muted-foreground"
+          >
+            {provider.headline || (trade ? (ar ? trade.name_ar : trade.name_en) : "")}
             {provider.trades.length > 1 && (
               <span className="ms-1 font-normal">
                 +{provider.trades.length - 1}
@@ -125,6 +129,12 @@ export function CraftCard({
             </span>
           </p>
         )}
+
+        {/* The whole card is the link; this row just says so out loud. */}
+        <p className="mt-2 inline-flex items-center gap-0.5 text-sm font-bold text-primary">
+          {labels.viewProfile}
+          <ChevronLeft className="h-4 w-4 ltr:rotate-180" />
+        </p>
       </div>
     </Link>
   );
