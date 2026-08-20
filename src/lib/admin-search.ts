@@ -48,3 +48,53 @@ export function filterSections<T extends SearchableSection>(
     return q.split(" ").every((word) => hay.includes(word));
   });
 }
+
+// ---------------------------------------------------------------------------
+// The same matching, pointed at rows instead of at the nav.
+//
+// ISS-014. The admin queues that grow — the audit log, the leader roster, the
+// review pile, the order ledger — had no way to find a record in them. The
+// matching rule should not be a second one: an admin who types "الاعدادات" in
+// the palette and "احمد" in the leaders box is doing the same thing, and both
+// should forgive the hamza the same way. So these reuse normalizeLabel rather
+// than reaching for `.toLowerCase().includes()` — which is what the store and
+// moderation filters do today, and which quietly fails on "أحمد" vs "احمد".
+//
+// Why not push this into SQL. normalize_search() exists in the database (0216)
+// but only as a function, with no normalized column and no RPC for these
+// tables; using it would mean a migration per surface. An `.ilike()` needs no
+// migration but cannot fold the hamza, which is the whole point in Arabic. So
+// the match runs in JS over the rows the page already fetched — and every page
+// that does this says out loud how many rows that window holds, because
+// "no results" and "no results in the most recent 300" are different answers
+// and an admin cannot tell them apart otherwise.
+
+/** True when every whitespace-separated word in `query` appears somewhere in
+ *  `fields`. Nullish fields are skipped, so callers can pass optional columns
+ *  straight through. An empty query matches everything. */
+export function matchesQuery(
+  query: string,
+  fields: readonly (string | null | undefined)[],
+): boolean {
+  const q = normalizeLabel(query);
+  if (!q) return true;
+  const hay = fields
+    .filter((f): f is string => !!f)
+    .map(normalizeLabel)
+    .join(" ");
+  return q.split(" ").every((word) => hay.includes(word));
+}
+
+/**
+ * Filter rows by a query, given a function that names the searchable fields of
+ * one row. Returns the input array unchanged when the query is empty, so the
+ * unsearched case costs nothing.
+ */
+export function filterByQuery<T>(
+  rows: readonly T[],
+  query: string,
+  fieldsOf: (row: T) => readonly (string | null | undefined)[],
+): T[] {
+  if (!normalizeLabel(query)) return rows as T[];
+  return rows.filter((row) => matchesQuery(query, fieldsOf(row)));
+}

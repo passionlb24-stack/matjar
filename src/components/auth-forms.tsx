@@ -384,7 +384,7 @@ export function SignupForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
         brand={dict.common.brand}
       />
       <form onSubmit={onSubmit} className="space-y-4">
-        <Field label={dict.auth.accountType}>
+        <Field label={dict.auth.accountType} group>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"

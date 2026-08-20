@@ -524,6 +524,21 @@
     "storePending": "Your store is under review",
     "storePendingHint": "Nobody can see your page yet. Get your products ready — we will tell you the moment it is approved, and you will have a link to share.",
     "itemsHint": "published items",
+    "nextStep": {
+      "reviewNote": "Your page is still under review — nobody can reach it yet.",
+      "stoppedNote": "Your page is switched off right now, so nothing can come in.",
+      "reviewBody": "Nothing can arrive before your page goes live. We will tell you the moment it is approved — get your items ready meanwhile.",
+      "setupBody": "There is nothing on your page to order yet. Add your first item — nobody can buy what is not listed.",
+      "liveBody": "Your page is live with {n} items. What is missing is people seeing it — send the link to your customers and put it in your bio.",
+      "addFirstItem": "Add your first item",
+      "shareWhatsapp": "Share on WhatsApp",
+      "shareMessage": "Order from {store} on Matjar:",
+      "recordSale": "Record a counter sale",
+      "openDashboard": "Open the dashboard",
+      "reportsTitle": "No numbers yet",
+      "advancedTools": "Advanced tools",
+      "advancedToolsHint": "These unlock when you upgrade — open any of them to see what it does."
+    },
     "groups": {
       "daily": "Daily operations",
       "people": "Customers & team",
@@ -1067,7 +1082,13 @@
     ],
     "finalTitle": "Ready to start?",
     "finalSub": "Open your store free in minutes, and see the difference.",
-    "seePricing": "See pricing"
+    "seePricing": "See pricing",
+    "entryReassure": [
+      "Opening a store is free — up to 3 products without paying anything",
+      "No card, no bank details",
+      "Your customer pays cash on delivery — the money never passes through us",
+      "Share your store link on WhatsApp — that's where most of your customers come from"
+    ]
   },
   "hero": {
     "title": "Every store, restaurant, and service in Lebanon",
@@ -1330,7 +1351,8 @@
       "about": "About us",
       "help": "Help",
       "contact": "Contact",
-      "privacy": "Privacy"
+      "privacy": "Privacy",
+      "legal": "Legal & terms"
     },
     "rights": "All rights reserved."
   },
@@ -1381,7 +1403,11 @@
     "nearest": "Nearest to you",
     "locating": "Locating…",
     "locationError": "Couldn't get your location. Enable location permission.",
-    "km": "km"
+    "km": "km",
+    "earlyTitle": "Matjar is still early",
+    "earlyBody": "Every shop here is a real Lebanese business we reviewed before letting it onto the site. We add them one at a time, so the list is still short — that is on purpose, not a fault. If you're looking for something and can't find it, tell us and we'll go find it.",
+    "earlyCta": "Tell us what's missing",
+    "earlyWaPrefill": "Hello, I was looking for something on Matjar and couldn't find it:"
   },
   "store": {
     "tabsLabel": "Page sections",
@@ -1658,6 +1684,7 @@
     "mapLocation": "Location on the map",
     "mapHint": "Tap the map or drag the pin to your exact spot.",
     "locateMe": "My location",
+    "mapPinLabel": "Store location on the map — drag to adjust",
     "phone": "Phone number",
     "whatsapp": "WhatsApp",
     "description": "Short description",
@@ -1769,6 +1796,7 @@
     "staffNotFound": "No user found with that email — they need an account first.",
     "staffSelf": "You can't add yourself.",
     "staffAdded": "Added ✓",
+    "staffConfirmRemove": "Remove this staff member from the store? They lose access immediately.",
     "ordersCount": "orders",
     "save": "Save changes",
     "saving": "Saving…",
@@ -2300,6 +2328,7 @@
     "leaders": {
       "title": "Business leaders",
       "subtitle": "Review submitted profiles and publish, hide or delete them. {total} profiles · {drafts} awaiting review.",
+      "searchPlaceholder": "Search by name or sector…",
       "empty": "No business leaders yet",
       "feature": "Feature",
       "unfeature": "Unfeature",
@@ -2418,7 +2447,20 @@
       "approve": "Publish",
       "hide": "Hide",
       "delete": "Delete",
-      "deleteConfirm": "Delete this item permanently?"
+      "deleteConfirm": "Remove this item? It stops being public and can be restored.",
+      "select": "Select",
+      "selectAllVisible": "Select all {n} shown",
+      "selectedCount": "{n} selected",
+      "bulkApproveConfirm": "Publish {n} item(s)? They become visible to everyone.",
+      "bulkHideConfirm": "Hide {n} item(s)? They stop being public; you can publish them again from each row.",
+      "bulkDeleteTitle": "Remove several items",
+      "bulkDeleteConfirm": "Remove {n} item(s)? Each stops being public and is kept, so this can be undone right after.",
+      "bulkApproved": "{n} published.",
+      "bulkHidden": "{n} hidden.",
+      "bulkDeleted": "{n} removed.",
+      "bulkUndo": "Undo",
+      "bulkRestored": "{n} restored.",
+      "bulkPartial": "Only {done} of {total} went through. The rest were not changed — check and retry those."
     },
     "jobs": {
       "title": "Jobs management",
@@ -2466,9 +2508,16 @@
       "view": "View",
       "saveFailed": "Couldn't save. Make sure the slug is unique."
     },
+    "listSearch": {
+      "clear": "Clear search",
+      "window": "Search covers only the {n} most recent rows loaded.",
+      "matchCount": "{n} matching",
+      "noMatch": "Nothing matches “{q}”."
+    },
     "academyAdmin": {
       "title": "Academy management",
       "subtitle": "Create, edit and publish Academy guides without a code deploy.",
+      "searchPlaceholder": "Search by guide title or category…",
       "new": "New guide",
       "edit": "Edit",
       "delete": "Delete",
@@ -2562,6 +2611,7 @@
     "ordersAdmin": {
       "title": "Orders & reconciliation",
       "subtitle": "Recent platform orders with each order's payment & refund ledger.",
+      "searchPlaceholder": "Search by order number, phone or customer…",
       "empty": "No orders yet.",
       "totalCollected": "Total collected",
       "totalRefunded": "Total refunded",
@@ -2587,12 +2637,14 @@
     "reviews": {
       "title": "Review moderation",
       "subtitle": "Lowest-rated first, for review and moderation.",
+      "searchPlaceholder": "Search by store, customer or review text…",
       "empty": "No reviews.",
       "delete": "Delete"
     },
     "audit": {
       "title": "Audit log",
       "subtitle": "Record of sensitive platform actions.",
+      "searchPlaceholder": "Search by user, action or item…",
       "empty": "No entries.",
       "actor": "User",
       "action": "Action",
@@ -2795,7 +2847,10 @@
       "delete": "Delete",
       "confirmDelete": "Delete this type?",
       "empty": "No types yet. Add your first one.",
-      "inactiveBadge": "Inactive"
+      "inactiveBadge": "Inactive",
+      "unmappedTitle": "Business types with no group mapping",
+      "unmappedBody": "{n} type(s) below are not mapped to a top-level group. Every store created under them is filed under Shopping, and nobody is told:",
+      "unmappedFix": "Either rename the slug to a known sector, or add it to categoryGroup in src/lib/catalog.ts."
     },
     "reports": {
       "title": "Reports & analytics",
@@ -4160,13 +4215,34 @@
     "bookThisService": "Book this service",
     "bookingLead": "Pick a time that suits you and confirm in seconds.",
     "durationLabel": "Duration: {n} min",
-    "boughtTogether": "Frequently bought together"
+    "boughtTogether": "Frequently bought together",
+    "codTitle": "You pay when the order reaches you",
+    "codBody": "Cash on receipt. We never ask you for a card or an online payment — not now, not later.",
+    "codDelivery": "You pay cash to the person who brings your order.",
+    "codPickup": "You pay cash at the store when you come to collect it.",
+    "codConfirmNote": "Confirming this order charges you nothing now. The money changes hands when you receive it."
   },
   "inquiry": {
     "title": "Your inquiry",
     "sentOn": "Sent on",
     "noMessage": "You didn't write a message — you just asked them to get in touch.",
     "aboutProduct": "About:"
+  },
+  "reportContent": {
+    "button": "Report a problem",
+    "title": "What's wrong here?",
+    "reasons": {
+      "fake": "This store or product isn't real",
+      "misleading": "Misleading information or prices",
+      "images": "Stolen or inappropriate images",
+      "prohibited": "Something that can't be sold",
+      "fraud": "Someone tried to defraud me",
+      "other": "Something else"
+    },
+    "sentTitle": "We have your report.",
+    "sentBody": "It is saved with its reason and the page it came from, and the Matjar team reviews it. We can't promise a specific turnaround.",
+    "urgent": "If it's urgent, or it cost you money, message us on WhatsApp.",
+    "waPrefill": "Hello, I want to report a problem with this page on Matjar: {url}"
   },
   "wishlist": {
     "title": "Wishlist",

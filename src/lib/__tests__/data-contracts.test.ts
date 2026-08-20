@@ -543,7 +543,36 @@ describe("no public projection ships another person's account id", () => {
 // unbounded query wearing the costume of a bounded one.
 
 describe("FETCH_BOUNDS coherence", () => {
-  const callers = [...sources].filter(([f]) => f !== "bounds.ts");
+  // Bounds started as a src/lib/data concern, so this scanner only looked
+  // there. ISS-013 put two of them in admin pages instead: the admin roster
+  // fetches inline, the way every other admin page does, and moving only those
+  // two into the data layer would make that layer mean two different things.
+  // So the scanner follows the callers rather than the callers moving to the
+  // scanner — both checks below (orphaned bound, bound that does not exist) now
+  // cover these files too. Add a file here when a surface outside src/lib/data
+  // starts reading FETCH_BOUNDS, or the bound it names goes unguarded.
+  const boundedPages = [
+    "src/app/[lang]/(dashboard)/admin/stores/page.tsx",
+    "src/app/[lang]/(dashboard)/admin/leaders/page.tsx",
+  ];
+  const callers: [string, string][] = [
+    ...[...sources].filter(([f]) => f !== "bounds.ts"),
+    ...boundedPages.map(
+      (f) => [f, readFileSync(join(process.cwd(), f), "utf8")] as [string, string],
+    ),
+  ];
+
+  it("finds the out-of-layer callers at all (guards the scanner)", () => {
+    // Without this, renaming one of those pages turns the check below into a
+    // vacuous pass wearing a failure's clothes: the bound would be reported as
+    // orphaned, which reads as "delete this ceiling" when the truth is "the
+    // scanner lost the file".
+    for (const f of boundedPages) {
+      const src = callers.find(([name]) => name === f)?.[1];
+      expect(src, `${f} is no longer where this test looks`).toBeDefined();
+      expect(src, `${f} no longer reads FETCH_BOUNDS`).toContain("FETCH_BOUNDS.");
+    }
+  });
 
   it("every declared bound is actually used", () => {
     const used = new Set<string>();

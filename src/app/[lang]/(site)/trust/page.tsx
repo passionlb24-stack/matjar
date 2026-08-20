@@ -85,9 +85,18 @@ export default async function TrustPage({
         <section className="mt-6 overflow-hidden rounded-3xl border border-border bg-gradient-to-bl from-primary/10 to-transparent p-8 text-center">
           <h2 className="text-2xl font-extrabold tracking-tight">{t.supportTitle}</h2>
           <p className="mx-auto mt-2 max-w-md text-muted-foreground">{t.supportBody}</p>
-          <Link href={`${base}/contact`} className="mt-5 inline-flex h-11 items-center rounded-xl bg-primary px-6 text-sm font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover">
-            {t.contactCta}
-          </Link>
+          {/* ISS-025. This page makes promises — cash on delivery, review before
+              publication, stepping in on a complaint. Every one of them is worth
+              exactly as much as the identity of whoever is making them, so the
+              door to that identity is on the same card. */}
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
+            <Link href={`${base}/contact`} className="inline-flex h-11 items-center rounded-xl bg-primary px-6 text-sm font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover">
+              {t.contactCta}
+            </Link>
+            <Link href={`${base}/legal`} className="inline-flex h-11 items-center rounded-xl border border-border bg-surface px-6 text-sm font-bold transition-colors hover:border-primary/40 hover:text-primary">
+              {dict.footer.links.legal}
+            </Link>
+          </div>
         </section>
       </Container>
     </div>

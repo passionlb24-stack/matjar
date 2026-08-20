@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Minus, Plus, ShoppingCart } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { noteHintKey } from "@/lib/note-hint";
 import type { Locale } from "@/i18n/config";
@@ -498,6 +498,31 @@ export function ProductOrder({
         </div>
       )}
 
+      {/* How payment works — said, not implied.
+          The absence of a card field is not a promise; a Lebanese shopper who
+          has never used this site reads "online order" as "give a stranger your
+          card". So the fact that decides the order is written directly above the
+          button that places it, on the product page as well as in the cart, and
+          again on the confirmation step where the phone and address are asked
+          for. It carries no store data and no condition: cash on receipt is how
+          every order on the platform is settled. */}
+      <div className="flex items-start gap-2.5 rounded-xl bg-success-soft px-3.5 py-3 text-success">
+        <Wallet className="mt-0.5 h-4.5 w-4.5 shrink-0" />
+        <span className="min-w-0">
+          <span className="block text-sm font-bold">{dict.product.codTitle}</span>
+          <span className="mt-0.5 block text-xs leading-relaxed">
+            {/* Before the fulfilment pick the line has to hold for both modes;
+                after it, say the specific one — who the customer hands the money
+                to is the part they are actually picturing. */}
+            {!checkingOut
+              ? dict.product.codBody
+              : fulfillment === "pickup"
+                ? dict.product.codPickup
+                : dict.product.codDelivery}
+          </span>
+        </span>
+      </div>
+
       {/* Quantity + total */}
       {!checkingOut && (
         <>
@@ -639,6 +664,12 @@ export function ProductOrder({
           {orderError && (
             <p className="text-sm font-medium text-danger">{orderError}</p>
           )}
+          {/* The last thing read before the irreversible tap. A shopper who has
+              just typed a phone number and an address is one step from deciding
+              this site wants their money now; this says it does not. */}
+          <p className="text-xs font-semibold text-success">
+            {dict.product.codConfirmNote}
+          </p>
           <div className="flex gap-2">
             <button
               type="button"

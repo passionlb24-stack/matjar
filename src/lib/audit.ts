@@ -137,3 +137,43 @@ export async function softDeleteAsAdmin(
   }
   return true;
 }
+
+/**
+ * Put back what `softDeleteAsAdmin` removed.
+ *
+ * `admin_restore` shipped with 0294 and until now had no caller: recovery meant
+ * an operator writing an UPDATE against production. That was survivable while
+ * every deletion was one deliberate click. It stops being survivable the moment
+ * a screen can remove fifty rows at once, which is why this exists in the same
+ * change as the bulk actions rather than after them — the undo path is part of
+ * the feature, not a follow-up to it.
+ *
+ * 0294's own comment says recovery is an operator action and no restore UI
+ * exists. That was a reasonable position when every deletion was one deliberate
+ * click; it is not one when a screen can remove fifty rows at once, so this
+ * change deliberately moves that line.
+ *
+ * `not_found` is treated as success. The RPC raises it when the row is not
+ * currently deleted, which for an undo button means the work is already done —
+ * a double-click, or a retry after a response that was lost in flight. Making
+ * the caller show a red error for "the row you wanted back is back" would push
+ * an admin toward doing something else about it, and there is nothing else to
+ * do. Every other failure is a real one and returns false.
+ */
+export async function restoreAsAdmin(
+  entity: SoftDeletableEntity,
+  id: string,
+): Promise<boolean> {
+  const { error } = await createClient().rpc("admin_restore", {
+    p_entity: entity,
+    p_id: id,
+  });
+  if (!error) return true;
+  if (error.message.includes("not_found")) return true;
+  console.error("[audit] admin_restore failed", {
+    entity,
+    id,
+    message: error.message,
+  });
+  return false;
+}

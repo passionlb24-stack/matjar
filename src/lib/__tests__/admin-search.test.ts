@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   normalizeLabel,
   filterSections,
+  filterByQuery,
+  matchesQuery,
   type SearchableSection,
 } from "@/lib/admin-search";
 
@@ -68,5 +70,83 @@ describe("filterSections", () => {
 
   it("returns nothing rather than a wrong guess", () => {
     expect(filterSections(S, "زززز")).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The record-level matcher (ISS-014). Same rules as the palette, pointed at
+// rows: the point of sharing normalizeLabel is that an admin does not have to
+// learn two different searches inside one panel.
+
+type Row = { name: string; owner: string | null; note?: string | null };
+
+const R: Row[] = [
+  { name: "مطعم الأمير", owner: "أحمد خليل", note: "بيروت" },
+  { name: "صيدلية النور", owner: null, note: null },
+  { name: "Beirut Bakery", owner: "Sami", note: "Hamra" },
+];
+
+describe("matchesQuery", () => {
+  it("matches everything when nothing is typed", () => {
+    expect(matchesQuery("", ["anything"])).toBe(true);
+    expect(matchesQuery("   ", [null])).toBe(true);
+  });
+
+  // The reason this exists rather than `.toLowerCase().includes()`, which is
+  // what the store and moderation filters used and which fails this case.
+  it("folds the hamza across fields", () => {
+    expect(matchesQuery("احمد", ["أحمد خليل"])).toBe(true);
+    expect(matchesQuery("الامير", ["مطعم الأمير"])).toBe(true);
+  });
+
+  it("skips nullish fields instead of matching on them", () => {
+    expect(matchesQuery("نور", ["صيدلية النور", null, undefined])).toBe(true);
+    expect(matchesQuery("نور", [null, undefined])).toBe(false);
+  });
+
+  it("requires every word, so a second word narrows", () => {
+    expect(matchesQuery("مطعم بيروت", ["مطعم الأمير", "بيروت"])).toBe(true);
+    expect(matchesQuery("مطعم صيدا", ["مطعم الأمير", "بيروت"])).toBe(false);
+  });
+
+  it("matches across field boundaries, not only within one field", () => {
+    // "الأمير أحمد" spans the name and the owner. A per-field match would miss
+    // this, and it is exactly how someone describes a shop out loud.
+    expect(matchesQuery("الامير احمد", ["مطعم الأمير", "أحمد خليل"])).toBe(true);
+  });
+
+  it("is case-insensitive for latin text", () => {
+    expect(matchesQuery("BAKERY", ["Beirut Bakery"])).toBe(true);
+  });
+});
+
+describe("filterByQuery", () => {
+  const fields = (r: Row) => [r.name, r.owner, r.note];
+
+  it("returns the input untouched when the query is empty", () => {
+    expect(filterByQuery(R, "", fields)).toHaveLength(R.length);
+    expect(filterByQuery(R, "  ", fields)).toHaveLength(R.length);
+  });
+
+  it("filters on any of the named fields", () => {
+    expect(filterByQuery(R, "احمد", fields).map((r) => r.name)).toEqual([
+      "مطعم الأمير",
+    ]);
+    expect(filterByQuery(R, "hamra", fields).map((r) => r.name)).toEqual([
+      "Beirut Bakery",
+    ]);
+  });
+
+  it("returns an empty list rather than a fallback guess", () => {
+    expect(filterByQuery(R, "زززز", fields)).toEqual([]);
+  });
+
+  it("preserves the incoming order, which is the page's sort", () => {
+    // The queues hand rows in a deliberate order — worst-rated first, newest
+    // first. Filtering must not become a re-sort.
+    const hit = filterByQuery(R, "ا", fields);
+    expect(hit.map((r) => r.name)).toEqual(
+      R.filter((r) => hit.includes(r)).map((r) => r.name),
+    );
   });
 });

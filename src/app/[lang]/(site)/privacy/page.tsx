@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -147,15 +148,26 @@ export default async function PrivacyPage({
               </ul>
             </section>
           ))}
-          <a
-            href={supportWaLink(contactPrefill)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground"
-          >
-            <MessageCircle className="h-4 w-4" />
-            {contactLabel}
-          </a>
+          <div className="mt-8 flex flex-wrap gap-2">
+            <a
+              href={supportWaLink(contactPrefill)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground"
+            >
+              <MessageCircle className="h-4 w-4" />
+              {contactLabel}
+            </a>
+            {/* ISS-025. The policy says what we do with your data; this says who
+                "we" is. A privacy policy with no identifiable controller behind
+                it is a promise from nobody. */}
+            <Link
+              href={`/${lang}/legal`}
+              className="inline-flex min-h-11 items-center rounded-xl border border-border px-5 py-3 text-sm font-bold transition-colors hover:border-primary/40 hover:text-primary"
+            >
+              {dict.footer.links.legal}
+            </Link>
+          </div>
         </div>
       </Container>
     </div>

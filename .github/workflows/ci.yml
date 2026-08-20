@@ -21,6 +21,22 @@ jobs:
           node-version: 24
           cache: npm
 
+      # Static analysis over supabase/migrations/*.sql: every SECURITY DEFINER
+      # function must say who may execute it, and pin search_path = ''. Runs
+      # BEFORE `npm ci` because it needs nothing but node — so a schema mistake
+      # is reported in ~15 seconds rather than after a full install, and it still
+      # reports even if the dependency install is broken.
+      #
+      # scripts/check-definer-grants.mjs documents exactly what it catches and
+      # what it does not. Read that before treating a green run as a clearance:
+      # in particular it never reads the database, and it does not judge whether
+      # a stated audience is the RIGHT audience.
+      #
+      # Known pre-existing violations are grandfathered in
+      # scripts/definer-baseline.json, which is meant to shrink and never grow.
+      - name: SECURITY DEFINER convention (migrations)
+        run: npm run check:migrations
+
       - name: Install dependencies
         run: npm ci
 

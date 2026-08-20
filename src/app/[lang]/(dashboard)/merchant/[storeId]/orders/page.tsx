@@ -14,6 +14,7 @@ import {
 import { getStorePlan } from "@/lib/plan-server";
 import { hasPlan } from "@/lib/plan-tiers";
 import { ChevronPrev } from "@/components/ui/directional-icon";
+import { NextStepEmpty } from "@/components/os-dashboard/next-step-empty";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -203,9 +204,18 @@ export default async function StoreOrdersPage({
             canDispatch={canDispatch}
           />
         ) : (
-          <div className="mt-8 rounded-2xl border border-dashed border-border py-10 sm:py-16 text-center text-muted-foreground">
-            {dict.merchant.noOrders}
-          </div>
+          // ISS-016/034: the same dashed box used to be shown to a store still
+          // in review, a store with an empty catalogue and a stocked live store
+          // with no traffic. Those are three different problems and only one of
+          // them is the merchant's to solve today.
+          <NextStepEmpty
+            lang={lang}
+            dict={dict}
+            storeId={storeId}
+            module="orders"
+            title={dict.merchant.noOrders}
+            className="mt-8"
+          />
         )}
       </Container>
     </div>

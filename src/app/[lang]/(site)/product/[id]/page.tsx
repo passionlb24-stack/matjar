@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Truck,
   UserRound,
+  Wallet,
 } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -55,6 +56,7 @@ import { ProductStoryCard } from "@/components/product-story-card";
 import { BackButton } from "@/components/back-button";
 import { TrackVisit } from "@/components/track-visit";
 import { RestockButton } from "@/components/restock-button";
+import { ContentReport } from "@/components/listing-report";
 import { sectorHasTeam } from "@/lib/sectors";
 import {
   offeringSectionSlot,
@@ -448,6 +450,13 @@ export default async function ProductPage({
           <p className="mb-3 text-sm text-muted-foreground">
             {dict.product.bookingLead}
           </p>
+          {/* Same fact, the booking wording. `booking.payOnArrival` is the
+              string the booking panel itself uses, so the promise made here and
+              the one made at the moment of booking are the same sentence. */}
+          <p className="mb-3 flex items-start gap-2 rounded-xl bg-success-soft px-3.5 py-2.5 text-xs font-semibold leading-relaxed text-success">
+            <Wallet className="mt-px h-4 w-4 shrink-0" />
+            {dict.booking.payOnArrival}
+          </p>
           <Link
             href={`${storeHref}?service=${product.id}`}
             className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-6 py-3.5 font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
@@ -737,6 +746,19 @@ export default async function ProductPage({
         )}
 
         {inSlot("page")}
+
+        {/* MJ-026 — see the note on ContentReport. Below everything, on real
+            catalogue rows only. */}
+        {UUID_RE.test(product.id) && (
+          <div className="mt-10 border-t border-border pt-5">
+            <ContentReport
+              entityType="product"
+              entityId={product.id}
+              lang={lang}
+              dict={dict}
+            />
+          </div>
+        )}
       </Container>
     </div>
   );

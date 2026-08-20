@@ -418,7 +418,12 @@ function Chip({
     <Link
       href={href}
       onClick={onClick}
-      aria-pressed={on}
+      // aria-pressed is only valid on role="button". On a link the browser
+      // ignores it entirely, so a screen-reader user had no way to tell which
+      // sector filter was active — axe reports it as a critical violation
+      // across all 13 chips. aria-current is the link equivalent, and it is
+      // announced.
+      aria-current={on ? "page" : undefined}
       className={`inline-flex h-11 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold transition-colors ${chipClass(on)}`}
     >
       {label}

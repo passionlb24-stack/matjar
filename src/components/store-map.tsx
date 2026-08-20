@@ -65,7 +65,11 @@ export function StoreMap({
         sub.textContent = s.branch;
         popup.appendChild(sub);
       }
-      const m = L.marker([s.lat, s.lng], { icon: pin })
+      // Leaflet renders a focusable role="button" div for every marker. Without a
+      // title it is announced as an unnamed button — axe flags it serious, and a
+      // keyboard user tabbing the map hears nothing that identifies the shop.
+      // The store name is the only sensible name, and it is already in hand.
+      const m = L.marker([s.lat, s.lng], { icon: pin, title: s.name, alt: s.name })
         .addTo(map)
         .bindPopup(popup);
       markers.push(m);

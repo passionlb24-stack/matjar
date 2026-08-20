@@ -1,6 +1,6 @@
 import { cache, Fragment } from "react";
 import { notFound } from "next/navigation";
-import { MapPin, Megaphone } from "lucide-react";
+import { MapPin, Megaphone, Wallet } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import {
@@ -68,6 +68,7 @@ import {
 import { StoreStickyCta } from "@/components/store/store-sticky-cta";
 import { resolveOffering } from "@/lib/offering";
 import { TrackVisit } from "@/components/track-visit";
+import { ContentReport } from "@/components/listing-report";
 import { resolveStoreExperience, leadKinds } from "@/lib/store-experience";
 // The sector transaction engines are fetched only where they render. Which
 // section exists is decided exactly as before (resolveStoreExperience /
@@ -952,6 +953,40 @@ export default async function StorePage({
         }
       : null;
 
+  // ===== How payment works, above the catalogue =====
+  //
+  // ISS-020. The platform's single biggest trust lever was stated nowhere a
+  // buyer looks before deciding — only inside the cart, after they had already
+  // committed to opening it. It is now said once, immediately above the list of
+  // things you can order, on exactly the stores that can take an order: the
+  // same `canTransactHere` test the sticky CTA uses, so a directory-only page
+  // never promises a payment method for a transaction it cannot run.
+  //
+  // Wording follows the surface, not the sector name — a clinic pays at the
+  // desk, a shop pays the courier — and both strings are the ones their own
+  // engine already uses, so there is one vocabulary rather than a second one
+  // invented for a banner.
+  const paymentNote =
+    canTransactHere && present.catalog ? (
+      <div className="mt-6 flex items-start gap-2.5 rounded-2xl border border-success/25 bg-success-soft px-4 py-3 text-success">
+        <Wallet className="mt-0.5 h-4.5 w-4.5 shrink-0" />
+        {experience.itemSurface === "appointment" ? (
+          <p className="text-sm font-semibold leading-relaxed">
+            {dict.booking.payOnArrival}
+          </p>
+        ) : (
+          <p className="min-w-0">
+            <span className="block text-sm font-bold">
+              {dict.product.codTitle}
+            </span>
+            <span className="mt-0.5 block text-xs leading-relaxed">
+              {dict.product.codBody}
+            </span>
+          </p>
+        )}
+      </div>
+    ) : null;
+
   return (
     <div
       // Extra bottom room below lg only when the sticky CTA is there to cover
@@ -1012,6 +1047,11 @@ export default async function StorePage({
                   label={dict.store.tabsLabel}
                 />
               )}
+              {/* Inside the anchor's scroll target would put it above the
+                  heading the tab chip promises; outside and immediately before
+                  it keeps the chip landing on the catalogue while the buyer
+                  still reads the payment line on the way down. */}
+              {key === "catalog" && paymentNote}
               <div
                 id={`sec-${key}`}
                 className="scroll-mt-[calc(var(--m-header-h)+var(--m-sectiontabs-h)+env(safe-area-inset-top))] lg:scroll-mt-20"
@@ -1021,6 +1061,20 @@ export default async function StorePage({
             </Fragment>
           );
         })}
+
+        {/* MJ-026. Last thing on the page, the way a report control should be:
+            findable when something is wrong, invisible while nothing is. Only
+            on a real store — a demo row has no one to report. */}
+        {store.isReal && UUID_RE.test(id) && (
+          <div className="mt-10 border-t border-border pt-5">
+            <ContentReport
+              entityType="store"
+              entityId={id}
+              lang={lang}
+              dict={dict}
+            />
+          </div>
+        )}
       </Container>
 
       {stickyCta && (

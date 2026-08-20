@@ -486,6 +486,7 @@ export function EditStoreForm({
             onChange={setCoords}
             hint={dict.merchant.mapHint}
             locateLabel={dict.merchant.locateMe}
+            pinLabel={dict.merchant.mapPinLabel}
           />
         </div>
       </div>

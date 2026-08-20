@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { supportWaLink } from "@/lib/support";
 import {
+  ChevronDown,
   ExternalLink,
   LayoutDashboard,
   Lock,
@@ -46,6 +47,8 @@ export type SidebarItem = {
 export type SidebarNav = {
   home: SidebarItem;
   groups: { key: string; label: string; items: SidebarItem[] }[];
+  /** Modules this plan will not open, collected out of the groups above. */
+  advanced: { label: string; hint: string; items: SidebarItem[] };
   pinned: SidebarItem[];
   backLabel: string;
   supportLabel: string;
@@ -163,7 +166,12 @@ export function MerchantSidebar({
   // Longest-prefix active matching; the home item opts into exact-only so it
   // doesn't stay lit for every subpage under the store base path.
   const activeHref = useMemo(() => {
-    const all = [nav.home, ...nav.groups.flatMap((g) => g.items), ...nav.pinned];
+    const all = [
+      nav.home,
+      ...nav.groups.flatMap((g) => g.items),
+      ...nav.advanced.items,
+      ...nav.pinned,
+    ];
     let best: SidebarItem | null = null;
     for (const item of all) {
       const match = item.exact
@@ -265,6 +273,48 @@ export function MerchantSidebar({
             </div>
           </div>
         ))}
+
+        {/* Everything this plan does not open, in one place instead of thirteen
+            padlocks salted through the groups above. Kept as a real <details>
+            so it needs no state, no effect and no JS to work — and it opens
+            itself when the merchant is standing on one of these pages, so the
+            rail never loses track of where they are. */}
+        {nav.advanced.items.length > 0 && (
+          <details
+            className="group mt-6"
+            open={
+              nav.advanced.items.some((i) => i.href === activeHref) || undefined
+            }
+          >
+            <summary className="relative flex h-9 cursor-pointer list-none items-center gap-2 rounded-lg px-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 transition-colors before:absolute before:inset-x-0 before:-inset-y-1 before:content-[''] hover:text-foreground">
+              <Lock className="h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
+              <span className="min-w-0 flex-1 truncate">
+                {nav.advanced.label}
+              </span>
+              <span className="shrink-0 tabular-nums">
+                {nav.advanced.items.length}
+              </span>
+              <ChevronDown
+                className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-180 motion-reduce:transition-none"
+                aria-hidden
+              />
+            </summary>
+            <p className="px-3 pb-1 pt-1.5 text-[11px] font-medium leading-snug text-muted-foreground/70">
+              {nav.advanced.hint}
+            </p>
+            <div className="mt-1 space-y-0.5">
+              {nav.advanced.items.map((item) => (
+                <NavRow
+                  key={item.key}
+                  item={item}
+                  category={category}
+                  active={activeHref === item.href}
+                  onNavigate={() => setOpen(false)}
+                />
+              ))}
+            </div>
+          </details>
+        )}
       </nav>
       <div className="space-y-0.5 border-t border-border px-3 py-3">
         {nav.pinned.map((item) => (

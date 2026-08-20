@@ -15,6 +15,7 @@ import { isPro } from "@/lib/plan";
 import { getStorePlan } from "@/lib/plan-server";
 import { ProGate } from "@/components/pro-gate";
 import { Container } from "@/components/ui/container";
+import { NextStepEmpty } from "@/components/os-dashboard/next-step-empty";
 import { formatUsd } from "@/lib/currency";
 
 const UUID_RE =
@@ -351,6 +352,22 @@ export default async function StoreReportsPage({
           {t.title}
         </h1>
         <p className="mt-2 text-muted-foreground">{t.subtitle}</p>
+
+        {/* ISS-017: at zero this page is a wall of 0 / $0 with three "no data"
+            panels under it, and nothing anywhere says why or what would change
+            it. The zeros are honest and they stay — a report that hides its own
+            emptiness is worse — but the explanation goes above them, where it is
+            read first, with the same next step the OS home would have given. */}
+        {Number(r.total_orders ?? 0) === 0 && (
+          <NextStepEmpty
+            lang={lang}
+            dict={dict}
+            storeId={storeId}
+            module="reports"
+            title={dict.os.nextStep.reportsTitle}
+            className="mt-6"
+          />
+        )}
 
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {kpis.map((k) => (

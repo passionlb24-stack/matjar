@@ -11,11 +11,13 @@ import {
   X,
   ChevronUp,
   ChevronDown,
+  Search,
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
 import { logAdminAction } from "@/lib/audit";
+import { filterByQuery } from "@/lib/admin-search";
 import {
   ACADEMY_CATEGORIES,
   type GuideBlock,
@@ -44,6 +46,11 @@ export type GuideRow = {
   published: boolean;
   sort_order: number;
 };
+
+/** Below this many guides the list fits on a screen and a search box is noise.
+ *  Production has ~10 today, so the field is close to earning its place — but
+ *  "close" is the argument for a threshold rather than for showing it always. */
+const SEARCH_THRESHOLD = 12;
 
 type BlockType = "p" | "h" | "ul" | "ol" | "tip";
 const BLOCK_TYPES: BlockType[] = ["p", "h", "ul", "ol", "tip"];
@@ -137,6 +144,18 @@ export function AdminAcademyClient({
   const [editingId, setEditingId] = useState<string | "new" | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft(0));
   const [busy, setBusy] = useState(false);
+  // ISS-014. Local state, not the `?q=` URL param the server-rendered admin
+  // queues use: this component holds an unsaved editor draft, and a navigation
+  // per settled keystroke would remount it and throw away half-written guides.
+  // The filter is the same matcher either way — only where it runs differs.
+  const [query, setQuery] = useState("");
+  const visible = filterByQuery(guides, query, (g) => [
+    g.title,
+    g.title_en,
+    g.excerpt,
+    g.slug,
+    catLabels[g.category] ?? g.category,
+  ]);
 
   function startNew() {
     setDraft(emptyDraft(guides.length));
@@ -475,9 +494,25 @@ export function AdminAcademyClient({
 
         {editingId === "new" && <div className="mb-6">{form}</div>}
 
-        {guides.length ? (
+        {/* The box only appears once there is enough here to lose something in.
+            On a shelf of six guides a search field is one more control to read
+            past, not a shortcut. */}
+        {guides.length >= SEARCH_THRESHOLD && (
+          <div className="relative mb-6 sm:max-w-md">
+            <Search className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t.searchPlaceholder}
+              aria-label={t.searchPlaceholder}
+              className="ps-10"
+            />
+          </div>
+        )}
+
+        {visible.length ? (
           <div className="space-y-2">
-            {guides.map((g) =>
+            {visible.map((g) =>
               editingId === g.id ? (
                 <div key={g.id}>{form}</div>
               ) : (
@@ -531,7 +566,16 @@ export function AdminAcademyClient({
             )}
           </div>
         ) : (
-          editingId !== "new" && <EmptyState icon={GraduationCap} title={t.empty} />
+          editingId !== "new" && (
+            <EmptyState
+              icon={GraduationCap}
+              title={
+                query
+                  ? dict.admin.listSearch.noMatch.replace("{q}", query)
+                  : t.empty
+              }
+            />
+          )
         )}
       </Container>
     </div>

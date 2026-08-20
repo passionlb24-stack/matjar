@@ -152,15 +152,29 @@ export default async function StoreOsLayout({
   };
 
   const base = `/${lang}/merchant/${storeId}`;
-  const toItem = (key: OsModuleKey) => {
+  /** A module this store's plan will not open — the page re-gates regardless. */
+  const isLocked = (key: OsModuleKey) => {
     const meta = OS_MODULE_META[key];
-    return {
-      key,
-      label: moduleLabel[key],
-      href: `${base}/${meta.path}`,
-      locked: !!meta.minPlan && !hasPlan(effectivePlan, meta.minPlan),
-    };
+    return !!meta.minPlan && !hasPlan(effectivePlan, meta.minPlan);
   };
+  const toItem = (key: OsModuleKey) => ({
+    key,
+    label: moduleLabel[key],
+    href: `${base}/${OS_MODULE_META[key].path}`,
+    locked: isLocked(key),
+  });
+
+  // ISS-004/005: a free store's rail listed 13 padlocks interleaved with its 7
+  // working tools, four groups deep. A row you cannot open is not navigation —
+  // it is an advertisement, and thirteen of them scattered through the nav read
+  // as a paywall rather than as a product. The locks stay (these are shipped
+  // features, and hiding them outright would misrepresent what the plan buys)
+  // but they are collected into ONE labelled section at the end of the nav,
+  // stated as what the plan adds. A store on a plan that opens everything sees
+  // no change at all, because it has nothing to collect.
+  const visibleModules = OS_GROUPS.flatMap((group) =>
+    sector.modules[group].filter((key) => !PINNED.includes(key)).filter(canSee),
+  );
 
   const nav: SidebarNav = {
     home: { key: "home", label: dict.dashboard.panel, href: base, exact: true },
@@ -170,8 +184,14 @@ export default async function StoreOsLayout({
       items: sector.modules[group]
         .filter((key) => !PINNED.includes(key))
         .filter(canSee)
+        .filter((key) => !isLocked(key))
         .map(toItem),
     })).filter((group) => group.items.length > 0),
+    advanced: {
+      label: dict.os.nextStep.advancedTools,
+      hint: dict.os.nextStep.advancedToolsHint,
+      items: visibleModules.filter(isLocked).map(toItem),
+    },
     pinned: PINNED.filter(canSee).map(toItem),
     backLabel: dict.merchant.products.back,
     supportLabel: dict.common.supportWhatsapp,
@@ -212,7 +232,13 @@ export default async function StoreOsLayout({
     "classes",
     "courses",
   ]);
-  const reportKey = firstVisible(["reports", "accounting"]);
+  // The phone's four primary tabs must all open. `reports` is Pro and
+  // `accounting` is Business, so a free store's fourth tab was a padlock in the
+  // most valuable strip of the phone UI — one of only four places it could have
+  // put something the merchant can use. It now falls through to no tab at all.
+  const reportKey = firstVisible(["reports", "accounting"].filter(
+    (k) => !isLocked(k as OsModuleKey),
+  ) as OsModuleKey[]);
 
   // Only the operations tab carries a badge, and only from a real count of
   // orders actually awaiting the merchant. A number they cannot clear would

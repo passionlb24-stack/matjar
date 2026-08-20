@@ -4,6 +4,9 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdminSection } from "@/lib/admin-guard";
+import { filterByQuery } from "@/lib/admin-search";
+import { warnIfTruncated } from "@/lib/data/bounds";
+import { AdminSearchBox } from "@/components/admin-search-box";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
 import { Stat, StatGrid } from "@/components/ui/stat";
@@ -34,19 +37,32 @@ function money(n: number) {
   return n >= 1000 ? `$${Number(n).toLocaleString("en-US")}` : `$${n}`;
 }
 
+/** How many orders the unsearched page shows. Every row renders a full payment
+ *  ledger, so this is a render budget as much as a query one. */
+const BROWSE_WINDOW = 100;
+/** How deep a search reaches. Searching only what browsing shows would answer
+ *  "no such order" for anything older than the last hundred — the question an
+ *  admin is asked on the phone is almost never about the last hundred. Only
+ *  matches render, so the wider window costs a query, not a page. */
+const SEARCH_WINDOW = 500;
+
 // Admin reconciliation: platform-wide payment/refund totals + the same per-order
 // ledger merchants use (admins are authorized by the RPC + RLS, so refunds work
 // here too). The super_admin gate lives in the admin layout.
 export default async function AdminOrdersPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string }>;
+  searchParams: Promise<{ q?: string }>;
 }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
   await requireAdminSection("orders", lang);
   const dict = await getDictionary(lang);
   const t = dict.admin.ordersAdmin;
+  const ts = dict.admin.listSearch;
+  const q = (await searchParams).q ?? "";
 
   const supabase = await createClient();
 
@@ -73,14 +89,28 @@ export default async function AdminOrdersPage({
   /** An em dash instead of a number when the figure is genuinely unknown. */
   const kpi = (formatted: string) => (reportError ? "—" : formatted);
 
+  const window = q ? SEARCH_WINDOW : BROWSE_WINDOW;
   const { data } = await supabase
     .from("orders")
     .select(
       "id, status, total, customer_name, phone, created_at, store_id, location_id, stores(name)",
     )
     .order("created_at", { ascending: false })
-    .limit(100);
-  const orders = (data ?? []) as unknown as OrderRow[];
+    .limit(window);
+  const fetched = (data ?? []) as unknown as OrderRow[];
+  warnIfTruncated(fetched, window, "orders (admin)");
+
+  // ISS-014. Phone and the short order id are in the haystack because those are
+  // what a customer reads out; the store and customer names go through the same
+  // hamza-folding matcher as everywhere else. The id match is on the prefix the
+  // row actually prints — searching for a fragment the screen never shows would
+  // be a promise this page cannot keep.
+  const orders = filterByQuery(fetched, q, (o) => [
+    o.customer_name,
+    o.phone,
+    o.stores?.name,
+    o.id.slice(0, 8),
+  ]);
 
   // Branch labels for the listed orders — only shown when that store actually
   // has multiple branches (single-branch stores would just repeat themselves).
@@ -161,6 +191,20 @@ export default async function AdminOrdersPage({
             />
           </StatGrid>
 
+          {/* Under the KPI tiles, not above them: the totals are platform-wide
+              and come from admin_orders_report, so they do not move when the
+              list is filtered. Putting the box between them and the list is
+              what makes that read as intended rather than as a bug. */}
+          <AdminSearchBox
+            placeholder={t.searchPlaceholder}
+            clearLabel={ts.clear}
+            hint={
+              q
+                ? `${ts.matchCount.replace("{n}", String(orders.length))} · ${ts.window.replace("{n}", String(fetched.length))}`
+                : ts.window.replace("{n}", String(fetched.length))
+            }
+          />
+
           {orders.length ? (
             <Card>
               <div className="divide-y divide-border">
@@ -217,7 +261,10 @@ export default async function AdminOrdersPage({
               </div>
             </Card>
           ) : (
-            <EmptyState icon={Receipt} title={t.empty} />
+            <EmptyState
+              icon={Receipt}
+              title={q ? ts.noMatch.replace("{q}", q) : t.empty}
+            />
           )}
         </div>
       </Container>

@@ -55,6 +55,18 @@ export const FETCH_BOUNDS = {
   /** Reference taxonomies. lb_areas in particular is close enough to 1000 that
    *  the default PostgREST cap was a live risk, not a theoretical one. */
   referenceRows: 5000,
+  /** Every non-deleted store, for the admin roster. ISS-013: that read carried
+   *  no `.limit()` at all, which is not "unlimited" — it is PostgREST's
+   *  1000-row default, silently. The screen that decides who is suspended was
+   *  the one place in the app that could not be told it was seeing part of the
+   *  list. */
+  adminStores: 5000,
+  /** Profiles resolved for the admin roster — each store's owner plus the admin
+   *  who last moved its status, so two per store at worst. */
+  adminStorePeople: 10000,
+  /** The business-leader roster. Editorial content, so it grows slowly, but the
+   *  admin read had the same missing `.limit()` as the store roster. */
+  adminLeaders: 5000,
 } as const;
 
 /**

@@ -24,6 +24,34 @@ export async function generateMetadata({
   return { title: m.metaTitle, description: m.metaDesc, alternates: localeAlternates(lang, "/merchants") };
 }
 
+// ISS-021. The four reassurances the WhatsApp-heavy shop owner is actually
+// weighing — free, no card, cash on delivery, share on WhatsApp — sat eight
+// sections below the fold in a "why merchants trust us" grid, which is a page
+// nobody scrolls to before deciding whether to tap the button. They belong at
+// the button. Rendered under BOTH store-creation CTAs on this page, because the
+// second one is where the reader who scrolled the whole page ends up.
+//
+// It says three products, not "free", because the free plan caps at three
+// (FREE_PRODUCT_LIMIT) and a merchant who finds that out after uploading their
+// catalogue has been sold something.
+function Reassurance({ items, center = false }: { items: readonly string[]; center?: boolean }) {
+  return (
+    <ul
+      className={`mt-6 flex flex-wrap gap-x-5 gap-y-2 ${center ? "justify-center" : ""}`}
+    >
+      {items.map((line) => (
+        <li
+          key={line}
+          className="flex items-start gap-1.5 text-start text-sm font-semibold text-muted-foreground"
+        >
+          <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+          {line}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default async function MerchantsPage({
   params,
 }: {
@@ -63,6 +91,7 @@ export default async function MerchantsPage({
                 {m.seePricing}
               </Link>
             </div>
+            <Reassurance items={m.entryReassure} />
           </div>
         </Container>
       </div>
@@ -194,6 +223,7 @@ export default async function MerchantsPage({
           <Link href={`${base}/merchant/new`} className="mt-6 inline-flex h-12 items-center rounded-xl bg-primary px-8 text-sm font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover">
             {dict.common.openStore}
           </Link>
+          <Reassurance items={m.entryReassure} center />
         </div>
       </Container>
     </div>

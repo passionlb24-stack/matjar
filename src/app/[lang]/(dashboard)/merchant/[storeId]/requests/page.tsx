@@ -10,6 +10,7 @@ import {
   ServiceRequestManager,
   type ServiceRequestRow,
 } from "@/components/service-request-manager";
+import { NextStepEmpty } from "@/components/os-dashboard/next-step-empty";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -94,9 +95,14 @@ export default async function StoreRequestsPage({
             ))}
           </div>
         ) : (
-          <div className="mt-8 rounded-2xl border border-dashed border-border py-10 sm:py-16 text-center text-muted-foreground">
-            {t.empty}
-          </div>
+          <NextStepEmpty
+            lang={lang}
+            dict={dict}
+            storeId={storeId}
+            module="requests"
+            title={t.empty}
+            className="mt-8"
+          />
         )}
       </Container>
     </div>
