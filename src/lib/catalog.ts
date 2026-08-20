@@ -25,6 +25,43 @@ export const categoryKeys = [
 
 export type CategoryKey = (typeof categoryKeys)[number];
 
+const CATEGORY_KEY_SET: ReadonlySet<string> = new Set<string>(categoryKeys);
+
+/** Whether an arbitrary value is one of the sectors the code actually knows.
+ *
+ *  Every sector behaviour — transaction model, CTA, module bundle, profile
+ *  order, team label — is keyed on this union, and the value that reaches it is
+ *  a `business_types.slug`, a string an admin types. The call sites narrowed it
+ *  with a bare `as CategoryKey`, which is an assertion the compiler cannot
+ *  check: an unrecognised slug travelled on WITH the type of a known sector and
+ *  every registry lookup downstream of it quietly returned undefined. */
+export function isCategoryKey(value: unknown): value is CategoryKey {
+  return typeof value === "string" && CATEGORY_KEY_SET.has(value);
+}
+
+/** The same narrowing with the fallback the call sites were already writing by
+ *  hand, and the one thing they were not doing: saying so.
+ *
+ *  Unknown slugs land on `retail` — the generic bundle every existing fallback
+ *  in this codebase already picks — so a drifted row renders a plain shop
+ *  instead of throwing on a public page. The warning is what turns that from a
+ *  silent default into a reported one; a default nobody ever hears about is
+ *  indistinguishable from a decision, and stays wrong for as long as nobody
+ *  happens to notice. `context` names the caller so the log line is actionable.
+ */
+export function toCategoryKey(slug: unknown, context?: string): CategoryKey {
+  if (isCategoryKey(slug)) return slug;
+  if (slug != null && slug !== "") {
+    console.warn(
+      `[matjar:sectors] business type slug ${JSON.stringify(slug)}` +
+        `${context ? ` (${context})` : ""} is not a known sector — rendering it ` +
+        `as "retail". Add it to categoryKeys in src/lib/catalog.ts, or rename ` +
+        `the business_types row to a supported slug.`,
+    );
+  }
+  return "retail";
+}
+
 export type Bilingual = { ar: string; en: string };
 
 // ===== Sector colour identity =====
@@ -365,9 +402,15 @@ export const sampleProducts: Record<CategoryKey, Product[]> = {
     { name: { ar: "ليلة بشاليه", en: "Chalet night" }, price: 120 },
     { name: { ar: "غرفة فندقية / ليلة", en: "Hotel room / night" }, price: 90 },
   ],
+  // No lab test here. A blood test is an appointment with preparation
+  // instructions and a result that arrives later, and this sector sells stock
+  // off a shelf through a cart with a quantity selector — listing one as a $25
+  // line item is the conflation MJ-009 is about, written into the registry's
+  // own sample data. Labs belong to the clinic sector until they get one of
+  // their own (see the note above `pharmacy` in sectors.ts).
   pharmacy: [
     { name: { ar: "دواء بوصفة", en: "Prescription medicine" }, price: 10 },
-    { name: { ar: "فحص مخبري", en: "Lab test" }, price: 25 },
+    { name: { ar: "مستلزمات عناية", en: "Personal care supplies" }, price: 8 },
     { name: { ar: "فيتامينات ومكمّلات", en: "Vitamins & supplements" }, price: 15 },
   ],
   petCare: [

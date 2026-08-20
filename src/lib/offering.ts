@@ -1,4 +1,6 @@
 import type { CategoryKey } from "./catalog";
+import type { FeatureModuleKey } from "./modules-catalog";
+import { resolveStoreModules } from "./sectors";
 import { isDirectoryOnlySector } from "./store-experience";
 
 // ===== Offering Experience Resolver =====
@@ -211,16 +213,37 @@ export function offeringVariant(args: {
  *  whose transaction engine is not built, see store-experience.ts) never reaches
  *  a cart: it hands the customer to the store. Everything else transacts through
  *  the path its variant already owns — the cart for goods and dishes, the
- *  booking engine for services. No new transaction path is introduced here. */
+ *  booking engine for services. No new transaction path is introduced here.
+ *
+ *  …and a booking is only offered where a booking can actually happen. The
+ *  item-kind toggle is shown in EVERY sector on purpose (a boutique doing
+ *  alterations, a phone shop doing repairs, a pharmacy that is really a lab),
+ *  but the storefront's booking engine renders only when the `appointments`
+ *  module is on — `resolveStoreExperience` derives `showBooking` from the
+ *  module set, never from the slug. Those two disagreed: a service row in a
+ *  sector without `appointments` was given "احجز موعدًا" pointing at
+ *  `/store/<id>?service=<id>`, and the page it landed on had no calendar on it.
+ *  That is live today for the `services` sector, whose bundle carries `requests`
+ *  and not `appointments`. Where there is no engine the honest CTA is the one
+ *  the directory-only sectors already use: go to the store and get in touch. */
 export function offeringCta(args: {
   category: CategoryKey;
   itemKind: OfferingKind;
+  /** The store's RESOLVED module set, when the caller has one. Omitted, the
+   *  sector's default bundle is used — which is also the full set of modules a
+   *  store in that sector can currently switch on (the modules screen offers
+   *  `sectorDefaultModules` and nothing else), so the sector default is the
+   *  right answer, not merely the available one. */
+  enabledModules?: ReadonlySet<FeatureModuleKey>;
 }): OfferingCtaKey {
   // Directory-only first: those sectors have no engine at all, so not even a
   // service row may promise a booking there.
   if (isDirectoryOnlySector(args.category)) return "contactStore";
   const variant = offeringVariant(args);
-  if (variant === "appointmentService") return "bookAppointment";
+  if (variant === "appointmentService") {
+    const modules = args.enabledModules ?? resolveStoreModules(args.category);
+    return modules.has("appointments") ? "bookAppointment" : "contactStore";
+  }
   return variant === "menuItem" ? "addToOrder" : "addToCart";
 }
 
@@ -235,6 +258,9 @@ export function offeringCta(args: {
 export function resolveOffering(args: {
   category: CategoryKey;
   itemKind: OfferingKind;
+  /** See `offeringCta` — the store's resolved modules when the caller has
+   *  them, the sector's default bundle otherwise. */
+  enabledModules?: ReadonlySet<FeatureModuleKey>;
 }): OfferingExperience {
   const variant = offeringVariant(args);
   const { sections: chosen, omit = [] } = COMPOSITION[variant];

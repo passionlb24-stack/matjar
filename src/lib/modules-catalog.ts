@@ -69,7 +69,13 @@ export const MODULE_CATALOG: Record<FeatureModuleKey, FeatureModuleDef> = {
   classes: { key: "classes", labelKey: "classes", tier: "pro" },
   reservations: { key: "reservations", labelKey: "reservations", tier: "free" },
   memberships: { key: "memberships", labelKey: "memberships", tier: "pro" },
-  rentals: { key: "rentals", labelKey: "rentals", tier: "pro", dependsOn: ["timeslot"] },
+  // Was `tier: "pro", dependsOn: ["timeslot"]` for as long as it named nothing.
+  // Both parts were wrong once MJ-003 built it (migration 0298): the engine is
+  // a DAY RANGE with an exclusion constraint, not a grid of hourly slots, so
+  // switching rentals on used to drag in the hourly booker it is an
+  // alternative to; and it is the same engine hospitality gets free, so it is
+  // free here.
+  rentals: { key: "rentals", labelKey: "rentals", tier: "free" },
 
   requests: { key: "requests", labelKey: "requests", tier: "free" },
   listings: { key: "listings", labelKey: "listings", tier: "free" },

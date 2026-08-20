@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { categoryKeys } from "@/lib/catalog";
 import { isDirectoryOnlySector } from "@/lib/store-experience";
+import { resolveStoreModules } from "@/lib/sectors";
 import {
   DEFAULT_OFFERING_SECTIONS,
   offeringSectionSlot,
@@ -198,6 +199,66 @@ describe("offering CTA", () => {
     expect(
       resolveOffering({ category: "healthcare", itemKind: "service" }).transacts,
     ).toBe(false);
+  });
+
+  it("never promises a booking in a sector that has no booking engine", () => {
+    // MJ-009's mechanism, and the reason a lab test ends up in a cart. The
+    // item-kind toggle is deliberately shown in EVERY sector — a boutique doing
+    // alterations, a phone shop doing repairs, a pharmacy that is really a lab
+    // all need somewhere to put a service. But the storefront's calendar renders
+    // only where the `appointments` module is on (`resolveStoreExperience`
+    // derives showBooking from the module set), and the CTA did not check that:
+    // a service row in a sector without the module got "احجز موعدًا" pointing at
+    // /store/<id>?service=<id>, and the page it landed on had no calendar.
+    //
+    // Live case at the time of writing: the `services` sector carries `requests`
+    // and not `appointments`, and one active production store there has a
+    // service row whose product page showed the booking CTA.
+    for (const category of categoryKeys) {
+      if (isDirectoryOnlySector(category)) continue; // covered above
+      const bookable = resolveStoreModules(category).has("appointments");
+      const { cta, transacts } = resolveOffering({
+        category,
+        itemKind: "service",
+      });
+      expect(cta, `${category} service CTA`).toBe(
+        bookable ? "bookAppointment" : "contactStore",
+      );
+      // Either way this page routes, it never sells: no cart, no quantity.
+      expect(transacts, `${category} service transacts`).toBe(false);
+    }
+  });
+
+  it("keeps the appointment PAGE even where it cannot offer the booking", () => {
+    // The variant is about what a service IS — a duration, a person who
+    // performs it, no stock count and no "usually bought with". That stays true
+    // in a sector with no calendar; only the promise at the bottom changes.
+    const svc = resolveOffering({ category: "services", itemKind: "service" });
+    expect(svc.variant).toBe("appointmentService");
+    expect(svc.noun).toBe("service");
+    expect(svc.omitted).toContain("stock");
+    expect(svc.cta).toBe("contactStore");
+  });
+
+  it("lets a caller that knows the store's real modules override the sector", () => {
+    // The sector default is the right answer today because the modules screen
+    // offers `sectorDefaultModules` and nothing else. When a store can enable
+    // `appointments` outside its bundle, the caller passes the resolved set and
+    // the CTA follows the store rather than the sector.
+    expect(
+      resolveOffering({
+        category: "pharmacy",
+        itemKind: "service",
+        enabledModules: resolveStoreModules("pharmacy", { appointments: true }),
+      }).cta,
+    ).toBe("bookAppointment");
+    expect(
+      resolveOffering({
+        category: "healthcare",
+        itemKind: "service",
+        enabledModules: resolveStoreModules("healthcare", { appointments: false }),
+      }).cta,
+    ).toBe("contactStore");
   });
 
   it("gives every sector × kind exactly one of the four CTAs", () => {

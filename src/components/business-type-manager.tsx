@@ -7,13 +7,18 @@ import { Plus, Pencil, Trash2, X } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
-import { categoryKeys } from "@/lib/catalog";
+import { categoryKeys, isCategoryKey } from "@/lib/catalog";
 import { logAdminAction } from "@/lib/audit";
 
 // Sector behavior (transaction model, modules, fields, CTA) is code-keyed by
 // slug. Creating a business type with a slug outside this set would resolve to
 // no sector config and crash the public store + module pages. Until the dynamic
 // sector-definitions engine exists (audit file 17), only these slugs are safe.
+//
+// The membership test itself is `isCategoryKey` from the registry — the same
+// predicate the runtime narrowing in store-view uses — so this screen and the
+// storefront can never disagree about which slugs exist. This list is only for
+// telling the admin what they are.
 const SUPPORTED_SLUGS = new Set<string>(categoryKeys);
 import { Container } from "@/components/ui/container";
 import { useConfirm } from "@/components/ui/confirm-dialog";
@@ -73,13 +78,26 @@ export function BusinessTypeManager({
     setDraft(empty);
   }
 
-  // A new type may only use a supported slug; an existing type keeps its slug.
-  const slugUnsupported =
-    editingId === "new" && !SUPPORTED_SLUGS.has(draft.slug.trim());
+  // The guard used to read `editingId === "new" && …`, on the stated assumption
+  // that "an existing type keeps its slug". It does not: the edit form is the
+  // same form, its slug input is editable, and nothing enforced the sentence —
+  // so the allow-list stopped an admin CREATING `lab` and then let the same
+  // admin rename `pharmacy` to `lab` one click later, with no check at all.
+  //
+  // What must actually hold is about the slug being SAVED, not about which
+  // button opened the form. A row may keep whatever slug it already has (a
+  // legacy row has to stay editable, or its name and icon could never be fixed);
+  // what it may not do is MOVE to a slug the code cannot render.
+  const originalSlug =
+    editingId && editingId !== "new"
+      ? (types.find((t) => t.id === editingId)?.slug ?? null)
+      : null;
+  const draftSlug = draft.slug.trim();
+  const slugUnsupported = draftSlug !== originalSlug && !isCategoryKey(draftSlug);
 
   async function save() {
     const isNew = editingId === "new";
-    if (isNew && !SUPPORTED_SLUGS.has(draft.slug.trim())) {
+    if (slugUnsupported) {
       notifyError(
         lang === "ar"
           ? "هذا الـslug غير مدعوم بعد. القطاعات المدعومة فقط تعمل بشكل صحيح — استخدم أحد: " +
