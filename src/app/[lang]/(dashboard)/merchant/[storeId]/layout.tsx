@@ -286,7 +286,10 @@ export default async function StoreOsLayout({
     { key: "more", label: dict.os.groups.store },
   ];
   return (
-    <div className="flex flex-col lg:flex-row">
+    // ISS-028: the rail and the content sit side by side from md up, matching
+    // the breakpoint the sidebar itself now switches at. Below md the shell
+    // stacks and the phone chrome (top bar, tab bar, drawer) takes over.
+    <div className="flex flex-col md:flex-row">
       <MerchantSidebar
         lang={lang}
         storeId={storeId}
@@ -300,8 +303,10 @@ export default async function StoreOsLayout({
         tabs={tabs}
       />
       {/* Clear the fixed phone tab bar (56px + safe area) so the last row of
-          any screen is never trapped under it. */}
-      <div className="min-w-0 flex-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] lg:pb-0">
+          any screen is never trapped under it. The tab bar stops at md, so the
+          reservation must stop at md too — left at lg it would have hung 56px
+          of dead space under every tablet screen. */}
+      <div className="min-w-0 flex-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
         {children}
       </div>
     </div>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { GalleryUpload } from "@/components/gallery-upload";
 import { fieldClass } from "@/components/ui/field";
 
 const field = `${fieldClass} mt-1.5`;
@@ -47,6 +48,9 @@ export function CraftRequestForm({
     whenOptions: Record<string, string>;
     name: string;
     phone: string;
+    photos: string;
+    photosHint: string;
+    photosGuest: string;
     submit: string;
     sending: string;
     sentTitle: string;
@@ -61,6 +65,11 @@ export function CraftRequestForm({
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // MJ-016. `craft_requests.photos` has existed since 0239 and nothing has
+  // ever written to it. For a trade this is the single highest-value answer
+  // after the description: a photo of the leak decides whether the job is a
+  // washer or a morning, which is the call the tradesman would otherwise make.
+  const [photos, setPhotos] = useState<string[]>([]);
 
   const byRegion = areas.reduce<Record<string, typeof areas>>((acc, a) => {
     (acc[a.region] ??= []).push(a);
@@ -86,6 +95,9 @@ export function CraftRequestForm({
         area_id: String(form.get("area") ?? "") || null,
         address: String(form.get("address") ?? "").trim() || null,
         when_pref: String(form.get("when") ?? "") || null,
+        // Guests never have any (the storage insert policy is `to
+        // authenticated`), so this is [] for them — the column's own default.
+        photos,
       });
 
     setBusy(false);
@@ -130,6 +142,29 @@ export function CraftRequestForm({
           className={field}
         />
       </div>
+
+      {/* Right under the description, because it is the same answer in a
+          different medium — "here, look". Signed-in only: `store-assets`
+          accepts inserts from `authenticated` alone, and widening that policy
+          to let anonymous visitors write into a public bucket is not a trade
+          worth making for a convenience. A guest is told once and can still
+          send the request. */}
+      {userId ? (
+        <div>
+          <GalleryUpload
+            folder={`crafts/${userId}/requests`}
+            value={photos}
+            onChange={setPhotos}
+            label={labels.photos}
+            max={3}
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            {labels.photosHint}
+          </p>
+        </div>
+      ) : (
+        <p className="text-xs text-muted-foreground">{labels.photosGuest}</p>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>

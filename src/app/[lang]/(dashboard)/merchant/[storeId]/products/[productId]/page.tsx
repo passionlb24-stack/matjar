@@ -170,12 +170,21 @@ export default async function EditProductPage({
   return (
     <div className="py-10">
       <Container className="max-w-2xl">
+        {/* ISS-018. This link always pointed at the catalogue list — the route
+            back was never missing. What was missing was any way to know that:
+            it was labelled with the STORE's name, which is the exact label the
+            list page puts on its own back link, and that one goes somewhere
+            else (the OS home). Two destinations wearing one word is why the
+            list↔edit relationship read as absent. It now names where it goes,
+            using the sector's own noun for the catalogue (القائمة / المنتجات /
+            الخدمات / العروض) — the same word standing in the list page's <h1>,
+            so leaving and arriving are spelled the same. */}
         <Link
           href={`/${lang}/merchant/${storeId}/items`}
-          className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+          className="relative inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors before:absolute before:-inset-x-2 before:-inset-y-3 before:content-[''] hover:text-foreground"
         >
           <ChevronPrev className="h-4 w-4" />
-          {(store as { name: string }).name}
+          {dict.store[mod.itemsKey]}
         </Link>
         <div className="mt-5">
           <ProductEditForm

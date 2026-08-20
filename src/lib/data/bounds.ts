@@ -39,6 +39,12 @@ export const FETCH_BOUNDS = {
   storeCheckoutFields: 50,
   /** Branch locations for the stores on one rendered page. */
   storeLocations: 500,
+  /** Active delivery zones in one store. A zone is an area the merchant priced;
+   *  a truncated list is a customer who cannot find their own area in the
+   *  picker and, since 0229, therefore cannot order at all. */
+  storeDeliveryZones: 200,
+  /** One customer's saved addresses, for the checkout prefill. */
+  customerAddresses: 100,
   /** Every active product platform-wide — discovery's catalog-facts rollup.
    *  This one scales with total catalog size, not store count, so it is the
    *  most likely of all of these to hit its ceiling first. */

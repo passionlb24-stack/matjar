@@ -7,6 +7,7 @@ import { Container } from "@/components/ui/container";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { ChevronPrev } from "@/components/ui/directional-icon";
 import {
+  ServiceRequestIntakeSettings,
   ServiceRequestManager,
   type ServiceRequestRow,
 } from "@/components/service-request-manager";
@@ -38,7 +39,7 @@ export default async function StoreRequestsPage({
   if (!canManage) redirect(`/${lang}/merchant`);
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, owner_id")
+    .select("id, name, owner_id, request_intake, business_types(slug)")
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
@@ -61,7 +62,7 @@ export default async function StoreRequestsPage({
   const { data } = await supabase
     .from("service_requests")
     .select(
-      "id, status, description, address, phone, customer_name, quote_amount, quote_note, counter_amount, counter_note, created_at",
+      "id, status, description, address, phone, customer_name, quote_amount, quote_note, counter_amount, counter_note, created_at, photos, urgency, budget_range, timeline",
     )
     .eq("store_id", storeId)
     .order("created_at", { ascending: false });
@@ -82,6 +83,21 @@ export default async function StoreRequestsPage({
           {t.title}
         </h1>
         <p className="mt-2 text-muted-foreground">{t.subtitle}</p>
+
+        {/* Which optional questions the public form asks. Sits above the list
+            because the answer to "why am I not getting enough detail" (or
+            "why are people dropping off") is here, not in the requests. */}
+        <div className="mt-6">
+          <ServiceRequestIntakeSettings
+            storeId={storeId}
+            category={
+              (store as unknown as { business_types: { slug: string } | null })
+                .business_types?.slug ?? null
+            }
+            initial={(store as unknown as { request_intake: unknown }).request_intake}
+            dict={dict}
+          />
+        </div>
 
         {requests.length ? (
           <div className="mt-8 space-y-4">

@@ -67,7 +67,9 @@ export default async function CraftMePage({
 
   const { data: requestRows } = await supabase
     .from("craft_requests")
-    .select("id, customer_name, phone, description, when_pref, status, created_at")
+    .select(
+      "id, customer_name, phone, description, when_pref, status, created_at, photos",
+    )
     .eq("provider_id", p.id)
     .order("created_at", { ascending: false })
     .limit(50);
@@ -186,6 +188,7 @@ export default async function CraftMePage({
                   decline: t.reqDecline,
                   error: dict.auth.errorGeneric,
                   statuses: t.reqStatuses as unknown as Record<string, string>,
+                  photos: t.reqPhotosFrom,
                 }}
               />
             </div>

@@ -9,7 +9,8 @@ import type { ItemSurface } from "@/lib/store-experience";
 import { attributeSummary } from "@/lib/attributes";
 import { waLink } from "@/lib/whatsapp";
 import { parseHours } from "@/lib/hours";
-import { StoreProducts, type DeliveryZone } from "@/components/store-products";
+import { StoreProducts } from "@/components/store-products";
+import type { CheckoutViewer, StoreCheckout } from "@/lib/checkout";
 import type { DoctorView } from "@/components/store/store-doctors";
 
 // The two engines below are mutually exclusive on any given render — `surface`
@@ -36,17 +37,13 @@ export function StoreProductsSection({
   doctors,
   providerServices,
   currentUser,
-  loggedIn,
-  defaultAddress,
-  savedAddresses,
+  checkout,
+  viewer,
   lbpRate,
-  loyaltyPoints,
-  branches,
   Icon,
   style,
   initialBrand = null,
   layout = null,
-  zones = [],
 }: {
   sectionTitle: string;
   store: StoreView;
@@ -60,23 +57,18 @@ export function StoreProductsSection({
   doctors: DoctorView[];
   providerServices: Record<string, string[]>;
   currentUser: { id: string; name: string; phone?: string } | null;
-  loggedIn: boolean;
-  defaultAddress: string;
-  savedAddresses: { label: string; value: string }[];
+  /** This store's checkout — zones, coupons, loyalty, branches, the merchant's
+   *  own questions. Assembled once by the page (src/lib/data/checkout.ts) and
+   *  handed to whichever surface can order, so no surface can be missing a
+   *  capability by accident (MJ-024). */
+  checkout: StoreCheckout | null;
+  viewer: CheckoutViewer;
   lbpRate: number;
-  loyaltyPoints: number;
-  branches: {
-    id: string;
-    name: string | null;
-    area: string | null;
-    address: string | null;
-  }[];
   Icon: LucideIcon;
   style: { cover: string; iconWrap: string };
   initialBrand?: string | null;
   // Theme-resolved product presentation (merchant's own pick already applied).
   layout?: "grid" | "menu" | "showcase" | null;
-  zones?: DeliveryZone[];
 }) {
   // A store may both book services and sell goods (a vet clinic selling pet
   // food, a salon selling hair products). Items carry an explicit kind, so the
@@ -87,8 +79,14 @@ export function StoreProductsSection({
   // On an appointment surface the primary list is the services; the goods get
   // their own cart section below.
   const primary = surface === "appointment" ? services : goods;
+  // A checkout the page could not assemble (a store anon may not read) is a
+  // store nobody may order from — the browse-only catalogue is then the correct
+  // surface, not a cart that would fail at the RPC.
   const showGoodsSection =
-    surface === "appointment" && canOrderProducts && goods.length > 0;
+    surface === "appointment" &&
+    canOrderProducts &&
+    goods.length > 0 &&
+    checkout != null;
 
   return (
     <>
@@ -142,33 +140,16 @@ export function StoreProductsSection({
                   capacityPerSlot: p.capacityPerSlot ?? null,
                 }))}
             />
-          ) : surface === "order" ? (
+          ) : surface === "order" && checkout ? (
             <StoreProducts
-              storeId={id}
               lang={lang}
               dict={dict}
               category={store.category}
               isBooking={false}
-              loggedIn={loggedIn}
-              defaultAddress={defaultAddress}
-              savedAddresses={savedAddresses}
-              acceptsDelivery={store.acceptsDelivery ?? true}
-              acceptsPickup={store.acceptsPickup ?? true}
-              minOrder={store.minOrder ?? null}
-              paymentNote={store.paymentNote ?? null}
-              prepTime={store.prepTime ?? null}
-              whatsapp={store.whatsapp ?? null}
-              storeName={store.name}
+              checkout={checkout}
+              viewer={viewer}
               layout={layout ?? store.storefrontLayout}
               lbpRate={lbpRate}
-              loyaltyPoints={loyaltyPoints}
-              loyaltyPointsPerUnit={store.loyaltyPointsPerUnit ?? 0}
-              branches={branches.map((b) => ({
-                id: b.id,
-                name: b.name,
-                area: b.area,
-                address: b.address,
-              }))}
               sections={store.sections}
               products={goods
                 .filter((p) => p.id)
@@ -190,8 +171,6 @@ export function StoreProductsSection({
                   includes: p.includes,
                 }))}
               initialBrand={initialBrand}
-              zones={zones}
-              checkoutFields={store.checkoutFields}
             />
           ) : (
             /* Catalog surface: browse-only listing + contact via the header.
@@ -282,37 +261,20 @@ export function StoreProductsSection({
 
       {/* A booking store that also sells goods gets a real cart for them — the
           appointment engine above handles only its services. */}
-      {store.isReal && showGoodsSection ? (
+      {store.isReal && showGoodsSection && checkout ? (
         <>
           <h2 className="mb-4 mt-10 text-xl font-bold">
             {dict.store.productsForSale}
           </h2>
           <StoreProducts
-            storeId={id}
             lang={lang}
             dict={dict}
             category={store.category}
             isBooking={false}
-            loggedIn={loggedIn}
-            defaultAddress={defaultAddress}
-            savedAddresses={savedAddresses}
-            acceptsDelivery={store.acceptsDelivery ?? true}
-            acceptsPickup={store.acceptsPickup ?? true}
-            minOrder={store.minOrder ?? null}
-            paymentNote={store.paymentNote ?? null}
-            prepTime={store.prepTime ?? null}
-            whatsapp={store.whatsapp ?? null}
-            storeName={store.name}
+            checkout={checkout}
+            viewer={viewer}
             layout={layout ?? store.storefrontLayout}
             lbpRate={lbpRate}
-            loyaltyPoints={loyaltyPoints}
-            loyaltyPointsPerUnit={store.loyaltyPointsPerUnit ?? 0}
-            branches={branches.map((b) => ({
-              id: b.id,
-              name: b.name,
-              area: b.area,
-              address: b.address,
-            }))}
             sections={store.sections}
             products={goods
               .filter((p) => p.id)
@@ -334,8 +296,6 @@ export function StoreProductsSection({
                 includes: p.includes,
               }))}
             initialBrand={initialBrand}
-            zones={zones}
-            checkoutFields={store.checkoutFields}
           />
         </>
       ) : null}

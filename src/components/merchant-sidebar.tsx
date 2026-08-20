@@ -246,7 +246,78 @@ export function MerchantSidebar({
     </div>
   );
 
-  const navContent = (
+  // Section header chrome, shared by a collapsible group and the advanced
+  // block. h-9 is 36px; the transparent before: band adds 4px above and below
+  // for a 44px touch target. Reading the summary's own box would report 36 and
+  // be wrong — the target lives on ::before.
+  const summaryCls =
+    "relative flex h-9 cursor-pointer list-none items-center gap-2 rounded-lg px-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 transition-colors before:absolute before:inset-x-0 before:-inset-y-1 before:content-[''] hover:text-foreground";
+
+  // ISS-029. The advanced-tools collapse shortened the drawer for a FREE store
+  // (most of its modules are locked, so most of its rows moved behind one
+  // summary) and did nothing at all for a paying one — a Business store has
+  // nothing locked, so `nav.advanced` is empty and every module still renders
+  // flat. That store has the longest drawer in the product and got none of the
+  // relief. So on the phone the groups collapse too: the group holding the
+  // current page is open, the first group (daily work) is open, the rest rest.
+  // Every group label stays visible with its count, so nothing is more than one
+  // tap away and nothing is hidden — the merchant still sees that "المال" has
+  // four things in it. The desktop rail is NOT collapsed: it has the full column
+  // height to spend and scanning beats tapping when the whole list fits.
+  const renderGroup = (
+    group: SidebarNav["groups"][number],
+    index: number,
+    collapsible: boolean,
+  ) => {
+    const rows = (
+      <div className="mt-1.5 space-y-0.5">
+        {group.items.map((item) => (
+          <NavRow
+            key={item.key}
+            item={item}
+            category={category}
+            active={activeHref === item.href}
+            onNavigate={() => setOpen(false)}
+          />
+        ))}
+      </div>
+    );
+
+    if (!collapsible) {
+      return (
+        <div key={group.key} className="mt-6">
+          <div className="ps-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70">
+            {group.label}
+          </div>
+          {rows}
+        </div>
+      );
+    }
+
+    return (
+      <details
+        key={group.key}
+        className="group mt-6"
+        open={
+          index === 0 ||
+          group.items.some((i) => i.href === activeHref) ||
+          undefined
+        }
+      >
+        <summary className={summaryCls}>
+          <span className="min-w-0 flex-1 truncate">{group.label}</span>
+          <span className="shrink-0 tabular-nums">{group.items.length}</span>
+          <ChevronDown
+            className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-180 motion-reduce:transition-none"
+            aria-hidden
+          />
+        </summary>
+        {rows}
+      </details>
+    );
+  };
+
+  const renderNav = (collapsibleGroups: boolean) => (
     <>
       <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
         <NavRow
@@ -255,24 +326,9 @@ export function MerchantSidebar({
           active={activeHref === nav.home.href}
           onNavigate={() => setOpen(false)}
         />
-        {nav.groups.map((group) => (
-          <div key={group.key} className="mt-6">
-            <div className="ps-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70">
-              {group.label}
-            </div>
-            <div className="mt-1.5 space-y-0.5">
-              {group.items.map((item) => (
-                <NavRow
-                  key={item.key}
-                  item={item}
-                  category={category}
-                  active={activeHref === item.href}
-                  onNavigate={() => setOpen(false)}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
+        {nav.groups.map((group, i) =>
+          renderGroup(group, i, collapsibleGroups),
+        )}
 
         {/* Everything this plan does not open, in one place instead of thirteen
             padlocks salted through the groups above. Kept as a real <details>
@@ -286,7 +342,7 @@ export function MerchantSidebar({
               nav.advanced.items.some((i) => i.href === activeHref) || undefined
             }
           >
-            <summary className="relative flex h-9 cursor-pointer list-none items-center gap-2 rounded-lg px-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 transition-colors before:absolute before:inset-x-0 before:-inset-y-1 before:content-[''] hover:text-foreground">
+            <summary className={summaryCls}>
               <Lock className="h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
               <span className="min-w-0 flex-1 truncate">
                 {nav.advanced.label}
@@ -368,14 +424,26 @@ export function MerchantSidebar({
           (iPhone 14/15) too high and tucked under the header. The offset is now
           derived: --m-header-h is the row (4rem, the token that already names
           h-16), and the inset is added on top. Off a notch the inset is 0 and
-          this resolves to the old 64px exactly. (MP-033) */}
-      <aside className="sticky top-[calc(var(--m-header-h)+env(safe-area-inset-top))] hidden h-[calc(100dvh-var(--m-header-h)-env(safe-area-inset-top))] w-60 shrink-0 flex-col border-e border-border bg-surface lg:flex print:hidden">
+          this resolves to the old 64px exactly. (MP-033)
+
+          ISS-028: the rail now starts at md (768px), not lg (1024px). Between
+          those two widths a tablet was handed the phone build of this component
+          — a 48px top strip, a fixed 56px bottom tab bar whose five tabs each
+          stretched to ~205px, and an overlay drawer with a scrim — while the
+          dashboard header above it had already switched to its full desktop
+          control set at md. Two fixed strips ate 104px of a landscape iPad's
+          768px of height and navigation still cost a tap and a dismissal, on
+          the one class of device with room to spare. md is also the threshold
+          the header already committed to, so the two now agree. Every iPad in
+          portrait (810–834px) is inside this band; landscape iPads were already
+          past lg and see no change. */}
+      <aside className="sticky top-[calc(var(--m-header-h)+env(safe-area-inset-top))] hidden h-[calc(100dvh-var(--m-header-h)-env(safe-area-inset-top))] w-60 shrink-0 flex-col border-e border-border bg-surface md:flex print:hidden">
         {identity}
-        {navContent}
+        {renderNav(false)}
       </aside>
 
-      {/* Mobile top bar. */}
-      <div className="sticky top-[calc(var(--m-header-h)+env(safe-area-inset-top))] z-30 flex h-12 items-center gap-2 border-b border-border bg-surface/90 px-4 backdrop-blur lg:hidden print:hidden">
+      {/* Phone top bar. */}
+      <div className="sticky top-[calc(var(--m-header-h)+env(safe-area-inset-top))] z-30 flex h-12 items-center gap-2 border-b border-border bg-surface/90 px-4 backdrop-blur md:hidden print:hidden">
         <button
           type="button"
           aria-label="menu"
@@ -409,13 +477,14 @@ export function MerchantSidebar({
         />
       )}
 
-      {/* Mobile drawer — always mounted so it can slide, inert when closed.
+      {/* Phone drawer — always mounted so it can slide, inert when closed.
           overflow-hidden clips the off-canvas panel (translated a full width
           past the inline-start edge when closed) so it never adds horizontal
           page scroll — which on mobile would blow up the layout viewport and
-          shrink the whole dashboard. */}
+          shrink the whole dashboard. Below md only: from md up the rail above
+          is the navigation and this never renders (ISS-028). */}
       <div
-        className={`fixed inset-0 z-50 overflow-hidden lg:hidden ${open ? "" : "pointer-events-none"}`}
+        className={`fixed inset-0 z-50 overflow-hidden md:hidden ${open ? "" : "pointer-events-none"}`}
         aria-hidden={!open}
       >
         <div
@@ -446,7 +515,7 @@ export function MerchantSidebar({
               <X className="h-4 w-4" aria-hidden />
             </button>
           </div>
-          {navContent}
+          {renderNav(true)}
         </div>
       </div>
     </>

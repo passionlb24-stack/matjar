@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { CategoryKey } from "@/lib/catalog";
-import { categoryAttributes } from "@/lib/attributes";
+import { attrEntryFields } from "@/lib/attributes";
 import { sectorHasTeam } from "@/lib/sectors";
 import { ImageUpload } from "@/components/image-upload";
 import { DigitalFileUpload, type DigitalFile } from "@/components/digital-file-upload";
@@ -66,7 +66,10 @@ export function ProductForm({
   const [inOffers, setInOffers] = useState(false);
   const [inClearance, setInClearance] = useState(false);
   const [inMarket, setInMarket] = useState(false);
-  const attrFields = categoryAttributes[category] ?? [];
+  // Entry fields only. A retired field (see AttrField.legacy) still renders on
+  // the storefront from stored values, but a new product must never be able to
+  // start filling it — that is how the clinic ended up with two durations.
+  const attrFields = attrEntryFields(category);
   // The sector picks the DEFAULT, not the ceiling.
   //
   // A booking store can also sell goods (a vet selling pet food, a salon
@@ -479,7 +482,9 @@ export function ProductForm({
       </div>
 
       {attrFields.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="rounded-xl border border-border/70 p-4">
+          <span className={label}>{p.attributesTitle}</span>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
           {attrFields.map((f) => (
             <div key={f.key}>
               <label className={label} htmlFor={`attr_${f.key}`}>
@@ -499,6 +504,7 @@ export function ProductForm({
               )}
             </div>
           ))}
+          </div>
         </div>
       )}
 

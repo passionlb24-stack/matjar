@@ -23,8 +23,12 @@ import {
   getOwnedProductView,
   type ProductView,
 } from "@/lib/data/product-view";
+import {
+  getCheckoutViewer,
+  getStoreCheckoutContext,
+  withLoyaltyBalance,
+} from "@/lib/data/checkout";
 import { Breadcrumbs } from "@/components/breadcrumbs";
-import { regions } from "@/lib/catalog";
 import { attributeSummary } from "@/lib/attributes";
 import { effectivePrice, compareAtPrice, flashEndsAt } from "@/lib/pricing";
 import { FlashCountdown } from "@/components/flash-countdown";
@@ -156,35 +160,23 @@ export default async function ProductPage({
   const ctaLabel = dict.offering.cta[offering.cta];
   const shows = (key: OfferingSectionKey) => offering.sections.includes(key);
 
-  // Prefill checkout from the customer's saved address.
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  let defaultAddress = "";
-  if (user) {
-    const { data: addr } = await supabase
-      .from("addresses")
-      .select("region, city, street, building, floor, details")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (addr) {
-      const regionName =
-        regions.find((r) => r.key === addr.region)?.name[l] ??
-        (addr.region as string | null) ??
-        "";
-      defaultAddress = [
-        addr.street,
-        addr.building,
-        addr.floor,
-        addr.city,
-        regionName,
-        addr.details,
-      ]
-        .filter(Boolean)
-        .join("، ");
-    }
-  }
+
+  // The checkout this page can offer — read exactly as the store page reads it
+  // (src/lib/data/checkout.ts). MJ-024: the buy box used to be handed only a
+  // saved address and two booleans, so it collected no delivery zone, no
+  // coupon, no loyalty opt-in and none of the merchant's own checkout fields,
+  // and since 0229 a store with zones could not be ordered from here at all.
+  const [checkoutCtx, checkoutViewer] = await Promise.all([
+    getStoreCheckoutContext(product.storeId),
+    getCheckoutViewer(supabase, user?.id ?? null, l),
+  ]);
+  const checkout = checkoutCtx
+    ? await withLoyaltyBalance(checkoutCtx, supabase, !!user)
+    : null;
 
   let isWishlisted = false;
   if (user) {
@@ -487,13 +479,19 @@ export default async function ProductPage({
             {ctaLabel}
           </Link>
         </>
-      ) : (
+      ) : checkout ? (
+        /* No checkout context means the store row is not readable to this
+           viewer — an owner previewing a not-yet-public store, say. There is
+           nothing to order from, so the buy box does not render rather than
+           collecting an address for an RPC that would refuse. */
         <>
           <ProductOrder
             lang={lang}
             dict={dict}
-            storeId={product.storeId}
             productId={product.id}
+            productName={name}
+            checkout={checkout}
+            viewer={checkoutViewer}
             basePrice={basePrice}
             stock={product.stock}
             variants={product.variants}
@@ -501,9 +499,6 @@ export default async function ProductPage({
             modifierGroups={product.modifierGroups}
             allowScheduling={offering.variant === "menuItem"}
             category={product.category}
-            defaultAddress={defaultAddress}
-            acceptsDelivery={product.acceptsDelivery}
-            acceptsPickup={product.acceptsPickup}
             lbpRate={lbpRate}
             ctaLabel={ctaLabel}
           />
@@ -526,7 +521,7 @@ export default async function ProductPage({
             </div>
           )}
         </>
-      )}
+      ) : null}
     </div>
   );
 

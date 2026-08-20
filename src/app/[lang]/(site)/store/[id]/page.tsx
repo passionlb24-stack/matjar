@@ -6,7 +6,6 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import {
   categoryStyles,
   getStoreById,
-  regions,
   sampleProducts,
 } from "@/lib/catalog";
 import {
@@ -22,6 +21,11 @@ import {
   getOwnedStoreView,
   type StoreView,
 } from "@/lib/data/store-view";
+import {
+  getCheckoutViewer,
+  getStoreCheckoutContext,
+  withLoyaltyBalance,
+} from "@/lib/data/checkout";
 import { localeAlternates, SITE_URL } from "@/lib/site";
 import { accentStyle } from "@/lib/color";
 import { resolveTheme } from "@/lib/themes";
@@ -422,87 +426,25 @@ export default async function StorePage({
       }
     : null;
 
-  // Prefill checkout from the customer's saved addresses (default first).
-  let defaultAddress = "";
-  const savedAddresses: { label: string; value: string }[] = [];
-  if (user) {
-    const { data: addrs } = await supabase
-      .from("addresses")
-      .select("label, region, city, street, building, floor, details, is_default")
-      .eq("user_id", user.id)
-      .order("is_default", { ascending: false })
-      .order("updated_at", { ascending: false });
-    for (const addr of addrs ?? []) {
-      const regionName =
-        regions.find((r) => r.key === addr.region)?.name[lang] ??
-        (addr.region as string | null) ??
-        "";
-      const value = [
-        addr.street,
-        addr.building,
-        addr.floor,
-        addr.city,
-        regionName,
-        addr.details,
-      ]
-        .filter(Boolean)
-        .join("، ");
-      if (!value) continue;
-      savedAddresses.push({
-        label: (addr.label as string | null) || value,
-        value,
-      });
-      if (addr.is_default && !defaultAddress) defaultAddress = value;
-    }
-    // Fall back to the first saved address if none is flagged default.
-    if (!defaultAddress && savedAddresses.length > 0) {
-      defaultAddress = savedAddresses[0].value;
-    }
-  }
+  // Prefill checkout from the customer saved addresses (default first) — the
+  // same reading the product page uses, so the saved-address picker is not a
+  // property of which page you started from.
+  const checkoutViewer = await getCheckoutViewer(
+    supabase,
+    user?.id ?? null,
+    lang,
+  );
 
-  // Delivery zones (0172): fee / minimum / free-over / ETA per area. The
-  // checkout requires picking one for delivery orders when any exist.
-  type ZoneRow = {
-    id: string;
-    name: string;
-    name_en: string | null;
-    fee: number;
-    min_order: number | null;
-    free_over: number | null;
-    eta_min_minutes: number | null;
-    eta_max_minutes: number | null;
-  };
-  let zones: {
-    id: string;
-    name: string;
-    nameEn: string | null;
-    fee: number;
-    minOrder: number | null;
-    freeOver: number | null;
-    etaMin: number | null;
-    etaMax: number | null;
-  }[] = [];
-  if (store.isReal && UUID_RE.test(id)) {
-    const { data: zoneRows } = await supabase
-      .from("store_delivery_zones")
-      .select(
-        "id, name, name_en, fee, min_order, free_over, eta_min_minutes, eta_max_minutes",
-      )
-      .eq("store_id", id)
-      .eq("active", true)
-      .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: true });
-    zones = ((zoneRows ?? []) as ZoneRow[]).map((z) => ({
-      id: z.id,
-      name: z.name,
-      nameEn: z.name_en,
-      fee: Number(z.fee),
-      minOrder: z.min_order != null ? Number(z.min_order) : null,
-      freeOver: z.free_over != null ? Number(z.free_over) : null,
-      etaMin: z.eta_min_minutes,
-      etaMax: z.eta_max_minutes,
-    }));
-  }
+  // What this store's checkout offers — delivery zones (0172), the merchant's
+  // custom fields (0180), branches, the minimum, the loyalty rate. Read through
+  // the one function the product page also calls, so the two order surfaces
+  // cannot be handed different checkouts (MJ-024). `zones` is lifted out
+  // because the fulfilment panel above the catalogue states them too.
+  const checkoutCtx =
+    store.isReal && UUID_RE.test(id)
+      ? await getStoreCheckoutContext(id)
+      : null;
+  const zones = checkoutCtx?.zones ?? [];
 
   // Delivery options this store offers via partner couriers.
   let couriers: CourierOption[] = [];
@@ -557,17 +499,12 @@ export default async function StorePage({
         lng: b.lng,
       });
 
-  // Loyalty redemption at checkout: only when the store opted in (0107) and the
-  // signed-in customer actually holds points at this store. my_loyalty_by_store
-  // returns only stores with a positive balance, so a 0 here renders nothing.
-  let loyaltyPoints = 0;
-  if (user && store.isReal && UUID_RE.test(id) && store.loyaltyRedemptionEnabled) {
-    const { data: byStore } = await supabase.rpc("my_loyalty_by_store");
-    const row = ((byStore ?? []) as { store_id: string; balance: number }[]).find(
-      (r) => r.store_id === id,
-    );
-    loyaltyPoints = row ? Number(row.balance) : 0;
-  }
+  // The checkout, complete: the store's own capabilities plus this customer's
+  // point balance (0107 — only read when the merchant opted in). Null when the
+  // store cannot be ordered from at all, in which case no order surface renders.
+  const checkout = checkoutCtx
+    ? await withLoyaltyBalance(checkoutCtx, supabase, !!user)
+    : null;
 
   const Icon = categoryIcons[store.category];
   const style = categoryStyles[store.category];
@@ -763,17 +700,13 @@ export default async function StorePage({
         doctors={doctors}
         providerServices={providerServices}
         currentUser={currentUser}
-        loggedIn={!!user}
-        defaultAddress={defaultAddress}
-        savedAddresses={savedAddresses}
+        checkout={checkout}
+        viewer={checkoutViewer}
         lbpRate={lbpRate}
-        loyaltyPoints={loyaltyPoints}
-        branches={branches}
         Icon={Icon}
         style={style}
         initialBrand={initialBrand}
         layout={sf.layout}
-        zones={zones}
       />
     ),
 

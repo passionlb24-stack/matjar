@@ -144,6 +144,12 @@ export function BookingPanel({
   const [name, setName] = useState(prefillName);
   // Contact number so the merchant can reach the customer about the booking.
   const [phone, setPhone] = useState(customerPhone ?? "");
+  // MJ-020. Clinics only, and optional. The one thing a practice cannot work
+  // out from the booking itself and that changes what it does with it: a first
+  // visit needs a longer slot and a file that does not exist yet. Everything
+  // else on that audit row was rejected — see migration 0297 for why.
+  const [patientStatus, setPatientStatus] = useState("");
+  const asksPatientStatus = category === "healthcare";
   // Phone-only step cursor. Above `lg` every block is visible at once, so this
   // is inert there — nothing branches on it except which block is hidden.
   const [stepIdx, setStepIdx] = useState(0);
@@ -494,7 +500,7 @@ export function BookingPanel({
         p_notes: String(form.get("notes")) || null,
         p_coupon: coupon?.code ?? null,
       });
-      const r = res as { ok?: boolean; code?: string } | null;
+      const r = res as { ok?: boolean; code?: string; id?: string } | null;
       if (rpcErr || !r?.ok) {
         const code = r?.code ?? "";
         setError(
@@ -515,6 +521,19 @@ export function BookingPanel({
         }
         setLoading(false);
         return;
+      }
+      // place_booking's signature is a contract with the deployed app, so it
+      // cannot take this as an 11th argument (0297 explains why that would
+      // break every existing 10-argument call). It goes in a second,
+      // deliberately narrow call against the id place_booking just returned.
+      // Failure is swallowed on purpose: the appointment already exists and is
+      // valid without this answer, and turning an optional extra into "booking
+      // failed" would be a lie.
+      if (asksPatientStatus && patientStatus && r?.id) {
+        await supabase.rpc("set_booking_intake", {
+          p_booking_id: r.id,
+          p_patient_status: patientStatus,
+        });
       }
     } else {
     // Legacy path — re-check the slot right before inserting (someone may
@@ -546,6 +565,8 @@ export function BookingPanel({
       notes: String(form.get("notes")) || null,
       coupon_code: coupon?.code ?? null,
       discount: coupon?.discount ?? 0,
+      // Legacy services insert directly, so this needs no second call here.
+      patient_status: (asksPatientStatus && patientStatus) || null,
     });
     if (bookingError) {
       // 23505 = the DB slot-conflict unique index fired (someone grabbed the
@@ -1025,6 +1046,45 @@ export function BookingPanel({
                   className={fieldClass}
                 />
               </div>
+              {/* Clinics only, and never preselected — a default here would be
+                  the practice answering on the patient's behalf, and "new"
+                  guessed wrong is a slot that runs over. */}
+              {asksPatientStatus && (
+                <fieldset>
+                  <legend className={labelClass}>
+                    {dict.booking.patientStatus}
+                  </legend>
+                  <div className="mt-1.5 flex gap-2">
+                    {(
+                      [
+                        ["new", dict.booking.patientNew],
+                        ["returning", dict.booking.patientReturning],
+                      ] as const
+                    ).map(([value, text]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        aria-pressed={patientStatus === value}
+                        onClick={() =>
+                          setPatientStatus(
+                            patientStatus === value ? "" : value,
+                          )
+                        }
+                        className={`min-h-11 flex-1 rounded-xl border px-3 py-2.5 text-sm font-bold transition-colors ${
+                          patientStatus === value
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border bg-surface hover:border-primary/50"
+                        }`}
+                      >
+                        {text}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {dict.booking.patientStatusHint}
+                  </p>
+                </fieldset>
+              )}
               <div>
                 <label className={labelClass} htmlFor="notes">
                   {dict.booking.notes}

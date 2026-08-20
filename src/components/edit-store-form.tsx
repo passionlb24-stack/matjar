@@ -71,6 +71,24 @@ const ACCENT_PRESETS = [
 const fieldClass = `${uiFieldClass} mt-1.5`;
 const labelClass = "text-sm font-semibold";
 
+// ===== Where the 3:1 banner is cut out of a taller photo =====
+// Three anchors, because there are three answers. What was here was a
+// HORIZONTAL `input type=range` driving a VERTICAL crop: the wrong axis, kept
+// from reversing in Arabic only by pinning `dir="ltr"` on it, and offering
+// twenty-one steps of precision to a merchant dragging with a thumb on a phone.
+// `cover_position` stays a 0-100 number in the DB — the storefront and the
+// search card both read it as `50% N%` — so nothing downstream changes.
+const COVER_ANCHORS = [
+  { value: 0, key: "coverPosTop" },
+  { value: 50, key: "coverPosMiddle" },
+  { value: 100, key: "coverPosBottom" },
+] as const;
+
+/** Existing stores hold any value the old slider produced. Band it, so a store
+ *  saved at 35 lights up "middle" instead of lighting up nothing — and stays at
+ *  35 until the merchant actually picks something. */
+const coverBand = (n: number) => (n <= 33 ? 0 : n < 67 ? 50 : 100);
+
 export function EditStoreForm({
   storeId,
   lang,
@@ -202,36 +220,43 @@ export function EditStoreForm({
               uploads are 16:9 or 4:3, so most of them lose a band top and
               bottom; this decides which band. */}
           {cover && (
-            <div className="mt-2">
-              <label
+            /* role=group + aria-labelledby, not <label>: a label can only name
+               a single form control, and this names a button group (MP-058). */
+            <div
+              role="group"
+              aria-labelledby="cover-position-label"
+              className="mt-2"
+            >
+              <span
+                id="cover-position-label"
                 className="text-xs font-semibold text-muted-foreground"
-                htmlFor="cover_position"
               >
                 {dict.merchant.coverPosition}
-              </label>
-              {/* A horizontal slider driving a VERTICAL crop. dir="ltr" pins
-                  the drag direction so Arabic and English merchants both drag
-                  the same way, and aria-valuetext names the effect (top /
-                  middle / bottom of the photo) instead of announcing a bare
-                  percentage that describes nothing. */}
-              <input
-                id="cover_position"
-                type="range"
-                min={0}
-                max={100}
-                step={5}
-                dir="ltr"
-                value={coverPos}
-                onChange={(e) => setCoverPos(Number(e.target.value))}
-                aria-valuetext={
-                  coverPos <= 33
-                    ? dict.merchant.coverPosTop
-                    : coverPos < 67
-                      ? dict.merchant.coverPosMiddle
-                      : dict.merchant.coverPosBottom
-                }
-                className="mt-1 w-full accent-[var(--primary)]"
-              />
+              </span>
+              {/* aria-pressed, not role=tab: this narrows one preview, it does
+                  not switch between panels. The 3:1 box directly above is the
+                  preview — it re-crops on tap, at the exact shape the store
+                  page and the search card will render. */}
+              <div className="mt-1.5 grid grid-cols-3 gap-2">
+                {COVER_ANCHORS.map(({ value, key }) => {
+                  const on = coverBand(coverPos) === value;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setCoverPos(value)}
+                      aria-pressed={on}
+                      className={`min-h-11 rounded-xl border px-2 py-2 text-xs font-semibold leading-snug transition-colors ${
+                        on
+                          ? "border-primary bg-primary-soft text-primary"
+                          : "border-border text-muted-foreground hover:border-primary/40"
+                      }`}
+                    >
+                      {dict.merchant[key]}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

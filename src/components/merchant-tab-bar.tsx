@@ -62,9 +62,13 @@ export function MerchantTabBar({
   };
 
   return (
+    // ISS-028: below md only. Stretched across a 1024px tablet, five tabs gave
+    // each one ~205px of width around a 20px glyph and an 11px label — a phone
+    // control wearing a desktop's clothes — while duplicating navigation the
+    // tablet can now afford to keep on screen permanently as a rail.
     <nav
       aria-label={moreLabel}
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden print:hidden"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden print:hidden"
     >
       <ul className="flex items-stretch">
         {tabs.map((t) => {

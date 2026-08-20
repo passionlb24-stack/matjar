@@ -1,12 +1,27 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { MapPin, Phone, Send } from "lucide-react";
+import {
+  AlarmClock,
+  CalendarClock,
+  MapPin,
+  Phone,
+  Send,
+  SlidersHorizontal,
+  Wallet,
+} from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
-import { notifyError } from "@/lib/notify";
+import { notifyError, notifySuccess } from "@/lib/notify";
+import {
+  INTAKE_KEYS,
+  resolveIntake,
+  type IntakeConfig,
+  type IntakeKey,
+} from "@/lib/request-intake";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type ServiceRequestRow = {
@@ -29,6 +44,12 @@ export type ServiceRequestRow = {
   counter_amount: number | null;
   counter_note: string | null;
   created_at: string;
+  // 0297. Optional intake — older rows carry none of it, so every one of
+  // these is read defensively rather than assumed present.
+  photos?: string[] | null;
+  urgency?: string | null;
+  budget_range?: string | null;
+  timeline?: string | null;
 };
 
 function money(n: number) {
@@ -88,6 +109,22 @@ export function ServiceRequestManager({
     await act("quote", { amount: amt, note: note.trim() || undefined });
   }
 
+  // Value labels come from the customer-facing dictionary block, so the two
+  // sides of the request can never drift into naming the same answer
+  // differently. An unknown code (a value written before a rename) renders as
+  // nothing rather than as a raw slug.
+  const f = dict.os.requestForm;
+  const urgencyLabel = request.urgency
+    ? (f.urgencyOptions as Record<string, string>)[request.urgency]
+    : null;
+  const budgetLabel = request.budget_range
+    ? (f.budgetOptions as Record<string, string>)[request.budget_range]
+    : null;
+  const timelineLabel = request.timeline
+    ? (f.timelineOptions as Record<string, string>)[request.timeline]
+    : null;
+  const photos = Array.isArray(request.photos) ? request.photos : [];
+
   const created = new Date(request.created_at).toLocaleDateString(
     lang === "ar" ? "ar" : "en",
     { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" },
@@ -114,6 +151,58 @@ export function ServiceRequestManager({
       <p className="mt-3 border-t border-border pt-3 text-sm">
         {request.description}
       </p>
+
+      {/* 0297 intake, shown above the contact line because it is what decides
+          whether this job is worth the call, not how to place it. */}
+      {(urgencyLabel || budgetLabel || timelineLabel) && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {urgencyLabel && (
+            <span
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold ${
+                request.urgency === "emergency"
+                  ? "bg-danger-soft text-danger"
+                  : "bg-surface-muted text-muted-foreground"
+              }`}
+            >
+              <AlarmClock className="h-3.5 w-3.5" />
+              {t.urgencyLabel}: {urgencyLabel}
+            </span>
+          )}
+          {budgetLabel && (
+            <span className="flex items-center gap-1.5 rounded-lg bg-surface-muted px-2.5 py-1 text-xs font-bold text-muted-foreground">
+              <Wallet className="h-3.5 w-3.5" />
+              {t.budgetLabel}: <span dir="ltr">{budgetLabel}</span>
+            </span>
+          )}
+          {timelineLabel && (
+            <span className="flex items-center gap-1.5 rounded-lg bg-surface-muted px-2.5 py-1 text-xs font-bold text-muted-foreground">
+              <CalendarClock className="h-3.5 w-3.5" />
+              {t.timelineLabel}: {timelineLabel}
+            </span>
+          )}
+        </div>
+      )}
+
+      {photos.length > 0 && (
+        <div className="mt-3">
+          <p className="text-xs font-bold text-muted-foreground">
+            {t.attachedPhotos}
+          </p>
+          <div className="mt-1.5 flex flex-wrap gap-2">
+            {photos.map((url) => (
+              <a
+                key={url}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative h-20 w-20 overflow-hidden rounded-xl border border-border transition-colors hover:border-primary"
+              >
+                <Image src={url} alt="" fill className="object-cover" sizes="80px" />
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
         {request.phone && (
@@ -218,5 +307,88 @@ export function ServiceRequestManager({
         </div>
       )}
     </div>
+  );
+}
+
+// The off-switch. Every question the request form adds costs the merchant a
+// few requests and improves the ones that arrive; which side of that trade
+// they want is theirs to decide, not the platform's. Writes
+// `stores.request_intake` (0297) — a partial object, so a key the merchant
+// never touched keeps following the sector default instead of being frozen at
+// today's value.
+export function ServiceRequestIntakeSettings({
+  storeId,
+  category,
+  initial,
+  dict,
+}: {
+  storeId: string;
+  /** business_types.slug — decides the defaults before any override. */
+  category: string | null;
+  /** stores.request_intake as stored: null, or a partial object. */
+  initial: unknown;
+  dict: Dictionary;
+}) {
+  const t = dict.os.requests;
+  const [config, setConfig] = useState<IntakeConfig>(() =>
+    resolveIntake(category, initial),
+  );
+  const [busy, setBusy] = useState(false);
+
+  const labels: Record<IntakeKey, string> = {
+    photos: t.intakePhotos,
+    urgency: t.intakeUrgency,
+    budget: t.intakeBudget,
+    timeline: t.intakeTimeline,
+  };
+
+  async function toggle(key: IntakeKey) {
+    if (busy) return;
+    const next = { ...config, [key]: !config[key] };
+    setConfig(next);
+    setBusy(true);
+    // The full resolved object is written, not a diff: the merchant has now
+    // seen and implicitly confirmed all four, and a later change to the sector
+    // default should not silently rearrange a form they signed off on.
+    const { error } = await createClient()
+      .from("stores")
+      .update({ request_intake: next })
+      .eq("id", storeId);
+    setBusy(false);
+    if (error) {
+      setConfig(config);
+      notifyError(dict.common.actionFailed);
+      return;
+    }
+    notifySuccess(t.intakeSaved);
+  }
+
+  return (
+    <section className="rounded-2xl border border-border bg-surface p-5">
+      <h2 className="flex items-center gap-2 font-bold">
+        <SlidersHorizontal className="h-4 w-4 text-primary" />
+        {t.intakeTitle}
+      </h2>
+      <p className="mt-1 text-sm text-muted-foreground">{t.intakeHint}</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {INTAKE_KEYS.map((key) => (
+          <button
+            key={key}
+            type="button"
+            role="switch"
+            aria-checked={config[key]}
+            disabled={busy}
+            onClick={() => toggle(key)}
+            className={`min-h-11 rounded-xl border px-3.5 py-2.5 text-sm font-bold transition-colors disabled:opacity-60 ${
+              config[key]
+                ? "border-primary bg-primary-soft text-primary"
+                : "border-border bg-surface text-muted-foreground hover:border-primary/50"
+            }`}
+          >
+            {labels[key]}
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }

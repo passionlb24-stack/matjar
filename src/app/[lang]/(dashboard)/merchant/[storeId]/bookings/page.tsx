@@ -29,6 +29,8 @@ type BookingRow = {
   phone: string | null;
   customer_id: string | null;
   notes: string | null;
+  /** 0297 — clinics only, and null on every booking taken before it. */
+  patient_status: string | null;
   party_size: number | null;
   attendance_confirmed_at: string | null;
   doctors: { name: string } | null;
@@ -65,7 +67,7 @@ export default async function StoreBookingsPage({
   const { data } = await supabase
     .from("bookings")
     .select(
-      "id, status, service_name, requested_date, requested_time, customer_name, phone, customer_id, notes, party_size, attendance_confirmed_at, doctors(name)",
+      "id, status, service_name, requested_date, requested_time, customer_name, phone, customer_id, notes, patient_status, party_size, attendance_confirmed_at, doctors(name)",
     )
     .eq("store_id", storeId)
     .order("requested_date", { ascending: true, nullsFirst: false })
@@ -230,6 +232,13 @@ export default async function StoreBookingsPage({
                       initialTime={b.requested_time}
                     />
                   </div>
+                )}
+                {/* A first visit is a longer slot and a file to open, so it
+                    belongs on the row rather than one click deeper. */}
+                {b.patient_status === "new" && (
+                  <p className="mt-3 inline-flex rounded-lg bg-info-soft px-2.5 py-1 text-xs font-bold text-info">
+                    {dict.booking.patientNew}
+                  </p>
                 )}
                 {b.notes && (
                   <p className="mt-3 border-t border-border pt-3 text-sm text-muted-foreground">

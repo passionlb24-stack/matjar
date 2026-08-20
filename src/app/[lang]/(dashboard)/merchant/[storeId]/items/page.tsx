@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { Package, BellRing, FileSpreadsheet } from "lucide-react";
-import { ChevronPrev } from "@/components/ui/directional-icon";
+import { ChevronNext, ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
@@ -123,7 +123,7 @@ export default async function StoreItemsPage({
       <Container className="max-w-5xl">
         <Link
           href={`/${lang}/merchant/${storeId}`}
-          className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+          className="relative inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors before:absolute before:-inset-x-2 before:-inset-y-3 before:content-[''] hover:text-foreground"
         >
           <ChevronPrev className="h-4 w-4" />
           {(store as { name: string }).name}
@@ -195,11 +195,17 @@ export default async function StoreItemsPage({
                     <span className="font-bold text-primary">
                       <Money value={p.price} />
                     </span>
+                    {/* ISS-018: this row sits beside ProductRowActions, whose
+                        controls (show / hide / delete) all act in place. Edit
+                        is the only one that leaves for another screen, and it
+                        looked identical to them. The chevron says "this one
+                        travels" — ChevronNext, so it points left in Arabic. */}
                     <Link
                       href={`/${lang}/merchant/${storeId}/products/${p.id}`}
-                      className="rounded-lg border border-border px-3 py-1.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+                      className="relative inline-flex shrink-0 items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold transition-colors before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:border-primary hover:text-primary"
                     >
                       {dict.merchant.products.editAction}
+                      <ChevronNext className="h-3.5 w-3.5" />
                     </Link>
                     <ProductRowActions
                       productId={p.id}
