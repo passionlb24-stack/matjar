@@ -44,9 +44,15 @@ export async function POST(request: Request) {
   if (!supabase) {
     return Response.json({ error: "not_configured" }, { status: 503 });
   }
+  // p_secret is deliberately NOT passed (0293). It used to ride along on every
+  // push, which put the shared secret into pg_stat_activity, statement logs and
+  // error detail lines for no benefit: the function is granted to service_role
+  // alone, and the service role can read push_subscriptions directly anyway, so
+  // the in-function check could never refuse the only caller able to make it.
+  // The secret still authenticates this request — it is just compared above, in
+  // this process, against the header, and never leaves it.
   const { data: subs } = await supabase.rpc("get_push_subs", {
     p_uid: body.user_id,
-    p_secret: hookSecret,
   });
   const list = (subs ?? []) as { endpoint: string; p256dh: string; auth: string }[];
   if (list.length === 0) return Response.json({ sent: 0 });
