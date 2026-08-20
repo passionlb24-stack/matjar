@@ -169,8 +169,12 @@ export function StoreProductsSection({
                   sectionId: p.sectionId ?? null,
                   isBundle: p.isBundle ?? false,
                   includes: p.includes,
+                  soldBy: p.soldBy ?? null,
+                  unitMeasure: p.unitMeasure ?? null,
+                  unitAmount: p.unitAmount ?? null,
                 }))}
               initialBrand={initialBrand}
+              hours={parseHours(store.hours)}
             />
           ) : (
             /* Catalog surface: browse-only listing + contact via the header.
@@ -294,8 +298,12 @@ export function StoreProductsSection({
                 sectionId: p.sectionId ?? null,
                 isBundle: p.isBundle ?? false,
                 includes: p.includes,
+                soldBy: p.soldBy ?? null,
+                unitMeasure: p.unitMeasure ?? null,
+                unitAmount: p.unitAmount ?? null,
               }))}
             initialBrand={initialBrand}
+              hours={parseHours(store.hours)}
           />
         </>
       ) : null}

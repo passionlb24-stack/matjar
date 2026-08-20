@@ -73,7 +73,9 @@ describe("resolveStoreExperience", () => {
   });
 
   it("directory-only sectors never expose a wrong transaction", () => {
-    for (const c of ["realEstate", "automotive"] as CategoryKey[]) {
+    // Real estate still has no engine of its own: a viewing is a lead, and a
+    // property is neither ordered nor booked by the hour.
+    for (const c of ["realEstate"] as CategoryKey[]) {
       const x = resolveDefault(c);
       expect(x.status).toBe("directory_only");
       expect(x.directoryOnly).toBe(true);
@@ -81,9 +83,50 @@ describe("resolveStoreExperience", () => {
       expect(x.showBooking).toBe(false); // no clinic-style property booking
       expect(x.allowResourceBooking).toBe(false); // no hourly property booking
       expect(x.showTickets).toBe(false);
+      expect(x.showRental).toBe(false);
     }
     expect(isDirectoryOnlySector("realEstate")).toBe(true);
     expect(isDirectoryOnlySector("retail")).toBe(false);
+  });
+
+  it("automotive left directory-only when the rental engine shipped (MJ-003)", () => {
+    // The go-live decision, stated as an assertion rather than as a comment on
+    // a Set. Automotive was held in directory-only mode because the only
+    // transaction on offer was a cart and cash on delivery for a car. Migration
+    // 0298 gave it a real one, so the hold came off.
+    const x = resolveDefault("automotive");
+    expect(x.status).toBe("active");
+    expect(x.directoryOnly).toBe(false);
+    expect(isDirectoryOnlySector("automotive")).toBe(false);
+    expect(x.showRental).toBe(true);
+
+    // …and the half that did NOT go live stayed shut. Renting a car is built;
+    // SELLING one is not, so there is still no cart and buying is still a lead.
+    expect(x.canOrderProducts).toBe(false);
+    expect(isOrderSurface("automotive")).toBe(false);
+    expect(x.itemSurface).toBe("catalog");
+    expect(x.showLeadForm).toBe(true);
+    // The rental engine is a DAY RANGE. It must not drag the hourly-slot
+    // booker or the clinic calendar along with it.
+    expect(x.allowResourceBooking).toBe(false);
+    expect(x.showBooking).toBe(false);
+    expect(x.showStay).toBe(false);
+    expect(x.showTickets).toBe(false);
+  });
+
+  it("no other sector renders the rental engine", () => {
+    // hospitality DECLARES the `rentals` module in its bundle and has never had
+    // a rental surface — it takes dates through the stay engine. The bundle is
+    // an intention; this resolver is what the page really draws.
+    for (const c of [
+      "hospitality",
+      "retail",
+      "realEstate",
+      "sportsCourts",
+      "events",
+    ] as CategoryKey[]) {
+      expect(resolveDefault(c).showRental, `${c} shows a rental`).toBe(false);
+    }
   });
 
   it("events use the ticket engine, not directory-only or hourly slots", () => {
@@ -115,7 +158,10 @@ describe("resolveStoreExperience", () => {
 
   it("automotive uses leads as its single inquiry channel (no service-request form)", () => {
     // Lead sectors consolidate to the lead form; the generic service-request
-    // form is suppressed so car inquiries don't split across two inboxes.
+    // form is suppressed so car inquiries don't split across two inboxes. This
+    // survived automotive leaving directory-only — the rental engine is a
+    // transaction, not an inquiry channel, so it does not reopen the second
+    // inbox.
     const x = resolveDefault("automotive");
     expect(x.showServiceRequest).toBe(false);
     expect(x.showLeadForm).toBe(true);

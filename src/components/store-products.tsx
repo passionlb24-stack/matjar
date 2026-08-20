@@ -13,6 +13,17 @@ import { attributeSummary, categoryAttributes } from "@/lib/attributes";
 import { effectivePrice, compareAtPrice, isFlashActive } from "@/lib/pricing";
 import { waLink, buildOrderMessage } from "@/lib/whatsapp";
 import { formatUsd } from "@/lib/currency";
+import {
+  unitPricingOf,
+  pricePerBase,
+  baseMeasure,
+  isWholeBaseUnit,
+  formatQuantityMeasure,
+  MEASURE_LABELS,
+  type UnitPricing,
+} from "@/lib/unit-pricing";
+import { deliveryWindows, scheduledForIso } from "@/lib/delivery-windows";
+import type { WeekHours } from "@/lib/hours";
 import { localized } from "@/lib/i18n-field";
 import { groupBySection, type SectionInfo } from "@/lib/sections";
 import { categoryIcons } from "@/components/category-icon";
@@ -59,14 +70,68 @@ type Product = {
   hasVariants?: boolean;
   isBundle?: boolean;
   includes?: { name: string; nameEn: string | null; quantity: number }[];
+  /** 0299. Null on every product that predates it. */
+  soldBy?: string | null;
+  unitMeasure?: string | null;
+  unitAmount?: number | null;
 };
 
-function PriceTag({ p }: { p: Product }) {
+/**
+ * "/ كيلو" after the price, and the per-kilo rate when a unit is not a whole
+ * one.
+ *
+ * This is the fix MJ-010 is actually about. The butcher's cards read "$7.50"
+ * today, and $7.50 is what he charges for a KILO of minced beef — the unit was
+ * never anywhere on the screen, in the database or in the order. Nothing about
+ * the money changes here; the unit that was always implied is simply printed.
+ *
+ * For a unit that is not one whole kilo (say 250 g at $1.88) both are shown:
+ * what you pay for one unit, and what that works out to per kilo. The second is
+ * the number a shopper compares against the shop down the road, and deriving it
+ * for them is the difference between an honest price and an arithmetic puzzle.
+ */
+function UnitSuffix({
+  unit,
+  unitPrice,
+  lang,
+}: {
+  unit: UnitPricing;
+  unitPrice: number;
+  lang: Locale;
+}) {
+  const l = lang === "ar" ? "ar" : "en";
+  const per = MEASURE_LABELS[unit.measure][l];
+  if (isWholeBaseUnit(unit)) {
+    return (
+      <span className="text-xs font-semibold text-muted-foreground">
+        {" / "}
+        {per}
+      </span>
+    );
+  }
+  const base = baseMeasure(unit);
+  return (
+    <>
+      <span className="text-xs font-semibold text-muted-foreground">
+        {" / "}
+        {formatQuantityMeasure(unit, 1, l)}
+      </span>
+      <span className="text-xs font-normal text-muted-foreground">
+        {"· "}
+        <span className="text-money">{formatUsd(pricePerBase(unitPrice, unit))}</span>
+        {` / ${MEASURE_LABELS[base][l]}`}
+      </span>
+    </>
+  );
+}
+
+function PriceTag({ p, lang }: { p: Product; lang: Locale }) {
   const eff = effectivePrice(p);
   const compare = compareAtPrice(p);
   const flash = isFlashActive(p);
+  const unit = unitPricingOf(p);
   return (
-    <span className="sf-price inline-flex items-center gap-1.5">
+    <span className="sf-price inline-flex flex-wrap items-center gap-x-1.5">
       {/* .text-money = tabular numerals + LTR bidi isolation, the house rule
           for currency inside Arabic text (globals.css). */}
       <span
@@ -74,6 +139,10 @@ function PriceTag({ p }: { p: Product }) {
       >
         {formatUsd(eff)}
       </span>
+      {/* The unit rides immediately after the amount, before the struck-through
+          compare-at price, so "$5 / كيلو  $6" reads as one price and its old
+          value rather than as two prices with a unit between them. */}
+      {unit && <UnitSuffix unit={unit} unitPrice={eff} lang={lang} />}
       {compare != null && (
         <span className="text-money text-xs font-normal text-muted-foreground line-through">
           {formatUsd(compare)}
@@ -123,6 +192,7 @@ export function StoreProducts({
   sections = [],
   layout = null,
   initialBrand = null,
+  hours = null,
 }: {
   lang: Locale;
   dict: Dictionary;
@@ -139,6 +209,10 @@ export function StoreProducts({
   layout?: "grid" | "menu" | "showcase" | null;
   initialBrand?: string | null;
   sections?: SectionInfo[];
+  /** The store's own opening hours (stores.hours). The delivery-window picker
+   *  is derived from these and hidden entirely when the merchant has not set
+   *  any — see src/lib/delivery-windows.ts. */
+  hours?: WeekHours | null;
 }) {
   const router = useRouter();
   const storeId = checkout.storeId;
@@ -172,6 +246,34 @@ export function StoreProducts({
 
   const [checkingOut, setCheckingOut] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  // Delivery window. Empty = order now, which is what every order has been
+  // until this existed, so leaving it alone changes nothing.
+  const [windowDate, setWindowDate] = useState("");
+  const [windowTime, setWindowTime] = useState("");
+  // The clock is read AFTER mount, never during render.
+  //
+  // This component is a client component but it is still server-rendered, and
+  // `deliveryWindows(hours, new Date())` in the render body would be evaluated
+  // twice against two different clocks in two different zones: on the server
+  // (UTC on Vercel) and again in the browser (UTC+3 in Beirut). `daySpan` keys
+  // off `getDay()` and the dates are built from local parts, so the two runs
+  // can disagree about which slots exist and even about which DAY it is —
+  // a hydration mismatch on the money path. Same reason the cart above reads
+  // localStorage in an effect rather than during render.
+  const [now, setNow] = useState<Date | null>(null);
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+  // Null until mounted, so the server renders no picker at all rather than one
+  // built from the wrong timezone. The server re-checks and drops a past time
+  // regardless (0194), so a list that ages while the customer types is safe.
+  const windows = now ? deliveryWindows(hours, now) : [];
+  const daySlots = windows.find((w) => w.date === windowDate)?.slots ?? [];
+  // A day without a time is not a window: it sends nothing, and the order is an
+  // ordinary order-now.
+  const scheduledFor = scheduledForIso(windowDate, windowTime);
   // One idempotency key per checkout ATTEMPT — re-minted every time the
   // customer enters the checkout, so a basket they edited and re-confirmed is
   // a new order rather than the RPC handing back the earlier one.
@@ -286,6 +388,15 @@ export function StoreProducts({
   function Stepper({ id, qty }: { id: string; qty: number }) {
     const p = products.find((x) => x.id === id);
     const atMax = p?.stock != null && qty >= p.stock;
+    // A weight-sold line counts in kilos, not in nameless units. The stepper
+    // still increments the same integer `quantity` the RPC receives — only the
+    // label between the buttons changes, from "2" to "2 كيلو". Rendered LTR
+    // with tabular figures for the same bidi reason money is: "500 غ" inside an
+    // RTL row otherwise resolves its number and its unit against each other.
+    const unit = p ? unitPricingOf(p) : null;
+    const readout = unit
+      ? formatQuantityMeasure(unit, qty, lang === "ar" ? "ar" : "en")
+      : String(qty);
     return (
       <div className="flex items-center gap-2">
         {/* 32px squares are what the design wants and 44px is what a thumb
@@ -299,7 +410,12 @@ export function StoreProducts({
         >
           <Minus className="h-4 w-4" />
         </button>
-        <span className="w-5 text-center font-bold tabular-nums">{qty}</span>
+        <span
+          dir="ltr"
+          className={`text-center font-bold tabular-nums ${unit ? "min-w-16" : "w-5"}`}
+        >
+          {readout}
+        </span>
         <button
           onClick={() => setQty(id, qty + 1)}
           disabled={atMax}
@@ -378,7 +494,7 @@ export function StoreProducts({
                   label={dict.store.bundleIncludes}
                 />
                 <p className="mt-1">
-                  <PriceTag p={p} />
+                  <PriceTag p={p} lang={lang} />
                 </p>
                 {p.stock != null && p.stock > 0 && p.stock <= 5 && (
                   <p className="mt-1 text-xs font-bold text-warning">
@@ -442,7 +558,7 @@ export function StoreProducts({
                   label={dict.store.bundleIncludes}
                 />
                 <p className="mt-0.5 text-sm">
-                  <PriceTag p={p} />
+                  <PriceTag p={p} lang={lang} />
                   {p.stock != null && p.stock > 0 && p.stock <= 5 && (
                     <span className="ms-2 text-xs font-bold text-warning">
                       {dict.store.onlyLeft.replace("{n}", String(p.stock))}
@@ -611,6 +727,65 @@ export function StoreProducts({
               hidden={!checkingOut}
               className="mt-6 rounded-2xl border border-border bg-surface p-5 shadow-sm"
             >
+              {/* Delivery window. Derived from stores.hours, so the only times
+                  offered are times this shop is actually open — the existing
+                  picker on the product page is a bare datetime-local that will
+                  cheerfully take 3am. Hidden altogether when the merchant has
+                  set no hours: a picker with nothing safe to offer is worse
+                  than none. Rides to the server inside p_custom_fields, which
+                  is the channel 0194 already reads — no schema, no RPC change,
+                  and "order now" stays the default. */}
+              {windows.length > 0 && (
+                <div className="mb-5">
+                  <span className="text-sm font-semibold">
+                    {dict.store.windowTitle}
+                  </span>
+                  <div className="mt-1.5 grid gap-2 sm:grid-cols-2">
+                    <select
+                      aria-label={dict.store.windowTitle}
+                      value={windowDate}
+                      onChange={(e) => {
+                        setWindowDate(e.target.value);
+                        setWindowTime("");
+                      }}
+                      className="h-11 rounded-xl border border-border bg-surface px-3 text-sm font-semibold outline-none transition-colors focus:border-primary"
+                    >
+                      <option value="">{dict.store.windowAsap}</option>
+                      {windows.map((w, i) => (
+                        <option key={w.date} value={w.date}>
+                          {i === 0
+                            ? dict.store.windowToday
+                            : i === 1
+                              ? dict.store.windowTomorrow
+                              : new Date(`${w.date}T12:00`).toLocaleDateString(
+                                  lang === "ar" ? "ar-LB" : "en-GB",
+                                  { weekday: "long", day: "numeric", month: "short" },
+                                )}
+                        </option>
+                      ))}
+                    </select>
+                    {windowDate && (
+                      <select
+                        aria-label={dict.store.windowTime}
+                        dir="ltr"
+                        value={windowTime}
+                        onChange={(e) => setWindowTime(e.target.value)}
+                        className="h-11 rounded-xl border border-border bg-surface px-3 text-sm font-semibold tabular-nums outline-none transition-colors focus:border-primary"
+                      >
+                        <option value="">{dict.store.windowTime}</option>
+                        {daySlots.map((s) => (
+                          <option key={s} value={s}>
+                            {s}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    {dict.store.windowHint}
+                  </p>
+                </div>
+              )}
               <CheckoutForm
                 lang={lang}
                 dict={dict}
@@ -623,6 +798,9 @@ export function StoreProducts({
                 onBack={() => setCheckingOut(false)}
                 onPlaced={onPlaced}
                 onRemoveLine={(id) => setQty(id, 0)}
+                extraCustomFields={
+                  scheduledFor ? { scheduled_for: scheduledFor } : undefined
+                }
               />
             </div>
             {!checkingOut && (
@@ -700,8 +878,22 @@ export function StoreProducts({
             <li key={p.id} className="flex items-center gap-3 py-3">
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-semibold">{p.name}</span>
+                {/* The rate, with its unit. A weight line's own weight is on
+                    the stepper beside it, so repeating it here would say the
+                    same thing twice; what the line needs is the price the total
+                    was worked out FROM, so the customer can check it.
+                    Deliberately NOT the full PriceTag: that would add a
+                    struck-through compare-at price and a flash bolt to every
+                    piece-priced line too, and this change is not allowed to
+                    restyle products that have nothing to do with it. */}
                 <span className="text-sm tabular-nums text-muted-foreground">
                   {formatUsd(effectivePrice(p))}
+                  {(() => {
+                    const u = unitPricingOf(p);
+                    return u ? (
+                      <UnitSuffix unit={u} unitPrice={effectivePrice(p)} lang={lang} />
+                    ) : null;
+                  })()}
                 </span>
               </span>
               <Stepper id={p.id} qty={cart[p.id]} />
@@ -711,6 +903,18 @@ export function StoreProducts({
             </li>
           ))}
         </ul>
+        {/* The one honest disclosure, and it is about the CUT, not the money.
+            See the long note in src/lib/unit-pricing.ts: the total is exact
+            because the ordered weight is what the order says and what the shop
+            cuts to. What genuinely varies is the last few grams of a hand-cut
+            piece, so that is what this sentence says — and nothing more, because
+            a warning that the total might change would be promising a
+            correction this platform has no way to make. */}
+        {items.some((p) => unitPricingOf(p) !== null) && (
+          <p className="mt-3 rounded-xl bg-surface-muted/60 px-3.5 py-2.5 text-xs leading-relaxed text-muted-foreground">
+            {dict.store.weighedNote}
+          </p>
+        )}
       </BottomSheet>
     </div>
   );

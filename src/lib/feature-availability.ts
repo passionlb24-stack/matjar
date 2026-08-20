@@ -122,11 +122,20 @@ export const CAPABILITIES: Record<CapabilityKey, CapabilityEntry> = {
   classes: { state: "live", plan: "free", osModule: "classes", surface: "storefront — class timetable" },
   memberships: { state: "live", plan: "free", osModule: "memberships", surface: "storefront — membership plans" },
   courses: { state: "live", plan: "free", osModule: "courses", surface: "storefront — course list" },
-  // Declared by the automotive and hospitality bundles in sectors.ts and by
-  // nothing else: there is no rent-by-period engine anywhere in the codebase.
-  // Hospitality books through the stay engine and automotive is directory-only,
-  // so no storefront has ever rendered a rental. It stays `soon` until one does.
-  rentals: { state: "soon", plan: "pro", surface: "— not built" },
+  // MJ-003 built the engine this key had been naming since the catalog was
+  // written. Day-range vehicle rental (migration 0298): a fleet, a
+  // [pickup, return) range, per-day pricing with a weekend rate, and a
+  // btree_gist exclusion constraint that makes a double-booking impossible
+  // rather than unlikely. Declared by the automotive and hospitality bundles;
+  // only automotive RENDERS it (surfacesFor reads showRental, and hospitality
+  // takes dates through the stay engine), which is why the bundle alone was
+  // never a safe thing to advertise from.
+  rentals: {
+    state: "live",
+    plan: "free",
+    osModule: "rentals",
+    surface: "storefront — date-range vehicle rental search",
+  },
 
   requests: { state: "live", plan: "free", osModule: "requests", surface: "storefront — service request / quote form" },
   leads: { state: "live", plan: "free", osModule: "leads", surface: "storefront — viewing / test-drive / offer form" },
@@ -177,6 +186,12 @@ function surfacesFor(key: CapabilityKey, exp: StoreExperience): boolean {
     case "reservations":
     case "memberships":
       return !exp.directoryOnly;
+    // Two sector bundles declare `rentals`; one has an engine. Hospitality
+    // books its dates through the stay engine and renders no rental section at
+    // all, so reading the bundle would put a capability on the hotel page that
+    // no guest can use — the same class of drift this function exists for.
+    case "rentals":
+      return exp.showRental;
     default:
       return true;
   }
@@ -333,6 +348,20 @@ export const FEATURES: Record<FeatureId, FeatureEntry> = {
     osModule: "bookings",
     covers: ["appointments", "reservations", "timeslot", "classes"],
     evidence: "merchant/[storeId]/bookings — no plan guard",
+  },
+  // Was sold from Pro while it did not exist. MJ-003 shipped it (migration
+  // 0298) and it is the SAME engine as the hotel stay, which carries no plan
+  // guard — so it carries none either. Pricing the identical code differently
+  // because the sector is spelled "automotive" would be a gate with nothing
+  // behind it, and both automotive stores in production are on the free plan,
+  // so a Pro gate would have meant the sector's one transaction shipped to
+  // nobody.
+  rentals: {
+    state: "live",
+    plan: "free",
+    osModule: "rentals",
+    covers: ["rentals"],
+    evidence: "merchant/[storeId]/{rentals,vehicles} — no plan guard; migration 0298",
   },
   messaging: {
     state: "live",
@@ -531,12 +560,6 @@ export const FEATURES: Record<FeatureId, FeatureEntry> = {
     plan: "free",
     evidence: "admin/stores is_verified toggle; zero stores verified in production",
   },
-  rentals: {
-    state: "soon",
-    plan: "pro",
-    covers: ["rentals"],
-    evidence: "declared by two sector bundles; no engine, no screen, no storefront section",
-  },
   onlinePayment: {
     state: "soon",
     plan: "free",
@@ -568,6 +591,7 @@ export const PRICING_MATRIX: FeatureId[] = [
   "whatsappOrders",
   "dualCurrency",
   "bookings",
+  "rentals",
   "messaging",
   "reviews",
   "documents",
@@ -646,7 +670,6 @@ export const PLAN_HIGHLIGHTS: Record<PlanKey, FeatureId[]> = {
  *  live feature can be given a "why it isn't here yet" note. */
 export const ROADMAP = [
   "verifiedBadge",
-  "rentals",
   "onlinePayment",
   "nativeApp",
 ] as const satisfies readonly FeatureId[];

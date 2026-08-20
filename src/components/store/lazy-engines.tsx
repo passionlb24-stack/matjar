@@ -46,6 +46,10 @@ export const StaySearch = dynamic(() =>
   import("@/components/stay-search").then((m) => m.StaySearch),
 );
 
+export const RentalSearch = dynamic(() =>
+  import("@/components/rental/rental-search").then((m) => m.RentalSearch),
+);
+
 export const EventTickets = dynamic(() =>
   import("@/components/event-tickets").then((m) => m.EventTickets),
 );

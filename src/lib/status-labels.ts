@@ -39,6 +39,8 @@ export type LabelDomain =
   | "serviceRequest"
   /** stay_bookings.status — `stay_status` enum, 0191. */
   | "stayBooking"
+  /** rental_bookings.status — `rental_status` enum, 0298. */
+  | "rentalBooking"
   /** leads.status — `lead_status` enum, 0190. */
   | "lead"
   /** leads.kind — `lead_kind` enum, 0190. */
@@ -74,6 +76,7 @@ const BLOCKS: Record<LabelDomain, (d: Dictionary) => Record<string, string>> = {
   craftRequest: (d) => d.crafts.reqStatuses,
   serviceRequest: (d) => d.os.requests.status,
   stayBooking: (d) => d.os.stays.status,
+  rentalBooking: (d) => d.os.rentals.status,
   // Leads keep ONE set of words for merchant and customer alike. The tracker
   // suggested a second `activity.leadStatus` block, but two copies of "تواصلت"
   // is two things to keep in step, and the pair drifting is how the merchant

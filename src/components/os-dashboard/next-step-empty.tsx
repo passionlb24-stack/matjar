@@ -42,6 +42,11 @@ export type NextStepModule =
   | "requests"
   | "leads"
   | "stays"
+  // Same shape as `stays`: the fleet is the setup step and this screen is where
+  // the customer's absence shows. `vehicles` is deliberately absent for the
+  // same reason `tickets` is — for an automotive store the fleet IS the primary
+  // setup entity, so its empty state would link the page back to itself.
+  | "rentals"
   | "members"
   | "customers"
   | "reports";

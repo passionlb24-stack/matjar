@@ -82,6 +82,7 @@ import {
   ClassesBooking,
   EventTickets,
   LeadForm,
+  RentalSearch,
   ReservationForm,
   ServiceRequestForm,
   StaySearch,
@@ -257,8 +258,15 @@ export default async function StorePage({
 
   // Wave 2 — module-gated public sections. Independent of each other, so run in
   // parallel; each resolves to [] when its module is off (or the store is demo).
-  const [resources, membershipPlans, classes, portfolio, courses, ticketTypes] =
-    await Promise.all([
+  const [
+    resources,
+    membershipPlans,
+    classes,
+    portfolio,
+    courses,
+    ticketTypes,
+    rentalVehicles,
+  ] = await Promise.all([
       // Bookable resources (courts/rooms/rental items) for time-slot sectors.
       realStore && enabledModules.has("timeslot")
         ? supabase
@@ -317,6 +325,18 @@ export default async function StorePage({
       realStore && experience.showTickets
         ? supabase
             .from("event_ticket_types")
+            .select("id", { count: "exact", head: true })
+            .eq("store_id", id)
+            .eq("active", true)
+            .then((r) => r.count ?? 0)
+        : Promise.resolve(0),
+      // Rental fleet size (0298), for the same reason as the ticket count:
+      // RentalSearch finds its own vehicles on the client, so a store that has
+      // enabled the sector but not yet added a car would otherwise get a "Rent
+      // a car" tab that scrolls to a search box with nothing behind it.
+      realStore && experience.showRental
+        ? supabase
+            .from("rental_vehicles")
             .select("id", { count: "exact", head: true })
             .eq("store_id", id)
             .eq("active", true)
@@ -637,6 +657,12 @@ export default async function StorePage({
       </div>
     ),
 
+    rental: store.isReal && experience.showRental && rentalVehicles > 0 && (
+      <div className="mt-10">
+        <RentalSearch storeId={id} lang={lang} dict={dict} />
+      </div>
+    ),
+
     tickets: store.isReal && experience.showTickets && (
       <div className="mt-10">
         <EventTickets storeId={id} lang={lang} dict={dict} />
@@ -790,6 +816,8 @@ export default async function StorePage({
     serviceRequest: store.isReal && experience.showServiceRequest,
     leadForm: store.isReal && experience.showLeadForm,
     stay: store.isReal && experience.showStay,
+    // Same server-side count as tickets: no fleet, no tab.
+    rental: store.isReal && experience.showRental && rentalVehicles > 0,
     // EventTickets loads its rows on the client and renders nothing when a
     // store has none — hence the server-side count in wave 2.
     tickets: store.isReal && experience.showTickets && ticketTypes > 0,

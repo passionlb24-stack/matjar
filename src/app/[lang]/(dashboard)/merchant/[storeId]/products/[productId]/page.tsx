@@ -12,6 +12,7 @@ import {
   ProductEditForm,
   type ProductInitial,
 } from "@/components/product-edit-form";
+import { unitPricingValue } from "@/lib/unit-pricing";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -54,7 +55,7 @@ export default async function EditProductPage({
     // wrong the first time, and it was the one price field this form could not
     // show — so a cost entered at creation was invisible here, and one omitted
     // could never be added afterwards. Zero of 60 live products carry one.
-    .select("id, store_id, name, name_en, brand, price, discount_price, cost, description, description_en, image_url, gallery, stock, section_id, attributes, deal_date, flash_price, flash_start, flash_end, item_kind, booking_allocation_mode, duration_minutes, buffer_minutes, capacity_per_slot")
+    .select("id, store_id, name, name_en, brand, price, discount_price, cost, description, description_en, image_url, gallery, stock, section_id, attributes, deal_date, flash_price, flash_start, flash_end, item_kind, booking_allocation_mode, duration_minutes, buffer_minutes, capacity_per_slot, sold_by, unit_measure, unit_amount")
     .eq("id", productId)
     .eq("store_id", storeId)
     .is("deleted_at", null)
@@ -125,6 +126,14 @@ export default async function EditProductPage({
     price: product.price != null ? String(product.price) : "",
     discountPrice: product.discount_price != null ? String(product.discount_price) : "",
     cost: product.cost != null ? String(product.cost) : "",
+    // 0299. Null columns mean piece-priced, which is what every product on the
+    // platform is today — so PIECE_PRICED is the answer for all of them until a
+    // merchant says otherwise, and the editor opens on "By the piece".
+    unitPricing: unitPricingValue(
+      product.sold_by as string | null,
+      product.unit_measure as string | null,
+      product.unit_amount as number | null,
+    ),
     description: (product.description as string | null) ?? "",
     descriptionEn: (product.description_en as string | null) ?? "",
     imageUrl: (product.image_url as string | null) ?? null,

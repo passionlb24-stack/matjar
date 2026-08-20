@@ -281,13 +281,21 @@ describe("sector capabilities come from the registry, not from copy", () => {
     expect(has("contractors", "portfolio")).toBe(true);
   });
 
-  it("never advertises rentals, which no sector can render", () => {
-    // Declared by the automotive and hospitality bundles and implemented
-    // nowhere. The one capability in the catalog with no code behind it.
-    expect(isCapabilityLive("rentals")).toBe(false);
-    for (const category of categoryKeys) {
-      expect(sectorCapabilities(category)).not.toContain("rentals");
-    }
+  it("advertises rentals only where the engine actually renders", () => {
+    // This test used to read "never advertises rentals, which no sector can
+    // render" — `rentals` was the one capability in the catalog with no code
+    // behind it. MJ-003 built it (migration 0298), so the claim flipped. What
+    // did NOT flip is the reason the old test existed: the capability is
+    // declared by TWO sector bundles and implemented for ONE of them.
+    // Hospitality lists `rentals` and takes its dates through the stay engine,
+    // so reading the bundle would put a rental chip on every hotel page.
+    expect(isCapabilityLive("rentals")).toBe(true);
+
+    const renders = categoryKeys.filter((c) =>
+      sectorCapabilities(c).includes("rentals"),
+    );
+    expect(renders).toEqual(["automotive"]);
+    expect(sectorCapabilities("hospitality")).not.toContain("rentals");
   });
 });
 
