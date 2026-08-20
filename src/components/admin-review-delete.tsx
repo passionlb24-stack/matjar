@@ -4,8 +4,7 @@ import { notifyError } from "@/lib/notify";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
-import { logAdminAction } from "@/lib/audit";
+import { softDeleteAsAdmin } from "@/lib/audit";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 
@@ -45,16 +44,17 @@ export function AdminReviewDelete({
     )
       return;
     setBusy(true);
-    const { error } = await createClient()
-      .from("reviews")
-      .delete()
-      .eq("id", reviewId);
+    // Soft delete + audit row in one transaction (0294). A review is a
+    // customer's own writing and the store's public rating is computed from it,
+    // so removing it has to be both reversible and on the record; the rating
+    // rollup (sync_store_rating) now excludes soft-deleted rows, so the stars
+    // move the moment this lands.
+    const ok = await softDeleteAsAdmin("review", reviewId);
     setBusy(false);
-    if (error) {
+    if (!ok) {
       notifyError(errorLabel);
       return;
     }
-    void logAdminAction("deleted", "review", reviewId);
     router.refresh();
   }
 

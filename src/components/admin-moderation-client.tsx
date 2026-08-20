@@ -16,7 +16,7 @@ import {
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
-import { logAdminAction } from "@/lib/audit";
+import { logAdminAction, softDeleteAsAdmin } from "@/lib/audit";
 import { notifyError } from "@/lib/notify";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
@@ -138,13 +138,15 @@ export function AdminModerationClient({
     )
       return;
     setBusyId(id);
-    const { error } = await createClient().from(table).delete().eq("id", id);
+    // Soft delete + audit row in one transaction (0294). `entity` is already
+    // the exact string admin_soft_delete keys on, so the three verticals this
+    // component moderates stay one code path.
+    const ok = await softDeleteAsAdmin(entity, id);
     setBusyId(null);
-    if (error) {
+    if (!ok) {
       notifyError(dict.common.actionFailed);
       return;
     }
-    void logAdminAction("deleted", entity, id);
     router.refresh();
   }
 

@@ -25,6 +25,7 @@ export default async function AdminReviewsPage({
   const { data } = await supabase
     .from("reviews")
     .select("id, rating, comment, customer_name, created_at, stores(name)")
+    .is("deleted_at", null)
     .order("rating", { ascending: true })
     .order("created_at", { ascending: false })
     .limit(300);

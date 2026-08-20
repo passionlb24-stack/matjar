@@ -72,6 +72,7 @@ export default async function AdminOverviewPage({
   const { data: reviewData } = await supabase
     .from("reviews")
     .select("id, customer_name, rating, comment, stores(name)")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false })
     .limit(20);
   const reviews = (reviewData ?? []) as unknown as ReviewRow[];

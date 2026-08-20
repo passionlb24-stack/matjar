@@ -25,6 +25,9 @@ export default async function AdminMarketPage({
       .select(
         "id, title, price, city, region, status, is_featured, images, views, created_at, stores(name)",
       )
+      // The admin select policy deliberately still shows removed rows so
+      // they can be restored; the queue is the working list, not the archive.
+      .is("deleted_at", null)
       .order("created_at", { ascending: false })
       .limit(500),
     supabase

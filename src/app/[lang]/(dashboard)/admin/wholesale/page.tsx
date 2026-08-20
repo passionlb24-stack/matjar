@@ -26,6 +26,7 @@ export default async function AdminWholesalePage({
     .select(
       "id, title, seller_name, category, unit, moq, price, region, image_url, status, created_at",
     )
+    .is("deleted_at", null)
     .order("created_at", { ascending: false })
     .limit(500);
 

@@ -2618,7 +2618,9 @@
         "plan_changed": "Plan changed",
         "access_changed": "Access changed",
         "activated": "Activated",
-        "downgraded": "Downgraded"
+        "downgraded": "Downgraded",
+        "restored": "Restored",
+        "broadcast": "Broadcast"
       },
       "entities": {
         "store": "Store",
@@ -2933,6 +2935,30 @@
     "groupOrders": "Orders & bookings",
     "groupSaved": "Saved & messages",
     "groupSelling": "Selling on Matjar",
+    "deleteAccount": {
+      "title": "Delete account",
+      "hint": "You can delete your account here, without contacting anyone. Read what goes and what stays before you continue — this cannot be undone.",
+      "goneTitle": "Deleted for good",
+      "goneProfile": "Your profile: name, phone, photo and bio.",
+      "goneAddresses": "Saved delivery addresses ({n}).",
+      "goneSaved": "Your favourites, saved items, saved searches and the shops you follow.",
+      "goneMessages": "Your conversations with shops and the messages you sent.",
+      "goneListings": "Your market listings, gigs, job posts and wholesale offers ({n}).",
+      "goneLoyalty": "Your points, referrals and notifications.",
+      "staysTitle": "What stays",
+      "staysOrders": "Your past orders ({n}) stay with the shop as its sales record — but without your name, phone or address.",
+      "staysReviews": "Your reviews ({n}) stay published without your name: other shoppers rely on them and the shop rating is calculated from them.",
+      "staysCrm": "Shops you bought from keep your number in their own customer book, like any purchase that happened.",
+      "confirmHint": "To confirm, type your email: {email}",
+      "placeholder": "Your email",
+      "action": "Yes, delete my account",
+      "working": "Deleting…",
+      "mismatch": "That email does not match.",
+      "blockedStore": "You still own a shop on Matjar. We cannot delete your account while it is live, because the shop and every order your customers placed would go with it. Transfer ownership to someone else first, then come back here.",
+      "blockedStoreAction": "Go to my shop",
+      "blockedOrders": "You have {n} order(s) still in progress. Wait until they close, then delete — if we delete now the delivery address goes and the shop has nowhere to deliver.",
+      "blockedOrdersAction": "View my orders"
+    },
     "address": {
       "title": "Delivery addresses",
       "subtitle": "Save your detailed addresses so they auto-fill at checkout.",

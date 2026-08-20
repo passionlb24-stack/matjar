@@ -20,7 +20,7 @@ import {
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
-import { logAdminAction, type AuditVerb } from "@/lib/audit";
+import { logAdminAction, softDeleteAsAdmin, type AuditVerb } from "@/lib/audit";
 import { notifyError } from "@/lib/notify";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
@@ -158,16 +158,15 @@ export function AdminMarketClient({
     )
       return;
     setBusyId(id);
-    const { error } = await createClient()
-      .from("listings")
-      .delete()
-      .eq("id", id);
+    // Soft delete + audit row in one transaction (0294): the listing leaves
+    // every public read path, but a seller's work is recoverable and the
+    // removal cannot happen without a record of who did it.
+    const ok = await softDeleteAsAdmin("listing", id);
     setBusyId(null);
-    if (error) {
+    if (!ok) {
       notifyError(dict.common.actionFailed);
       return;
     }
-    void logAdminAction("deleted", "listing", id);
     await revalidateListing(id);
     router.refresh();
   }
