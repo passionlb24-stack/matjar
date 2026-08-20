@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Store, Smartphone } from "lucide-react";
+import { Store, Smartphone, MessageCircle } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import type { NavSections } from "@/lib/data/section-supply";
+import { SUPPORT_WHATSAPP, supportWaLink } from "@/lib/support";
 
 export function SiteFooter({
   lang,
@@ -112,6 +113,25 @@ export function SiteFooter({
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
               {dict.footer.tagline}
             </p>
+            {/* The footer is the only contact affordance on every page, and until
+                now it offered a link to a page that offers a link. WhatsApp is how
+                a Lebanese shop is actually reached, so the number is here in full
+                rather than one hop away — and shown, not hidden behind a label,
+                because a visible number is what makes a small platform look real
+                enough to trust with an order. dir="ltr" + tabular-nums so the
+                digits do not reorder inside the Arabic column. */}
+            <a
+              href={supportWaLink()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-3 text-sm font-bold transition-colors hover:border-whatsapp hover:text-whatsapp"
+            >
+              <MessageCircle className="h-4 w-4 text-whatsapp" />
+              <span>{dict.common.supportWhatsappShort}</span>
+              <span dir="ltr" className="tabular-nums text-muted-foreground">
+                {SUPPORT_WHATSAPP.replace(/(\d{2})(\d{3})(\d{3})/, "$1 $2 $3")}
+              </span>
+            </a>
           </div>
 
           {columns

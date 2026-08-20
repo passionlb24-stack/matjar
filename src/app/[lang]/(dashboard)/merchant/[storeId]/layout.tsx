@@ -174,6 +174,7 @@ export default async function StoreOsLayout({
     })).filter((group) => group.items.length > 0),
     pinned: PINNED.filter(canSee).map(toItem),
     backLabel: dict.merchant.products.back,
+    supportLabel: dict.common.supportWhatsapp,
     viewStoreLabel: dict.os.viewPublic,
     proBadge: dict.os.pro.badge,
     freeBadge: dict.merchant.subscription.free,

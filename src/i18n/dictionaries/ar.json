@@ -12,6 +12,9 @@
     "openNow": "مفتوح الآن"
   },
   "common": {
+    "supportWhatsapp": "تواصل معنا عالواتساب",
+    "supportWhatsappShort": "واتساب",
+    "supportStuck": "واجهتك مشكلة؟ احكينا عالواتساب",
     "brand": "متجر",
     "confirm": "تأكيد",
     "cancel": "إلغاء",
