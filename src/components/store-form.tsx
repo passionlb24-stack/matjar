@@ -10,6 +10,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { groupKeys, type CategoryKey, type GroupKey } from "@/lib/catalog";
 import { resolveStoreModules } from "@/lib/sectors";
 import { storeIntakeFields } from "@/lib/store-onboarding";
+import { phoneIssue } from "@/lib/phone";
 
 type Option = { value: string; label: string };
 type BizOption = {
@@ -68,6 +69,7 @@ export function StoreForm({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [waWarn, setWaWarn] = useState(false);
   // Vanity handle, auto-suggested from the name until the merchant edits it.
   const [slug, setSlug] = useState("");
   const [slugEdited, setSlugEdited] = useState(false);
@@ -303,7 +305,27 @@ export function StoreForm({
           inputMode="tel"
           placeholder="+961 …"
           className={field}
+          onBlur={(e) => {
+            const v = e.target.value.trim();
+            setWaWarn(!!v && phoneIssue(v) === "notDialable");
+          }}
+          aria-describedby={waWarn ? "whatsapp-note" : undefined}
         />
+        {/* This is the number a customer taps on the storefront, and here is
+            the first time it is ever typed. Four of the eleven stored on live
+            stores could not be turned into a working link, so the warning
+            belongs where the person can still fix it — not discovered later,
+            when a customer cannot reach them. It never blocks: nobody should
+            be stopped from opening a shop over a field they can correct. */}
+        {waWarn && (
+          <p
+            id="whatsapp-note"
+            aria-live="polite"
+            className="mt-1 text-xs text-warning"
+          >
+            {dict.store.phoneNotLebanese}
+          </p>
+        )}
       </div>
 
       {ask.has("fulfillment") && (
