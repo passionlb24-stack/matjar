@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatUsd } from "@/lib/currency";
 import { useRouter } from "next/navigation";
 import { CalendarRange, Check, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -151,7 +152,7 @@ export function ClassesBooking({
               <div className="flex items-center justify-between gap-2">
                 <h3 className="font-bold">{name}</h3>
                 {c.price != null && (
-                  <span className="text-sm font-bold text-primary">${c.price}</span>
+                  <span className="text-sm font-bold text-primary">{formatUsd(c.price)}</span>
                 )}
               </div>
               <p className="mt-1 text-sm text-muted-foreground">

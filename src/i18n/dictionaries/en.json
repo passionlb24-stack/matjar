@@ -1665,6 +1665,7 @@
     "privacyNote": "Your number goes to the store only, to contact you."
   },
   "stay": {
+    "depositNote": "You pay the deposit in cash to the property when you check in, and they return it when you check out. Matjar does not charge or hold this money and is not a party to it.",
     "title": "Book your stay",
     "subtitle": "Pick check-in, check-out and guests to see available units.",
     "checkIn": "Check-in",
