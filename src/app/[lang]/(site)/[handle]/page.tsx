@@ -38,7 +38,7 @@ export async function generateMetadata({
   const { lang, handle } = await params;
   if (!isLocale(lang)) return {};
   const id = await resolveSlug(handle);
-  if (!id) return {};
+  if (!id) notFound();
   const meta = await storeMetadata({ params: Promise.resolve({ lang, id }) });
   // Prefer the vanity URL as the canonical/alternate links.
   return { ...meta, alternates: localeAlternates(lang, `/${handle}`) };

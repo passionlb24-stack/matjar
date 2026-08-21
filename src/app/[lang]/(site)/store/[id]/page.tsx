@@ -603,6 +603,7 @@ export default async function StorePage({
         minOrder={store.minOrder ?? null}
         prepTime={store.prepTime ?? null}
         paymentNote={store.paymentNote ?? null}
+        returnPolicy={store.returnPolicy ?? null}
         zones={zones}
         couriers={couriers}
         dict={dict}

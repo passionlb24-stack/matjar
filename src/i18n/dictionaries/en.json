@@ -1505,6 +1505,7 @@
     "earlyWaPrefill": "Hello, I was looking for something on Matjar and couldn't find it:"
   },
   "store": {
+    "returnPolicy": "Return policy",
     "tabsLabel": "Page sections",
     "tabs": {
       "branches": "Branches",
@@ -2172,6 +2173,9 @@
     },
     "settingsLink": "Settings",
     "settings": {
+      "returnPolicy": "Return policy",
+      "returnPolicyHint": "In your own words — e.g. returns within 3 days if unopened. Leave it blank and nothing is shown.",
+      "returnPolicyPlaceholder": "e.g. returns within 3 days if unopened",
       "title": "Store settings",
       "subtitle": "Operational settings shown to customers at checkout.",
       "fulfillment": "Fulfillment options",

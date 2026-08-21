@@ -1,4 +1,4 @@
-import { Truck, Store, Wallet, Clock, ShoppingBasket } from "lucide-react";
+import { Truck, Store, Wallet, Clock, ShoppingBasket, RotateCcw } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { DeliveryZone } from "@/components/store-products";
@@ -21,6 +21,7 @@ export function StoreFulfillment({
   minOrder,
   prepTime,
   paymentNote,
+  returnPolicy,
   zones,
   couriers,
   dict,
@@ -31,6 +32,7 @@ export function StoreFulfillment({
   minOrder: number | null;
   prepTime: string | null;
   paymentNote: string | null;
+  returnPolicy: string | null;
   zones: DeliveryZone[];
   couriers: CourierOption[];
   dict: Dictionary;
@@ -54,6 +56,15 @@ export function StoreFulfillment({
       icon: <Wallet className="h-4 w-4 text-primary" />,
       label: dict.store.payment,
       value: paymentNote,
+    });
+  // The shop's own words, shown only when it has written some. No default and
+  // no placeholder: a returns policy nobody wrote is a promise nobody made, and
+  // Matjar settles nothing, so it could not stand behind one anyway.
+  if (returnPolicy)
+    facts.push({
+      icon: <RotateCcw className="h-4 w-4 text-primary" />,
+      label: dict.store.returnPolicy,
+      value: returnPolicy,
     });
 
   const hasModes = acceptsDelivery || acceptsPickup;

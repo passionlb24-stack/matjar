@@ -64,6 +64,7 @@ export type StoreView = {
   minOrder?: number | null;
   prepTime?: string | null;
   paymentNote?: string | null;
+  returnPolicy?: string | null;
   specialties?: string | null;
   insurance?: string | null;
   registered?: boolean;
@@ -138,7 +139,7 @@ async function fetchStoreView(
   const { data } = await supabase
     .from("stores")
     .select(
-      "name, slug, description, announcement, storefront_theme, area, status, plan, logo_url, cover_url, cover_position, phone, whatsapp, hours, booking_slot_minutes, booking_cancel_hours, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, loyalty_redemption_enabled, loyalty_points_per_unit, accent_color, storefront_layout, lat, lng, business_types(slug)",
+      "name, slug, description, announcement, storefront_theme, area, status, plan, logo_url, cover_url, cover_position, phone, whatsapp, hours, booking_slot_minutes, booking_cancel_hours, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, return_policy, specialties, insurance, commercial_reg_verified, loyalty_redemption_enabled, loyalty_points_per_unit, accent_color, storefront_layout, lat, lng, business_types(slug)",
     )
     .eq("id", id)
     .is("deleted_at", null)
@@ -295,6 +296,7 @@ async function fetchStoreView(
     minOrder: data.min_order != null ? Number(data.min_order) : null,
     prepTime: (data.prep_time as string | null) ?? null,
     paymentNote: (data.payment_note as string | null) ?? null,
+    returnPolicy: (data.return_policy as string | null) ?? null,
     specialties: (data.specialties as string | null) ?? null,
     insurance: (data.insurance as string | null) ?? null,
     registered: (data.commercial_reg_verified as boolean | null) ?? false,
