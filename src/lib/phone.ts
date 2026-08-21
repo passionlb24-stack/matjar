@@ -15,16 +15,46 @@
 // rather than render a link to nowhere.
 const LB = "961";
 
+// A Lebanese national number is 7 or 8 digits once the trunk zero is gone: a
+// mobile is a two-digit prefix (03, 70, 71, 76, 78, 79, 81) plus six, a landline
+// a one-digit area code plus six.
+const NATIONAL_MIN = 7;
+const NATIONAL_MAX = 8;
+
 export function waNumber(raw: string | null | undefined): string | null {
   if (!raw) return null;
-  const digits = raw.replace(/\D/g, "");
-  if (digits.length < 7) return null;
+  let digits = raw.replace(/\D/g, "");
 
-  // Already carries the country code (961 + 7 or 8 national digits).
-  if (digits.startsWith(LB) && digits.length >= 10) return digits;
+  // "00" is the international access prefix, dialled from a landline. Stored as
+  // 0096171627323, the old code saw a leading zero, stripped exactly one, and
+  // produced 961096171627323 — fifteen digits resolving nowhere.
+  if (digits.startsWith("00")) digits = digits.slice(2);
 
-  // Trunk prefix: dropped before the country code, never kept.
-  if (digits.startsWith("0")) return LB + digits.slice(1);
+  // Strip the country code only when what remains could be a national number.
+  // The length test is doing real work, not defensive padding: Keserwan's area
+  // code is 09, so 09612345 is a valid local number whose digits begin 961 the
+  // moment the trunk zero comes off. Stripping on the prefix alone would leave
+  // 2345.
+  //   961 + 7       = 10     961 3434661
+  //   961 + 8       = 11     961 71627323
+  //   961 + 0 + 7/8 = 11/12  a trunk zero left in behind the country code
+  if (
+    digits.startsWith(LB) &&
+    digits.length >= LB.length + NATIONAL_MIN &&
+    digits.length <= LB.length + NATIONAL_MAX + 1
+  ) {
+    digits = digits.slice(LB.length);
+  }
+
+  // Now the trunk zero — which can also sit *after* a country code, when a
+  // merchant types +961 03 434661. The old code only looked at the very front,
+  // so that number went out as 96103434661 and WhatsApp could not resolve it.
+  digits = digits.replace(/^0+/, "");
+
+  // Outside the national range it is not a number that rings. Returning null
+  // hides the button, which is the honest outcome: one live store is stored as
+  // +961102164 — six national digits — and no amount of prefixing fixes that.
+  if (digits.length < NATIONAL_MIN || digits.length > NATIONAL_MAX) return null;
 
   return LB + digits;
 }

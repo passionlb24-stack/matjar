@@ -48,3 +48,40 @@ describe("waLink", () => {
     expect(waLink(null)).toBeNull();
   });
 });
+
+// Every number below is a real value stored on a live store today. Four of the
+// eleven produced a link that could not open, which matters because the whole
+// promise of a WhatsApp button on a storefront is one tap.
+describe("the shapes real merchants actually stored", () => {
+  it("drops a trunk zero that sits behind the country code", () => {
+    // Was 96103434661 — WhatsApp cannot resolve 961 0 3434661.
+    expect(waNumber("+96103434661")).toBe("9613434661");
+    expect(waNumber("+96103102164")).toBe("9613102164");
+  });
+
+  it("handles the 00 international access prefix", () => {
+    // Was 961096171627323: one zero stripped off "00", the rest left in.
+    expect(waNumber("0096171627323")).toBe("96171627323");
+  });
+
+  it("refuses a number too short to ring instead of inventing one", () => {
+    // Was 961961102164 — the country code prepended onto a string that already
+    // began with it. Six national digits is not a Lebanese number.
+    expect(waNumber("+961102164")).toBeNull();
+  });
+
+  it("still handles the ordinary ones unchanged", () => {
+    expect(waNumber("76150332")).toBe("96176150332");
+    expect(waNumber("06 424 911")).toBe("9616424911");
+    expect(waNumber("03172745")).toBe("9613172745");
+    expect(waNumber("+96176373577")).toBe("96176373577");
+    expect(waNumber("71793516")).toBe("96171793516");
+  });
+
+  it("does not mistake a Keserwan landline for a country code", () => {
+    // Area code 09, so the national number legitimately begins 961 once the
+    // trunk zero is gone. Stripping on the prefix alone would leave 2345.
+    expect(waNumber("09612345")).toBe("9619612345");
+    expect(waNumber("9612345")).toBe("9619612345");
+  });
+});
