@@ -11,6 +11,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { getSectionSupply } from "@/lib/data/section-supply";
+import { getMerchantStalls } from "@/lib/data/merchant-stalls";
 import { Container } from "@/components/ui/container";
 import {
   AdminAttentionQueue,
@@ -23,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { AdminBroadcast } from "@/components/admin-broadcast";
 import { AdminSectionSupply } from "@/components/admin-section-supply";
+import { AdminMerchantStalls } from "@/components/admin-merchant-stalls";
 import { PushNotice } from "@/components/push-notice";
 import { AdminStoreActions } from "@/components/admin-store-actions";
 import { AdminReviewDelete } from "@/components/admin-review-delete";
@@ -89,6 +91,12 @@ export default async function AdminOverviewPage({
   // automatic and was previously invisible — see admin-section-supply.tsx.
   const sectionSupply = await getSectionSupply();
 
+  // Which merchants are stuck, at what stage, and since when. The queue above
+  // can only see work that generated an event; a shop that has done nothing at
+  // all generates none, which is why 12 of 15 active stores were invisible to
+  // this page. Returns null for anyone but a super admin — see the function.
+  const stalls = await getMerchantStalls(lang);
+
   const initial = (name: string) => name.trim().charAt(0).toUpperCase() || "?";
 
   return (
@@ -110,6 +118,11 @@ export default async function AdminOverviewPage({
             body={dict.push.adminNoticeBody}
           />
           <AdminAttentionQueue queue={queue} lang={lang} dict={dict} />
+          {/* Directly under the queue, and above the counts, on purpose: the
+              queue lists what is waiting on the owner, this lists what is
+              waiting on nobody — which on a platform this size is the bigger
+              number by an order of magnitude. */}
+          <AdminMerchantStalls data={stalls} dict={dict} />
           <AdminSectionSupply rows={sectionSupply} dict={dict} />
           <StatGrid>
             <Stat

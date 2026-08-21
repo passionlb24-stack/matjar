@@ -8,6 +8,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { formatLbp, formatUsd } from "@/lib/currency";
 import { Money } from "@/components/ui/money";
 import { localized } from "@/lib/i18n-field";
+import { phoneIssue } from "@/lib/phone";
 import { waLink, buildOrderMessage } from "@/lib/whatsapp";
 import {
   buildOrderParams,
@@ -300,6 +301,19 @@ export function CheckoutForm({
       note: String(form.get("note") ?? ""),
       deliveryInstructions: String(form.get("delivery_instructions") ?? ""),
     };
+    // A cash-on-delivery order is only worth placing if the merchant can reach
+    // the person who placed it. The field was  with no format check,
+    // so "123" was accepted and the merchant found out at the door. Blocks only
+    // what is not a phone number by any reading — a foreign number still goes
+    // through, because somebody ordering from abroad for family here is a real
+    // customer and refusing them would be worse than a WhatsApp button that
+    // happens not to work.
+    if (phoneIssue(contact.phone) === "tooShort") {
+      setPlacing(false);
+      setOrderError(dict.store.phoneTooShort);
+      return;
+    }
+    
     // Awaited but bounded: the intent must land BEFORE the order insert whose
     // trigger clears it, and a hung network may only delay checkout, not block
     // it. Worst case on timeout is one stale abandoned-cart nudge.

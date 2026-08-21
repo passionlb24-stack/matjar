@@ -73,6 +73,19 @@ export const FETCH_BOUNDS = {
   /** The business-leader roster. Editorial content, so it grows slowly, but the
    *  admin read had the same missing `.limit()` as the store roster. */
   adminLeaders: 5000,
+  /** Per-store feature-module overrides for every active store — a couple of
+   *  dozen keys per store at the very worst. */
+  adminStallModules: 10000,
+  /** Offering rows — products, rooms, ticket types, vehicles — across every
+   *  ACTIVE store, for the stalled-merchant report. Scales with catalogue size
+   *  rather than store count, so it is the larger of this pair. */
+  adminStallOfferings: 20000,
+  /** Order / booking / request rows across every active store, for the single
+   *  bit that report needs: has this shop ever had a customer at all. This is
+   *  the read that gets expensive first — it grows with every sale the platform
+   *  makes, to answer a question about a few dozen stores. When it stops being
+   *  cheap the fix is an aggregate in the database, not a bigger number here. */
+  adminStallDemand: 20000,
 } as const;
 
 /**
