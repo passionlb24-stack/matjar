@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { phoneIssue } from "@/lib/phone";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import {
@@ -107,6 +108,18 @@ export function EditStoreForm({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Four of the eleven phone numbers on live stores could not be turned into a
+  // working WhatsApp link. phone.ts now reads all of those shapes correctly,
+  // but reading is the second line of defence — nothing stopped them being
+  // typed that way, so nothing stops a fifth shape arriving. Warn, never block:
+  // a merchant should not be stopped by a field they can fix later, and the
+  // platform should not refuse a number because its own button cannot use it.
+  // Checked on blur, because a half-typed number is not a wrong number.
+  const [phoneWarn, setPhoneWarn] = useState<Record<string, boolean>>({});
+  const checkPhone = (key: string) => (e: React.FocusEvent<HTMLInputElement>) => {
+    const v = e.target.value.trim();
+    setPhoneWarn((w) => ({ ...w, [key]: !!v && phoneIssue(v) === "notDialable" }));
+  };
   const [logo, setLogo] = useState<string | null>(initial.logo_url);
   const [cover, setCover] = useState<string | null>(initial.cover_url);
   // Vertical focal point of the banner, 0-100 (0245).
@@ -521,13 +534,23 @@ export function EditStoreForm({
           <label className={labelClass} htmlFor="phone">
             {dict.merchant.phone}
           </label>
-          <input id="phone" name="phone" type="tel" inputMode="tel" defaultValue={initial.phone ?? ""} placeholder="+961 …" className={fieldClass} />
+          <input id="phone" name="phone" type="tel" inputMode="tel" defaultValue={initial.phone ?? ""} placeholder="+961 …" className={fieldClass} onBlur={checkPhone("phone")} aria-describedby={phoneWarn.phone ? "phone-note" : undefined} />
+          {phoneWarn.phone && (
+            <p id="phone-note" aria-live="polite" className="mt-1 text-xs text-warning">
+              {dict.store.phoneNotLebanese}
+            </p>
+          )}
         </div>
         <div>
           <label className={labelClass} htmlFor="whatsapp">
             {dict.merchant.whatsapp}
           </label>
-          <input id="whatsapp" name="whatsapp" type="tel" inputMode="tel" defaultValue={initial.whatsapp ?? ""} placeholder="+961 …" className={fieldClass} />
+          <input id="whatsapp" name="whatsapp" type="tel" inputMode="tel" defaultValue={initial.whatsapp ?? ""} placeholder="+961 …" className={fieldClass} onBlur={checkPhone("whatsapp")} aria-describedby={phoneWarn.whatsapp ? "whatsapp-note" : undefined} />
+          {phoneWarn.whatsapp && (
+            <p id="whatsapp-note" aria-live="polite" className="mt-1 text-xs text-warning">
+              {dict.store.phoneNotLebanese}
+            </p>
+          )}
         </div>
       </div>
 
