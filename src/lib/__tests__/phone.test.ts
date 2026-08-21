@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { waNumber, waLink } from "../phone";
+import { waNumber, waLink, phoneIssue } from "../phone";
 
 // The cases are the numbers actually stored on live stores today —
 // 81457806, 71757701, 03709064 — plus the shapes a merchant might type.
@@ -83,5 +83,40 @@ describe("the shapes real merchants actually stored", () => {
     // trunk zero is gone. Stripping on the prefix alone would leave 2345.
     expect(waNumber("09612345")).toBe("9619612345");
     expect(waNumber("9612345")).toBe("9619612345");
+  });
+});
+
+describe("phoneIssue — validation at the moment somebody types", () => {
+  it("blocks what is not a phone number by any reading", () => {
+    // Checkout's field was `required` with no format check, so this was an
+    // acceptable cash-on-delivery order until now.
+    expect(phoneIssue("123")).toBe("tooShort");
+    expect(phoneIssue("12")).toBe("tooShort");
+  });
+
+  it("reports an empty field separately from a bad one", () => {
+    expect(phoneIssue("")).toBe("missing");
+    expect(phoneIssue(null)).toBe("missing");
+    expect(phoneIssue("  -- ")).toBe("missing");
+  });
+
+  it("passes every real Lebanese shape stored today", () => {
+    for (const n of [
+      "76150332",
+      "06 424 911",
+      "03172745",
+      "+96176373577",
+      "0096171627323",
+      "+96103434661",
+    ]) {
+      expect(phoneIssue(n), `${n} should be accepted`).toBeNull();
+    }
+  });
+
+  it("warns about a foreign number without blocking it", () => {
+    // A diaspora customer ordering for family in Lebanon is a real customer.
+    // The WhatsApp button will not work for them; the order still should.
+    expect(phoneIssue("+33 6 12 34 56 78")).toBe("notDialable");
+    expect(phoneIssue("+961102164")).toBe("notDialable");
   });
 });

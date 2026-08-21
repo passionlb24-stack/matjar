@@ -68,3 +68,31 @@ export function waLink(
   if (!n) return null;
   return `https://wa.me/${n}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
 }
+
+/** What is wrong with a number a person just typed, or null when nothing is. */
+export type PhoneIssue = "missing" | "tooShort" | "notDialable";
+
+/**
+ * Validation for the moment a phone number is *entered*, as opposed to
+ * `waNumber`, which is about rendering a link from one already stored.
+ *
+ * Deliberately two levels rather than one, because the cost of a false
+ * rejection here is a lost order:
+ *
+ *  - `tooShort` is not a phone number by any reading, and is worth blocking.
+ *    Checkout's field was `required` with no format check at all, so a customer
+ *    could type "123" and place a cash-on-delivery order the merchant can never
+ *    deliver — a wasted trip for him and a sale that was never going to happen.
+ *  - `notDialable` means it has enough digits to be a phone, but not one this
+ *    app can turn into a wa.me link — a foreign number, most often. That is a
+ *    warning, never a block. Somebody in the diaspora ordering for family in
+ *    Lebanon is a real customer, and refusing their number because it is not
+ *    +961 would be the app deciding it knows better than the person typing.
+ */
+export function phoneIssue(raw: string | null | undefined): PhoneIssue | null {
+  const digits = (raw ?? "").replace(/\D/g, "");
+  if (!digits) return "missing";
+  if (digits.length < 7) return "tooShort";
+  if (!waNumber(raw)) return "notDialable";
+  return null;
+}
