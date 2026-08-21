@@ -14,19 +14,27 @@ export function railOnlyIfEnough(count: number) {
 }
 
 /**
- * The same threshold, asked as a question rather than answered in class names.
+ * A navigation link needs only to not be a dead end.
  *
- * A rail hides itself; a NAVIGATION LINK has no layout to hide, so the caller
- * needs the boolean and drops the entry from its own list (MP-026). The rule
- * being one constant is the point: the reason a section is missing from the
- * footer is the reason its rail is missing from the home page, and moving the
- * bar moves both together.
+ * This used to reuse MIN_RAIL_ITEMS, and that was a category error I made:
+ * three is a *visual* minimum for a horizontal scroller, and a nav link has no
+ * scroller. The consequence was that "وظائف" disappeared from the header
+ * because the platform had two job postings instead of three — a section with
+ * real content in it, hidden from customers and from the owner, who found out
+ * by noticing the gap.
  *
- * Note the difference in reach that follows from the two mechanisms:
- * railOnlyIfEnough() hides below `lg` only, because a short grid still looks
- * deliberate on a desktop. A link that leads to two results is a wasted tap at
- * every width, so this one is not breakpoint-scoped.
+ * One is the honest bar. The gate exists so a customer does not tap through to
+ * an empty page; two results is a short list, not a dead end. Zero still hides,
+ * which is what it was for: crafts, wholesale and delivery have nothing behind
+ * them at all.
+ *
+ * The two constants moving independently is now the point, not a regression of
+ * the old "one rule" comment: a rail hides on phones only, because a two-card
+ * grid still reads as deliberate on a desktop, whereas a link that leads
+ * nowhere is wrong at every width.
  */
+export const MIN_NAV_ITEMS = 1;
+
 export function hasEnough(count: number) {
-  return count >= MIN_RAIL_ITEMS;
+  return count >= MIN_NAV_ITEMS;
 }

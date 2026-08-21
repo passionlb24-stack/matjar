@@ -12,7 +12,7 @@ import { Container } from "@/components/ui/container";
 import { PageHero } from "@/components/ui/page-hero";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StoreCard } from "@/components/store-card";
-import type { CategoryKey, RegionKey, Store } from "@/lib/catalog";
+import { toCategoryKey, type RegionKey, type Store } from "@/lib/catalog";
 import type { StorePlan } from "@/lib/plan-tiers";
 
 type FavRow = {
@@ -101,7 +101,7 @@ export default async function FavoritesPage({
       name: { ar: s.name, en: s.name },
       area: { ar: s.area ?? "", en: s.area ?? "" },
       region: (s.region as RegionKey) ?? undefined,
-      category: (s.business_types?.slug as CategoryKey) ?? "retail",
+      category: toCategoryKey(s.business_types?.slug, `store ${s.id}`),
       isOpen: true,
       plan: s.plan ?? "free",
       favorited: true,

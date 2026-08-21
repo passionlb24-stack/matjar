@@ -14,7 +14,7 @@ import {
   type HourException,
 } from "@/components/provider-hours";
 import { sectorHasTeam, sectorTeamMeta } from "@/lib/sectors";
-import type { CategoryKey } from "@/lib/catalog";
+import { toCategoryKey } from "@/lib/catalog";
 import { ChevronPrev } from "@/components/ui/directional-icon";
 
 const UUID_RE =
@@ -51,9 +51,11 @@ export default async function StoreDoctorsPage({
   if (!isPro(await getStorePlan(storeId))) {
     return <ProGate lang={lang} dict={dict} storeId={storeId} />;
   }
-  const category =
-    ((store as unknown as { business_types: { slug: string } | null })
-      .business_types?.slug as CategoryKey) ?? "retail";
+  const category = toCategoryKey(
+    (store as unknown as { business_types: { slug: string } | null })
+      .business_types?.slug,
+    `store ${storeId}`,
+  );
   // Providers (team) are available to every sector that has a team roster.
   if (!sectorHasTeam(category)) redirect(`/${lang}/merchant/${storeId}`);
 

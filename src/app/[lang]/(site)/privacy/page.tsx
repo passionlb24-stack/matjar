@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -62,8 +63,10 @@ const SECTIONS_EN: Section[] = [
   {
     title: "Your requests",
     items: [
-      "You can ask for a copy of the data we hold about you, ask us to correct it, or ask us to delete your account and its data.",
-      "Message our support line on WhatsApp and we will handle it — the button below opens the chat.",
+      "You can delete your account yourself, at any time, from Account → Delete account. No need to ask anyone.",
+      "When you do: your profile, addresses, favourites, saved searches, messages and anything you listed are deleted. Your past orders stay with the shop as its sales record, and your reviews stay published — both without your name, phone or address, because they are that shop's books and other shoppers rely on those reviews.",
+      "If you still own a shop, transfer it to someone else first — deleting your account would otherwise take the shop and every order your customers placed with it.",
+      "You can also ask for a copy of the data we hold about you, or ask us to correct it. Message our support line on WhatsApp — the button below opens the chat.",
     ],
   },
 ];
@@ -100,8 +103,10 @@ const SECTIONS_AR: Section[] = [
   {
     title: "طلباتك",
     items: [
-      "فيك تطلب نسخة من بياناتك، تطلب تصحيحها، أو تطلب حذف حسابك وبياناته.",
-      "ابعتلنا على خط الدعم عالواتساب ومنمشّيلك ياها — الزر تحت بيفتح المحادثة.",
+      "فيك تحذف حسابك بنفسك، وقت ما بدّك، من «حسابي ← حذف الحساب». ما في داعي تطلب من حدا.",
+      "وقتها: ملفك الشخصي وعناوينك ومفضّلاتك وبحوثاتك ومحادثاتك وكل شي نشرتو بينحذف. طلباتك القديمة بتضلّ عند المتجر كسجل بيع، وتقييماتك بتضلّ منشورة — بس التنين بدون اسمك ولا رقمك ولا عنوانك، لأنّ هيدي دفاتر المتجر وفي زباين تانيين عم يعتمدوا على التقييمات.",
+      "إذا لسّا عندك متجر، انقل ملكيّتو لحدا تاني أوّلاً — لأنّ حذف حسابك بياخد معو المتجر وكل طلبات زباينك.",
+      "كمان فيك تطلب نسخة من بياناتك أو تطلب تصحيحها. ابعتلنا على خط الدعم عالواتساب — الزر تحت بيفتح المحادثة.",
     ],
   },
 ];
@@ -143,15 +148,26 @@ export default async function PrivacyPage({
               </ul>
             </section>
           ))}
-          <a
-            href={supportWaLink(contactPrefill)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground"
-          >
-            <MessageCircle className="h-4 w-4" />
-            {contactLabel}
-          </a>
+          <div className="mt-8 flex flex-wrap gap-2">
+            <a
+              href={supportWaLink(contactPrefill)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground"
+            >
+              <MessageCircle className="h-4 w-4" />
+              {contactLabel}
+            </a>
+            {/* ISS-025. The policy says what we do with your data; this says who
+                "we" is. A privacy policy with no identifiable controller behind
+                it is a promise from nobody. */}
+            <Link
+              href={`/${lang}/legal`}
+              className="inline-flex min-h-11 items-center rounded-xl border border-border px-5 py-3 text-sm font-bold transition-colors hover:border-primary/40 hover:text-primary"
+            >
+              {dict.footer.links.legal}
+            </Link>
+          </div>
         </div>
       </Container>
     </div>

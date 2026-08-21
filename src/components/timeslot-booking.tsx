@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { formatUsd } from "@/lib/currency";
 import { useRouter } from "next/navigation";
 import { CalendarClock, Check, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -227,7 +228,7 @@ export function TimeslotBooking({
             />
             {resource?.price != null && (
               <span className="text-sm font-bold text-primary">
-                ${resource.price} {t.perHour}
+                {formatUsd(resource.price)} {t.perHour}
               </span>
             )}
           </div>

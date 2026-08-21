@@ -6,6 +6,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
+import { NextStepEmpty } from "@/components/os-dashboard/next-step-empty";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -128,9 +129,14 @@ export default async function StoreMembersPage({
         <p className="mt-2 text-muted-foreground">{t.subtitle}</p>
 
         {empty ? (
-          <div className="mt-8 rounded-2xl border border-dashed border-border py-10 sm:py-16 text-center text-muted-foreground">
-            {t.empty}
-          </div>
+          <NextStepEmpty
+            lang={lang}
+            dict={dict}
+            storeId={storeId}
+            module="members"
+            title={t.empty}
+            className="mt-8"
+          />
         ) : (
           <div className="mt-8 space-y-8">
             {memberships.length > 0 && (

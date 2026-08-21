@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
-import type { CategoryKey } from "@/lib/catalog";
+import { toCategoryKey } from "@/lib/catalog";
 import {
   getSector,
   OS_GROUPS,
@@ -87,7 +87,7 @@ export default async function StoreOsLayout({
       )
     : 0;
   const effectivePlan = resolvePlan(s.plan, s.trial_ends_at);
-  const category = (s.business_types?.slug as CategoryKey) ?? "retail";
+  const category = toCategoryKey(s.business_types?.slug, `store ${storeId}`);
   const sector = getSector(category);
 
   // Owner sees every module; staff only what they were granted.
@@ -123,6 +123,8 @@ export default async function StoreOsLayout({
     leads: dict.os.leads.link,
     units: dict.os.units.link,
     stays: dict.os.stays.link,
+    vehicles: dict.os.vehicles.link,
+    rentals: dict.os.rentals.link,
     tickets: dict.os.tickets.link,
     members: dict.os.members.link,
     items: dict.store[sector.flow.itemsKey],
@@ -152,15 +154,29 @@ export default async function StoreOsLayout({
   };
 
   const base = `/${lang}/merchant/${storeId}`;
-  const toItem = (key: OsModuleKey) => {
+  /** A module this store's plan will not open — the page re-gates regardless. */
+  const isLocked = (key: OsModuleKey) => {
     const meta = OS_MODULE_META[key];
-    return {
-      key,
-      label: moduleLabel[key],
-      href: `${base}/${meta.path}`,
-      locked: !!meta.minPlan && !hasPlan(effectivePlan, meta.minPlan),
-    };
+    return !!meta.minPlan && !hasPlan(effectivePlan, meta.minPlan);
   };
+  const toItem = (key: OsModuleKey) => ({
+    key,
+    label: moduleLabel[key],
+    href: `${base}/${OS_MODULE_META[key].path}`,
+    locked: isLocked(key),
+  });
+
+  // ISS-004/005: a free store's rail listed 13 padlocks interleaved with its 7
+  // working tools, four groups deep. A row you cannot open is not navigation —
+  // it is an advertisement, and thirteen of them scattered through the nav read
+  // as a paywall rather than as a product. The locks stay (these are shipped
+  // features, and hiding them outright would misrepresent what the plan buys)
+  // but they are collected into ONE labelled section at the end of the nav,
+  // stated as what the plan adds. A store on a plan that opens everything sees
+  // no change at all, because it has nothing to collect.
+  const visibleModules = OS_GROUPS.flatMap((group) =>
+    sector.modules[group].filter((key) => !PINNED.includes(key)).filter(canSee),
+  );
 
   const nav: SidebarNav = {
     home: { key: "home", label: dict.dashboard.panel, href: base, exact: true },
@@ -170,8 +186,14 @@ export default async function StoreOsLayout({
       items: sector.modules[group]
         .filter((key) => !PINNED.includes(key))
         .filter(canSee)
+        .filter((key) => !isLocked(key))
         .map(toItem),
     })).filter((group) => group.items.length > 0),
+    advanced: {
+      label: dict.os.nextStep.advancedTools,
+      hint: dict.os.nextStep.advancedToolsHint,
+      items: visibleModules.filter(isLocked).map(toItem),
+    },
     pinned: PINNED.filter(canSee).map(toItem),
     backLabel: dict.merchant.products.back,
     supportLabel: dict.common.supportWhatsapp,
@@ -212,7 +234,13 @@ export default async function StoreOsLayout({
     "classes",
     "courses",
   ]);
-  const reportKey = firstVisible(["reports", "accounting"]);
+  // The phone's four primary tabs must all open. `reports` is Pro and
+  // `accounting` is Business, so a free store's fourth tab was a padlock in the
+  // most valuable strip of the phone UI — one of only four places it could have
+  // put something the merchant can use. It now falls through to no tab at all.
+  const reportKey = firstVisible(["reports", "accounting"].filter(
+    (k) => !isLocked(k as OsModuleKey),
+  ) as OsModuleKey[]);
 
   // Only the operations tab carries a badge, and only from a real count of
   // orders actually awaiting the merchant. A number they cannot clear would
@@ -260,7 +288,10 @@ export default async function StoreOsLayout({
     { key: "more", label: dict.os.groups.store },
   ];
   return (
-    <div className="flex flex-col lg:flex-row">
+    // ISS-028: the rail and the content sit side by side from md up, matching
+    // the breakpoint the sidebar itself now switches at. Below md the shell
+    // stacks and the phone chrome (top bar, tab bar, drawer) takes over.
+    <div className="flex flex-col md:flex-row">
       <MerchantSidebar
         lang={lang}
         storeId={storeId}
@@ -274,8 +305,10 @@ export default async function StoreOsLayout({
         tabs={tabs}
       />
       {/* Clear the fixed phone tab bar (56px + safe area) so the last row of
-          any screen is never trapped under it. */}
-      <div className="min-w-0 flex-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] lg:pb-0">
+          any screen is never trapped under it. The tab bar stops at md, so the
+          reservation must stop at md too — left at lg it would have hung 56px
+          of dead space under every tablet screen. */}
+      <div className="min-w-0 flex-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
         {children}
       </div>
     </div>

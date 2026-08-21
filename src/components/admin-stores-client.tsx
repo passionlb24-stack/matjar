@@ -21,6 +21,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
 import { revalidateStores } from "@/lib/cache-actions";
 import { logAdminAction, type AuditVerb } from "@/lib/audit";
+import { matchesQuery } from "@/lib/admin-search";
 import { regions } from "@/lib/catalog";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
@@ -189,8 +190,13 @@ export function AdminStoresClient({
   const filtered = stores.filter((s) => {
     if (status !== "all" && s.status !== status) return false;
     if (region !== "all" && s.region !== region) return false;
-    if (query.trim() && !s.name.toLowerCase().includes(query.trim().toLowerCase()))
-      return false;
+    // Was `s.name.toLowerCase().includes(...)`, which is the wrong comparison
+    // for an Arabic-first roster: "أحمد" and "احمد" are the same shop to
+    // everyone except that expression. matchesQuery folds the hamza, the
+    // harakat and the tatweel the same way the command palette does, and the
+    // owner's name is in the haystack because "which store does this person
+    // own" is how an admin arrives here from a support message.
+    if (!matchesQuery(query, [s.name, s.ownerName, s.typeName])) return false;
     return true;
   });
 

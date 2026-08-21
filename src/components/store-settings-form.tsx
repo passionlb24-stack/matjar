@@ -26,6 +26,7 @@ export type StoreSettings = {
   prep_time: string;
   payment_note: string;
   booking_cancel_hours: string;
+  return_policy: string;
   specialties: string;
   insurance: string;
   lat: string;
@@ -96,6 +97,7 @@ export function StoreSettingsForm({
         payment_note: String(form.get("payment_note")) || null,
         booking_cancel_hours:
           Math.max(0, Number(form.get("booking_cancel_hours")) || 0),
+        return_policy: String(form.get("return_policy") ?? "").trim() || null,
         commercial_reg_no: String(form.get("commercial_reg_no") ?? "").trim() || null,
         // Legal identity + VAT. issue_invoice() refuses to number an invoice
         // without legal_name, and until now there was no field anywhere in the
@@ -166,6 +168,36 @@ export function StoreSettingsForm({
         <label className={labelClass} htmlFor="payment_note">{t.paymentNote}</label>
         <input id="payment_note" name="payment_note" type="text" defaultValue={initial.payment_note} placeholder={t.paymentNotePlaceholder} className={fieldClass} />
       </div>
+
+      {/* Free text on purpose: Matjar takes no payment and settles nothing, so a
+
+
+          structured return window would read as a platform guarantee it cannot
+
+
+          make. The shop states what it does; the shop honours it. */}
+
+
+      <div>
+        <label className={labelClass} htmlFor="return_policy">
+          {t.returnPolicy}
+        </label>
+        <textarea
+          id="return_policy"
+          name="return_policy"
+          rows={2}
+          defaultValue={initial.return_policy}
+          placeholder={t.returnPolicyPlaceholder}
+          className={fieldClass}
+        />
+        <p className="mt-1 text-xs text-muted-foreground">{t.returnPolicyHint}</p>
+
+
+      </div>
+
+
+      
+
 
       <div>
         <label className={labelClass} htmlFor="booking_cancel_hours">

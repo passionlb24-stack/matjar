@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
-import type { CategoryKey } from "@/lib/catalog";
+import { toCategoryKey } from "@/lib/catalog";
 import { categoryModule } from "@/lib/modules";
 import { Container } from "@/components/ui/container";
 import { FETCH_BOUNDS, warnIfTruncated } from "@/lib/data/bounds";
@@ -12,6 +12,7 @@ import {
   ProductEditForm,
   type ProductInitial,
 } from "@/components/product-edit-form";
+import { unitPricingValue } from "@/lib/unit-pricing";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -43,9 +44,11 @@ export default async function EditProductPage({
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
-  const category =
-    ((store as unknown as { business_types: { slug: string } | null })
-      .business_types?.slug as CategoryKey) ?? "retail";
+  const category = toCategoryKey(
+    (store as unknown as { business_types: { slug: string } | null })
+      .business_types?.slug,
+    `store ${storeId}`,
+  );
   const mod = categoryModule[category];
 
   const { data: product } = await supabase
@@ -54,7 +57,7 @@ export default async function EditProductPage({
     // wrong the first time, and it was the one price field this form could not
     // show — so a cost entered at creation was invisible here, and one omitted
     // could never be added afterwards. Zero of 60 live products carry one.
-    .select("id, store_id, name, name_en, brand, price, discount_price, cost, description, description_en, image_url, gallery, stock, section_id, attributes, deal_date, flash_price, flash_start, flash_end, item_kind, booking_allocation_mode, duration_minutes, buffer_minutes, capacity_per_slot")
+    .select("id, store_id, name, name_en, brand, price, discount_price, cost, description, description_en, image_url, gallery, stock, section_id, attributes, deal_date, flash_price, flash_start, flash_end, item_kind, booking_allocation_mode, duration_minutes, buffer_minutes, capacity_per_slot, sold_by, unit_measure, unit_amount")
     .eq("id", productId)
     .eq("store_id", storeId)
     .is("deleted_at", null)
@@ -125,6 +128,14 @@ export default async function EditProductPage({
     price: product.price != null ? String(product.price) : "",
     discountPrice: product.discount_price != null ? String(product.discount_price) : "",
     cost: product.cost != null ? String(product.cost) : "",
+    // 0299. Null columns mean piece-priced, which is what every product on the
+    // platform is today — so PIECE_PRICED is the answer for all of them until a
+    // merchant says otherwise, and the editor opens on "By the piece".
+    unitPricing: unitPricingValue(
+      product.sold_by as string | null,
+      product.unit_measure as string | null,
+      product.unit_amount as number | null,
+    ),
     description: (product.description as string | null) ?? "",
     descriptionEn: (product.description_en as string | null) ?? "",
     imageUrl: (product.image_url as string | null) ?? null,
@@ -170,12 +181,21 @@ export default async function EditProductPage({
   return (
     <div className="py-10">
       <Container className="max-w-2xl">
+        {/* ISS-018. This link always pointed at the catalogue list — the route
+            back was never missing. What was missing was any way to know that:
+            it was labelled with the STORE's name, which is the exact label the
+            list page puts on its own back link, and that one goes somewhere
+            else (the OS home). Two destinations wearing one word is why the
+            list↔edit relationship read as absent. It now names where it goes,
+            using the sector's own noun for the catalogue (القائمة / المنتجات /
+            الخدمات / العروض) — the same word standing in the list page's <h1>,
+            so leaving and arriving are spelled the same. */}
         <Link
           href={`/${lang}/merchant/${storeId}/items`}
-          className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+          className="relative inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors before:absolute before:-inset-x-2 before:-inset-y-3 before:content-[''] hover:text-foreground"
         >
           <ChevronPrev className="h-4 w-4" />
-          {(store as { name: string }).name}
+          {dict.store[mod.itemsKey]}
         </Link>
         <div className="mt-5">
           <ProductEditForm

@@ -7,8 +7,18 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/client";
 import { Button, ButtonLink } from "@/components/ui/button";
+import { GalleryUpload } from "@/components/gallery-upload";
 import { notifyError, notifySuccess } from "@/lib/notify";
+import { resolveIntake, type IntakeConfig } from "@/lib/request-intake";
 import { useConfirm } from "@/components/ui/confirm-dialog";
+
+// Three chips rather than a select: the answer is one tap and every option is
+// readable without opening anything. min-h-11 is the 44px thumb target, and
+// the padding here keeps it there rather than relying on the class alone.
+const chipClass =
+  "min-h-11 flex-1 rounded-xl border px-3 py-2.5 text-sm font-bold transition-colors";
+const selectClass =
+  "mt-1.5 min-h-11 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary";
 
 type MyRequest = {
   id: string;
@@ -52,10 +62,38 @@ export function ServiceRequestForm({
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
+  // The extra answers. All optional, all nullable — the request sends without
+  // any of them exactly as it does today.
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [urgency, setUrgency] = useState("");
+  const [budget, setBudget] = useState("");
+  const [timeline, setTimeline] = useState("");
+  // Which of them this store asks for: sector default, overridden by whatever
+  // the merchant switched off. Null until the store row lands, so nothing
+  // flashes in and out.
+  const [intake, setIntake] = useState<IntakeConfig | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
     (async () => {
+      // The store's own intake settings. Public read (both `stores` and
+      // `business_types` are readable by anon — verified against production),
+      // so this resolves for a signed-out visitor too and the form does not
+      // have to grow a prop on the server store page.
+      supabase
+        .from("stores")
+        .select("request_intake, business_types(slug)")
+        .eq("id", storeId)
+        .maybeSingle()
+        .then(({ data }) => {
+          const row = data as {
+            request_intake: unknown;
+            business_types: { slug: string } | null;
+          } | null;
+          setIntake(
+            resolveIntake(row?.business_types?.slug ?? null, row?.request_intake),
+          );
+        });
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -93,6 +131,13 @@ export function ServiceRequestForm({
         phone: phone.trim(),
         address: address.trim() || null,
         description: desc,
+        // Only send what this store actually asked for. A merchant who turned
+        // budget off should not receive a budget because the state survived a
+        // settings change while the form was open.
+        photos: intake?.photos ? photos : [],
+        urgency: (intake?.urgency && urgency) || null,
+        budget_range: (intake?.budget && budget) || null,
+        timeline: (intake?.timeline && timeline) || null,
       })
       .select("id")
       .single();
@@ -104,6 +149,10 @@ export function ServiceRequestForm({
     notifySuccess(t.sent);
     setDescription("");
     setAddress("");
+    setPhotos([]);
+    setUrgency("");
+    setBudget("");
+    setTimeline("");
     router.refresh();
     // Reflect the new request locally with its real id.
     setMine((m) => [
@@ -202,6 +251,103 @@ export function ServiceRequestForm({
                 className="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
               />
             </div>
+
+            {/* MJ-016. The one question a field-service provider triages on
+                before anything else. Nothing is preselected: a default here
+                would be the customer's answer without the customer. */}
+            {intake?.urgency && (
+              <fieldset>
+                <legend className="text-sm font-semibold">{t.urgency}</legend>
+                <div className="mt-1.5 flex gap-2">
+                  {(
+                    Object.entries(t.urgencyOptions) as [string, string][]
+                  ).map(([k, label]) => (
+                    <button
+                      key={k}
+                      type="button"
+                      aria-pressed={urgency === k}
+                      onClick={() => setUrgency(urgency === k ? "" : k)}
+                      className={`${chipClass} ${
+                        urgency === k
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-surface hover:border-primary/50"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+
+            {/* MJ-016. Uploads land under crafts/<uid>/requests/, the only
+                identity-scoped prefix can_write_store_asset (0283) grants a
+                plain customer — and the storage insert policy is
+                `to authenticated`, so a signed-out visitor is told rather than
+                shown a picker that would fail. */}
+            {intake?.photos && (
+              <div>
+                <GalleryUpload
+                  folder={`crafts/${uid}/requests`}
+                  value={photos}
+                  onChange={setPhotos}
+                  label={t.photos}
+                  max={3}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {t.photosHint}
+                </p>
+              </div>
+            )}
+
+            {/* MJ-017. A range, and skippable — a client who will not name a
+                number still gets to send the brief. */}
+            {intake?.budget && (
+              <div>
+                <label className="text-sm font-semibold" htmlFor="sr-budget">
+                  {t.budget}
+                </label>
+                <select
+                  id="sr-budget"
+                  value={budget}
+                  onChange={(e) => setBudget(e.target.value)}
+                  className={selectClass}
+                >
+                  <option value="">{t.budgetAny}</option>
+                  {(Object.entries(t.budgetOptions) as [string, string][]).map(
+                    ([k, label]) => (
+                      <option key={k} value={k}>
+                        {label}
+                      </option>
+                    ),
+                  )}
+                </select>
+              </div>
+            )}
+
+            {intake?.timeline && (
+              <div>
+                <label className="text-sm font-semibold" htmlFor="sr-timeline">
+                  {t.timeline}
+                </label>
+                <select
+                  id="sr-timeline"
+                  value={timeline}
+                  onChange={(e) => setTimeline(e.target.value)}
+                  className={selectClass}
+                >
+                  <option value="">{t.timelineAny}</option>
+                  {(
+                    Object.entries(t.timelineOptions) as [string, string][]
+                  ).map(([k, label]) => (
+                    <option key={k} value={k}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <Button
               onClick={submit}
               loading={busy}

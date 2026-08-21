@@ -27,6 +27,7 @@ export default async function AdminFreelancePage({
     .select(
       "id, title, freelancer_id, freelancer_name, category, price, region, image_url, status, created_at",
     )
+    .is("deleted_at", null)
     .order("created_at", { ascending: false })
     .limit(500);
 

@@ -2,15 +2,27 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createPublicClient } from "@/lib/supabase/public-client";
-import type { CategoryKey } from "@/lib/catalog";
+import { toCategoryKey, type CategoryKey } from "@/lib/catalog";
 import type { StorePlan } from "@/lib/plan-tiers";
 import { FETCH_BOUNDS, fetchAllByIds, fetchAllPages, warnIfTruncated } from "./bounds";
 
 // The catalogue projection, named once so the row-shape contract has something
 // to point at: every column here is read by the mapper at the bottom of
 // fetchStoreView, and dropping one renders a blank field rather than failing.
+//
+// ADDING one is the dangerous direction, and it bit during this change. This
+// list is a contract with the DEPLOYED DATABASE: PostgREST rejects the whole
+// SELECT if a single column is unknown, `data` comes back null, fetchAllPages
+// yields [], and the storefront renders "no products" — not an error, an empty
+// shop. Selecting `sold_by, unit_measure, unit_amount` against a database
+// without 0299 applied blanked ملحمة البركة's entire catalogue on a local build,
+// and it would have done the same to every store on the platform.
+//
+// So: migration 0299 must be applied BEFORE this build ships. Same lesson as
+// the revoke that was applied ahead of its deploy and took the reviews block
+// off every store page, running the other way round.
 const PRODUCT_COLUMNS =
-  "id, name, name_en, brand, description_en, price, discount_price, image_url, attributes, flash_price, flash_start, flash_end, stock, section_id, item_kind, booking_allocation_mode, duration_minutes, buffer_minutes, capacity_per_slot, is_bundle";
+  "id, name, name_en, brand, description_en, price, discount_price, image_url, attributes, flash_price, flash_start, flash_end, stock, section_id, item_kind, booking_allocation_mode, duration_minutes, buffer_minutes, capacity_per_slot, is_bundle, sold_by, unit_measure, unit_amount";
 
 // The public store view: the store row + its active catalogue + sections. This
 // is the heaviest, most-visited public read on the site (the store page is the
@@ -52,6 +64,7 @@ export type StoreView = {
   minOrder?: number | null;
   prepTime?: string | null;
   paymentNote?: string | null;
+  returnPolicy?: string | null;
   specialties?: string | null;
   insurance?: string | null;
   registered?: boolean;
@@ -95,6 +108,16 @@ export type StoreView = {
     hasVariants?: boolean;
     isBundle?: boolean;
     includes?: { name: string; nameEn: string | null; quantity: number }[];
+    /**
+     * Sold by a measure rather than by the piece (0299). Null on every product
+     * that predates it, which is all 63 of them in production today. `price`
+     * still means the price of ONE orderable unit either way — these three only
+     * say what one unit IS. See src/lib/unit-pricing.ts for why it has to work
+     * that way and not by making the quantity fractional.
+     */
+    soldBy?: string | null;
+    unitMeasure?: string | null;
+    unitAmount?: number | null;
   }[];
   checkoutFields: {
     id: string;
@@ -116,7 +139,7 @@ async function fetchStoreView(
   const { data } = await supabase
     .from("stores")
     .select(
-      "name, slug, description, announcement, storefront_theme, area, status, plan, logo_url, cover_url, cover_position, phone, whatsapp, hours, booking_slot_minutes, booking_cancel_hours, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, specialties, insurance, commercial_reg_verified, loyalty_redemption_enabled, loyalty_points_per_unit, accent_color, storefront_layout, lat, lng, business_types(slug)",
+      "name, slug, description, announcement, storefront_theme, area, status, plan, logo_url, cover_url, cover_position, phone, whatsapp, hours, booking_slot_minutes, booking_cancel_hours, instagram, facebook, website, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, return_policy, specialties, insurance, commercial_reg_verified, loyalty_redemption_enabled, loyalty_points_per_unit, accent_color, storefront_layout, lat, lng, business_types(slug)",
     )
     .eq("id", id)
     .is("deleted_at", null)
@@ -245,7 +268,13 @@ async function fetchStoreView(
     storefrontLayout:
       (data.storefront_layout as "grid" | "menu" | "showcase" | null) ?? null,
     storefrontTheme: (data.storefront_theme as string | null) ?? null,
-    category: (bt?.slug as CategoryKey) ?? "retail",
+    // Checked, not asserted. `bt.slug` is a string an admin typed into the
+    // business-types screen; the storefront, the offering pages and every
+    // module lookup key off it. The bare `as CategoryKey` here let an
+    // unrecognised slug travel on as if it were a sector, so each registry read
+    // downstream returned undefined and the failure surfaced far from its
+    // cause. Same fallback as before — `retail` — now narrowed and reported.
+    category: toCategoryKey(bt?.slug, `store ${id}`),
     area: (data.area as string | null) ?? null,
     description: (data.description as string | null) ?? null,
     announcement: (data.announcement as string | null) ?? null,
@@ -267,6 +296,7 @@ async function fetchStoreView(
     minOrder: data.min_order != null ? Number(data.min_order) : null,
     prepTime: (data.prep_time as string | null) ?? null,
     paymentNote: (data.payment_note as string | null) ?? null,
+    returnPolicy: (data.return_policy as string | null) ?? null,
     specialties: (data.specialties as string | null) ?? null,
     insurance: (data.insurance as string | null) ?? null,
     registered: (data.commercial_reg_verified as boolean | null) ?? false,
@@ -321,6 +351,9 @@ async function fetchStoreView(
       sectionId: (p.section_id as string | null) ?? null,
       itemKind: ((p.item_kind as string | null) ?? "product") as "product" | "service",
       isBundle: (p.is_bundle as boolean | null) ?? false,
+      soldBy: (p.sold_by as string | null) ?? null,
+      unitMeasure: (p.unit_measure as string | null) ?? null,
+      unitAmount: p.unit_amount != null ? Number(p.unit_amount) : null,
       hasVariants: variantProductIds.has(p.id as string),
       includes: includesByBundle[p.id as string] ?? undefined,
     })),

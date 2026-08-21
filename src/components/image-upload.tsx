@@ -195,7 +195,9 @@ export function ImageUpload({
               type="button"
               onClick={() => onChange(null)}
               aria-label="remove"
-              className="absolute end-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white transition-colors hover:bg-black/70"
+              // 28px of visible chrome so it does not swallow the photo, but a
+              // 44px tap area: -inset-2 adds 8px on every side (28 + 16 = 44).
+              className="absolute end-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white transition-colors before:absolute before:-inset-2 before:content-[''] hover:bg-black/70"
             >
               <X className="h-4 w-4" />
             </button>

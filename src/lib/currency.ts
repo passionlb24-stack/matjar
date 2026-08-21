@@ -23,7 +23,23 @@ export function formatUsd(price: number, opts?: FormatUsdOptions): string {
   if (opts?.cents) {
     return `$${Number(Number(price).toFixed(2)).toLocaleString("en-US")}`;
   }
-  return price >= 1000 ? `$${Number(price).toLocaleString("en-US")}` : `$${price}`;
+  // Round to cents before rendering, even without the `cents` option.
+  //
+  // This branch used to interpolate the float directly, and a *computed* total
+  // is not a clean float: 7.39 × 3 is 22.169999999999998 in IEEE 754. So a real
+  // butcher's cart line, sticky bar, checkout button and the WhatsApp order
+  // message sent to the merchant all read "$22.169999999999998". Observed on a
+  // live storefront, not constructed.
+  //
+  // Rounding here changes nothing about how a catalogue price renders, which is
+  // what makes it safe: $50 stays "$50", $4.99 stays "$4.99", $12.50 stays
+  // "$12.5". The only values it moves are ones that were already wrong. That is
+  // the difference from the `cents` option, which additionally groups thousands
+  // below 1000 and exists for the surfaces that settle real amounts.
+  const rounded = Number(Number(price).toFixed(2));
+  return rounded >= 1000
+    ? `$${rounded.toLocaleString("en-US")}`
+    : `$${rounded}`;
 }
 
 /** "≈ 4,475,000 ل.ل." — an approximate LBP value for a USD amount. */

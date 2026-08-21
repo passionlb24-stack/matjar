@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isPro } from "@/lib/plan";
 import { getStorePlan } from "@/lib/plan-server";
 import { ProGate } from "@/components/pro-gate";
-import type { CategoryKey } from "@/lib/catalog";
+import { toCategoryKey } from "@/lib/catalog";
 import { sectorConfig } from "@/lib/sectors";
 import { Container } from "@/components/ui/container";
 import { ChevronPrev } from "@/components/ui/directional-icon";
@@ -15,6 +15,7 @@ import {
   type BookCustomer,
   type DerivedCustomer,
 } from "@/components/crm-manager";
+import { NextStepEmpty } from "@/components/os-dashboard/next-step-empty";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -80,9 +81,11 @@ export default async function StoreCustomersPage({
       (staffRow?.permissions as Record<string, boolean> | null) ?? {};
     if (!(perms.orders ?? false)) redirect(`/${lang}/merchant/${storeId}`);
   }
-  const category =
-    ((store as unknown as { business_types: { slug: string } | null })
-      .business_types?.slug as CategoryKey) ?? "retail";
+  const category = toCategoryKey(
+    (store as unknown as { business_types: { slug: string } | null })
+      .business_types?.slug,
+    `store ${storeId}`,
+  );
   const noun = dict.os.nouns[sectorConfig[category].customersNoun];
 
   const [
@@ -168,6 +171,23 @@ export default async function StoreCustomersPage({
           {(store as { name: string }).name}
         </Link>
         <h1 className="mt-3 text-3xl font-extrabold tracking-tight">{noun}</h1>
+
+        {/* ISS-034: a CRM with nothing in either tab is the screen a merchant
+            arrives at on day one, and it used to say only "no orders yet" in a
+            dashed box on one of the two tabs. The book below still offers its
+            own "add a customer" form — this says where the OTHER half of the
+            list comes from, and it is only rendered when both halves are empty
+            so it never sits on top of a working CRM. */}
+        {book.length === 0 && derived.length === 0 && (
+          <NextStepEmpty
+            lang={lang}
+            dict={dict}
+            storeId={storeId}
+            module="customers"
+            title={dict.os.crm.emptyDerived}
+            className="mt-6"
+          />
+        )}
 
         <div className="mt-6">
           <CrmManager

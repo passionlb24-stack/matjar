@@ -1,14 +1,25 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Minus, Plus, ShoppingCart } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
+import { Minus, Plus, ShoppingCart, Wallet } from "lucide-react";
 import { noteHintKey } from "@/lib/note-hint";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { formatUsd, formatLbp } from "@/lib/currency";
 import { Money } from "@/components/ui/money";
+import {
+  CheckoutForm,
+  type PlacedOrder,
+} from "@/components/checkout/checkout-form";
+import { OrderPlaced } from "@/components/checkout/order-placed";
+import {
+  fulfillmentOptions,
+  newIdempotencyKey,
+  type CheckoutItem,
+  type CheckoutLine,
+  type CheckoutViewer,
+  type StoreCheckout,
+} from "@/lib/checkout";
 
 export type Variant = {
   id: string;
@@ -40,34 +51,39 @@ const fieldClass =
 export function ProductOrder({
   lang,
   dict,
-  storeId,
   productId,
+  productName,
+  checkout,
+  viewer,
   basePrice,
   stock,
   variants,
   addons,
   modifierGroups = [],
   allowScheduling = false,
-  defaultAddress = "",
-  acceptsDelivery = true,
-  acceptsPickup = true,
   lbpRate = 0,
   category = null,
   ctaLabel,
 }: {
   lang: Locale;
   dict: Dictionary;
-  storeId: string;
   productId: string;
+  /** The line name on the order summary and in the WhatsApp message. */
+  productName: string;
+  /**
+   * This store's checkout — the SAME object the store cart is handed. Before
+   * MJ-024 the buy box was given four booleans and built its own RPC call,
+   * which is how it came to omit the delivery zone, the coupon, the loyalty
+   * opt-in, the merchant's custom fields and the guest path all at once.
+   */
+  checkout: StoreCheckout;
+  viewer: CheckoutViewer;
   basePrice: number;
   stock: number | null;
   variants: Variant[];
   addons: AddOn[];
   modifierGroups?: ModifierGroup[];
   allowScheduling?: boolean;
-  defaultAddress?: string;
-  acceptsDelivery?: boolean;
-  acceptsPickup?: boolean;
   lbpRate?: number;
   /** Store sector — decides which note example the shopper is shown. */
   category?: string | null;
@@ -75,7 +91,6 @@ export function ProductOrder({
    *  good, "أضف إلى الطلب" for a menu item. Omitted = the generic order label. */
   ctaLabel?: string;
 }) {
-  const router = useRouter();
   // Apparel variants carry color/size → render a 2-step picker; legacy flat
   // variants (no color/size) keep the single pill row.
   const structured =
@@ -94,18 +109,19 @@ export function ProductOrder({
     colors[0] ?? null,
   );
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
-  const idemKeyRef = useRef<string>("");
   const [itemNote, setItemNote] = useState("");
   const [scheduledFor, setScheduledFor] = useState("");
   const [qty, setQty] = useState(1);
   const [checkingOut, setCheckingOut] = useState(false);
-  const [placing, setPlacing] = useState(false);
-  const [orderError, setOrderError] = useState<string | null>(null);
-  const fulfillmentOptions = (["delivery", "pickup"] as const).filter((o) =>
-    o === "delivery" ? acceptsDelivery : acceptsPickup,
-  );
+  // One key per checkout attempt, minted when the customer opens the checkout.
+  const [attemptKey, setAttemptKey] = useState(newIdempotencyKey);
+  const [placed, setPlaced] = useState<PlacedOrder | null>(null);
+  // A mirror of the shared form's fulfilment pick, used ONLY to word the
+  // cash-on-delivery panel below — who the customer hands the money to is the
+  // part they are actually picturing. The choice itself, and the sending of it,
+  // belong to the form; this listens.
   const [fulfillment, setFulfillment] = useState<"delivery" | "pickup">(
-    acceptsDelivery ? "delivery" : "pickup",
+    fulfillmentOptions(checkout)[0] ?? "delivery",
   );
 
   const variant = variants.find((v) => v.id === variantId) ?? null;
@@ -170,80 +186,64 @@ export function ProductOrder({
     });
   }
 
-  async function confirmOrder(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setPlacing(true);
-    setOrderError(null);
-    const form = new FormData(e.currentTarget);
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setPlacing(false);
-      router.push(`/${lang}/login`);
-      return;
-    }
-    // Idempotency: reuse one key across retries of the same attempt so a stalled
-    // request the user re-submits collapses to a single order (the RPC dedupes on
-    // it). Regenerated only after a successful placement.
-    if (!idemKeyRef.current) idemKeyRef.current = crypto.randomUUID();
-    // Server-side pricing: the RPC re-reads product/variant/add-on prices from
-    // the catalog and enforces stock (incl. per-variant) in one transaction.
-    const { data: orderId, error } = await supabase.rpc("place_customer_order", {
-      p_store_id: storeId,
-      p_phone: String(form.get("phone") ?? ""),
-      p_address: String(form.get("address") ?? ""),
-      p_fulfillment: fulfillment,
-      p_note: String(form.get("note") ?? ""),
-      p_coupon: null,
-      p_items: [
-        {
-          product_id: productId,
-          quantity: qty,
-          variant_id: variantId,
-          addon_ids: selectedAddons,
-          note: itemNote.trim() || undefined,
-        },
-      ],
-      p_custom_fields:
-        allowScheduling && scheduledFor
-          ? { scheduled_for: new Date(scheduledFor).toISOString() }
-          : undefined,
-      p_idempotency_key: idemKeyRef.current,
-    });
-    // A NULL id is a failure with no error attached — see the note on the same
-    // check in store-products.tsx. Here it would have redirected the customer
-    // to an orders list that does not contain their order.
-    if (error || !orderId) {
-      const msg = error?.message ?? "";
-      const outOfStock = msg.includes("insufficient_stock");
-      // This surface orders a single item with no zone picker, no coupon field
-      // and no loyalty toggle, so it used to price the same basket lower than
-      // the store cart did. The server now refuses instead of silently charging
-      // zero delivery or ignoring the store minimum; say which it was, and where
-      // the customer can complete the order properly.
-      setOrderError(
-        outOfStock
-          ? dict.store.outOfStock
-          : msg.includes("zone_required")
-            ? dict.store.zoneRequired
-            : msg.includes("below_store_minimum")
-              ? dict.store.belowStoreMin
-              : msg.includes("below_zone_minimum")
-                ? dict.store.belowZoneMin
-                : msg.includes("coupon_already_used")
-                  ? dict.store.couponAlreadyUsed
-                  : dict.auth.errorGeneric,
-      );
-      setPlacing(false);
-      // Re-sync so the stale in-stock state doesn't linger after a stock error.
-      if (outOfStock) router.refresh();
-      return;
-    }
-    idemKeyRef.current = "";
-    router.push(`/${lang}/orders`);
-    router.refresh();
+  // The basket, in the two shapes a checkout needs. This is the whole reason
+  // the buy box exists as a separate surface: it is the only one that can name
+  // a variant, its add-ons and a per-item note, and both RPCs have priced all
+  // three since 0194/0221. Everything else about the checkout — the zone, the
+  // coupon, the loyalty opt-in, the merchant's custom fields, the guest path —
+  // is the shared form's, and is no longer this component's business.
+  const orderItems: CheckoutItem[] = [
+    {
+      product_id: productId,
+      quantity: qty,
+      variant_id: variantId,
+      addon_ids: selectedAddons,
+      note: itemNote.trim() || undefined,
+    },
+  ];
+  const chosenAddons = addons.filter((a) => selectedAddons.includes(a.id));
+  const lines: CheckoutLine[] = [
+    {
+      id: productId,
+      // Read back the way the merchant will read it on the order: the variant
+      // and the add-ons are what distinguish this line from the same product
+      // ordered differently. The server builds the stored name the same way.
+      name: [
+        productName,
+        variant ? ` - ${variant.label}` : "",
+        chosenAddons.length
+          ? ` (+ ${chosenAddons.map((a) => a.name).join(", ")})`
+          : "",
+      ].join(""),
+      quantity: qty,
+      unitPrice: unitPrice,
+    },
+  ];
+  // Schedule-for-later rides inside p_custom_fields, which is where 0194 reads
+  // it from. Unparseable or past values are dropped server-side.
+  const extraCustomFields =
+    allowScheduling && scheduledFor
+      ? { scheduled_for: new Date(scheduledFor).toISOString() }
+      : undefined;
+
+  function startCheckout() {
+    setAttemptKey(newIdempotencyKey());
+    setCheckingOut(true);
+  }
+
+  // The order exists. Same confirmation the store cart shows — the reference,
+  // the amount, the "tell the merchant on WhatsApp" button and a tracking link
+  // the session can actually read. This surface used to answer a placed order
+  // with a push to /orders, which a guest has no use for at all.
+  if (placed) {
+    return (
+      <OrderPlaced
+        lang={lang}
+        dict={dict}
+        order={placed}
+        loggedIn={viewer.loggedIn}
+      />
+    );
   }
 
   return (
@@ -498,6 +498,31 @@ export function ProductOrder({
         </div>
       )}
 
+      {/* How payment works — said, not implied.
+          The absence of a card field is not a promise; a Lebanese shopper who
+          has never used this site reads "online order" as "give a stranger your
+          card". So the fact that decides the order is written directly above the
+          button that places it, on the product page as well as in the cart, and
+          again on the confirmation step where the phone and address are asked
+          for. It carries no store data and no condition: cash on receipt is how
+          every order on the platform is settled. */}
+      <div className="flex items-start gap-2.5 rounded-xl bg-success-soft px-3.5 py-3 text-success">
+        <Wallet className="mt-0.5 h-4.5 w-4.5 shrink-0" />
+        <span className="min-w-0">
+          <span className="block text-sm font-bold">{dict.product.codTitle}</span>
+          <span className="mt-0.5 block text-xs leading-relaxed">
+            {/* Before the fulfilment pick the line has to hold for both modes;
+                after it, say the specific one — who the customer hands the money
+                to is the part they are actually picturing. */}
+            {!checkingOut
+              ? dict.product.codBody
+              : fulfillment === "pickup"
+                ? dict.product.codPickup
+                : dict.product.codDelivery}
+          </span>
+        </span>
+      </div>
+
       {/* Quantity + total */}
       {!checkingOut && (
         <>
@@ -541,7 +566,7 @@ export function ProductOrder({
             <button
               type="button"
               disabled={soldOut || !modifiersOk}
-              onClick={() => setCheckingOut(true)}
+              onClick={startCheckout}
               className="flex items-center gap-1.5 rounded-xl bg-primary px-6 py-3 font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               <ShoppingCart className="h-4 w-4" />
@@ -555,107 +580,31 @@ export function ProductOrder({
         </>
       )}
 
-      {/* Checkout */}
+      {/* Checkout — the same form the store cart uses. Everything it asks for
+          (zone, coupon, loyalty, branch, change, the merchant own fields) is
+          asked here too, and a guest is no longer bounced to /login. */}
       {checkingOut && (
-        <form
-          onSubmit={confirmOrder}
-          className="space-y-4 border-t border-border pt-4"
-        >
-          <p className="text-lg font-extrabold">
-            {dict.product.total}: {formatUsd(total)}
-          </p>
-          {lbpRate > 0 && (
-            <p className="-mt-3 text-xs text-muted-foreground">
-              {formatLbp(total, lbpRate, lang)}
-            </p>
-          )}
-          {fulfillmentOptions.length > 1 && (
-            <div>
-              <span className="text-sm font-semibold">
-                {dict.store.fulfillment}
-              </span>
-              <div className="mt-1.5 grid grid-cols-2 gap-2">
-                {fulfillmentOptions.map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setFulfillment(opt)}
-                    className={`rounded-xl border px-4 py-2.5 text-sm font-bold transition-colors ${
-                      fulfillment === opt
-                        ? "border-primary bg-primary-soft text-primary"
-                        : "border-border text-muted-foreground hover:border-primary/40"
-                    }`}
-                  >
-                    {opt === "delivery"
-                      ? dict.store.delivery
-                      : dict.store.pickup}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          {fulfillment === "delivery" && (
-            <div>
-              <label className="text-sm font-semibold" htmlFor="address">
-                {dict.store.address}
-              </label>
-              <input
-                id="address"
-                name="address"
-                type="text"
-                required
-                defaultValue={defaultAddress}
-                placeholder={dict.store.addressPlaceholder}
-                className={fieldClass}
-              />
-            </div>
-          )}
-          <div>
-            <label className="text-sm font-semibold" htmlFor="phone">
-              {dict.store.phone}
-            </label>
-            <input
-              id="phone"
-              name="phone"
-              type="tel"
-              inputMode="tel"
-              required
-              placeholder="+961 …"
-              className={fieldClass}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-semibold" htmlFor="note">
-              {dict.store.note}
-            </label>
-            <textarea
-              id="note"
-              name="note"
-              rows={2}
-              placeholder={dict.store.notePlaceholder}
-              className={fieldClass}
-            />
-          </div>
-          {orderError && (
-            <p className="text-sm font-medium text-danger">{orderError}</p>
-          )}
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setCheckingOut(false)}
-              className="rounded-xl border border-border px-5 py-3 text-sm font-semibold transition-colors hover:bg-surface-muted"
-            >
-              {dict.store.back}
-            </button>
-            <button
-              type="submit"
-              disabled={placing}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
-            >
-              {placing ? dict.store.placing : dict.store.confirmOrder}
-            </button>
-          </div>
-        </form>
+        <div className="border-t border-border pt-4">
+          <CheckoutForm
+            lang={lang}
+            dict={dict}
+            store={checkout}
+            viewer={viewer}
+            lines={lines}
+            items={orderItems}
+            idempotencyKey={attemptKey}
+            lbpRate={lbpRate}
+            editLabel={dict.store.back}
+            onBack={() => setCheckingOut(false)}
+            onFulfillmentChange={setFulfillment}
+            onPlaced={setPlaced}
+            extraCustomFields={extraCustomFields}
+            // The buy box carries its own cash-on-delivery panel a few lines
+            // above, so the form does not say it a second time.
+            showCodLine={false}
+            confirmNote={dict.product.codConfirmNote}
+          />
+        </div>
       )}
     </div>
   );

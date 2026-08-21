@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/public-client";
-import { hasEnough } from "@/lib/rail";
+import { MIN_NAV_ITEMS, hasEnough } from "@/lib/rail";
 
 // Whether a whole SECTION has enough behind it to be worth linking to.
 //
@@ -87,6 +87,28 @@ const countSections = unstable_cache(
  * the exact failure this exists to prevent, and a missing footer link for ten
  * minutes costs a customer nothing they can notice.
  */
+/**
+ * The same counts, with the numbers kept, for the one person who needs to see
+ * WHY a section is missing rather than just that it is.
+ *
+ * getNavSections answers a yes/no and throws the count away, which is correct
+ * for rendering a header and wrong for everything else. The owner discovered
+ * the jobs link had vanished by noticing a gap in his own site — nothing
+ * anywhere said a section had been gated, or that it was one posting short.
+ * A gate nobody can see is indistinguishable from a bug.
+ */
+export const getSectionSupply = cache(async function getSectionSupply(): Promise<
+  { section: GatedSection; count: number; linked: boolean; needs: number }[]
+> {
+  const counts = await countSections();
+  return (Object.keys(counts) as GatedSection[]).map((section) => ({
+    section,
+    count: counts[section],
+    linked: hasEnough(counts[section]),
+    needs: MIN_NAV_ITEMS,
+  }));
+});
+
 export const getNavSections = cache(async function getNavSections(): Promise<
   NavSections
 > {

@@ -10,26 +10,37 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { AdminReviewDelete } from "@/components/admin-review-delete";
+import { AdminSearchBox } from "@/components/admin-search-box";
+import { filterByQuery } from "@/lib/admin-search";
+import { warnIfTruncated } from "@/lib/data/bounds";
+
+/** Worst-rated first, then newest. Named rather than inlined into `.limit()`
+ *  so the page can tell the admin how deep the pile they are searching goes. */
+const WINDOW = 300;
 
 export default async function AdminReviewsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string }>;
+  searchParams: Promise<{ q?: string }>;
 }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
   await requireAdminSection("reviews", lang);
   const dict = await getDictionary(lang);
+  const q = (await searchParams).q ?? "";
 
   const supabase = await createClient();
   const { data } = await supabase
     .from("reviews")
     .select("id, rating, comment, customer_name, created_at, stores(name)")
+    .is("deleted_at", null)
     .order("rating", { ascending: true })
     .order("created_at", { ascending: false })
-    .limit(300);
+    .limit(WINDOW);
 
-  const rows = (data ?? []) as unknown as {
+  const all = (data ?? []) as unknown as {
     id: string;
     rating: number;
     comment: string | null;
@@ -37,16 +48,39 @@ export default async function AdminReviewsPage({
     created_at: string;
     stores: { name: string } | null;
   }[];
+  warnIfTruncated(all, WINDOW, "reviews (admin)");
+
+  // The comment body is in the haystack deliberately: moderation arrives here
+  // from a merchant quoting a phrase back at us, not from a store name.
+  const rows = filterByQuery(all, q, (r) => [
+    r.stores?.name,
+    r.customer_name,
+    r.comment,
+  ]);
 
   const t = dict.admin.reviews;
+  const ts = dict.admin.listSearch;
 
   return (
     <div className="py-10">
       <Container>
         <PageHeader icon={Star} title={t.title} subtitle={t.subtitle} />
 
+        <AdminSearchBox
+          placeholder={t.searchPlaceholder}
+          clearLabel={ts.clear}
+          hint={
+            q
+              ? `${ts.matchCount.replace("{n}", String(rows.length))} · ${ts.window.replace("{n}", String(all.length))}`
+              : ts.window.replace("{n}", String(all.length))
+          }
+        />
+
         {rows.length === 0 ? (
-          <EmptyState icon={Star} title={t.empty} />
+          <EmptyState
+            icon={Star}
+            title={q ? ts.noMatch.replace("{q}", q) : t.empty}
+          />
         ) : (
           <Card data-animate>
             <div className="divide-y divide-border">

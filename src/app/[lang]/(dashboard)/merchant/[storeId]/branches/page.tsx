@@ -32,7 +32,7 @@ export default async function StoreBranchesPage({
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, owner_id")
+    .select("id, name, owner_id, branch_stock_separate")
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
@@ -47,7 +47,7 @@ export default async function StoreBranchesPage({
   const { data } = await supabase
     .from("store_locations")
     .select(
-      "id, name, address, region, area, phone, whatsapp, lat, lng, is_primary, is_active",
+      "id, name, address, region, area, phone, whatsapp, lat, lng, is_primary, is_active, hours",
     )
     .eq("store_id", storeId)
     .order("is_primary", { ascending: false })
@@ -74,6 +74,10 @@ export default async function StoreBranchesPage({
           lang={lang}
           dict={dict}
           initial={branches}
+          stockSeparate={
+            (store as unknown as { branch_stock_separate: boolean | null })
+              .branch_stock_separate ?? false
+          }
         />
       </Container>
     </div>

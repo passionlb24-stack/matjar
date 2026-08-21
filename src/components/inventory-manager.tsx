@@ -4,7 +4,7 @@ import { notifyError } from "@/lib/notify";
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Package, Check } from "lucide-react";
+import { Package, Check, Boxes } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,11 +36,16 @@ export function InventoryManager({
   dict,
   products,
   movements,
+  branchCount,
 }: {
   lang: Locale;
   dict: Dictionary;
   products: InventoryProduct[];
   movements: Movement[];
+  /** How many branches this store has. ISS-023: every number on this screen is
+   *  store-wide, never per-branch, and this is the screen where the opposite
+   *  belief would otherwise form. Said out loud once the store has two. */
+  branchCount: number;
 }) {
   const router = useRouter();
   const t = dict.os.inventory;
@@ -163,6 +168,13 @@ export function InventoryManager({
 
   return (
     <div>
+      {branchCount > 1 && (
+        <p className="mb-4 flex items-start gap-2 rounded-2xl border border-border bg-surface-muted/40 p-3 text-sm text-muted-foreground">
+          <Boxes className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          {dict.os.branches.stockShared}
+        </p>
+      )}
+
       {lowOnes.length > 0 && (
         <section className="rounded-2xl border border-warning/30 bg-warning-soft p-4">
           <h2 className="font-bold text-warning">{t.lowTitle}</h2>

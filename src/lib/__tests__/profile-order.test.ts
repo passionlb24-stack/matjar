@@ -1,5 +1,10 @@
-import { describe, it, expect } from "vitest";
-import { categoryKeys } from "@/lib/catalog";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import {
+  categoryKeys,
+  isCategoryKey,
+  toCategoryKey,
+  categoryGroup,
+} from "@/lib/catalog";
 import {
   DEFAULT_PROFILE_ORDER,
   resolveProfileOrder,
@@ -178,5 +183,84 @@ describe("every sector names its own team", () => {
     // section, not throw on a public page.
     const unknown = "not_a_sector" as unknown as (typeof categoryKeys)[number];
     expect(sectorTeamMeta(unknown).labelKey).toBe("team");
+  });
+});
+
+// MJ-022. Everything above is keyed on a CategoryKey, and the value that
+// actually arrives is `business_types.slug` — a string an admin types into a
+// form. The entry point is guarded (business-type-manager.tsx refuses a slug
+// outside categoryKeys and disables submit) and RLS lets only a `types` admin
+// write the table at all, so a bad row is hard to create. It is not impossible:
+// the allow-list is client-side, and rows predating it, renames, and direct SQL
+// all bypass it. What must therefore hold is the step AFTER: an unrecognised
+// slug is narrowed rather than asserted, so it renders the generic sector and
+// says so, instead of travelling on with the type of a sector it is not.
+describe("a business type slug is checked, not asserted", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("accepts exactly the sectors the registry knows", () => {
+    for (const category of categoryKeys) {
+      expect(isCategoryKey(category), `${category} rejected`).toBe(true);
+      expect(toCategoryKey(category)).toBe(category);
+    }
+    // The set is the same one the admin screen's allow-list and its unmapped
+    // banner are built from, so the three cannot drift apart.
+    expect([...categoryKeys].sort()).toEqual(Object.keys(categoryGroup).sort());
+  });
+
+  it("rejects anything else, including the shapes a DB column really produces", () => {
+    for (const value of [
+      "lab", // the sector this branch decided not to half-add
+      "Retail", // case drift
+      "retail ", // whitespace an admin pasted
+      "",
+      null,
+      undefined,
+      42,
+      {},
+    ]) {
+      expect(isCategoryKey(value), `${String(value)} accepted`).toBe(false);
+    }
+  });
+
+  it("falls back to the generic sector rather than throwing", () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(toCategoryKey("lab")).toBe("retail");
+    expect(toCategoryKey(null)).toBe("retail");
+    expect(toCategoryKey(undefined)).toBe("retail");
+  });
+
+  it("says so, once, when it falls back on a real value", () => {
+    // The point of the fallback is that a drifted row renders a plain shop
+    // instead of a 500. The point of the WARNING is that somebody finds out —
+    // a default nobody ever hears about is indistinguishable from a decision.
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    toCategoryKey("lab", "store abc");
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0][0]).toContain("lab");
+    expect(warn.mock.calls[0][0]).toContain("store abc");
+
+    // …but a missing business type is an absence, not a drift. A store with no
+    // type row must not spam the log on every render.
+    warn.mockClear();
+    toCategoryKey(null, "store abc");
+    toCategoryKey(undefined, "store abc");
+    toCategoryKey("", "store abc");
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("resolves the whole registry for a slug it had to fall back on", () => {
+    // The fallback is only worth having if what it returns is a complete
+    // sector. `retail` must answer every registry question, or the narrowing
+    // has just moved the crash one call further down.
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const category = toCategoryKey("lab");
+    expect(resolveProfileOrder(category).sort()).toEqual(
+      [...DEFAULT_PROFILE_ORDER].sort(),
+    );
+    expect(SECTOR_TEAM_META[category]).toBeDefined();
+    expect(resolveStoreModules(category).size).toBeGreaterThan(0);
   });
 });

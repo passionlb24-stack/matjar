@@ -31,6 +31,10 @@ import {
   SavedSearchesManager,
   type SavedSearchRow,
 } from "@/components/saved-searches-manager";
+import {
+  DeleteAccount,
+  type DeletionPreview,
+} from "@/components/delete-account";
 
 export default async function AccountPage({
   params,
@@ -92,6 +96,13 @@ export default async function AccountPage({
     .select("id, q, category, region, city")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
+
+  // Counted server-side so the deletion warning states this account's real
+  // numbers rather than a generic paragraph. The RPC takes no arguments and
+  // reads only the caller's own rows (0294).
+  const { data: deletionPreview } = await supabase.rpc(
+    "my_account_deletion_preview",
+  );
 
   return (
     <div className="py-10">
@@ -205,6 +216,22 @@ export default async function AccountPage({
             </div>
           </div>
         ))}
+
+        <DeleteAccount
+          lang={lang as Locale}
+          dict={dict}
+          email={user.email ?? ""}
+          preview={
+            ((deletionPreview as DeletionPreview | null) ?? {
+              stores: 0,
+              open_orders: 0,
+              orders: 0,
+              reviews: 0,
+              listings: 0,
+              addresses: 0,
+            }) as DeletionPreview
+          }
+        />
       </Container>
     </div>
   );

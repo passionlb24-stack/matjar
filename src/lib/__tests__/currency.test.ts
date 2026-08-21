@@ -38,14 +38,21 @@ describe("formatUsd with { cents: true }", () => {
     expect(formatUsd(1000, { cents: true })).toBe("$1,000");
     expect(formatUsd(1_000_000, { cents: true })).toBe("$1,000,000");
   });
-  it("differs from the default only by that rounding", () => {
-    // Whole and 1-2dp amounts — the overwhelming majority — render identically,
-    // which is why adopting the option changed nothing on screen.
-    for (const v of [0, 5, 50, 999, 1000, 165000, 7.5]) {
+  it("no longer differs from the default, because the default rounds too", () => {
+    // This assertion used to require that >2dp amounts DIVERGE between the two
+    // forms, and called that divergence "the point". It was the bug: the
+    // default branch interpolated the raw float, rendering 1234.5678 as
+    // "$1,234.5678" and a real computed cart total as "$22.169999999999998".
+    // Rounding moved into the default branch, so the two now agree everywhere.
+    //
+    // Inverted rather than deleted, so that reintroducing the unrounded default
+    // fails here as well as in the float-artifact test below.
+    for (const v of [0, 5, 50, 999, 1000, 165000, 7.5, 1234.5678, 7.39 * 3]) {
       expect(formatUsd(v, { cents: true })).toBe(formatUsd(v));
     }
-    // Only >2dp amounts diverge, and that divergence is the point.
-    expect(formatUsd(1234.5678, { cents: true })).not.toBe(formatUsd(1234.5678));
+    // `cents` is near-redundant as a result. Kept because ~19 call sites pass
+    // it and it still marks the surfaces that settle real money — not because
+    // it changes the output.
   });
 });
 
@@ -63,5 +70,34 @@ describe("formatLbp", () => {
   });
   it("rounds to the nearest whole LBP", () => {
     expect(formatLbp(1.5, 89000, "en")).toBe("≈ 133,500 LBP");
+  });
+});
+
+describe("a computed total never leaks a float artifact", () => {
+  // The bug this guards: formatUsd's non-cents branch interpolated the raw
+  // number, so a real butcher's cart rendered 7.39 x 3 as
+  // "$22.169999999999998" — on the cart line, the sticky bar, the checkout
+  // button, and the WhatsApp order message sent to the merchant.
+  it("rounds a multiplied price to cents", () => {
+    expect(formatUsd(7.39 * 3)).toBe("$22.17");
+    expect(formatUsd(7.6 * 3)).toBe("$22.8");
+    expect(formatUsd(7.8 * 7)).toBe("$54.6");
+  });
+
+  it("leaves every catalogue price exactly as it rendered before", () => {
+    // These are the real prices on the two busiest live stores. If any of them
+    // moves, the fix has overreached.
+    expect(formatUsd(50)).toBe("$50");
+    expect(formatUsd(4.99)).toBe("$4.99");
+    expect(formatUsd(7.39)).toBe("$7.39");
+    expect(formatUsd(12.5)).toBe("$12.5");
+    expect(formatUsd(0)).toBe("$0");
+    expect(formatUsd(1000)).toBe("$1,000");
+    expect(formatUsd(165000)).toBe("$165,000");
+  });
+
+  it("still differs from {cents:true} only in grouping below 1000", () => {
+    expect(formatUsd(999.994)).toBe("$999.99");
+    expect(formatUsd(999.994, { cents: true })).toBe("$999.99");
   });
 });

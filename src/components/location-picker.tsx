@@ -14,11 +14,16 @@ export function LocationPicker({
   onChange,
   hint,
   locateLabel,
+  pinLabel,
 }: {
   value: { lat: number; lng: number } | null;
   onChange: (v: { lat: number; lng: number }) => void;
   hint?: string;
   locateLabel?: string;
+  /** Accessible name for the draggable pin. Leaflet renders every marker as a
+   *  focusable role="button"; without a name it is announced as an unnamed
+   *  control — and on a draggable one that tells a keyboard user nothing. */
+  pinLabel?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -55,7 +60,15 @@ export function LocationPicker({
       iconAnchor: [11, 22],
     });
 
-    const marker = L.marker(start, { icon: pin, draggable: true }).addTo(map);
+    // Same unnamed-button problem as store-map, and worse here because this one
+    // is draggable: a keyboard user gets a focusable control with no name and
+    // no clue what dragging it does.
+    const marker = L.marker(start, {
+      icon: pin,
+      draggable: true,
+      title: pinLabel,
+      alt: pinLabel,
+    }).addTo(map);
     markerRef.current = marker;
     if (!value) marker.setOpacity(0); // hidden until the merchant places it
 

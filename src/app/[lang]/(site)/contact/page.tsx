@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Mail, MessageCircle } from "lucide-react";
+import { Building2, Mail, MessageCircle } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
@@ -71,6 +72,19 @@ export default async function ContactPage({
                 </span>
               </span>
             </a>
+            {/* ISS-025. A person on the contact page is often not looking for
+                help — they are checking whether there is anybody there at all.
+                Who the company is belongs on the same screen as how to reach
+                it. */}
+            <Link
+              href={`/${lang}/legal`}
+              className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4 shadow-xs transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface-muted text-muted-foreground">
+                <Building2 className="h-5 w-5" />
+              </span>
+              <span className="font-semibold">{dict.footer.links.legal}</span>
+            </Link>
           </div>
         </div>
       </Container>

@@ -28,18 +28,43 @@ export type ItemSurface =
 // run in directory-only mode: browse + contact, never a wrong transaction.
 // - hospitality: needs a date-range STAY engine (currently only hourly slots).
 // - realEstate: needs a LEAD/viewing flow (currently a clinic-style appointment).
-// - automotive: needs LISTING + LEAD (currently sold via cart + COD).
+// - automotive: needed LISTING + LEAD (was sold via cart + COD).
 // - events: needs TICKETING / venue date booking (currently hourly slots).
 // Removing a sector from this set is a deliberate go-live decision made once its
 // engine ships (see the vertical audit, files 06/12/13/15).
+//
+// AUTOMOTIVE LEFT THIS SET IN MJ-003, and the argument is worth writing down
+// because the set is where honesty about unbuilt engines is kept.
+//
+// It was held here for one reason: the only transaction the platform could
+// offer a car business was a cart and cash on delivery, and "add a Kia to your
+// basket" is worse than no transaction at all. Migration 0298 ships the engine
+// that was missing — a vehicle, a day range, a per-day price, and a btree_gist
+// exclusion constraint that makes two people holding the same car on the same
+// weekend impossible at the storage layer. A sector with a working transaction
+// is not a directory, so keeping it here would now be the false statement.
+//
+// What did NOT change with it: automotive still has no CART. Renting a car and
+// selling one are different transactions, and only the first one exists. So
+// `canOrderProducts` stays false and isOrderSurface() still refuses automotive
+// — buying is still a LEAD (test drive / offer), which is what the lead form
+// (0190) is for. Half a sector going live is the accurate description, and it
+// is stated in the branch below rather than implied by which set a slug is in.
 const DIRECTORY_ONLY_SECTORS: ReadonlySet<CategoryKey> = new Set<CategoryKey>([
   "realEstate",
-  "automotive",
 ]);
 
 // Sectors that book a date-range STAY (accommodation engine, migration 0191).
 const STAY_SECTORS: ReadonlySet<CategoryKey> = new Set<CategoryKey>([
   "hospitality",
+]);
+
+// Sectors that rent a unit over a date RANGE (rental engine, migration 0298).
+// The same shape as a stay — a unit, a range, a price per period, an absolute
+// prohibition on two people holding it at once — deliberately built on the same
+// structure rather than as a second, subtly different date-range booker.
+const RENTAL_SECTORS: ReadonlySet<CategoryKey> = new Set<CategoryKey>([
+  "automotive",
 ]);
 
 // Sectors that sell event TICKETS (ticketing engine, migration 0193).
@@ -84,6 +109,8 @@ export type StoreExperience = {
   showLeadForm: boolean;
   /** Date-range accommodation search + booking should surface (hospitality). */
   showStay: boolean;
+  /** Date-range vehicle rental search + booking should surface (automotive). */
+  showRental: boolean;
   /** Event ticket purchase should surface (events). */
   showTickets: boolean;
   /** Resource (hourly) / class / reservation booking may surface (still gated
@@ -100,11 +127,21 @@ export function isDirectoryOnlySector(category: CategoryKey): boolean {
 }
 
 /** Whether the product detail page should show the add-to-cart order box.
- *  True only for commerce sectors that are NOT directory-only. */
+ *  True only for commerce sectors that are NOT directory-only and do not
+ *  transact through an engine of their own.
+ *
+ *  Automotive is the reason for the second clause. It is a `commerce` module
+ *  kind and it is no longer directory-only, but a car is still not a thing you
+ *  put in a basket: it is RENTED through the engine in 0298 or ENQUIRED about
+ *  through the lead form. Before this clause existed, taking automotive out of
+ *  DIRECTORY_ONLY_SECTORS would have handed every car listing an add-to-cart
+ *  button as a side effect — exactly the wrong flow the directory-only hold was
+ *  put there to prevent. */
 export function isOrderSurface(category: CategoryKey): boolean {
   return (
     (categoryModule[category]?.kind ?? "commerce") === "commerce" &&
-    !DIRECTORY_ONLY_SECTORS.has(category)
+    !DIRECTORY_ONLY_SECTORS.has(category) &&
+    !RENTAL_SECTORS.has(category)
   );
 }
 
@@ -125,9 +162,35 @@ export function resolveStoreExperience(args: {
       showServiceRequest: false,
       showLeadForm: false,
       showStay: true,
+      showRental: false,
       canOrderProducts: true,
       showTickets: false,
       allowResourceBooking: false, // uses the stay engine, not hourly slots
+      directoryOnly: false,
+    };
+  }
+
+  if (RENTAL_SECTORS.has(category)) {
+    return {
+      status: "active",
+      itemSurface: "catalog",
+      showBooking: false,
+      // One inquiry channel, not two. The lead form is where "I want to buy
+      // this car" goes; the generic service-request form would split the same
+      // conversation across two merchant inboxes (the reason it was suppressed
+      // for lead sectors in the first place).
+      showServiceRequest: false,
+      showLeadForm: LEAD_SECTORS.has(category),
+      showStay: false,
+      showRental: true,
+      // No cart. Renting a car is built; SELLING one is not, and a car sold
+      // through a basket with cash on delivery is the flow this sector was
+      // held in directory-only mode to avoid. Buying stays a lead until a
+      // vehicle-sale engine exists.
+      canOrderProducts: false,
+      showTickets: false,
+      // Rentals run on the day-range engine (0298), never on hourly slots.
+      allowResourceBooking: false,
       directoryOnly: false,
     };
   }
@@ -140,6 +203,7 @@ export function resolveStoreExperience(args: {
       showServiceRequest: false,
       showLeadForm: false,
       showStay: false,
+      showRental: false,
       showTickets: true,
       canOrderProducts: true,
       allowResourceBooking: false, // ticketing, not hourly slots
@@ -160,6 +224,7 @@ export function resolveStoreExperience(args: {
       showLeadForm: LEAD_SECTORS.has(category),
       canOrderProducts: false,
       showStay: false,
+      showRental: false,
       showTickets: false,
       allowResourceBooking: false,
       directoryOnly: true,
@@ -182,6 +247,7 @@ export function resolveStoreExperience(args: {
     showLeadForm: false,
     canOrderProducts: true,
     showStay: false,
+    showRental: false,
     showTickets: false,
     allowResourceBooking: true,
     directoryOnly: false,

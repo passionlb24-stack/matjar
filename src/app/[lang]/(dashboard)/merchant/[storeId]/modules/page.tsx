@@ -5,7 +5,7 @@ import { ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
-import type { CategoryKey } from "@/lib/catalog";
+import { toCategoryKey } from "@/lib/catalog";
 import { MODULE_CATALOG } from "@/lib/modules-catalog";
 import { hasPlan, type StorePlan } from "@/lib/plan-tiers";
 import { sectorDefaultModules } from "@/lib/sectors";
@@ -50,7 +50,7 @@ export default async function StoreModulesPage({
   // Module management is an owner concern.
   if (s.owner_id !== user.id) redirect(`/${lang}/merchant/${storeId}`);
 
-  const category = (s.business_types?.slug as CategoryKey) ?? "retail";
+  const category = toCategoryKey(s.business_types?.slug, `store ${storeId}`);
   // Business ranks above Pro — an exact "pro" test locked the top tier out of
   // its own Pro modules.
   const isPro = hasPlan(s.plan, "pro");

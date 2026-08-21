@@ -5,7 +5,7 @@ import { createPublicClient } from "@/lib/supabase/public-client";
 import {
   categoryGroup,
   groupCategories,
-  type CategoryKey,
+  toCategoryKey,
   type RegionKey,
   type Store,
 } from "@/lib/catalog";
@@ -72,7 +72,7 @@ function rowToStore(row: StoreRow): Store {
     name: { ar: row.name, en: row.name },
     area: { ar: row.area ?? "", en: row.area ?? "" },
     region: (row.region as RegionKey) ?? undefined,
-    category: (row.business_types?.slug as CategoryKey) ?? "retail",
+    category: toCategoryKey(row.business_types?.slug, `store ${row.id}`),
     // A store that has not configured hours is never shown as closed — missing
     // data must not send a customer away.
     isOpen: isOpenNow(parseHours(row.hours), new Date()) ?? true,
@@ -240,9 +240,16 @@ export const getDiscoveryCoverage = unstable_cache(
     const filled = (v: string | null) => (v ?? "").trim().length > 0;
 
     for (const r of rows) {
-      const sector = r.business_types?.slug as CategoryKey | undefined;
+      // Checked here too, and for a reason past the type: every reader of
+      // bySector keys it by a known CategoryKey, so a row counted under its raw
+      // unrecognised slug went into a bucket nothing ever reads. The store
+      // still rendered — fetchStoreView and rowToStore above both land it on
+      // `retail` — so the facet count disagreed with the facet's own listing.
+      // Same fallback, so the census now says what the listing shows. The
+      // select joins business_types!inner, so the slug is always present.
+      const sector = toCategoryKey(r.business_types?.slug, `store ${r.id}`);
       bump(c.bySector, sector);
-      if (sector) bump(c.byGroup, categoryGroup[sector]);
+      bump(c.byGroup, categoryGroup[sector]);
       bump(c.byRegion, r.region as RegionKey | null);
       if (parseHours(r.hours)) c.withHours += 1;
       if (filled(r.description)) c.withDescription += 1;

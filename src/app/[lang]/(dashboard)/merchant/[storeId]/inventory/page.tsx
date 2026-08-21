@@ -71,8 +71,12 @@ export default async function StoreInventoryPage({
     if (!(perms.products ?? false)) redirect(`/${lang}/merchant/${storeId}`);
   }
 
-  const [{ data: productsData }, { data: movementsData }, { data: supplierData }] =
-    await Promise.all([
+  const [
+    { data: productsData },
+    { data: movementsData },
+    { data: supplierData },
+    { count: branchCount },
+  ] = await Promise.all([
     supabase
       .from("products")
       .select("id, name, image_url, stock, low_stock_threshold")
@@ -92,6 +96,12 @@ export default async function StoreInventoryPage({
       .select("id, name")
       .eq("store_id", storeId)
       .order("name"),
+    // ISS-023: every stock number on this screen is store-wide. A store with
+    // more than one branch is told so rather than left to infer it.
+    supabase
+      .from("store_locations")
+      .select("id", { count: "exact", head: true })
+      .eq("store_id", storeId),
   ]);
 
   return (
@@ -143,6 +153,7 @@ export default async function StoreInventoryPage({
             dict={dict}
             products={(productsData ?? []) as InventoryProduct[]}
             movements={(movementsData ?? []) as unknown as Movement[]}
+            branchCount={branchCount ?? 0}
           />
         </div>
       </Container>

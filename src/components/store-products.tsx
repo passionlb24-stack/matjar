@@ -1,44 +1,89 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  Minus,
-  Plus,
-  ShoppingCart,
-  MessageCircle,
-  Check,
-  Zap,
-} from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { ShoppingCart, MessageCircle } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { categoryStyles, type CategoryKey } from "@/lib/catalog";
-import { attributeSummary, categoryAttributes } from "@/lib/attributes";
-import { effectivePrice, compareAtPrice, isFlashActive } from "@/lib/pricing";
-import { parseStockError } from "@/lib/order-math";
+import { attributeSummary } from "@/lib/attributes";
+import { effectivePrice } from "@/lib/pricing";
 import { waLink, buildOrderMessage } from "@/lib/whatsapp";
-import { formatLbp, formatUsd } from "@/lib/currency";
+import { formatUsd } from "@/lib/currency";
+import type { WeekHours } from "@/lib/hours";
 import { localized } from "@/lib/i18n-field";
 import { groupBySection, type SectionInfo } from "@/lib/sections";
 import { categoryIcons } from "@/components/category-icon";
-import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { PriceTag, BundleIncludes } from "@/components/store/product-price";
+import { QuantityStepper } from "@/components/store/quantity-stepper";
+import { CartSheet } from "@/components/store/cart-sheet";
+import {
+  DeliveryWindow,
+  NO_WINDOW,
+  windowIso,
+  type WindowPick,
+} from "@/components/store/delivery-window";
+import { CatalogueFilters } from "@/components/store/catalogue-filters";
+import {
+  applyFilters,
+  emptyFilters,
+  filtersActive,
+  type CatalogueFilterState,
+} from "@/lib/catalogue-filters";
+// The two components below are the only heavy things on this page that a
+// browsing visitor never sees, so they are the only ones fetched late. The
+// TYPE comes from the real module — `import type` is erased, it opens no
+// dependency — while the component itself comes from the thunk. See
+// store/lazy-checkout.tsx for why that thunk has to be a client module.
+import type { PlacedOrder } from "@/components/checkout/checkout-form";
+import { CheckoutForm, OrderPlaced } from "@/components/store/lazy-checkout";
+import { newIdempotencyKey } from "@/lib/checkout";
+import type {
+  CheckoutItem,
+  CheckoutLine,
+  CheckoutViewer,
+  StoreCheckout,
+} from "@/lib/checkout";
 
-// Delivery zone (migration 0172): the fee/ETA the customer sees is display
-// only — resolve_delivery_fee recomputes everything server-side at placement.
-export type DeliveryZone = {
-  id: string;
-  name: string;
-  nameEn?: string | null;
-  fee: number;
-  minOrder?: number | null;
-  freeOver?: number | null;
-  etaMin?: number | null;
-  etaMax?: number | null;
-};
+// Delivery zone (migration 0172). The type now lives with the rest of the
+// checkout contract in src/lib/checkout.ts — re-exported here only so the
+// existing importers (store-products-section, the store page) keep working.
+export type { DeliveryZone } from "@/lib/checkout";
+
+// ===========================================================================
+// What is in this file, and what deliberately is not — M-017
+// ===========================================================================
+//
+// The audit row describes 1,540 lines carrying "catalogue, cart, coupon,
+// loyalty and checkout at once". Most of that had already gone: the arithmetic
+// to `lib/checkout.ts`, the form to `checkout/checkout-form.tsx`, the sector
+// engines to `store/lazy-engines.tsx`. What was left was 921 lines, and the
+// remaining split was made along what the CUSTOMER is doing, not along a line
+// budget:
+//
+//   • narrowing the catalogue → store/catalogue-filters.tsx (and MJ-013's new
+//     range control landed there rather than growing this file again)
+//   • reading a price          → store/product-price.tsx
+//   • changing a quantity      → store/quantity-stepper.tsx
+//   • checking the basket      → store/cart-sheet.tsx
+//   • choosing a delivery slot → store/delivery-window.tsx
+//   • paying                   → checkout/, and now fetched on demand
+//
+// WHAT STAYED, ON PURPOSE. The cart itself — `cart`, `setQty`, the two
+// localStorage effects, `items`, `total`, `lines`, `orderItems`, `waUrl`, the
+// idempotency key and the placed order — is one piece of state that the
+// storefront, the sticky bar, the sheet and the checkout all read. Splitting it
+// would put a second component in charge of part of the basket, and this is the
+// money path.
+//
+// `renderList` and `Card` stayed for the plainer reason: a product card reads
+// the cart, the setter, the layout, the sector's icon, the sector's gradient,
+// the locale, the dictionary and the add-to-cart label. Lifting it out means
+// threading eight or nine props to save a hundred lines of JSX that nothing
+// else renders — the cure the audit row explicitly warns against.
 
 type Product = {
   id: string;
@@ -64,60 +109,11 @@ type Product = {
   hasVariants?: boolean;
   isBundle?: boolean;
   includes?: { name: string; nameEn: string | null; quantity: number }[];
+  /** 0299. Null on every product that predates it. */
+  soldBy?: string | null;
+  unitMeasure?: string | null;
+  unitAmount?: number | null;
 };
-
-type CheckoutField = {
-  id: string;
-  label: string;
-  labelEn: string | null;
-  fieldType: "text" | "textarea" | "select";
-  options: string[];
-  required: boolean;
-};
-
-function PriceTag({ p }: { p: Product }) {
-  const eff = effectivePrice(p);
-  const compare = compareAtPrice(p);
-  const flash = isFlashActive(p);
-  return (
-    <span className="sf-price inline-flex items-center gap-1.5">
-      {/* .text-money = tabular numerals + LTR bidi isolation, the house rule
-          for currency inside Arabic text (globals.css). */}
-      <span
-        className={`text-money font-bold ${flash ? "text-warning" : "text-primary"}`}
-      >
-        {formatUsd(eff)}
-      </span>
-      {compare != null && (
-        <span className="text-money text-xs font-normal text-muted-foreground line-through">
-          {formatUsd(compare)}
-        </span>
-      )}
-      {flash && <Zap className="h-3.5 w-3.5 fill-accent text-accent" />}
-    </span>
-  );
-}
-
-// "يشمل: 2× X · 1× Y" under a bundle's name so shoppers see what's inside.
-function BundleIncludes({
-  p,
-  lang,
-  label,
-}: {
-  p: Product;
-  lang: Locale;
-  label: string;
-}) {
-  if (!p.isBundle || !p.includes?.length) return null;
-  return (
-    <p className="mt-0.5 text-xs text-muted-foreground">
-      <span className="font-semibold text-primary">{label} </span>
-      {p.includes
-        .map((it) => `${it.quantity}× ${localized(it.name, it.nameEn, lang)}`)
-        .join(" · ")}
-    </p>
-  );
-}
 
 const GRID_CATEGORIES = new Set<CategoryKey>([
   "retail",
@@ -125,68 +121,42 @@ const GRID_CATEGORIES = new Set<CategoryKey>([
   "automotive",
 ]);
 
-const fieldClass =
-  "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
-
 export function StoreProducts({
-  storeId,
   lang,
   dict,
   category,
   isBooking,
   products,
-  loggedIn = true,
-  defaultAddress = "",
-  savedAddresses = [],
-  acceptsDelivery = true,
-  acceptsPickup = true,
-  minOrder = null,
-  paymentNote = null,
-  prepTime = null,
-  whatsapp = null,
-  storeName = "",
+  checkout,
+  viewer,
   lbpRate = 0,
-  loyaltyPoints = 0,
-  loyaltyPointsPerUnit = 0,
-  branches = [],
   sections = [],
   layout = null,
   initialBrand = null,
-  zones = [],
-  checkoutFields = [],
+  hours = null,
 }: {
-  storeId: string;
   lang: Locale;
   dict: Dictionary;
   category: CategoryKey;
   isBooking: boolean;
   products: Product[];
+  /** What this store's checkout offers — zones, coupons, loyalty, the
+   *  merchant's own questions. One object rather than fifteen loose props, so
+   *  a surface cannot be handed half of a checkout (MJ-024). */
+  checkout: StoreCheckout;
+  /** The per-customer half: signed in, saved addresses. */
+  viewer: CheckoutViewer;
+  lbpRate?: number;
   layout?: "grid" | "menu" | "showcase" | null;
   initialBrand?: string | null;
-  zones?: DeliveryZone[];
   sections?: SectionInfo[];
-  loggedIn?: boolean;
-  defaultAddress?: string;
-  savedAddresses?: { label: string; value: string }[];
-  acceptsDelivery?: boolean;
-  acceptsPickup?: boolean;
-  minOrder?: number | null;
-  paymentNote?: string | null;
-  prepTime?: string | null;
-  whatsapp?: string | null;
-  storeName?: string;
-  lbpRate?: number;
-  loyaltyPoints?: number;
-  loyaltyPointsPerUnit?: number;
-  branches?: {
-    id: string;
-    name: string | null;
-    area: string | null;
-    address: string | null;
-  }[];
-  checkoutFields?: CheckoutField[];
+  /** The store's own opening hours (stores.hours). The delivery-window picker
+   *  is derived from these and hidden entirely when the merchant has not set
+   *  any — see src/lib/delivery-windows.ts. */
+  hours?: WeekHours | null;
 }) {
   const router = useRouter();
+  const storeId = checkout.storeId;
   const [cart, setCart] = useState<Record<string, number>>({});
   const cartKey = `matjar-cart-${storeId}`;
 
@@ -215,79 +185,33 @@ export function StoreProducts({
     }
   }, [cart, cartKey]);
 
-  const [placing, setPlacing] = useState(false);
-  const [orderError, setOrderError] = useState<string | null>(null);
-  // The product the server said was short, so the customer can drop just that
-  // one instead of guessing which item blocked an otherwise fine order.
-  const [shortItemId, setShortItemId] = useState<string | null>(null);
-
-  // The stock trigger raises "insufficient_stock:<product name>".
-  function stockErrorMessage(msg: string): string {
-    const name = parseStockError(msg);
-    const match = name
-      ? products.find((x) => x.name === name || name.startsWith(x.name))
-      : undefined;
-    setShortItemId(match?.id ?? null);
-    return name
-      ? dict.store.outOfStockNamed.replace("{name}", name)
-      : dict.store.outOfStock;
-  }
   const [checkingOut, setCheckingOut] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
-  // Answers to the merchant's custom checkout fields, keyed by field id.
-  const [cfAnswers, setCfAnswers] = useState<Record<string, string>>({});
-  const [orderPlaced, setOrderPlaced] = useState(false);
-  /** waUrl captured at the moment of success — see where it is set. */
-  const [placedWaUrl, setPlacedWaUrl] = useState<string | null>(null);
-  const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
-  // Frozen at placement for the same reason placedWaUrl is: grandTotal is
-  // derived from the cart, and the cart is cleared on the next line, so the
-  // confirmation screen would have shown $0.00 for the order just paid.
-  const [placedTotal, setPlacedTotal] = useState(0);
-  const fulfillmentOptions = (["delivery", "pickup"] as const).filter((o) =>
-    o === "delivery" ? acceptsDelivery : acceptsPickup,
-  );
-  const [fulfillment, setFulfillment] = useState<"delivery" | "pickup">(
-    acceptsDelivery ? "delivery" : "pickup",
-  );
-  const [couponInput, setCouponInput] = useState("");
-  const [appliedCode, setAppliedCode] = useState<string | null>(null);
-  const [couponDiscount, setCouponDiscount] = useState(0);
-  const [couponMsg, setCouponMsg] = useState<string | null>(null);
-  const [couponBusy, setCouponBusy] = useState(false);
-  const [addressValue, setAddressValue] = useState(defaultAddress);
-  // Delivery zone + cash-change + idempotency (0172).
-  const [zoneId, setZoneId] = useState<string>(zones[0]?.id ?? "");
-  const [changeChoice, setChangeChoice] = useState<string>("none");
-  const [changeCustom, setChangeCustom] = useState("");
-  // One key per checkout attempt: a double-tap or flaky-4G retry returns the
-  // SAME order server-side instead of creating a duplicate.
-  const idemKeyRef = useRef<string>("");
-  // Loyalty redemption: opt-in per store (0107). Only offered when the customer
-  // actually holds points here and the store set a conversion rate.
-  const canRedeem = loyaltyPoints > 0 && loyaltyPointsPerUnit > 0;
-  const [redeemLoyalty, setRedeemLoyalty] = useState(false);
-  // Multi-branch stores: the customer picks a branch before ordering.
-  // Defaults to the first entry — the primary (server orders by is_primary desc).
-  const [branchId, setBranchId] = useState<string>(branches[0]?.id ?? "");
+  // The chosen delivery window. Kept HERE rather than inside the picker
+  // because the picker lives in the checkout panel and unmounts whenever the
+  // basket empties — a shopper who clears their cart, changes their mind and
+  // refills it keeps the slot they had chosen, exactly as before the split.
+  // Empty = order now, which is what every order has been until this existed.
+  const [windowPick, setWindowPick] = useState<WindowPick>(NO_WINDOW);
+  const scheduledFor = windowIso(windowPick);
+  // One idempotency key per checkout ATTEMPT — re-minted every time the
+  // customer enters the checkout, so a basket they edited and re-confirmed is
+  // a new order rather than the RPC handing back the earlier one.
+  const [attemptKey, setAttemptKey] = useState(newIdempotencyKey);
+  // The placed order, frozen at success: the cart is cleared on the very next
+  // line, and everything the confirmation screen shows — the total, the
+  // WhatsApp message — is derived from the cart.
+  const [placed, setPlaced] = useState<PlacedOrder | null>(null);
 
-  // Listing filters (realEstate/automotive): buyers narrow the grid by the
-  // sector's filterable attributes (purpose, rooms, gearbox, fuel…). Only fields
-  // marked filter:true, and only when some product actually carries a value.
-  const [attrFilters, setAttrFilters] = useState<Record<string, string>>({});
-  const filterFields = (categoryAttributes[category] ?? []).filter(
-    (f) => f.filter,
-  );
-
-  // Brand filter (Salla parity): distinct brands present in the catalogue. A
-  // brand link from a product page arrives via ?brand= as initialBrand.
-  const brands = [
-    ...new Set(
-      products.map((p) => p.brand?.trim()).filter((b): b is string => !!b),
+  // What the shopper has narrowed the grid to. Brand arrives pre-set when a
+  // product page linked here with ?brand=.
+  const [filters, setFilters] = useState<CatalogueFilterState>(() =>
+    emptyFilters(
+      initialBrand &&
+        products.some((p) => (p.brand?.trim() ?? "") === initialBrand)
+        ? initialBrand
+        : null,
     ),
-  ].sort((a, b) => a.localeCompare(b));
-  const [brand, setBrand] = useState<string | null>(
-    initialBrand && brands.includes(initialBrand) ? initialBrand : null,
   );
 
   const Icon = categoryIcons[category];
@@ -321,126 +245,34 @@ export function StoreProducts({
     (sum, p) => sum + effectivePrice(p) * cart[p.id],
     0,
   );
-  const belowMin = minOrder != null && total < minOrder;
-  // Points discount mirrors the server: currency value of the whole balance,
-  // rounded to cents, then capped at the order total after the coupon. The RPC
-  // recomputes + re-caps this authoritatively — this is display only.
-  const afterCoupon = Math.max(0, total - couponDiscount);
-  const pointsDiscount =
-    canRedeem && redeemLoyalty
-      ? Math.min(
-          Math.round((loyaltyPoints / loyaltyPointsPerUnit) * 100) / 100,
-          afterCoupon,
-        )
-      : 0;
-  const pointsUsed = Math.round(pointsDiscount * loyaltyPointsPerUnit);
-  const finalTotal = Math.max(0, total - couponDiscount - pointsDiscount);
+  // The basket, in the two shapes a checkout needs: what the customer reads,
+  // and what the RPC is sent. Both are derived from the same `items`, so a line
+  // cannot appear on the summary and be missing from the order.
+  const lines: CheckoutLine[] = items.map((p) => ({
+    id: p.id,
+    name: p.name,
+    quantity: cart[p.id],
+    unitPrice: effectivePrice(p),
+  }));
+  // No variant_id / addon_ids here on purpose: the grid quick-adds only
+  // variant-less products (`hasVariants` sends the rest to the product page,
+  // which has the picker), so there is nothing to send. The product page fills
+  // those in on the same CheckoutItem shape.
+  const orderItems: CheckoutItem[] = items.map((p) => ({
+    product_id: p.id,
+    quantity: cart[p.id],
+  }));
 
-  // Delivery fee preview (display only — the RPC recomputes authoritatively).
-  const selectedZone =
-    fulfillment === "delivery"
-      ? (zones.find((z) => z.id === zoneId) ?? null)
-      : null;
-  const deliveryFee = selectedZone
-    ? selectedZone.freeOver != null && finalTotal >= selectedZone.freeOver
-      ? 0
-      : selectedZone.fee
-    : 0;
-  const grandTotal = finalTotal + deliveryFee;
-  const belowZoneMin =
-    selectedZone?.minOrder != null && finalTotal < selectedZone.minOrder;
-  const changeForValue =
-    fulfillment !== "delivery" || changeChoice === "none"
-      ? null
-      : changeChoice === "custom"
-        ? Number(changeCustom) > 0
-          ? Number(changeCustom)
-          : null
-        : Number(changeChoice);
-
-  async function applyCoupon() {
-    if (!couponInput.trim()) return;
-    // Guests can't call validate_coupon (locked to authenticated to stop code
-    // enumeration). Their code is applied server-side inside place_guest_order;
-    // here we just accept it and note it'll apply at checkout.
-    if (!loggedIn) {
-      setAppliedCode(couponInput.trim().toUpperCase());
-      setCouponDiscount(0);
-      setCouponMsg(dict.store.couponGuestNote);
-      return;
-    }
-    setCouponBusy(true);
-    setCouponMsg(null);
-    const { data, error } = await createClient().rpc("validate_coupon", {
-      p_store_id: storeId,
-      p_code: couponInput.trim().toUpperCase(),
-      p_subtotal: total,
-    });
-    setCouponBusy(false);
-    const row = (Array.isArray(data) ? data[0] : data) as
-      { valid: boolean; discount: number; reason: string } | undefined;
-    if (error || !row || !row.valid) {
-      const reasons: Record<string, string> = {
-        invalid: dict.store.couponInvalid,
-        expired: dict.store.couponExpired,
-        used_up: dict.store.couponUsedUp,
-        min_order: dict.store.couponMinOrder,
-      };
-      setCouponMsg(
-        reasons[row?.reason ?? "invalid"] ?? dict.store.couponInvalid,
-      );
-      setAppliedCode(null);
-      setCouponDiscount(0);
-      return;
-    }
-    setAppliedCode(couponInput.trim().toUpperCase());
-    setCouponDiscount(Number(row.discount) || 0);
-    setCouponMsg(null);
-  }
-
-  // Abandoned-cart capture. This used to fire on BLUR of the phone field, which
-  // shipped the customer's phone, name and cart to the merchant before they had
-  // decided anything — typing your number is not consent to be contacted. It now
-  // fires only from confirmOrder, at the moment the customer taps the confirm
-  // button: the deliberate forward step. The merchant's order_abandoned
-  // automation still works — an order that then fails, or a customer who taps
-  // confirm and closes the page, leaves an intent behind; a placed order clears
-  // it via the DB trigger. It can NEVER throw, and the returned promise resolves
-  // on error too, so awaiting it cannot break the order-submit path.
-  function captureCheckoutIntent(phone: string, name: string): Promise<void> {
-    const trimmed = phone.trim();
-    if (trimmed.length < 4 || items.length === 0) return Promise.resolve();
-    try {
-      return Promise.resolve(
-        createClient()
-          .rpc("record_checkout_intent", {
-            p_store_id: storeId,
-            p_phone: trimmed,
-            p_name: name.trim() || null,
-            p_items: items.map((p) => ({
-              product_id: p.id,
-              name: p.name,
-              quantity: cart[p.id],
-            })),
-          })
-          .then(
-            () => undefined,
-            () => undefined,
-          ),
-      );
-    } catch {
-      /* never affect checkout */
-      return Promise.resolve();
-    }
-  }
-
+  // The WhatsApp fallback on the sticky bar — an order the customer sends the
+  // merchant directly instead of placing one here. Uses the pre-discount
+  // subtotal because no discount has been chosen at that point.
   const waUrl =
-    whatsapp && items.length
+    checkout.whatsapp && items.length
       ? waLink(
-          whatsapp,
+          checkout.whatsapp,
           buildOrderMessage({
             greeting: dict.store.waGreeting,
-            storeName,
+            storeName: checkout.storeName,
             lines: items.map((p) => ({
               name: p.name,
               qty: cart[p.id],
@@ -448,221 +280,21 @@ export function StoreProducts({
             })),
             totalLabel: dict.store.total,
             total: formatUsd(total),
-            address: defaultAddress || null,
+            address: viewer.defaultAddress || null,
           }),
         )
       : null;
 
-  // Build {label: answer} from the merchant's custom fields, keyed by the
-  // customer-facing label so the order stores something human-readable.
-  function buildCustomFields(): Record<string, string> {
-    const out: Record<string, string> = {};
-    for (const f of checkoutFields) {
-      const v = (cfAnswers[f.id] ?? "").trim();
-      if (v) out[localized(f.label, f.labelEn, lang)] = v;
-    }
-    return out;
-  }
-  function firstMissingRequiredField(): string | null {
-    for (const f of checkoutFields) {
-      if (f.required && !(cfAnswers[f.id] ?? "").trim())
-        return localized(f.label, f.labelEn, lang);
-    }
-    return null;
+  function startCheckout() {
+    setAttemptKey(newIdempotencyKey());
+    setCheckingOut(true);
   }
 
-  async function confirmOrder(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const missing = firstMissingRequiredField();
-    if (missing) {
-      setOrderError(dict.store.fieldRequired.replace("{field}", missing));
-      return;
-    }
-    setPlacing(true);
-    setOrderError(null);
-    const form = new FormData(e.currentTarget);
-    // The customer has just committed by tapping confirm — this is the point
-    // where sharing their number with the store is what they asked for. Awaited
-    // (bounded) so the intent lands BEFORE the order insert whose trigger clears
-    // it; the 1.5s cap means a hung network can only delay checkout, not block
-    // it. Worst case on timeout: one stale abandoned-cart nudge in 30 minutes.
-    await Promise.race([
-      captureCheckoutIntent(
-        String(form.get("phone") ?? ""),
-        String(form.get("name") ?? ""),
-      ),
-      new Promise<void>((resolve) => setTimeout(resolve, 1500)),
-    ]);
-    const customFields = buildCustomFields();
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    // Single-branch stores never ask — null lets the server pick the primary.
-    const locationId = branches.length > 1 ? branchId : null;
-
-    // Guest checkout: no account needed. A SECURITY DEFINER RPC validates the
-    // store, recomputes prices server-side and records the order + items.
-    if (!user) {
-      const { data: guestOrderId, error: guestError } = await supabase.rpc(
-        "place_guest_order",
-        {
-          p_store_id: storeId,
-          p_customer_name: String(form.get("name") ?? ""),
-          p_phone: String(form.get("phone") ?? ""),
-          p_address:
-            fulfillment === "delivery" ? String(form.get("address") ?? "") : "",
-          p_fulfillment: fulfillment,
-          p_note: String(form.get("note") ?? ""),
-          p_coupon: appliedCode,
-          p_items: items.map((p) => ({
-            product_id: p.id,
-            quantity: cart[p.id],
-          })),
-          p_location_id: locationId,
-          p_zone_id: selectedZone?.id ?? null,
-          p_change_for: changeForValue,
-          p_delivery_instructions:
-            fulfillment === "delivery"
-              ? String(form.get("delivery_instructions") ?? "")
-              : "",
-          p_idempotency_key: idemKeyRef.current || null,
-          p_custom_fields: customFields,
-        },
-      );
-      setPlacing(false);
-      if (guestError || !guestOrderId) {
-        const msg = guestError?.message ?? "";
-        setOrderError(
-          msg.includes("insufficient_stock")
-            ? stockErrorMessage(msg)
-            : msg.includes("coupon_already_used")
-              ? dict.store.couponAlreadyUsed
-              : msg.includes("rate_limited")
-                ? dict.store.tooManyOrders
-                : msg.includes("below_zone_minimum")
-                  ? dict.store.belowZoneMin
-                  : msg.includes("modifier_")
-                    ? dict.store.modifierNeeded
-                    : dict.auth.errorGeneric,
-        );
-        router.refresh();
-        return;
-      }
-      idemKeyRef.current = "";
-      setCheckingOut(false);
-      setPlacedOrderId(guestOrderId as string);
-      setPlacedTotal(grandTotal);
-      setOrderPlaced(true);
-      setCart({});
-      return;
-    }
-
-    // Server-side pricing: the RPC recomputes every price from the live
-    // catalog (never trusting the client), applies the coupon, and the stock
-    // guard fires inside the same transaction.
-    const { data: orderId, error } = await supabase.rpc("place_customer_order", {
-      p_store_id: storeId,
-      p_phone: String(form.get("phone") ?? ""),
-      p_address: String(form.get("address") ?? ""),
-      p_fulfillment: fulfillment,
-      p_note: String(form.get("note") ?? ""),
-      p_coupon: appliedCode,
-      p_items: items.map((p) => ({
-        product_id: p.id,
-        quantity: cart[p.id],
-      })),
-      p_location_id: locationId,
-      // Send the full balance; the server caps it to the order total and consumes
-      // only the points that discount is worth. 0 (or opt-out) redeems nothing.
-      p_redeem_points: canRedeem && redeemLoyalty ? loyaltyPoints : 0,
-      p_zone_id: selectedZone?.id ?? null,
-      p_change_for: changeForValue,
-      p_delivery_instructions:
-        fulfillment === "delivery"
-          ? String(form.get("delivery_instructions") ?? "")
-          : "",
-      p_idempotency_key: idemKeyRef.current || null,
-      p_custom_fields: customFields,
-    });
-    // `!orderId` matters as much as `error`. place_customer_order returns the
-    // new order's uuid, but its idempotency branch re-selects the existing row
-    // and returns whatever that finds — so a lost race, or a key that matched
-    // nothing, returns NULL with no error at all. Reading only `error` turned
-    // that into a confirmation screen, a cleared cart and a customer waiting
-    // for an order that was never placed. The guest path opposite already
-    // checked this; the signed-in one did not.
-    if (error || !orderId) {
-      const msg = error?.message ?? "";
-      setOrderError(
-        msg.includes("insufficient_stock")
-          ? stockErrorMessage(msg)
-          : msg.includes("coupon_already_used")
-            ? dict.store.couponAlreadyUsed
-            : msg.includes("below_store_minimum")
-              ? dict.store.belowStoreMin
-              : msg.includes("zone_required")
-                ? dict.store.zoneRequired
-                : msg.includes("below_zone_minimum")
-                  ? dict.store.belowZoneMin
-                  : msg.includes("modifier_")
-                    ? dict.store.modifierNeeded
-                    : dict.auth.errorGeneric,
-      );
-      setPlacing(false);
-      router.refresh();
-      return;
-    }
-    // Order recorded. Instead of a silent redirect, show a confirmation that
-    // lets the customer ping the merchant on WhatsApp — so a merchant who
-    // doesn't watch the dashboard still learns about the order immediately.
-    idemKeyRef.current = "";
-    setPlacing(false);
+  function onPlaced(order: PlacedOrder) {
     setCheckingOut(false);
-    // A signed-in customer gets the same visible reference a guest does. They
-    // can also find the order under /orders, but the number is what they read
-    // out on the phone, and it is the one the merchant sees.
-    setPlacedOrderId(orderId as string);
-    setPlacedTotal(grandTotal);
-    // Freeze the WhatsApp message before the cart goes. waUrl is derived from
-    // `items`, which is derived from `cart` — so clearing the cart on the very
-    // next line emptied it, and the confirmation screen's "tell the merchant"
-    // button silently never rendered. That button is the whole reason this
-    // screen exists rather than a redirect: a merchant who does not watch the
-    // dashboard learns about the order from it.
-    setPlacedWaUrl(waUrl);
-    setOrderPlaced(true);
-    setCart({}); // clears persisted cart via the storage effect
+    setPlaced(order);
+    setCart({}); // clears the persisted cart via the storage effect
     router.refresh();
-  }
-
-  function Stepper({ id, qty }: { id: string; qty: number }) {
-    const p = products.find((x) => x.id === id);
-    const atMax = p?.stock != null && qty >= p.stock;
-    return (
-      <div className="flex items-center gap-2">
-        {/* 32px squares are what the design wants and 44px is what a thumb
-            needs, so the hit area is extended with a transparent pseudo-element
-            rather than growing the buttons. These are the most-tapped controls
-            in the whole shopping flow. */}
-        <button
-          onClick={() => setQty(id, qty - 1)}
-          className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-border transition-colors before:absolute before:-inset-1.5 before:content-[''] hover:bg-surface-muted"
-          aria-label="-"
-        >
-          <Minus className="h-4 w-4" />
-        </button>
-        <span className="w-5 text-center font-bold tabular-nums">{qty}</span>
-        <button
-          onClick={() => setQty(id, qty + 1)}
-          disabled={atMax}
-          className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-border transition-colors before:absolute before:-inset-1.5 before:content-[''] hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-40"
-          aria-label="+"
-        >
-          <Plus className="h-4 w-4" />
-        </button>
-      </div>
-    );
   }
 
   function Card({ p }: { p: Product }) {
@@ -731,7 +363,7 @@ export function StoreProducts({
                   label={dict.store.bundleIncludes}
                 />
                 <p className="mt-1">
-                  <PriceTag p={p} />
+                  <PriceTag p={p} lang={lang} />
                 </p>
                 {p.stock != null && p.stock > 0 && p.stock <= 5 && (
                   <p className="mt-1 text-xs font-bold text-warning">
@@ -751,7 +383,12 @@ export function StoreProducts({
                       {dict.store.chooseOption}
                     </Link>
                   ) : qty > 0 ? (
-                    <Stepper id={p.id} qty={qty} />
+                    <QuantityStepper
+                      product={p}
+                      qty={qty}
+                      lang={lang}
+                      onChange={(next) => setQty(p.id, next)}
+                    />
                   ) : (
                     <button
                       onClick={() => setQty(p.id, 1)}
@@ -795,7 +432,7 @@ export function StoreProducts({
                   label={dict.store.bundleIncludes}
                 />
                 <p className="mt-0.5 text-sm">
-                  <PriceTag p={p} />
+                  <PriceTag p={p} lang={lang} />
                   {p.stock != null && p.stock > 0 && p.stock <= 5 && (
                     <span className="ms-2 text-xs font-bold text-warning">
                       {dict.store.onlyLeft.replace("{n}", String(p.stock))}
@@ -815,7 +452,12 @@ export function StoreProducts({
                   {dict.store.chooseOption}
                 </Link>
               ) : qty > 0 ? (
-                <Stepper id={p.id} qty={qty} />
+                <QuantityStepper
+                  product={p}
+                  qty={qty}
+                  lang={lang}
+                  onChange={(next) => setQty(p.id, next)}
+                />
               ) : (
                 <button
                   onClick={() => setQty(p.id, 1)}
@@ -831,32 +473,7 @@ export function StoreProducts({
     );
   }
 
-  // Per-field selectable values: select fields use their fixed options; text/
-  // number fields (brand, rooms) derive distinct values actually present.
-  function fieldChoices(f: (typeof filterFields)[number]) {
-    if (f.type === "select") return f.options ?? [];
-    const seen = new Map<string, string>();
-    for (const p of products) {
-      const v = p.attributes?.[f.key];
-      if (v && !seen.has(v)) seen.set(v, v);
-    }
-    return [...seen.keys()]
-      .sort((a, b) =>
-        f.type === "number" ? Number(a) - Number(b) : a.localeCompare(b),
-      )
-      .map((v) => ({ value: v, ar: v, en: v }));
-  }
-
-  const activeFilters = Object.entries(attrFilters).filter(([, v]) => v);
-  const filteredProducts = products.filter((p) => {
-    if (brand && (p.brand?.trim() ?? "") !== brand) return false;
-    return activeFilters.every(([k, v]) => (p.attributes?.[k] ?? "") === v);
-  });
-
-  // Only worth showing when this sector has filterable fields with real values.
-  const shownFilterFields = filterFields.filter(
-    (f) => fieldChoices(f).length > 0,
-  );
+  const filteredProducts = applyFilters(products, filters);
 
   // Group for display when the store defined sections; otherwise one flat list
   // (no headers, no regression). Cart/total logic still uses the full `products`.
@@ -864,68 +481,17 @@ export function StoreProducts({
 
   return (
     <div>
-      {brands.length > 1 && (
-        <div className="mb-4 flex flex-wrap items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => setBrand(null)}
-            className={`rounded-full border px-3.5 py-1.5 text-sm font-bold transition-colors ${
-              brand === null
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border text-muted-foreground hover:border-primary/40"
-            }`}
-          >
-            {dict.store.allBrands}
-          </button>
-          {brands.map((b) => (
-            <button
-              key={b}
-              type="button"
-              onClick={() => setBrand(b)}
-              className={`rounded-full border px-3.5 py-1.5 text-sm font-bold transition-colors ${
-                brand === b
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border text-muted-foreground hover:border-primary/40"
-              }`}
-            >
-              {b}
-            </button>
-          ))}
-        </div>
-      )}
-      {isGrid && shownFilterFields.length > 0 && (
-        <div className="mb-5 flex flex-wrap items-center gap-2">
-          {shownFilterFields.map((f) => (
-            <select
-              key={f.key}
-              value={attrFilters[f.key] ?? ""}
-              onChange={(e) =>
-                setAttrFilters((s) => ({ ...s, [f.key]: e.target.value }))
-              }
-              className="rounded-full border border-border bg-surface px-3.5 py-1.5 text-sm font-semibold outline-none transition-colors focus:border-primary"
-            >
-              <option value="">{lang === "ar" ? f.ar : f.en}</option>
-              {fieldChoices(f).map((o) => (
-                <option key={o.value} value={o.value}>
-                  {lang === "ar" ? o.ar : o.en}
-                </option>
-              ))}
-            </select>
-          ))}
-          {activeFilters.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setAttrFilters({})}
-              className="rounded-full px-3 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {dict.store.clearFilters}
-            </button>
-          )}
-        </div>
-      )}
+      <CatalogueFilters
+        lang={lang}
+        dict={dict}
+        category={category}
+        products={products}
+        showAttributeFilters={isGrid}
+        value={filters}
+        onChange={setFilters}
+      />
 
-      {(brand || (isGrid && shownFilterFields.length > 0)) &&
-      filteredProducts.length === 0 ? (
+      {filtersActive(filters) && filteredProducts.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
           {dict.store.noMatches}
         </div>
@@ -946,614 +512,55 @@ export function StoreProducts({
         renderList(filteredProducts)
       )}
 
-      {orderPlaced ? (
-        <div className="mt-6 rounded-2xl border border-success/30 bg-success-soft p-6 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-success-strong text-success-strong-foreground">
-            <Check className="h-6 w-6" />
-          </div>
-          <h3 className="mt-3 text-lg font-extrabold">
-            {dict.store.orderPlacedTitle}
-          </h3>
-          <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
-            {dict.store.orderPlacedNote}
-          </p>
-          {/* The reference, as text a customer can keep. The tracking link
-              below only helps someone who still has the tab; a cash-on-delivery
-              buyer who closes it had nothing at all to quote — no number, no
-              email, no SMS. This is the same 8 characters the merchant sees on
-              their orders screen, so reading it down the phone actually
-              resolves to the same order. */}
-          {placedOrderId && (
-            <div className="mx-auto mt-4 max-w-xs rounded-xl border border-border bg-surface px-4 py-3">
-              <p className="text-xs font-semibold text-muted-foreground">
-                {dict.os.track.orderRef}
-              </p>
-              <p
-                dir="ltr"
-                className="mt-0.5 select-all text-xl font-extrabold tracking-wider"
-              >
-                #{placedOrderId.slice(0, 8)}
-              </p>
-              <p className="mt-1.5 text-xs text-muted-foreground">
-                {dict.os.track.orderRefHint}
-              </p>
-            </div>
-          )}
-
-          {/* What was paid, and what happens now. The screen stated a reference
-              and a cheerful headline but never the amount the customer had just
-              committed to, nor what the shop does next — so the two questions
-              they actually have both went unanswered at the exact moment they
-              were asked. */}
-          <div className="mx-auto mt-4 max-w-xs rounded-xl border border-border bg-surface px-4 py-3 text-start">
-            <div className="flex items-baseline justify-between gap-3">
-              <span className="text-sm text-muted-foreground">
-                {dict.store.total}
-              </span>
-              <span className="text-money text-lg font-extrabold">
-                {formatUsd(placedTotal)}
-              </span>
-            </div>
-            <p className="mt-2 border-t border-border pt-2 text-xs text-muted-foreground">
-              {dict.orders.nextPending}
-            </p>
-          </div>
-          <div className="mt-5 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
-            {placedWaUrl && (
-              <a
-                href={placedWaUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={buttonVariants({ variant: "whatsapp" })}
-              >
-                <MessageCircle className="h-4 w-4" />
-                {dict.store.notifyMerchantWa}
-              </a>
-            )}
-            {/* The order they JUST placed, not the list it landed in. A guest
-                has always been handed /track/{id}; a signed-in customer got
-                /orders and was left to find their own row — the person who
-                gave us an account got the worse follow-through. Same promise
-                for both now, each through the route their own session can
-                read. The list stays only as the fallback for the case with no
-                id to point at. */}
-            {loggedIn ? (
-              <Link
-                href={
-                  placedOrderId
-                    ? `/${lang}/orders/${placedOrderId}`
-                    : `/${lang}/orders`
-                }
-                className="rounded-xl border border-border bg-surface px-5 py-3 text-sm font-bold transition-colors hover:border-primary hover:text-primary"
-              >
-                {placedOrderId
-                  ? dict.os.track.trackLink
-                  : dict.store.viewMyOrders}
-              </Link>
-            ) : (
-              placedOrderId && (
-                <Link
-                  href={`/${lang}/track/${placedOrderId}`}
-                  className="rounded-xl border border-border bg-surface px-5 py-3 text-sm font-bold transition-colors hover:border-primary hover:text-primary"
-                >
-                  {dict.os.track.trackLink}
-                </Link>
-              )
-            )}
-          </div>
-          {!loggedIn && placedOrderId && (
-            <p className="mt-3 text-xs font-semibold text-muted-foreground">
-              {dict.os.track.saveLink}
-            </p>
-          )}
-        </div>
+      {placed ? (
+        <OrderPlaced
+          lang={lang}
+          dict={dict}
+          order={placed}
+          loggedIn={viewer.loggedIn}
+        />
       ) : (
-        items.length > 0 &&
-        (checkingOut ? (
-          <form
-            onSubmit={confirmOrder}
-            className="mt-6 space-y-4 rounded-2xl border border-border bg-surface p-5 shadow-sm"
-          >
-            {/* What is being ordered — before anything asks for input. The
-                customer is about to hand over money for a list they could no
-                longer see; every line links back to the cart via one button
-                instead of trusting memory. */}
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-bold">
-                  {dict.store.yourOrder}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setCheckingOut(false)}
-                  className="text-sm font-semibold text-primary hover:underline"
-                >
-                  {dict.store.editOrder}
-                </button>
-              </div>
-              <ul className="mt-2 space-y-1.5">
-                {items.map((p) => (
-                  <li
-                    key={p.id}
-                    className="flex items-baseline justify-between gap-3 text-sm"
-                  >
-                    <span className="min-w-0 truncate">
-                      <span className="font-semibold">{p.name}</span>
-                      <span className="ms-1.5 text-muted-foreground" dir="ltr">
-                        ×{cart[p.id]}
-                      </span>
-                    </span>
-                    <span className="shrink-0 tabular-nums text-muted-foreground">
-                      {formatUsd(effectivePrice(p) * cart[p.id])}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Coupon — most orders have none, so it is a folded question
-                rather than the first field on the page. */}
-            <details className="group rounded-xl border border-border">
-              <summary className="cursor-pointer select-none px-4 py-3 text-sm font-semibold text-muted-foreground transition-colors group-open:text-foreground hover:text-foreground">
-                {appliedCode ? `${appliedCode} ✓` : dict.store.haveCoupon}
-              </summary>
-              <div className="px-4 pb-4">
-                <div className="flex gap-2">
-                  <input
-                    value={couponInput}
-                    onChange={(e) => setCouponInput(e.target.value)}
-                    placeholder={dict.store.couponCode}
-                    className={`${fieldClass} mt-0 flex-1 uppercase`}
-                  />
-                  <button
-                    type="button"
-                    onClick={applyCoupon}
-                    disabled={couponBusy || !couponInput.trim()}
-                    className="shrink-0 rounded-xl border border-border px-4 py-2.5 text-sm font-bold transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
-                  >
-                    {dict.store.couponApply}
-                  </button>
-                </div>
-                {couponMsg && (
-                  <p className="mt-1 text-sm font-medium text-danger">
-                    {couponMsg}
-                  </p>
-                )}
-              </div>
-            </details>
-
-            {/* Loyalty points redemption (store opt-in + customer has points) */}
-            {canRedeem && (
-              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-surface-muted/50 p-3">
-                <input
-                  type="checkbox"
-                  checked={redeemLoyalty}
-                  onChange={(e) => setRedeemLoyalty(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 accent-primary"
-                />
-                <span className="text-sm">
-                  <span className="font-semibold">
-                    {dict.store.loyaltyRedeemTitle}
-                  </span>
-                  <span className="mt-0.5 block text-muted-foreground">
-                    {dict.store.loyaltyRedeemDesc.replace(
-                      "{n}",
-                      loyaltyPoints.toLocaleString("en-US"),
-                    )}
-                  </span>
-                </span>
-              </label>
-            )}
-
-            {/* Totals */}
-            <div className="space-y-1 border-t border-border pt-3 text-sm">
-              {(couponDiscount > 0 ||
-                pointsDiscount > 0 ||
-                deliveryFee > 0) && (
-                <div className="flex justify-between text-muted-foreground">
-                  <span>{dict.store.subtotal}</span>
-                  <span>{formatUsd(total)}</span>
-                </div>
-              )}
-              {couponDiscount > 0 && (
-                <div className="flex justify-between text-primary">
-                  <span>{dict.store.discount}</span>
-                  <span>−{formatUsd(couponDiscount)}</span>
-                </div>
-              )}
-              {pointsDiscount > 0 && (
-                <div className="flex justify-between text-primary">
-                  <span>
-                    {dict.store.loyaltyDiscount.replace(
-                      "{n}",
-                      pointsUsed.toLocaleString("en-US"),
-                    )}
-                  </span>
-                  <span>−{formatUsd(pointsDiscount)}</span>
-                </div>
-              )}
-              {deliveryFee > 0 && (
-                <div className="flex justify-between text-muted-foreground">
-                  <span>{dict.store.deliveryFeeLabel}</span>
-                  <span>+{formatUsd(deliveryFee)}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-lg font-extrabold">
-                <span>{dict.store.total}</span>
-                <span>{formatUsd(grandTotal)}</span>
-              </div>
-              {lbpRate > 0 && (
-                <p className="text-end text-xs font-normal text-muted-foreground">
-                  {formatLbp(grandTotal, lbpRate, lang)}
-                </p>
-              )}
-            </div>
-
-            <p className="inline-flex items-center gap-1.5 rounded-lg bg-success-soft px-3 py-1.5 text-sm font-semibold text-success">
-              💵 {dict.store.codNote}
-            </p>
-            {fulfillmentOptions.length > 1 && (
-              <div>
-                <span className="text-sm font-semibold">
-                  {dict.store.fulfillment}
-                </span>
-                <div className="mt-1.5 grid grid-cols-2 gap-2">
-                  {fulfillmentOptions.map((opt) => (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => setFulfillment(opt)}
-                      className={`rounded-xl border px-4 py-2.5 text-sm font-bold transition-colors ${
-                        fulfillment === opt
-                          ? "border-primary bg-primary-soft text-primary"
-                          : "border-border text-muted-foreground hover:border-primary/40"
-                      }`}
-                    >
-                      {opt === "delivery"
-                        ? dict.store.delivery
-                        : dict.store.pickup}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            {branches.length > 1 && (
-              <div>
-                <label className="text-sm font-semibold" htmlFor="branch">
-                  {dict.store.chooseBranch}
-                </label>
-                <select
-                  id="branch"
-                  required
-                  value={branchId}
-                  onChange={(e) => setBranchId(e.target.value)}
-                  className={fieldClass}
-                >
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name || b.area || b.address || "—"}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-            {(prepTime || paymentNote) && (
-              <div className="space-y-1 rounded-xl bg-surface-muted/60 px-4 py-3 text-sm text-muted-foreground">
-                {prepTime && (
-                  <p>
-                    <span className="font-semibold">{dict.store.prep}:</span>{" "}
-                    {prepTime}
-                  </p>
-                )}
-                {paymentNote && (
-                  <p>
-                    <span className="font-semibold">{dict.store.payment}:</span>{" "}
-                    {paymentNote}
-                  </p>
-                )}
-              </div>
-            )}
-            {belowMin && (
-              <p className="rounded-xl bg-danger-soft px-4 py-2.5 text-sm font-semibold text-danger">
-                {dict.store.belowMin} ({formatUsd(minOrder!)})
-              </p>
-            )}
-            {fulfillment === "delivery" && zones.length > 0 && (
-              <div>
-                <label className="text-sm font-semibold" htmlFor="dzone">
-                  {dict.store.deliveryZone}
-                </label>
-                <select
-                  id="dzone"
-                  required
-                  value={zoneId}
-                  onChange={(e) => setZoneId(e.target.value)}
-                  className={fieldClass}
-                >
-                  {zones.map((z) => (
-                    <option key={z.id} value={z.id}>
-                      {lang === "en" && z.nameEn?.trim() ? z.nameEn : z.name}
-                      {" — "}
-                      {z.fee > 0 ? formatUsd(z.fee) : dict.store.freeDelivery}
-                    </option>
-                  ))}
-                </select>
-                {selectedZone && (
-                  <div className="mt-1.5 space-y-0.5 text-xs text-muted-foreground">
-                    {selectedZone.etaMin != null &&
-                      selectedZone.etaMax != null && (
-                        <p>
-                          ⏱️{" "}
-                          {dict.store.zoneEta
-                            .replace("{min}", String(selectedZone.etaMin))
-                            .replace("{max}", String(selectedZone.etaMax))}
-                        </p>
-                      )}
-                    {selectedZone.freeOver != null && deliveryFee > 0 && (
-                      <p>
-                        🚚{" "}
-                        {dict.store.freeOverHint.replace(
-                          "{n}",
-                          formatUsd(selectedZone.freeOver),
-                        )}
-                      </p>
-                    )}
-                    {deliveryFee === 0 && selectedZone.freeOver != null && (
-                      <p className="font-semibold text-success">
-                        ✓ {dict.store.freeDeliveryApplied}
-                      </p>
-                    )}
-                  </div>
-                )}
-                {belowZoneMin && selectedZone?.minOrder != null && (
-                  <p className="mt-1.5 rounded-xl bg-danger-soft px-3 py-2 text-sm font-semibold text-danger">
-                    {dict.store.zoneMinWarn.replace(
-                      "{n}",
-                      formatUsd(selectedZone.minOrder),
-                    )}
-                  </p>
-                )}
-              </div>
-            )}
-            {fulfillment === "delivery" && (
-              <div>
-                <label className="text-sm font-semibold" htmlFor="address">
-                  {dict.store.address}
-                </label>
-                {savedAddresses.length > 1 && (
-                  <select
-                    aria-label={dict.account.address.useSaved}
-                    className={fieldClass}
-                    value={
-                      savedAddresses.some((a) => a.value === addressValue)
-                        ? addressValue
-                        : ""
-                    }
-                    onChange={(e) => setAddressValue(e.target.value)}
-                  >
-                    <option value="">{dict.account.address.useSaved}</option>
-                    {savedAddresses.map((a, i) => (
-                      <option key={i} value={a.value}>
-                        {a.label}
-                      </option>
-                    ))}
-                  </select>
-                )}
-                <input
-                  id="address"
-                  name="address"
-                  type="text"
-                  required
-                  value={addressValue}
-                  onChange={(e) => setAddressValue(e.target.value)}
-                  placeholder={dict.store.addressPlaceholder}
-                  className={fieldClass}
-                />
-              </div>
-            )}
-            {fulfillment === "delivery" && (
-              <div>
-                <label
-                  className="text-sm font-semibold"
-                  htmlFor="delivery_instructions"
-                >
-                  {dict.store.deliveryInstructions}
-                </label>
-                <input
-                  id="delivery_instructions"
-                  name="delivery_instructions"
-                  type="text"
-                  placeholder={dict.store.deliveryInstructionsPlaceholder}
-                  className={fieldClass}
-                />
-              </div>
-            )}
-            {fulfillment === "delivery" && (
-              <div>
-                <span className="text-sm font-semibold">
-                  {dict.store.changeFor}
-                </span>
-                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                  {[
-                    { v: "none", label: dict.store.noChange },
-                    { v: "20", label: "$20" },
-                    { v: "50", label: "$50" },
-                    { v: "100", label: "$100" },
-                    { v: "custom", label: dict.store.changeCustom },
-                  ].map((c) => (
-                    <button
-                      key={c.v}
-                      type="button"
-                      onClick={() => setChangeChoice(c.v)}
-                      className={`rounded-full border px-3.5 py-1.5 text-sm font-bold transition-colors ${
-                        changeChoice === c.v
-                          ? "border-primary bg-primary-soft text-primary"
-                          : "border-border text-muted-foreground hover:border-primary/40"
-                      }`}
-                    >
-                      {c.label}
-                    </button>
-                  ))}
-                  {changeChoice === "custom" && (
-                    <input
-                      type="number"
-                      min="1"
-                      step="1"
-                      inputMode="numeric"
-                      value={changeCustom}
-                      onChange={(e) => setChangeCustom(e.target.value)}
-                      placeholder="$"
-                      className="w-24 rounded-full border border-border bg-surface px-3 py-1.5 text-sm outline-none focus:border-primary"
-                    />
-                  )}
-                </div>
-              </div>
-            )}
-            {!loggedIn && (
-              <div>
-                <label className="text-sm font-semibold" htmlFor="name">
-                  {dict.store.name}
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  placeholder={dict.store.namePlaceholder}
-                  className={fieldClass}
-                />
-              </div>
-            )}
-            <div>
-              <label className="text-sm font-semibold" htmlFor="phone">
-                {dict.store.phone}
-              </label>
-              <input
-                id="phone"
-                name="phone"
-                type="tel"
-                inputMode="tel"
-                required
-                placeholder="+961 …"
-                className={fieldClass}
+        items.length > 0 && (
+          <>
+            {/* Hidden rather than unmounted while the customer is back in the
+                cart: an applied coupon, a chosen zone and a typed address are
+                answers they already gave, and losing them on "edit order" is
+                losing a discount they had earned. */}
+            <div
+              hidden={!checkingOut}
+              className="mt-6 rounded-2xl border border-border bg-surface p-5 shadow-sm"
+            >
+              {/* Derived from stores.hours, so the only times offered are times
+                  this shop is actually open — the picker on the product page is
+                  a bare datetime-local that will cheerfully take 3am. Rides to
+                  the server inside p_custom_fields, the channel 0194 already
+                  reads: no schema, no RPC change, and "order now" stays the
+                  default. */}
+              <DeliveryWindow
+                lang={lang}
+                dict={dict}
+                hours={hours}
+                value={windowPick}
+                onChange={setWindowPick}
               />
-              {/* The disclosure MP-007 asked for: the number is shared with the
-                  store at confirm time, and the store may follow up. */}
-              <p className="mt-1 text-xs text-muted-foreground">
-                {dict.store.checkoutPhoneNote}
-              </p>
-            </div>
-            <div>
-              <label className="text-sm font-semibold" htmlFor="note">
-                {dict.store.note}
-              </label>
-              <textarea
-                id="note"
-                name="note"
-                rows={2}
-                placeholder={dict.store.notePlaceholder}
-                className={fieldClass}
+              <CheckoutForm
+                lang={lang}
+                dict={dict}
+                store={checkout}
+                viewer={viewer}
+                lines={lines}
+                items={orderItems}
+                idempotencyKey={attemptKey}
+                lbpRate={lbpRate}
+                onBack={() => setCheckingOut(false)}
+                onPlaced={onPlaced}
+                onRemoveLine={(id) => setQty(id, 0)}
+                extraCustomFields={
+                  scheduledFor ? { scheduled_for: scheduledFor } : undefined
+                }
               />
             </div>
-            {/* Merchant-defined custom fields (gift note, floor number, …). */}
-            {checkoutFields.map((f) => {
-              const val = cfAnswers[f.id] ?? "";
-              const set = (v: string) =>
-                setCfAnswers((a) => ({ ...a, [f.id]: v }));
-              const lbl = localized(f.label, f.labelEn, lang);
-              return (
-                <div key={f.id}>
-                  <label
-                    className="text-sm font-semibold"
-                    htmlFor={`cf_${f.id}`}
-                  >
-                    {lbl}
-                    {f.required && <span className="ms-1 text-danger">*</span>}
-                  </label>
-                  {f.fieldType === "textarea" ? (
-                    <textarea
-                      id={`cf_${f.id}`}
-                      rows={2}
-                      value={val}
-                      onChange={(e) => set(e.target.value)}
-                      className={fieldClass}
-                    />
-                  ) : f.fieldType === "select" ? (
-                    <select
-                      id={`cf_${f.id}`}
-                      value={val}
-                      onChange={(e) => set(e.target.value)}
-                      className={fieldClass}
-                    >
-                      <option value="">—</option>
-                      {f.options.map((o) => (
-                        <option key={o} value={o}>
-                          {o}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      id={`cf_${f.id}`}
-                      type="text"
-                      value={val}
-                      onChange={(e) => set(e.target.value)}
-                      className={fieldClass}
-                    />
-                  )}
-                </div>
-              );
-            })}
-            {!loggedIn && (
-              <p className="text-xs text-muted-foreground">
-                {dict.store.guestHint}{" "}
-                <Link
-                  href={`/${lang}/login`}
-                  className="font-semibold text-primary hover:underline"
-                >
-                  {dict.store.guestLogin}
-                </Link>
-              </p>
-            )}
-            {orderError && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-danger">{orderError}</p>
-                {/* The order is atomic, so we can't silently ship a partial
-                    basket — but the customer's intent is to buy the rest, so
-                    make that one tap instead of a hunt through the cart. */}
-                {shortItemId && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setQty(shortItemId, 0);
-                      setShortItemId(null);
-                      setOrderError(null);
-                    }}
-                    className="relative inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-primary px-3.5 text-sm font-bold whitespace-nowrap text-primary-foreground shadow-sm transition-[transform,box-shadow,background-color] duration-150 select-none hover:bg-primary-hover hover:shadow-md active:scale-[0.97] disabled:pointer-events-none disabled:opacity-55"
-                  >
-                    {dict.store.removeAndContinue}
-                  </button>
-                )}
-              </div>
-            )}
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setCheckingOut(false)}
-                className="rounded-xl border border-border px-5 py-3 text-sm font-semibold transition-colors hover:bg-surface-muted"
-              >
-                {dict.store.back}
-              </button>
-              <button
-                type="submit"
-                disabled={placing || belowMin || belowZoneMin}
-                className="sf-buy flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
-              >
-                {placing ? dict.store.placing : dict.store.confirmOrder}
-              </button>
-            </div>
-          </form>
-        ) : (
+            {!checkingOut && (
           <div className="sticky bottom-4 mt-6 flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface p-4 shadow-lg">
             {/* The bar used to state a total for a list the customer could no
                 longer see without committing to checkout. Tapping it now opens
@@ -1588,14 +595,7 @@ export function StoreProducts({
                 </a>
               )}
               <button
-                onClick={() => {
-                  // New attempt → new idempotency key (kept across retries).
-                  idemKeyRef.current =
-                    typeof crypto !== "undefined" && crypto.randomUUID
-                      ? crypto.randomUUID()
-                      : String(Math.random());
-                  setCheckingOut(true);
-                }}
+                onClick={startCheckout}
                 className="sf-buy flex items-center gap-1.5 rounded-xl bg-primary px-6 py-3 font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
               >
                 <ShoppingCart className="h-4 w-4" />
@@ -1603,54 +603,24 @@ export function StoreProducts({
               </button>
             </div>
           </div>
-        ))
+            )}
+          </>
+        )
       )}
 
-      {/* The cart, on demand: lines, quantities and the running total —
-          everything the sticky bar summarises but had no room to show. The
-          steppers here are the same component the product list uses, so a
-          quantity change is one code path, not two that can disagree. */}
-      <BottomSheet
+      <CartSheet
         open={cartOpen}
         onClose={() => setCartOpen(false)}
-        title={dict.store.yourOrder}
-        closeLabel={dict.common.close}
-        footer={
-          <button
-            type="button"
-            onClick={() => {
-              setCartOpen(false);
-              // New attempt → new idempotency key, exactly as the bar's own
-              // checkout button does.
-              idemKeyRef.current =
-                typeof crypto !== "undefined" && crypto.randomUUID
-                  ? crypto.randomUUID()
-                  : String(Math.random());
-              setCheckingOut(true);
-            }}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary font-bold text-primary-foreground"
-          >
-            {dict.store.checkout} · {formatUsd(total)}
-          </button>
-        }
-      >
-        <ul className="divide-y divide-border">
-          {items.map((p) => (
-            <li key={p.id} className="flex items-center gap-3 py-3">
-              <span className="min-w-0 flex-1">
-                <span className="block truncate font-semibold">{p.name}</span>
-                <span className="text-sm tabular-nums text-muted-foreground">
-                  {formatUsd(effectivePrice(p))}
-                </span>
-              </span>
-              <Stepper id={p.id} qty={cart[p.id]} />
-              <span className="w-16 shrink-0 text-end font-bold tabular-nums">
-                {formatUsd(effectivePrice(p) * cart[p.id])}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </BottomSheet>
+        lang={lang}
+        dict={dict}
+        lines={items.map((p) => ({ product: p, qty: cart[p.id] }))}
+        total={total}
+        onSetQty={setQty}
+        onCheckout={() => {
+          setCartOpen(false);
+          startCheckout();
+        }}
+      />
     </div>
   );
 }

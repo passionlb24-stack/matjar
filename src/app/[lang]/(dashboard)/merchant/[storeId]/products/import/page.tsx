@@ -10,6 +10,8 @@ import { ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { toCategoryKey } from "@/lib/catalog";
+import { categoryModule } from "@/lib/modules";
 import { getStorePlan } from "@/lib/plan-server";
 import { hasPlan, planProductLimit } from "@/lib/plan-tiers";
 import { Container } from "@/components/ui/container";
@@ -41,10 +43,18 @@ export default async function ProductImportPage({
   if (!canManage) redirect(`/${lang}/merchant`);
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name")
+    .select("id, name, business_types(slug)")
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
+  // Only so the back link can name the catalogue it returns to in the sector's
+  // own word, the same way the editor does (ISS-018).
+  const category = toCategoryKey(
+    (store as unknown as { business_types: { slug: string } | null })
+      .business_types?.slug,
+    `store ${storeId}`,
+  );
+  const itemsLabel = dict.store[categoryModule[category].itemsKey];
 
   const plan = await getStorePlan(storeId);
   const canImport = hasPlan(plan, "pro");
@@ -67,10 +77,10 @@ export default async function ProductImportPage({
       <Container className="max-w-2xl">
         <Link
           href={`/${lang}/merchant/${storeId}/items`}
-          className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+          className="relative inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors before:absolute before:-inset-x-2 before:-inset-y-3 before:content-[''] hover:text-foreground"
         >
           <ChevronPrev className="h-4 w-4" />
-          {(store as { name: string }).name}
+          {itemsLabel}
         </Link>
         <h1 className="mt-3 flex items-center gap-2 text-3xl font-extrabold tracking-tight">
           <FileSpreadsheet className="h-7 w-7 text-primary" />

@@ -1,12 +1,11 @@
 import { cache, Fragment } from "react";
 import { notFound } from "next/navigation";
-import { MapPin, Megaphone } from "lucide-react";
+import { MapPin, Megaphone, Wallet } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import {
   categoryStyles,
   getStoreById,
-  regions,
   sampleProducts,
 } from "@/lib/catalog";
 import {
@@ -22,6 +21,11 @@ import {
   getOwnedStoreView,
   type StoreView,
 } from "@/lib/data/store-view";
+import {
+  getCheckoutViewer,
+  getStoreCheckoutContext,
+  withLoyaltyBalance,
+} from "@/lib/data/checkout";
 import { localeAlternates, SITE_URL } from "@/lib/site";
 import { accentStyle } from "@/lib/color";
 import { resolveTheme } from "@/lib/themes";
@@ -68,6 +72,7 @@ import {
 import { StoreStickyCta } from "@/components/store/store-sticky-cta";
 import { resolveOffering } from "@/lib/offering";
 import { TrackVisit } from "@/components/track-visit";
+import { ContentReport } from "@/components/listing-report";
 import { resolveStoreExperience, leadKinds } from "@/lib/store-experience";
 // The sector transaction engines are fetched only where they render. Which
 // section exists is decided exactly as before (resolveStoreExperience /
@@ -77,6 +82,7 @@ import {
   ClassesBooking,
   EventTickets,
   LeadForm,
+  RentalSearch,
   ReservationForm,
   ServiceRequestForm,
   StaySearch,
@@ -252,8 +258,15 @@ export default async function StorePage({
 
   // Wave 2 — module-gated public sections. Independent of each other, so run in
   // parallel; each resolves to [] when its module is off (or the store is demo).
-  const [resources, membershipPlans, classes, portfolio, courses, ticketTypes] =
-    await Promise.all([
+  const [
+    resources,
+    membershipPlans,
+    classes,
+    portfolio,
+    courses,
+    ticketTypes,
+    rentalVehicles,
+  ] = await Promise.all([
       // Bookable resources (courts/rooms/rental items) for time-slot sectors.
       realStore && enabledModules.has("timeslot")
         ? supabase
@@ -312,6 +325,18 @@ export default async function StorePage({
       realStore && experience.showTickets
         ? supabase
             .from("event_ticket_types")
+            .select("id", { count: "exact", head: true })
+            .eq("store_id", id)
+            .eq("active", true)
+            .then((r) => r.count ?? 0)
+        : Promise.resolve(0),
+      // Rental fleet size (0298), for the same reason as the ticket count:
+      // RentalSearch finds its own vehicles on the client, so a store that has
+      // enabled the sector but not yet added a car would otherwise get a "Rent
+      // a car" tab that scrolls to a search box with nothing behind it.
+      realStore && experience.showRental
+        ? supabase
+            .from("rental_vehicles")
             .select("id", { count: "exact", head: true })
             .eq("store_id", id)
             .eq("active", true)
@@ -421,87 +446,25 @@ export default async function StorePage({
       }
     : null;
 
-  // Prefill checkout from the customer's saved addresses (default first).
-  let defaultAddress = "";
-  const savedAddresses: { label: string; value: string }[] = [];
-  if (user) {
-    const { data: addrs } = await supabase
-      .from("addresses")
-      .select("label, region, city, street, building, floor, details, is_default")
-      .eq("user_id", user.id)
-      .order("is_default", { ascending: false })
-      .order("updated_at", { ascending: false });
-    for (const addr of addrs ?? []) {
-      const regionName =
-        regions.find((r) => r.key === addr.region)?.name[lang] ??
-        (addr.region as string | null) ??
-        "";
-      const value = [
-        addr.street,
-        addr.building,
-        addr.floor,
-        addr.city,
-        regionName,
-        addr.details,
-      ]
-        .filter(Boolean)
-        .join("، ");
-      if (!value) continue;
-      savedAddresses.push({
-        label: (addr.label as string | null) || value,
-        value,
-      });
-      if (addr.is_default && !defaultAddress) defaultAddress = value;
-    }
-    // Fall back to the first saved address if none is flagged default.
-    if (!defaultAddress && savedAddresses.length > 0) {
-      defaultAddress = savedAddresses[0].value;
-    }
-  }
+  // Prefill checkout from the customer saved addresses (default first) — the
+  // same reading the product page uses, so the saved-address picker is not a
+  // property of which page you started from.
+  const checkoutViewer = await getCheckoutViewer(
+    supabase,
+    user?.id ?? null,
+    lang,
+  );
 
-  // Delivery zones (0172): fee / minimum / free-over / ETA per area. The
-  // checkout requires picking one for delivery orders when any exist.
-  type ZoneRow = {
-    id: string;
-    name: string;
-    name_en: string | null;
-    fee: number;
-    min_order: number | null;
-    free_over: number | null;
-    eta_min_minutes: number | null;
-    eta_max_minutes: number | null;
-  };
-  let zones: {
-    id: string;
-    name: string;
-    nameEn: string | null;
-    fee: number;
-    minOrder: number | null;
-    freeOver: number | null;
-    etaMin: number | null;
-    etaMax: number | null;
-  }[] = [];
-  if (store.isReal && UUID_RE.test(id)) {
-    const { data: zoneRows } = await supabase
-      .from("store_delivery_zones")
-      .select(
-        "id, name, name_en, fee, min_order, free_over, eta_min_minutes, eta_max_minutes",
-      )
-      .eq("store_id", id)
-      .eq("active", true)
-      .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: true });
-    zones = ((zoneRows ?? []) as ZoneRow[]).map((z) => ({
-      id: z.id,
-      name: z.name,
-      nameEn: z.name_en,
-      fee: Number(z.fee),
-      minOrder: z.min_order != null ? Number(z.min_order) : null,
-      freeOver: z.free_over != null ? Number(z.free_over) : null,
-      etaMin: z.eta_min_minutes,
-      etaMax: z.eta_max_minutes,
-    }));
-  }
+  // What this store's checkout offers — delivery zones (0172), the merchant's
+  // custom fields (0180), branches, the minimum, the loyalty rate. Read through
+  // the one function the product page also calls, so the two order surfaces
+  // cannot be handed different checkouts (MJ-024). `zones` is lifted out
+  // because the fulfilment panel above the catalogue states them too.
+  const checkoutCtx =
+    store.isReal && UUID_RE.test(id)
+      ? await getStoreCheckoutContext(id)
+      : null;
+  const zones = checkoutCtx?.zones ?? [];
 
   // Delivery options this store offers via partner couriers.
   let couriers: CourierOption[] = [];
@@ -556,17 +519,12 @@ export default async function StorePage({
         lng: b.lng,
       });
 
-  // Loyalty redemption at checkout: only when the store opted in (0107) and the
-  // signed-in customer actually holds points at this store. my_loyalty_by_store
-  // returns only stores with a positive balance, so a 0 here renders nothing.
-  let loyaltyPoints = 0;
-  if (user && store.isReal && UUID_RE.test(id) && store.loyaltyRedemptionEnabled) {
-    const { data: byStore } = await supabase.rpc("my_loyalty_by_store");
-    const row = ((byStore ?? []) as { store_id: string; balance: number }[]).find(
-      (r) => r.store_id === id,
-    );
-    loyaltyPoints = row ? Number(row.balance) : 0;
-  }
+  // The checkout, complete: the store's own capabilities plus this customer's
+  // point balance (0107 — only read when the merchant opted in). Null when the
+  // store cannot be ordered from at all, in which case no order surface renders.
+  const checkout = checkoutCtx
+    ? await withLoyaltyBalance(checkoutCtx, supabase, !!user)
+    : null;
 
   const Icon = categoryIcons[store.category];
   const style = categoryStyles[store.category];
@@ -645,6 +603,7 @@ export default async function StorePage({
         minOrder={store.minOrder ?? null}
         prepTime={store.prepTime ?? null}
         paymentNote={store.paymentNote ?? null}
+        returnPolicy={store.returnPolicy ?? null}
         zones={zones}
         couriers={couriers}
         dict={dict}
@@ -696,6 +655,12 @@ export default async function StorePage({
     stay: store.isReal && experience.showStay && (
       <div className="mt-10">
         <StaySearch storeId={id} lang={lang} dict={dict} />
+      </div>
+    ),
+
+    rental: store.isReal && experience.showRental && rentalVehicles > 0 && (
+      <div className="mt-10">
+        <RentalSearch storeId={id} lang={lang} dict={dict} />
       </div>
     ),
 
@@ -762,17 +727,13 @@ export default async function StorePage({
         doctors={doctors}
         providerServices={providerServices}
         currentUser={currentUser}
-        loggedIn={!!user}
-        defaultAddress={defaultAddress}
-        savedAddresses={savedAddresses}
+        checkout={checkout}
+        viewer={checkoutViewer}
         lbpRate={lbpRate}
-        loyaltyPoints={loyaltyPoints}
-        branches={branches}
         Icon={Icon}
         style={style}
         initialBrand={initialBrand}
         layout={sf.layout}
-        zones={zones}
       />
     ),
 
@@ -856,6 +817,8 @@ export default async function StorePage({
     serviceRequest: store.isReal && experience.showServiceRequest,
     leadForm: store.isReal && experience.showLeadForm,
     stay: store.isReal && experience.showStay,
+    // Same server-side count as tickets: no fleet, no tab.
+    rental: store.isReal && experience.showRental && rentalVehicles > 0,
     // EventTickets loads its rows on the client and renders nothing when a
     // store has none — hence the server-side count in wave 2.
     tickets: store.isReal && experience.showTickets && ticketTypes > 0,
@@ -952,6 +915,40 @@ export default async function StorePage({
         }
       : null;
 
+  // ===== How payment works, above the catalogue =====
+  //
+  // ISS-020. The platform's single biggest trust lever was stated nowhere a
+  // buyer looks before deciding — only inside the cart, after they had already
+  // committed to opening it. It is now said once, immediately above the list of
+  // things you can order, on exactly the stores that can take an order: the
+  // same `canTransactHere` test the sticky CTA uses, so a directory-only page
+  // never promises a payment method for a transaction it cannot run.
+  //
+  // Wording follows the surface, not the sector name — a clinic pays at the
+  // desk, a shop pays the courier — and both strings are the ones their own
+  // engine already uses, so there is one vocabulary rather than a second one
+  // invented for a banner.
+  const paymentNote =
+    canTransactHere && present.catalog ? (
+      <div className="mt-6 flex items-start gap-2.5 rounded-2xl border border-success/25 bg-success-soft px-4 py-3 text-success">
+        <Wallet className="mt-0.5 h-4.5 w-4.5 shrink-0" />
+        {experience.itemSurface === "appointment" ? (
+          <p className="text-sm font-semibold leading-relaxed">
+            {dict.booking.payOnArrival}
+          </p>
+        ) : (
+          <p className="min-w-0">
+            <span className="block text-sm font-bold">
+              {dict.product.codTitle}
+            </span>
+            <span className="mt-0.5 block text-xs leading-relaxed">
+              {dict.product.codBody}
+            </span>
+          </p>
+        )}
+      </div>
+    ) : null;
+
   return (
     <div
       // Extra bottom room below lg only when the sticky CTA is there to cover
@@ -1012,6 +1009,11 @@ export default async function StorePage({
                   label={dict.store.tabsLabel}
                 />
               )}
+              {/* Inside the anchor's scroll target would put it above the
+                  heading the tab chip promises; outside and immediately before
+                  it keeps the chip landing on the catalogue while the buyer
+                  still reads the payment line on the way down. */}
+              {key === "catalog" && paymentNote}
               <div
                 id={`sec-${key}`}
                 className="scroll-mt-[calc(var(--m-header-h)+var(--m-sectiontabs-h)+env(safe-area-inset-top))] lg:scroll-mt-20"
@@ -1021,6 +1023,20 @@ export default async function StorePage({
             </Fragment>
           );
         })}
+
+        {/* MJ-026. Last thing on the page, the way a report control should be:
+            findable when something is wrong, invisible while nothing is. Only
+            on a real store — a demo row has no one to report. */}
+        {store.isReal && UUID_RE.test(id) && (
+          <div className="mt-10 border-t border-border pt-5">
+            <ContentReport
+              entityType="store"
+              entityId={id}
+              lang={lang}
+              dict={dict}
+            />
+          </div>
+        )}
       </Container>
 
       {stickyCta && (

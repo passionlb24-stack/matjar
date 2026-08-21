@@ -1,0 +1,25 @@
+{
+  "$comment": [
+    "Grandfathered violations of the SECURITY DEFINER convention — see",
+    "scripts/check-definer-grants.mjs. Everything listed here is ALREADY APPLIED to",
+    "production; the fix for each is a NEW migration, which is a schema change and",
+    "belongs to whoever owns the schema, not to the gate that found it.",
+    "",
+    "The gate fails on anything NOT in this list. This file is the record of what",
+    "was true the day the gate was switched on, so that the gate could be switched",
+    "on at all instead of being disabled for shouting about history.",
+    "",
+    "Entries are matched on signature + kind: the SAME function with a DIFFERENT",
+    "kind of violation still fails. Adding an entry here is a code-review decision",
+    "and should be rare — the list is meant to shrink and never to grow."
+  ],
+  "grandfathered": [
+    {
+      "signature": "public.bump_coupon_use/0",
+      "kind": "public-only",
+      "created": "0196_emergency_hardening.sql",
+      "reason": "Trigger function (returns trigger), first written in 0028 and revoked from PUBLIC only by 0041_security_perf_p0.sql:7. anon and authenticated therefore keep the EXECUTE that Supabase grants by default. NOT reachable by a browser role: PostgREST does not expose trigger-returning functions as /rpc/ endpoints, and firing a trigger does not consult EXECUTE (0120's precedent). This is exactly the class 0281 group (c) revoked from all three roles — bump_coupon_use was simply not on that list, which is the same drift 0284 documented. Fix is a one-line new migration: revoke all on function public.bump_coupon_use() from public, anon, authenticated;",
+      "found": "2026-08-20, when this gate was introduced"
+    }
+  ]
+}

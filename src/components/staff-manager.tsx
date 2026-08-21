@@ -115,7 +115,21 @@ export function StaffManager({
   }
 
   async function remove(id: string) {
-    if (!(await confirm({ message: dict.merchant.products.confirmDelete, confirmLabel: dict.common.confirm, cancelLabel: dict.common.cancel, danger: true }))) return;
+    // ISS-030. This used to read dict.merchant.products.confirmDelete — the
+    // dialog asked "delete this product?" while removing a person from the
+    // team. The two actions are not alike: removing staff revokes someone's
+    // access to a live store and cannot be undone from this screen, and a
+    // confirm that describes the wrong action is worse than none, because it
+    // trains the reader that the words in these dialogs do not matter.
+    if (
+      !(await confirm({
+        message: dict.merchant.staffConfirmRemove,
+        confirmLabel: dict.common.confirm,
+        cancelLabel: dict.common.cancel,
+        danger: true,
+      }))
+    )
+      return;
     setBusy(true);
     const { error } = await createClient()
       .from("store_staff")

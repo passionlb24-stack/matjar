@@ -45,7 +45,7 @@ export default async function StoreSettingsPage({
   // Owner-only.
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, booking_cancel_hours, specialties, insurance, lat, lng, commercial_reg_no, commercial_reg_verified, legal_name, tax_no, legal_address, invoice_prefix, vat_rate, vat_inclusive, business_types(slug)")
+    .select("id, name, accepts_delivery, accepts_pickup, min_order, prep_time, payment_note, booking_cancel_hours, return_policy, specialties, insurance, lat, lng, commercial_reg_no, commercial_reg_verified, legal_name, tax_no, legal_address, invoice_prefix, vat_rate, vat_inclusive, business_types(slug)")
     .eq("id", storeId)
     .eq("owner_id", user.id)
     .maybeSingle();
@@ -108,6 +108,9 @@ export default async function StoreSettingsPage({
         : "",
     prep_time: (store as { prep_time: string | null }).prep_time ?? "",
     payment_note: (store as { payment_note: string | null }).payment_note ?? "",
+    return_policy:
+
+      (store as { return_policy: string | null }).return_policy ?? "",
     booking_cancel_hours: String(
       (store as { booking_cancel_hours: number | null }).booking_cancel_hours ??
         0,

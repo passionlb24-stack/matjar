@@ -38,6 +38,11 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...except the example, which is the opposite of a secret: every value in it
+# is blank and its whole job is to tell the next person which variables exist.
+#  was swallowing it, so seven documented variables — including the two
+# that decide whether deep links work at all — lived only on one laptop.
+!.env.example
 
 # vercel
 .vercel

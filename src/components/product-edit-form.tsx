@@ -9,11 +9,17 @@ import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { CategoryKey } from "@/lib/catalog";
-import { categoryAttributes } from "@/lib/attributes";
+import { attrEntryFields, attrLegacyFields } from "@/lib/attributes";
 import { sectorHasTeam } from "@/lib/sectors";
 import { ImageUpload } from "@/components/image-upload";
 import { fieldClass } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { UnitPricingFields } from "@/components/unit-pricing-fields";
+import {
+  unitPricingColumns,
+  PIECE_PRICED,
+  type UnitPricingValue,
+} from "@/lib/unit-pricing";
 import {
   VariantMatrix,
   groupsFromVariants,
@@ -66,6 +72,9 @@ export type ProductInitial = {
   discountPrice: string;
   /** Cost of goods (`products.cost`). "" = never recorded. */
   cost: string;
+  /** How this item is sold (0299). Piece-priced when the three columns are
+   *  null, which is every product created before they existed. */
+  unitPricing: UnitPricingValue;
   description: string;
   descriptionEn: string;
   imageUrl: string | null;
@@ -138,7 +147,16 @@ export function ProductEditForm({
   const [dealToday, setDealToday] = useState(initial.dealToday);
   const [sectionId, setSectionId] = useState<string>(initial.sectionId);
   const [bookMode, setBookMode] = useState<string>(initial.bookingMode);
-  const attrFields = categoryAttributes[category] ?? [];
+  // 0299. The price input stays uncontrolled (defaultValue) — it is only
+  // OBSERVED here, so the unit control can show what the price works out to per
+  // kilo as the merchant edits it. Seeded from the stored price so the readout
+  // is right before anything is typed.
+  const [unitPricing, setUnitPricing] = useState<UnitPricingValue>(
+    initial.unitPricing,
+  );
+  const [priceInput, setPriceInput] = useState(initial.price);
+  const attrFields = attrEntryFields(category);
+  const legacyAttrFields = attrLegacyFields(category);
   // Booking settings follow the ITEM, not just the sector. A service can now be
   // created in any sector (a boutique's alterations, a phone shop's repairs),
   // and it still needs its duration and slot rules — gating this on the sector
@@ -155,7 +173,15 @@ export function ProductEditForm({
     setError(null);
     const form = new FormData(e.currentTarget);
     const supabase = createClient();
+    // `attributes` is rebuilt from the fields this form rendered, so a key it
+    // does not render is erased on save. Retired fields are therefore carried
+    // across from what was stored: a clinic editing a service's price must not
+    // silently lose the duration it typed before the field was retired.
     const attributes: Record<string, string> = {};
+    legacyAttrFields.forEach((f) => {
+      const v = (initial.attributes[f.key] ?? "").trim();
+      if (v) attributes[f.key] = v;
+    });
     attrFields.forEach((f) => {
       const v = String(form.get(`attr_${f.key}`) ?? "").trim();
       if (v) attributes[f.key] = v;
@@ -211,6 +237,13 @@ export function ProductEditForm({
         flash_start: hasFlash ? new Date(flashStartRaw).toISOString() : null,
         flash_end: hasFlash ? new Date(flashEndRaw).toISOString() : null,
         attributes,
+        // Always all three columns, so switching an item back to piece pricing
+        // CLEARS them rather than leaving a stale measure behind on a row whose
+        // sold_by is null — which the 0299 check constraint refuses anyway, and
+        // which would surface here as a save that mysteriously fails.
+        ...unitPricingColumns(
+          initial.itemKind === "service" ? PIECE_PRICED : unitPricing,
+        ),
         updated_at: new Date().toISOString(),
       })
       .eq("id", productId);
@@ -464,7 +497,7 @@ export function ProductEditForm({
       <div className={`grid gap-4 ${simplified ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
         <div>
           <label className={label} htmlFor="price">{p.price}</label>
-          <input id="price" name="price" type="number" min="0" step="0.01" required defaultValue={initial.price} className={field} />
+          <input id="price" name="price" type="number" min="0" step="0.01" required defaultValue={initial.price} className={field} onInput={(e) => setPriceInput(e.currentTarget.value)} />
         </div>
         <div>
           <label className={label} htmlFor="discount_price">{p.discountPrice}</label>
@@ -489,6 +522,18 @@ export function ProductEditForm({
           </div>
         )}
       </div>
+      {/* Directly under the price, because it says what the number above is the
+          price OF. This is the screen ملحمة البركة would actually use: ten items
+          already priced per kilo, each one two taps from saying so. */}
+      {initial.itemKind !== "service" && (
+        <UnitPricingFields
+          dict={dict}
+          lang={lang}
+          value={unitPricing}
+          onChange={setUnitPricing}
+          priceInput={priceInput}
+        />
+      )}
       <label className="flex items-center gap-2 rounded-xl border border-border bg-surface-muted/40 p-3 text-sm font-semibold">
         <input
           type="checkbox"
@@ -581,7 +626,9 @@ export function ProductEditForm({
       </div>
 
       {attrFields.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="rounded-xl border border-border/70 p-4">
+          <span className={label}>{p.attributesTitle}</span>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
           {attrFields.map((f) => (
             <div key={f.key}>
               <label className={label} htmlFor={`attr_${f.key}`}>
@@ -601,6 +648,7 @@ export function ProductEditForm({
               )}
             </div>
           ))}
+          </div>
         </div>
       )}
 

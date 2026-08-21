@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Truck,
   UserRound,
+  Wallet,
 } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -22,8 +23,12 @@ import {
   getOwnedProductView,
   type ProductView,
 } from "@/lib/data/product-view";
+import {
+  getCheckoutViewer,
+  getStoreCheckoutContext,
+  withLoyaltyBalance,
+} from "@/lib/data/checkout";
 import { Breadcrumbs } from "@/components/breadcrumbs";
-import { regions } from "@/lib/catalog";
 import { attributeSummary } from "@/lib/attributes";
 import { effectivePrice, compareAtPrice, flashEndsAt } from "@/lib/pricing";
 import { FlashCountdown } from "@/components/flash-countdown";
@@ -55,6 +60,7 @@ import { ProductStoryCard } from "@/components/product-story-card";
 import { BackButton } from "@/components/back-button";
 import { TrackVisit } from "@/components/track-visit";
 import { RestockButton } from "@/components/restock-button";
+import { ContentReport } from "@/components/listing-report";
 import { sectorHasTeam } from "@/lib/sectors";
 import {
   offeringSectionSlot,
@@ -154,35 +160,23 @@ export default async function ProductPage({
   const ctaLabel = dict.offering.cta[offering.cta];
   const shows = (key: OfferingSectionKey) => offering.sections.includes(key);
 
-  // Prefill checkout from the customer's saved address.
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  let defaultAddress = "";
-  if (user) {
-    const { data: addr } = await supabase
-      .from("addresses")
-      .select("region, city, street, building, floor, details")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (addr) {
-      const regionName =
-        regions.find((r) => r.key === addr.region)?.name[l] ??
-        (addr.region as string | null) ??
-        "";
-      defaultAddress = [
-        addr.street,
-        addr.building,
-        addr.floor,
-        addr.city,
-        regionName,
-        addr.details,
-      ]
-        .filter(Boolean)
-        .join("، ");
-    }
-  }
+
+  // The checkout this page can offer — read exactly as the store page reads it
+  // (src/lib/data/checkout.ts). MJ-024: the buy box used to be handed only a
+  // saved address and two booleans, so it collected no delivery zone, no
+  // coupon, no loyalty opt-in and none of the merchant's own checkout fields,
+  // and since 0229 a store with zones could not be ordered from here at all.
+  const [checkoutCtx, checkoutViewer] = await Promise.all([
+    getStoreCheckoutContext(product.storeId),
+    getCheckoutViewer(supabase, user?.id ?? null, l),
+  ]);
+  const checkout = checkoutCtx
+    ? await withLoyaltyBalance(checkoutCtx, supabase, !!user)
+    : null;
 
   let isWishlisted = false;
   if (user) {
@@ -448,6 +442,13 @@ export default async function ProductPage({
           <p className="mb-3 text-sm text-muted-foreground">
             {dict.product.bookingLead}
           </p>
+          {/* Same fact, the booking wording. `booking.payOnArrival` is the
+              string the booking panel itself uses, so the promise made here and
+              the one made at the moment of booking are the same sentence. */}
+          <p className="mb-3 flex items-start gap-2 rounded-xl bg-success-soft px-3.5 py-2.5 text-xs font-semibold leading-relaxed text-success">
+            <Wallet className="mt-px h-4 w-4 shrink-0" />
+            {dict.booking.payOnArrival}
+          </p>
           <Link
             href={`${storeHref}?service=${product.id}`}
             className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-6 py-3.5 font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
@@ -478,13 +479,19 @@ export default async function ProductPage({
             {ctaLabel}
           </Link>
         </>
-      ) : (
+      ) : checkout ? (
+        /* No checkout context means the store row is not readable to this
+           viewer — an owner previewing a not-yet-public store, say. There is
+           nothing to order from, so the buy box does not render rather than
+           collecting an address for an RPC that would refuse. */
         <>
           <ProductOrder
             lang={lang}
             dict={dict}
-            storeId={product.storeId}
             productId={product.id}
+            productName={name}
+            checkout={checkout}
+            viewer={checkoutViewer}
             basePrice={basePrice}
             stock={product.stock}
             variants={product.variants}
@@ -492,9 +499,6 @@ export default async function ProductPage({
             modifierGroups={product.modifierGroups}
             allowScheduling={offering.variant === "menuItem"}
             category={product.category}
-            defaultAddress={defaultAddress}
-            acceptsDelivery={product.acceptsDelivery}
-            acceptsPickup={product.acceptsPickup}
             lbpRate={lbpRate}
             ctaLabel={ctaLabel}
           />
@@ -517,7 +521,7 @@ export default async function ProductPage({
             </div>
           )}
         </>
-      )}
+      ) : null}
     </div>
   );
 
@@ -737,6 +741,19 @@ export default async function ProductPage({
         )}
 
         {inSlot("page")}
+
+        {/* MJ-026 — see the note on ContentReport. Below everything, on real
+            catalogue rows only. */}
+        {UUID_RE.test(product.id) && (
+          <div className="mt-10 border-t border-border pt-5">
+            <ContentReport
+              entityType="product"
+              entityId={product.id}
+              lang={lang}
+              dict={dict}
+            />
+          </div>
+        )}
       </Container>
     </div>
   );

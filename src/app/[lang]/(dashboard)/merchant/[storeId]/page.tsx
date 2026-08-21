@@ -13,7 +13,7 @@ import { ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
-import type { CategoryKey } from "@/lib/catalog";
+import { toCategoryKey, type CategoryKey } from "@/lib/catalog";
 import {
   getSector,
   resolveStoreModules,
@@ -158,7 +158,7 @@ export default async function StoreOsHomePage({
     status_changed_at: string | null;
     business_types: { slug: string; name_ar: string; name_en: string } | null;
   };
-  const category = (s.business_types?.slug as CategoryKey) ?? "retail";
+  const category = toCategoryKey(s.business_types?.slug, `store ${storeId}`);
   const sector = getSector(category);
   /** Nothing public exists for this store yet — no page, no shareable link. */
   const isPending = s.status !== "active";
@@ -200,9 +200,26 @@ export default async function StoreOsHomePage({
   }).format(new Date());
   const since14d = new Date(requestNow() - 14 * 86400_000).toISOString();
 
+  // Sector-aware onboarding: sectors whose core entity isn't products (a hotel's
+  // units, an events organizer's ticket types) get a tailored primary-setup step.
+  // Decided here rather than next to its consumer because it is a pure function
+  // of the category — which the store row already gave us — and knowing it now
+  // is what lets its count ride in the wave below instead of trailing it.
+  const primarySetup = sectorPrimarySetup(category);
+
   // Everything in one round-trip: the report RPC (aggregated server-side, see
   // 0087/0111) + cheap head-counts and limit≤8 lists, each gated by permission
   // and by whether this sector even has the module.
+  //
+  // Everything that CAN be in this wave must be. The fan-out itself is close to
+  // free — measured, 22 parallel PostgREST calls cost about the same wall time
+  // as one, because they share the connection and overlap end to end. What is
+  // not free is a query that waits for the wave to finish first: each of those
+  // adds a whole round-trip to the critical path. The visits pulse and the
+  // primary-setup count used to be exactly that, and neither needed anything
+  // the wave produces — only `canRevenue`, `isOwner` and the category, all
+  // known above. Keep it that way: adding a query after this wave costs a
+  // round-trip, adding one inside it costs nothing.
   const none = { data: null, count: null } as const;
   const [
     reportRes,
@@ -225,6 +242,8 @@ export default async function StoreOsHomePage({
     providersRes,
     storeModulesRes,
     reviewsRes,
+    visitsRes,
+    primaryCountRes,
   ] = await Promise.all([
     canRevenue
       ? supabase.rpc("store_report", { p_store_id: storeId, p_days: 14 })
@@ -378,6 +397,23 @@ export default async function StoreOsHomePage({
       .eq("store_id", storeId)
       .order("created_at", { ascending: false })
       .limit(5),
+    // Free storefront-visits pulse (migration 0167) — a reason for every
+    // merchant to check in daily; the full audience breakdown is on the Pro
+    // reports page. Gated on canRevenue exactly as the tile that renders it is.
+    canRevenue
+      ? supabase.rpc("store_visits_summary", {
+          p_store_id: storeId,
+          p_days: 7,
+        })
+      : Promise.resolve(none),
+    // How many of the sector's core entity exist yet (hotel units, ticket
+    // types). Only two sectors have one; everywhere else this is a no-op.
+    isOwner && primarySetup
+      ? supabase
+          .from(primarySetup.table)
+          .select("id", { count: "exact", head: true })
+          .eq("store_id", storeId)
+      : Promise.resolve(none),
   ]);
 
   const report = (reportRes.data ?? null) as {
@@ -445,17 +481,13 @@ export default async function StoreOsHomePage({
     highlight?: boolean;
   };
 
-  // Free storefront-visits pulse (migration 0167) — a reason for every merchant
-  // to check in daily; the full audience breakdown is on the Pro reports page.
-  let visits7d = { visits: 0, uniques: 0 };
-  if (canRevenue) {
-    const { data: vData } = await supabase.rpc("store_visits_summary", {
-      p_store_id: storeId,
-      p_days: 7,
-    });
-    const v = (vData as { visits?: number; uniques?: number } | null) ?? {};
-    visits7d = { visits: v.visits ?? 0, uniques: v.uniques ?? 0 };
-  }
+  // The visits pulse, fetched up in the wave (see the note there).
+  const vSummary =
+    (visitsRes.data as { visits?: number; uniques?: number } | null) ?? {};
+  const visits7d = {
+    visits: vSummary.visits ?? 0,
+    uniques: vSummary.uniques ?? 0,
+  };
 
   let stats: StatItem[] = [];
   if (canRevenue && report) {
@@ -659,17 +691,11 @@ export default async function StoreOsHomePage({
     modOverrides[row.module_key] = row.enabled;
   const enabledModules = resolveStoreModules(category, modOverrides);
 
-  // Sector-aware onboarding: sectors whose core entity isn't products (a hotel's
-  // units, an events organizer's ticket types) get a tailored primary-setup step.
-  const primarySetup = sectorPrimarySetup(category);
-  let primaryCount: number | null = null;
-  if (isOwner && primarySetup) {
-    const { count: coreCount } = await supabase
-      .from(primarySetup.table)
-      .select("id", { count: "exact", head: true })
-      .eq("store_id", storeId);
-    primaryCount = coreCount ?? 0;
-  }
+  // Sector-aware onboarding: `primarySetup` is resolved above the wave and its
+  // count rides in it. Still null for everyone the query was skipped for, so
+  // the completeness rules below cannot tell the difference.
+  const primaryCount: number | null =
+    isOwner && primarySetup ? (primaryCountRes.count ?? 0) : null;
 
   // One weighted number instead of eight equal ticks. What each item is worth,
   // which ones block publishing and which single one to do next are all decided

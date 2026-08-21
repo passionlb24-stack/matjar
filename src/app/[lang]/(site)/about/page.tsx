@@ -105,6 +105,11 @@ export default async function AboutPage({
             <Link href={`${base}/merchant/new`} className="inline-flex h-11 items-center rounded-xl bg-primary px-6 text-sm font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover">{dict.common.openStore}</Link>
             <Link href={`${base}/explore`} className="inline-flex h-11 items-center rounded-xl border border-border bg-surface px-6 text-sm font-bold transition-colors hover:border-primary/40">{a.ctaBrowse}</Link>
           </div>
+          {/* ISS-025. "About us" is the page a cautious reader opens looking for
+              a company, and this one told a story without ever naming one. */}
+          <Link href={`${base}/legal`} className="relative mt-5 inline-flex items-center text-sm font-bold text-muted-foreground underline underline-offset-4 transition-colors hover:text-primary before:absolute before:-inset-x-3 before:-inset-y-3 before:content-['']">
+            {dict.footer.links.legal}
+          </Link>
         </div>
       </Container>
     </div>

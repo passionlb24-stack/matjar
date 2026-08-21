@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -15,6 +16,8 @@ export type CraftRequestRow = {
   when_pref: string | null;
   status: string;
   created_at: string;
+  /** Written since 0297; every row before that carries none. */
+  photos?: string[] | null;
 };
 
 /**
@@ -52,6 +55,7 @@ export function CraftRequestsList({
     decline: string;
     error: string;
     statuses: Record<string, string>;
+    photos: string;
   };
 }) {
   const router = useRouter();
@@ -106,6 +110,27 @@ export function CraftRequestsList({
           </div>
 
           <p className="mt-2 whitespace-pre-line text-sm">{r.description}</p>
+
+          {(r.photos ?? []).length > 0 && (
+            <div className="mt-2">
+              <p className="text-xs font-bold text-muted-foreground">
+                {labels.photos}
+              </p>
+              <div className="mt-1.5 flex flex-wrap gap-2">
+                {(r.photos ?? []).map((url) => (
+                  <a
+                    key={url}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="relative h-20 w-20 overflow-hidden rounded-xl border border-border transition-colors hover:border-primary"
+                  >
+                    <Image src={url} alt="" fill className="object-cover" sizes="80px" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
 
           <p className="mt-1.5 text-xs text-muted-foreground">
             {new Date(r.created_at).toLocaleDateString(

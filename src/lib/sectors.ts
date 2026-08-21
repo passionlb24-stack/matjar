@@ -70,6 +70,8 @@ export type OsModuleKey =
   | "leads"
   | "units"
   | "stays"
+  | "vehicles"
+  | "rentals"
   | "tickets"
   | "members"
   | "items"
@@ -125,6 +127,13 @@ export const OS_MODULE_META: Record<
   leads: { Icon: Inbox, path: "leads", perm: "orders" },
   units: { Icon: BedDouble, path: "units", perm: "products" },
   stays: { Icon: CalendarRange, path: "stays", perm: "bookings" },
+  // The rental engine's two screens (0298). Same shape as units/stays and the
+  // same permissions: the fleet is stock (`products`), a rental is a booking.
+  // No minPlan — the identical date-range engine is free for a hotel, and
+  // charging a car business for the same code because its sector is spelled
+  // differently would be a pricing decision dressed up as a feature gate.
+  vehicles: { Icon: Car, path: "vehicles", perm: "products" },
+  rentals: { Icon: CalendarRange, path: "rentals", perm: "bookings" },
   tickets: { Icon: Ticket, path: "tickets", perm: "products" },
   members: { Icon: Users, path: "members", perm: "orders" },
   items: { Icon: Package, path: "items", perm: "products" },
@@ -257,10 +266,13 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
     iconTint: "bg-tint-3-soft text-tint-3",
     customersNoun: "leads",
     modules: {
-      // Directory-only (no cart) + single inquiry channel = Leads (car inquiries
-      // are viewing/test-drive/offer). No "orders" (always empty) and no separate
-      // "requests" inbox.
-      daily: ["leads", "items", "tasks"],
+      // Two transactions, and only one of them is a sale. RENTALS + VEHICLES
+      // are the day-range engine from 0298 (a fleet, and the bookings against
+      // it). LEADS is still the single inquiry channel for BUYING a car —
+      // viewing / test-drive / offer — because no vehicle-sale engine exists.
+      // Still no "orders" (a car does not go in a basket, so the screen would
+      // always be empty) and still no separate "requests" inbox beside leads.
+      daily: ["rentals", "vehicles", "leads", "items", "tasks"],
       people: ["customers", "campaigns", "automations", "staff", "hr"],
       money: MONEY_WITH_SUPPLIERS,
       store: STORE,
@@ -344,6 +356,28 @@ export const sectorConfig: Record<CategoryKey, SectorConfig> = {
       store: STORE,
     },
   },
+  // MJ-009. A pharmacy sells stock off a shelf; a lab sells an appointment with
+  // preparation instructions and a result that arrives later. They are one
+  // sector here, and this bundle is the pharmacy's: cart, stock, POS, no
+  // scheduling module at all. A lab filed here can only list a blood test as a
+  // catalogue row with a quantity selector.
+  //
+  // The split is right and production is the cheapest it will ever be for it —
+  // ZERO stores sit under `pharmacy` today, so nothing would be stranded. It is
+  // NOT done here because a new CategoryKey is not local to this file: two
+  // exhaustive `Record<CategoryKey, …>` registries live in src/lib/discovery.ts
+  // (`sectorDiscovery`, `CARD_FACTS`) and one in src/components/category-icon.tsx,
+  // and a key added without them fails `tsc`. A sector that half-exists is worse
+  // than the conflation, so the whole add belongs in one change that owns those
+  // files too.
+  //
+  // What IS fixed meanwhile: the sector no longer advertises itself to labs (the
+  // business_types row and dict.catalog.pharmacy said "Pharmacies & labs"; see
+  // migration 0300), the registry's own sample data no longer prices a lab test
+  // like a box of medicine, and a service row in a sector with no `appointments`
+  // module stops promising a booking it cannot honour (offering.ts). A lab today
+  // belongs under `healthcare`, which already books appointments and carries
+  // verifications.
   pharmacy: {
     Icon: Pill,
     features: ["catalog", "orders", "verifications", "location", "reviews", "messaging"],
@@ -429,11 +463,20 @@ export function sectorDefaultModules(category: CategoryKey): FeatureModuleKey[] 
  */
 export function sectorPrimarySetup(
   category: CategoryKey,
-): { table: string; module: OsModuleKey; labelKey: "units" | "tickets" } | null {
+): {
+  table: string;
+  module: OsModuleKey;
+  labelKey: "units" | "tickets" | "vehicles";
+} | null {
   if (category === "hospitality")
     return { table: "accommodation_units", module: "units", labelKey: "units" };
   if (category === "events")
     return { table: "event_ticket_types", module: "tickets", labelKey: "tickets" };
+  // Same reasoning as the hotel: an automotive store cannot take a rental
+  // until there is a car to rent, so "add your first vehicle" is the honest
+  // first step rather than the generic "add products" nudge.
+  if (category === "automotive")
+    return { table: "rental_vehicles", module: "vehicles", labelKey: "vehicles" };
   return null;
 }
 
@@ -540,6 +583,7 @@ export type ProfileSectionKey =
   | "serviceRequest"
   | "leadForm"
   | "stay"
+  | "rental"
   | "tickets"
   | "resources"
   | "memberships"
@@ -566,6 +610,7 @@ export const DEFAULT_PROFILE_ORDER: ProfileSectionKey[] = [
   "serviceRequest",
   "leadForm",
   "stay",
+  "rental",
   "tickets",
   "resources",
   "memberships",
@@ -607,7 +652,11 @@ const PROFILE_ORDER: Partial<Record<CategoryKey, ProfileSectionKey[]>> = {
   // the listing rather than at the foot of the page.
   realEstate: [...LEAD, "catalog", "leadForm", "location", "hours",
     "verifications", "reviews"],
-  automotive: [...LEAD, "catalog", "leadForm", "location", "hours",
+  // A car business now has two things to offer and they are not equal. The
+  // rental engine is a transaction that completes on the page, so it leads;
+  // the listing grid and the buying enquiry follow it, in that order, because
+  // "which car, then who do I talk to" is how someone shopping for a car reads.
+  automotive: [...LEAD, "rental", "catalog", "leadForm", "location", "hours",
     "verifications", "reviews"],
   // The timetable is the product; memberships are how it gets paid for.
   fitness: [...LEAD, "classes", "resources", "memberships", "catalog", "doctors",

@@ -210,7 +210,7 @@ function Row({
         </div>
 
         <div className="mt-4 flex flex-wrap items-end gap-3 border-t border-border pt-4">
-          <Field label={t.plan} className="w-36">
+          <Field label={t.plan} htmlFor="sub-tier" className="w-36">
             <Select
               value={tier}
               onChange={(e) =>
@@ -222,7 +222,7 @@ function Row({
               <option value="business">{t.business}</option>
             </Select>
           </Field>
-          <Field label={t.period} className="w-40">
+          <Field label={t.period} htmlFor="sub-period" className="w-40">
             <Select
               value={period}
               onChange={(e) =>
@@ -233,7 +233,7 @@ function Row({
               <option value="yearly">{t.yearly}</option>
             </Select>
           </Field>
-          <Field label={t.amount} className="w-32">
+          <Field label={t.amount} htmlFor="sub-amount" className="w-32">
             <Input
               type="number"
               min="0"

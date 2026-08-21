@@ -186,38 +186,37 @@ test("login rejects bad credentials with a visible Arabic error", async ({
   ).toHaveURL(/\/ar\/login/);
 });
 
-test("an unknown URL renders the Arabic 404 page", async ({ page }) => {
-  await page.goto("/ar/this-page-does-not-exist-e2e");
+// This was two tests, the second marked test.fail(), because a page beneath a
+// loading.tsx had already streamed its 200 by the time notFound() ran. I judged
+// the shared skeleton worth more than the status and left it.
+//
+// That judgement was wrong, and the marker is what surfaced it: the suite went
+// red with "expected to fail, but passed" once 6086d58 removed
+// (site)/loading.tsx. That change measured something I had not — with the
+// boundary in place, /ar and /ar/merchants shipped *zero* characters inside
+// <main>, so a crawler and a phone that never finished hydrating both saw an
+// empty shell. The skeleton was not costing a status code, it was costing every
+// public page's server-rendered content.
+//
+// Folded back into one test, which is what the marker's own note said to do on
+// the day it started passing.
+test("an unknown URL renders the Arabic 404 page, with a 404 status", async ({
+  page,
+}) => {
+  const response = await page.goto("/ar/this-page-does-not-exist-e2e");
 
   await expect(
     page.getByRole("heading", { name: AR.notFoundTitle }),
     `A missing page must render the Arabic not-found copy ("${AR.notFoundTitle}") ` +
       "from src/app/[lang]/not-found.tsx.",
   ).toBeVisible();
-});
 
-// Split out from the test above and expected to fail on purpose. The full
-// reasoning lives in src/app/[lang]/not-found.tsx: a page beneath a loading.tsx
-// has already streamed its 200 by the time notFound() runs, and the only cure is
-// deleting the shared skeleton from roughly forty routes — worse than the
-// disease. The SEO half of the harm is already covered, because Next emits
-// <meta name="robots" content="noindex"> on any page reached via notFound().
-//
-// test.fail() rather than deleting the test or weakening the assertion: the
-// suite stays green while the defect stands, and goes RED the day somebody fixes
-// it, which is the day to delete this block and fold the status assertion back
-// into the test above.
-test("a missing page answers 404 — known failure, see not-found.tsx", async ({
-  page,
-}) => {
-  test.fail(
-    true,
-    "known: notFound() cannot set a 404 status under a loading.tsx boundary",
-  );
-  const response = await page.goto("/ar/this-page-does-not-exist-e2e");
   expect(
     response?.status(),
-    "A missing page should answer HTTP 404 so uptime monitoring can see a miss.",
+    "A missing page must answer HTTP 404, not 200. A soft 404 is the shape " +
+      "Google indexes as real content, and uptime monitoring can never see a " +
+      "miss. If this regresses, look for a loading.tsx reintroduced above the " +
+      "route — that is what caused it the first time.",
   ).toBe(404);
 });
 

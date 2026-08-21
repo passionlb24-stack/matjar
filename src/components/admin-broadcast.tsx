@@ -15,6 +15,14 @@ const AUDIENCES: Audience[] = ["all", "merchants", "customers"];
 // to a chosen audience. Delivered as an IN-APP notification to every recipient
 // (the guaranteed channel — shows in the bell) + web push for any subscriber,
 // via the admin-gated /api/push/broadcast route.
+//
+// There is deliberately NO logAdminAction() call here, and adding one would
+// double-log. This is the highest-blast-radius action an admin has and for a
+// long time it was the only one with no audit trail at all (ISS-009) — precisely
+// because the record depended on a client remembering to write it. Migration
+// 0294 moved the write inside admin_broadcast_notify, in the same transaction
+// as the notification fan-out, so the log row exists if and only if the
+// broadcast actually went out. Nothing on this side can skip it.
 export function AdminBroadcast({ dict }: { dict: Dictionary }) {
   const t = dict.push;
   const confirm = useConfirm();

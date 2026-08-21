@@ -240,6 +240,18 @@ export function StaySearch({
                             ? ` · ${t.deposit} ${money(u.deposit)}`
                             : ""}
                         </p>
+                        {/* The deposit sat in the same muted line as the base
+                            total and the cleaning fee, reading as part of what
+                            Matjar is charging. It is not: the guest hands it to
+                            the property in cash and the property gives it back.
+                            0298 says exactly this for car rentals, and this is
+                            the one other place the shape genuinely transfers —
+                            better here before a property sets one than after. */}
+                        {u.deposit > 0 && (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {t.depositNote}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <button

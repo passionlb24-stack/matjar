@@ -9,12 +9,18 @@ import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { CategoryKey } from "@/lib/catalog";
-import { categoryAttributes } from "@/lib/attributes";
+import { attrEntryFields } from "@/lib/attributes";
 import { sectorHasTeam } from "@/lib/sectors";
 import { ImageUpload } from "@/components/image-upload";
 import { DigitalFileUpload, type DigitalFile } from "@/components/digital-file-upload";
 import { fieldClass } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { UnitPricingFields } from "@/components/unit-pricing-fields";
+import {
+  unitPricingColumns,
+  PIECE_PRICED,
+  type UnitPricingValue,
+} from "@/lib/unit-pricing";
 import {
   VariantMatrix,
   variantsFromGroups,
@@ -63,10 +69,18 @@ export function ProductForm({
   const [sectionId, setSectionId] = useState<string>("");
   // Booking engine v2 (0174): how this service is delivered.
   const [bookMode, setBookMode] = useState<string>("");
+  // Sold by the piece unless the merchant says otherwise (0299). The price
+  // input stays uncontrolled and is only OBSERVED, so the unit control can show
+  // what the price works out to per kilo while it is still being typed.
+  const [unitPricing, setUnitPricing] = useState<UnitPricingValue>(PIECE_PRICED);
+  const [priceInput, setPriceInput] = useState("");
   const [inOffers, setInOffers] = useState(false);
   const [inClearance, setInClearance] = useState(false);
   const [inMarket, setInMarket] = useState(false);
-  const attrFields = categoryAttributes[category] ?? [];
+  // Entry fields only. A retired field (see AttrField.legacy) still renders on
+  // the storefront from stored values, but a new product must never be able to
+  // start filling it — that is how the clinic ended up with two durations.
+  const attrFields = attrEntryFields(category);
   // The sector picks the DEFAULT, not the ceiling.
   //
   // A booking store can also sell goods (a vet selling pet food, a salon
@@ -157,6 +171,10 @@ export function ProductForm({
         section_id: sectionId || null,
         in_offers: inOffers,
         in_clearance: inClearance,
+        // A service or a file is not weighed, so those never carry a unit — the
+        // control is not rendered for them and this makes sure nothing leaks
+        // through if it ever is.
+        ...unitPricingColumns(isService || isDigital ? PIECE_PRICED : unitPricing),
       })
       .select("id")
       .single();
@@ -243,6 +261,11 @@ export function ProductForm({
     setVariants([]);
     setOptions([]);
     setSectionId("");
+    // formEl.reset() clears the price input's DOM value; these two are React
+    // state and have to be put back by hand, or the next product starts with
+    // the last one's unit and a stale per-kilo readout.
+    setUnitPricing(PIECE_PRICED);
+    setPriceInput("");
     setInOffers(false);
     setInClearance(false);
     setInMarket(false);
@@ -415,7 +438,7 @@ export function ProductForm({
           <label className={label} htmlFor="price">
             {p.price}
           </label>
-          <input id="price" name="price" type="number" min="0" step="0.01" required placeholder="0" className={field} />
+          <input id="price" name="price" type="number" min="0" step="0.01" required placeholder="0" className={field} onInput={(e) => setPriceInput(e.currentTarget.value)} />
         </div>
         <div>
           <label className={label} htmlFor="discount_price">
@@ -446,6 +469,18 @@ export function ProductForm({
           </div>
         )}
       </div>
+      {/* Sits directly under the price, because it is a statement ABOUT the
+          price: it says what the number above is the price OF. Goods only — a
+          haircut and a PDF are not weighed. */}
+      {!isService && !isDigital && (
+        <UnitPricingFields
+          dict={dict}
+          lang={lang}
+          value={unitPricing}
+          onChange={setUnitPricing}
+          priceInput={priceInput}
+        />
+      )}
       <div>
         <label className={label} htmlFor="description">
           {p.description}
@@ -479,7 +514,9 @@ export function ProductForm({
       </div>
 
       {attrFields.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="rounded-xl border border-border/70 p-4">
+          <span className={label}>{p.attributesTitle}</span>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
           {attrFields.map((f) => (
             <div key={f.key}>
               <label className={label} htmlFor={`attr_${f.key}`}>
@@ -499,6 +536,7 @@ export function ProductForm({
               )}
             </div>
           ))}
+          </div>
         </div>
       )}
 

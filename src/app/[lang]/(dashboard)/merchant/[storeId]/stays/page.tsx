@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { StayStatusControl } from "@/components/stay-status-control";
 import { CardList, CardRow } from "@/components/ui/card";
+import { NextStepEmpty } from "@/components/os-dashboard/next-step-empty";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -141,9 +142,14 @@ export default async function StoreStaysPage({
             ))}
           </CardList>
         ) : (
-          <div className="mt-8 rounded-2xl border border-dashed border-border py-10 sm:py-16 text-center text-muted-foreground">
-            {t.empty}
-          </div>
+          <NextStepEmpty
+            lang={lang}
+            dict={dict}
+            storeId={storeId}
+            module="stays"
+            title={t.empty}
+            className="mt-8"
+          />
         )}
       </Container>
     </div>

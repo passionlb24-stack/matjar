@@ -106,6 +106,20 @@ const DB_VALUES: Record<LabelDomain, { source: string; values: string[] }> = {
       "no_show",
     ],
   },
+  rentalBooking: {
+    source:
+      "0298_two_people_cannot_hold_the_same_car.sql — create type rental_status as enum",
+    values: [
+      "requested",
+      "confirmed",
+      "declined",
+      "picked_up",
+      "returned",
+      "completed",
+      "cancelled",
+      "no_show",
+    ],
+  },
   lead: {
     source: "0190_lead_engine.sql — create type lead_status as enum",
     // The MP-020 ticket said this enum was new/contacted/closed. It is not, and

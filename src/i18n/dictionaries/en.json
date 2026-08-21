@@ -114,6 +114,36 @@
       "delete": "Delete",
       "confirmDelete": "Delete this unit?"
     },
+    "vehicles": {
+      "link": "Fleet",
+      "title": "Your vehicles",
+      "subtitle": "Add each car with its daily price and terms so visitors can book it by date.",
+      "add": "Add vehicle",
+      "name": "Vehicle (e.g. Kia Picanto 2021)",
+      "type": "Type (sedan/SUV/van)",
+      "transmission": "Transmission (automatic/manual)",
+      "fuel": "Fuel",
+      "seats": "Seats",
+      "year": "Model year",
+      "daily": "Daily price",
+      "weekend": "Weekend price (Fri/Sat)",
+      "minDays": "Min days",
+      "delivery": "Delivery fee",
+      "deposit": "Deposit amount",
+      "depositHint": "Matjar does not charge or hold this. We display it; you collect it in cash at pickup and return it when the car comes back.",
+      "minAge": "Minimum driver age",
+      "kmLimit": "Km per day",
+      "kmLimitHint": "Leave empty for unlimited mileage.",
+      "extraKm": "Price per extra km",
+      "insurance": "Insurance included in the price",
+      "insuranceNote": "What the insurance covers",
+      "pickupLocation": "Pickup location",
+      "save": "Save",
+      "saving": "Saving…",
+      "empty": "No vehicles yet. Add your first one to start taking rentals.",
+      "delete": "Delete",
+      "confirmDelete": "Delete this vehicle?"
+    },
     "members": {
       "link": "Members",
       "title": "Members & enrollments",
@@ -138,6 +168,28 @@
         "declined": "Declined",
         "checked_in": "Checked in",
         "checked_out": "Checked out",
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "no_show": "No show"
+      }
+    },
+    "rentals": {
+      "link": "Rentals",
+      "title": "Rental bookings",
+      "subtitle": "Every car rental request — confirm or decline.",
+      "empty": "No rental requests yet.",
+      "days": "days",
+      "driverAge": "Driver age",
+      "total": "Total",
+      "deposit": "Deposit",
+      "depositNote": "You collect the deposit in cash at pickup. Matjar does not hold or charge it.",
+      "statusLabel": "Status",
+      "status": {
+        "requested": "Requested",
+        "confirmed": "Confirmed",
+        "declined": "Declined",
+        "picked_up": "Picked up",
+        "returned": "Returned",
         "completed": "Completed",
         "cancelled": "Cancelled",
         "no_show": "No show"
@@ -462,7 +514,14 @@
       "confirmDelete": "Delete this branch?",
       "cantDeletePrimary": "You can't delete the primary branch — make another branch primary first.",
       "makePrimary": "Make primary branch",
-      "branchLabel": "Branch"
+      "branchLabel": "Branch",
+      "hoursTitle": "Branch hours",
+      "hoursInherit": "Same hours as the store",
+      "hoursOwn": "This branch has its own hours",
+      "stockTitle": "Stock across branches",
+      "stockShared": "All your branches sell from one shared stock pool. If a product has 3 left, that is 3 for the whole store — not 3 at each branch.",
+      "stockSeparateLabel": "My branches keep their own separate stock",
+      "stockSeparateNote": "Noted. Matjar does not track stock per branch yet, so your branches still share one pool and nothing about your orders changes. We use this to decide who gets per-branch stock first."
     },
     "branchesPublic": {
       "title": "Branches"
@@ -483,6 +542,17 @@
       "start": "Start job",
       "complete": "Complete",
       "confirmDecline": "Decline this request?",
+      "attachedPhotos": "Photos from the customer",
+      "urgencyLabel": "Urgency",
+      "budgetLabel": "Budget",
+      "timelineLabel": "Start",
+      "intakeTitle": "What you ask customers",
+      "intakeHint": "Every extra question costs you a few requests and improves the rest. Turn off what you do not need.",
+      "intakePhotos": "Photos of the problem",
+      "intakeUrgency": "How urgent it is",
+      "intakeBudget": "Rough budget",
+      "intakeTimeline": "When they want to start",
+      "intakeSaved": "Saved",
       "status": {
         "pending": "Awaiting quote",
         "quoted": "Quote sent",
@@ -517,13 +587,52 @@
       "accept": "Accept quote",
       "cancel": "Cancel request",
       "confirmCancel": "Cancel this request?",
-      "coverage": "Coverage area"
+      "coverage": "Coverage area",
+      "photos": "Photos of the problem (optional)",
+      "photosHint": "One photo saves a trip — they see the situation before coming.",
+      "urgency": "How urgent is it?",
+      "urgencyOptions": {
+        "emergency": "Urgent — today",
+        "soon": "This week",
+        "flexible": "No rush"
+      },
+      "budget": "Rough budget (optional)",
+      "budgetAny": "Rather not say",
+      "budgetOptions": {
+        "under_500": "Under $500",
+        "500_2000": "$500 – $2,000",
+        "2000_10000": "$2,000 – $10,000",
+        "over_10000": "Over $10,000"
+      },
+      "timeline": "When do you want to start?",
+      "timelineAny": "Rather not say",
+      "timelineOptions": {
+        "asap": "As soon as possible",
+        "weeks": "Within weeks",
+        "months": "Within months",
+        "exploring": "Just exploring"
+      }
     },
     "tagline": "Your business, run from one place",
     "viewPublic": "View your page",
     "storePending": "Your store is under review",
     "storePendingHint": "Nobody can see your page yet. Get your products ready — we will tell you the moment it is approved, and you will have a link to share.",
     "itemsHint": "published items",
+    "nextStep": {
+      "reviewNote": "Your page is still under review — nobody can reach it yet.",
+      "stoppedNote": "Your page is switched off right now, so nothing can come in.",
+      "reviewBody": "Nothing can arrive before your page goes live. We will tell you the moment it is approved — get your items ready meanwhile.",
+      "setupBody": "There is nothing on your page to order yet. Add your first item — nobody can buy what is not listed.",
+      "liveBody": "Your page is live with {n} items. What is missing is people seeing it — send the link to your customers and put it in your bio.",
+      "addFirstItem": "Add your first item",
+      "shareWhatsapp": "Share on WhatsApp",
+      "shareMessage": "Order from {store} on Matjar:",
+      "recordSale": "Record a counter sale",
+      "openDashboard": "Open the dashboard",
+      "reportsTitle": "No numbers yet",
+      "advancedTools": "Advanced tools",
+      "advancedToolsHint": "These unlock when you upgrade — open any of them to see what it does."
+    },
     "groups": {
       "daily": "Daily operations",
       "people": "Customers & team",
@@ -1067,7 +1176,13 @@
     ],
     "finalTitle": "Ready to start?",
     "finalSub": "Open your store free in minutes, and see the difference.",
-    "seePricing": "See pricing"
+    "seePricing": "See pricing",
+    "entryReassure": [
+      "Opening a store is free — up to 3 products without paying anything",
+      "No card, no bank details",
+      "Your customer pays cash on delivery — the money never passes through us",
+      "Share your store link on WhatsApp — that's where most of your customers come from"
+    ]
   },
   "hero": {
     "title": "Every store, restaurant, and service in Lebanon",
@@ -1105,7 +1220,7 @@
     "food": { "name": "Food & dining", "desc": "Restaurants, cafés, sweets and bakeries" },
     "retail": { "name": "Shopping", "desc": "Clothing, electronics, perfumes and more" },
     "services": { "name": "Services", "desc": "Cleaning, maintenance, photography, advice" },
-    "healthcare": { "name": "Health & clinics", "desc": "Clinics, labs and pharmacies" },
+    "healthcare": { "name": "Health & clinics", "desc": "Clinics, labs and specialist doctors" },
     "realEstate": { "name": "Real estate", "desc": "Apartments, shops and land to buy or rent" },
     "automotive": { "name": "Automotive", "desc": "Showrooms, rentals and spare parts" },
     "beauty": { "name": "Beauty & care", "desc": "Salons, spa, barbers and care" },
@@ -1114,7 +1229,7 @@
     "education": { "name": "Education & courses", "desc": "Courses, tutors and training" },
     "events": { "name": "Events & venues", "desc": "Halls, planning and bookings" },
     "hospitality": { "name": "Hotels & chalets", "desc": "Hotels, chalets and hospitality" },
-    "pharmacy": { "name": "Pharmacies & labs", "desc": "Medicine, tests and supplies" },
+    "pharmacy": { "name": "Pharmacies", "desc": "Medicine, vitamins and health supplies" },
     "petCare": { "name": "Pet care", "desc": "Vet, grooming and supplies" },
     "professional": { "name": "Professional services", "desc": "Lawyers, accountants, consulting" },
     "contractors": { "name": "Contractors & trades", "desc": "Building, finishing and repair" },
@@ -1330,7 +1445,8 @@
       "about": "About us",
       "help": "Help",
       "contact": "Contact",
-      "privacy": "Privacy"
+      "privacy": "Privacy",
+      "legal": "Legal & terms"
     },
     "rights": "All rights reserved."
   },
@@ -1364,7 +1480,8 @@
       "classes": "classes",
       "courses": "courses",
       "units": "rooms",
-      "tickets": "ticket types"
+      "tickets": "ticket types",
+      "vehicles": "vehicles"
     }
   },
   "explore": {
@@ -1381,9 +1498,14 @@
     "nearest": "Nearest to you",
     "locating": "Locating…",
     "locationError": "Couldn't get your location. Enable location permission.",
-    "km": "km"
+    "km": "km",
+    "earlyTitle": "Matjar is still early",
+    "earlyBody": "Every shop here is a real Lebanese business we reviewed before letting it onto the site. We add them one at a time, so the list is still short — that is on purpose, not a fault. If you're looking for something and can't find it, tell us and we'll go find it.",
+    "earlyCta": "Tell us what's missing",
+    "earlyWaPrefill": "Hello, I was looking for something on Matjar and couldn't find it:"
   },
   "store": {
+    "returnPolicy": "Return policy",
     "tabsLabel": "Page sections",
     "tabs": {
       "branches": "Branches",
@@ -1393,6 +1515,7 @@
       "serviceRequest": "Request a service",
       "leadForm": "Enquire",
       "stay": "Stay",
+      "rental": "Rent a car",
       "tickets": "Tickets",
       "resources": "Hourly booking",
       "memberships": "Memberships",
@@ -1462,6 +1585,9 @@
     "chooseBranch": "Choose branch",
     "clearFilters": "Clear filters",
     "allBrands": "All brands",
+    "priceRange": "Price",
+    "rangeFrom": "From",
+    "rangeTo": "To",
     "deliveryZone": "Delivery area",
     "freeDelivery": "Free delivery",
     "zoneEta": "Arrives in about {min}–{max} minutes",
@@ -1470,7 +1596,7 @@
     "zoneMinWarn": "This area has a minimum order of {n}",
     "belowZoneMin": "Your order is below this delivery area's minimum.",
     "couponAlreadyUsed": "You have used this code before — it is one per customer.",
-    "zoneRequired": "This store delivers by area. Open the store page to pick yours, or choose pickup.",
+    "zoneRequired": "This store delivers by area. Pick yours from the list, or choose pickup.",
     "belowStoreMin": "Your order is below this store's minimum.",
     "modifierNeeded": "Some items need options — open the item and choose before ordering.",
     "deliveryFeeLabel": "Delivery fee",
@@ -1484,6 +1610,13 @@
     "chooseOption": "Choose an option",
     "otherSection": "Other",
     "bundleIncludes": "Includes:",
+    "weighedNote": "These items are weighed when your order is prepared. We cut to the weight you asked for, and it may come out a few grams either way. You pay the price shown above.",
+    "windowTitle": "When would you like it?",
+    "windowAsap": "As soon as possible",
+    "windowToday": "Today",
+    "windowTomorrow": "Tomorrow",
+    "windowTime": "Time",
+    "windowHint": "Only times the shop is open are offered.",
     "fieldRequired": "Please fill in “{field}”",
     "onlyLeft": "Only {n} left",
     "orderPlacedTitle": "Your order was received ✅",
@@ -1532,6 +1665,7 @@
     "privacyNote": "Your number goes to the store only, to contact you."
   },
   "stay": {
+    "depositNote": "You pay the deposit in cash to the property when you check in, and they return it when you check out. Matjar does not charge or hold this money and is not a party to it.",
     "title": "Book your stay",
     "subtitle": "Pick check-in, check-out and guests to see available units.",
     "checkIn": "Check-in",
@@ -1555,6 +1689,44 @@
     "minStay": "Fewer nights than this unit's minimum.",
     "datesTaken": "Those dates were just taken. Try other dates.",
     "overCapacity": "More guests than the unit's capacity."
+  },
+  "rental": {
+    "title": "Rent a car",
+    "subtitle": "Pick your pickup and return dates and the driver's age to see what's available.",
+    "pickup": "Pickup",
+    "returnDate": "Return",
+    "driverAge": "Driver age",
+    "search": "Search availability",
+    "noVehicles": "No cars available for those dates. Try other dates.",
+    "days": "days",
+    "seats": "seats",
+    "delivery": "delivery",
+    "total": "Total",
+    "deposit": "Deposit",
+    "depositNote": "You pay the deposit in cash to the business when you collect the car, and they return it when you bring the car back. Matjar does not charge or hold this money and is not a party to it.",
+    "unlimitedKm": "Unlimited mileage",
+    "kmPerDay": "km per day",
+    "extraKm": "per extra km",
+    "insuranceIncluded": "Insurance included in the price",
+    "insuranceExcluded": "Insurance not included",
+    "insuranceDisclaimer": "The cover and its terms are set by the business, not by Matjar.",
+    "minAge": "Minimum driver age",
+    "pickupLocation": "Pickup location",
+    "book": "Book",
+    "cancel": "Cancel",
+    "name": "Name",
+    "phone": "Phone number",
+    "notesHint": "Special requests (optional)",
+    "confirm": "Confirm booking",
+    "sentTitle": "Rental request sent ✓",
+    "sentNote": "The business will confirm availability and contact you soon. Payment and the deposit are settled directly with them.",
+    "another": "Book another car",
+    "minDays": "Fewer days than this car's minimum.",
+    "datesTaken": "That car was just taken for those dates. Try other dates.",
+    "driverTooYoung": "The driver is under this car's minimum age.",
+    "invalidRange": "The return date must be at least one day after the pickup date.",
+    "pastDate": "That pickup date is in the past.",
+    "rateLimited": "Too many requests from this number. Try again shortly."
   },
   "tickets": {
     "title": "Get your ticket",
@@ -1658,6 +1830,7 @@
     "mapLocation": "Location on the map",
     "mapHint": "Tap the map or drag the pin to your exact spot.",
     "locateMe": "My location",
+    "mapPinLabel": "Store location on the map — drag to adjust",
     "phone": "Phone number",
     "whatsapp": "WhatsApp",
     "description": "Short description",
@@ -1737,7 +1910,7 @@
     "openingHours": "Opening hours",
     "openingHoursPlaceholder": "e.g. 9 AM - 10 PM",
     "coverHint": "Best at 1200×400 (3:1). Keep the important part in the middle — the edges get trimmed on wide screens.",
-    "coverPosition": "Slide the photo up or down — what you see in the box is what customers see",
+    "coverPosition": "Which part of the photo to show — what you see in the box is what customers see",
     "coverPosTop": "Top of the photo",
     "coverPosMiddle": "Middle of the photo",
     "coverPosBottom": "Bottom of the photo",
@@ -1769,6 +1942,7 @@
     "staffNotFound": "No user found with that email — they need an account first.",
     "staffSelf": "You can't add yourself.",
     "staffAdded": "Added ✓",
+    "staffConfirmRemove": "Remove this staff member from the store? They lose access immediately.",
     "ordersCount": "orders",
     "save": "Save changes",
     "saving": "Saving…",
@@ -1896,6 +2070,14 @@
       "discountPrice": "Discounted price ($) — optional",
       "cost": "Cost price ($) — optional",
       "costHint": "What you paid per unit. Never shown to customers — it is only used to work out your real profit in reports.",
+      "soldByLabel": "How is this item sold?",
+      "soldByPiece": "By the piece",
+      "soldByWeight": "By weight",
+      "soldByVolume": "By volume",
+      "unitAmount": "Your price is the price for how much?",
+      "unitMeasure": "Measure",
+      "unitHint": "If your price is per kilo, enter 1 and kg and leave the price alone. To sell in half kilos, enter 0.5 and kg — and make the price the price of half a kilo, not of a kilo.",
+      "unitPerBase": "That works out to {price} per {measure}",
       "secPhotos": "Photos",
       "secBasics": "Basic information",
       "secPricing": "Pricing & stock",
@@ -1913,6 +2095,7 @@
       "back": "Back to my stores",
       "gallery": "Gallery images",
       "stock": "Stock (leave empty if untracked)",
+      "attributesTitle": "Specifications",
       "variantsTitle": "Variants (size, color…)",
       "variantLabel": "Variant label",
       "variantLabelPlaceholder": "e.g. Large - Red",
@@ -1991,6 +2174,9 @@
     },
     "settingsLink": "Settings",
     "settings": {
+      "returnPolicy": "Return policy",
+      "returnPolicyHint": "In your own words — e.g. returns within 3 days if unopened. Leave it blank and nothing is shown.",
+      "returnPolicyPlaceholder": "e.g. returns within 3 days if unopened",
       "title": "Store settings",
       "subtitle": "Operational settings shown to customers at checkout.",
       "fulfillment": "Fulfillment options",
@@ -2137,6 +2323,7 @@
       "products": "Add at least 3 items",
       "units": "Add your first unit (room/chalet)",
       "tickets": "Add ticket types",
+      "vehicles": "Add your first rental vehicle",
       "team": "Add your team",
       "costPrices": "Add cost prices to your items",
       "brandColor": "Pick your brand color",
@@ -2292,6 +2479,10 @@
     }
   },
   "admin": {
+    "sectionSupplyTitle": "Sections hidden from visitors",
+    "sectionSupplyBody": "These are not in the menu or the footer because they are empty. Their pages still work by URL and in search — we just do not send anyone there until there is something to find.",
+    "sectionSupplyEmpty": "Every section has content and is visible to visitors.",
+    "sectionSupplyNeeds": "needs at least one",
     "title": "Admin panel",
     "jumpTo": "Jump to section",
     "jumpToPlaceholder": "Type a section name…",
@@ -2300,6 +2491,7 @@
     "leaders": {
       "title": "Business leaders",
       "subtitle": "Review submitted profiles and publish, hide or delete them. {total} profiles · {drafts} awaiting review.",
+      "searchPlaceholder": "Search by name or sector…",
       "empty": "No business leaders yet",
       "feature": "Feature",
       "unfeature": "Unfeature",
@@ -2418,7 +2610,20 @@
       "approve": "Publish",
       "hide": "Hide",
       "delete": "Delete",
-      "deleteConfirm": "Delete this item permanently?"
+      "deleteConfirm": "Remove this item? It stops being public and can be restored.",
+      "select": "Select",
+      "selectAllVisible": "Select all {n} shown",
+      "selectedCount": "{n} selected",
+      "bulkApproveConfirm": "Publish {n} item(s)? They become visible to everyone.",
+      "bulkHideConfirm": "Hide {n} item(s)? They stop being public; you can publish them again from each row.",
+      "bulkDeleteTitle": "Remove several items",
+      "bulkDeleteConfirm": "Remove {n} item(s)? Each stops being public and is kept, so this can be undone right after.",
+      "bulkApproved": "{n} published.",
+      "bulkHidden": "{n} hidden.",
+      "bulkDeleted": "{n} removed.",
+      "bulkUndo": "Undo",
+      "bulkRestored": "{n} restored.",
+      "bulkPartial": "Only {done} of {total} went through. The rest were not changed — check and retry those."
     },
     "jobs": {
       "title": "Jobs management",
@@ -2466,9 +2671,16 @@
       "view": "View",
       "saveFailed": "Couldn't save. Make sure the slug is unique."
     },
+    "listSearch": {
+      "clear": "Clear search",
+      "window": "Search covers only the {n} most recent rows loaded.",
+      "matchCount": "{n} matching",
+      "noMatch": "Nothing matches “{q}”."
+    },
     "academyAdmin": {
       "title": "Academy management",
       "subtitle": "Create, edit and publish Academy guides without a code deploy.",
+      "searchPlaceholder": "Search by guide title or category…",
       "new": "New guide",
       "edit": "Edit",
       "delete": "Delete",
@@ -2562,6 +2774,7 @@
     "ordersAdmin": {
       "title": "Orders & reconciliation",
       "subtitle": "Recent platform orders with each order's payment & refund ledger.",
+      "searchPlaceholder": "Search by order number, phone or customer…",
       "empty": "No orders yet.",
       "totalCollected": "Total collected",
       "totalRefunded": "Total refunded",
@@ -2587,12 +2800,14 @@
     "reviews": {
       "title": "Review moderation",
       "subtitle": "Lowest-rated first, for review and moderation.",
+      "searchPlaceholder": "Search by store, customer or review text…",
       "empty": "No reviews.",
       "delete": "Delete"
     },
     "audit": {
       "title": "Audit log",
       "subtitle": "Record of sensitive platform actions.",
+      "searchPlaceholder": "Search by user, action or item…",
       "empty": "No entries.",
       "actor": "User",
       "action": "Action",
@@ -2618,7 +2833,9 @@
         "plan_changed": "Plan changed",
         "access_changed": "Access changed",
         "activated": "Activated",
-        "downgraded": "Downgraded"
+        "downgraded": "Downgraded",
+        "restored": "Restored",
+        "broadcast": "Broadcast"
       },
       "entities": {
         "store": "Store",
@@ -2793,7 +3010,10 @@
       "delete": "Delete",
       "confirmDelete": "Delete this type?",
       "empty": "No types yet. Add your first one.",
-      "inactiveBadge": "Inactive"
+      "inactiveBadge": "Inactive",
+      "unmappedTitle": "Business types with no group mapping",
+      "unmappedBody": "{n} type(s) below are not mapped to a top-level group. Every store created under them is filed under Shopping, and nobody is told:",
+      "unmappedFix": "Either rename the slug to a known sector, or add it to categoryGroup in src/lib/catalog.ts."
     },
     "reports": {
       "title": "Reports & analytics",
@@ -2933,6 +3153,30 @@
     "groupOrders": "Orders & bookings",
     "groupSaved": "Saved & messages",
     "groupSelling": "Selling on Matjar",
+    "deleteAccount": {
+      "title": "Delete account",
+      "hint": "You can delete your account here, without contacting anyone. Read what goes and what stays before you continue — this cannot be undone.",
+      "goneTitle": "Deleted for good",
+      "goneProfile": "Your profile: name, phone, photo and bio.",
+      "goneAddresses": "Saved delivery addresses ({n}).",
+      "goneSaved": "Your favourites, saved items, saved searches and the shops you follow.",
+      "goneMessages": "Your conversations with shops and the messages you sent.",
+      "goneListings": "Your market listings, gigs, job posts and wholesale offers ({n}).",
+      "goneLoyalty": "Your points, referrals and notifications.",
+      "staysTitle": "What stays",
+      "staysOrders": "Your past orders ({n}) stay with the shop as its sales record — but without your name, phone or address.",
+      "staysReviews": "Your reviews ({n}) stay published without your name: other shoppers rely on them and the shop rating is calculated from them.",
+      "staysCrm": "Shops you bought from keep your number in their own customer book, like any purchase that happened.",
+      "confirmHint": "To confirm, type your email: {email}",
+      "placeholder": "Your email",
+      "action": "Yes, delete my account",
+      "working": "Deleting…",
+      "mismatch": "That email does not match.",
+      "blockedStore": "You still own a shop on Matjar. We cannot delete your account while it is live, because the shop and every order your customers placed would go with it. Transfer ownership to someone else first, then come back here.",
+      "blockedStoreAction": "Go to my shop",
+      "blockedOrders": "You have {n} order(s) still in progress. Wait until they close, then delete — if we delete now the delivery address goes and the shop has nowhere to deliver.",
+      "blockedOrdersAction": "View my orders"
+    },
     "address": {
       "title": "Delivery addresses",
       "subtitle": "Save your detailed addresses so they auto-fill at checkout.",
@@ -3255,13 +3499,12 @@
       "campaigns": "Marketing and win-back campaigns",
       "hr": "Staff attendance and payroll",
       "verifiedBadge": "Verified badge",
-      "rentals": "Rentals (by the day or the week)",
+      "rentals": "Car rental by date — fleet, deposit, mileage limit",
       "onlinePayment": "Online card payment",
       "nativeApp": "Matjar app on the App Store and Google Play"
     },
     "featureNotes": {
       "verifiedBadge": "Send us your documents and we review them. It is a stricter check than the store review every shop already passes, no plan buys it, and no business has earned it yet.",
-      "rentals": "Renting by period — a car for three days, gear for a week. Hotels and chalets take dates through Stays; nothing else can rent yet.",
       "onlinePayment": "Orders are cash on delivery. Your plan is paid by arrangement with us, by hand.",
       "nativeApp": "The site works on any phone and installs to the home screen. It is not on the app stores yet."
     },
@@ -3376,6 +3619,10 @@
     "time": "Time",
     "notes": "Notes",
     "notesPlaceholder": "Any extra details?",
+    "patientStatus": "Is this your first visit here?",
+    "patientStatusHint": "Helps the clinic set aside the right time and pull your file.",
+    "patientNew": "First time",
+    "patientReturning": "Returning patient",
     "takenTimes": "Taken times on this date:",
     "slotTaken": "This time is already booked — pick another.",
     "pastSlot": "You can't book a time in the past — pick a later time.",
@@ -4038,6 +4285,7 @@
     "serviceCompleted": "Service completed",
     "adminScope": "Admin",
     "stayNew": "New stay booking request",
+    "rentalNew": "New car rental request",
     "membershipNew": "New subscription to your plan",
     "enrollNew": "New course enrollment",
     "ticketNew": "New ticket booking for your event",
@@ -4134,13 +4382,34 @@
     "bookThisService": "Book this service",
     "bookingLead": "Pick a time that suits you and confirm in seconds.",
     "durationLabel": "Duration: {n} min",
-    "boughtTogether": "Frequently bought together"
+    "boughtTogether": "Frequently bought together",
+    "codTitle": "You pay when the order reaches you",
+    "codBody": "Cash on receipt. We never ask you for a card or an online payment — not now, not later.",
+    "codDelivery": "You pay cash to the person who brings your order.",
+    "codPickup": "You pay cash at the store when you come to collect it.",
+    "codConfirmNote": "Confirming this order charges you nothing now. The money changes hands when you receive it."
   },
   "inquiry": {
     "title": "Your inquiry",
     "sentOn": "Sent on",
     "noMessage": "You didn't write a message — you just asked them to get in touch.",
     "aboutProduct": "About:"
+  },
+  "reportContent": {
+    "button": "Report a problem",
+    "title": "What's wrong here?",
+    "reasons": {
+      "fake": "This store or product isn't real",
+      "misleading": "Misleading information or prices",
+      "images": "Stolen or inappropriate images",
+      "prohibited": "Something that can't be sold",
+      "fraud": "Someone tried to defraud me",
+      "other": "Something else"
+    },
+    "sentTitle": "We have your report.",
+    "sentBody": "It is saved with its reason and the page it came from, and the Matjar team reviews it. We can't promise a specific turnaround.",
+    "urgent": "If it's urgent, or it cost you money, message us on WhatsApp.",
+    "waPrefill": "Hello, I want to report a problem with this page on Matjar: {url}"
   },
   "wishlist": {
     "title": "Wishlist",
@@ -4244,6 +4513,10 @@
     "reqSentTitle": "Request sent",
     "reqSentBody": "{name} has your request and will call you on the number you gave.",
     "reqBack": "Back to profile",
+    "reqPhotos": "Photos of the problem (optional)",
+    "reqPhotosHint": "One photo saves a trip — they see the situation before coming.",
+    "reqPhotosGuest": "Sign in if you want to attach photos.",
+    "reqPhotosFrom": "Photos from the customer",
     "adminTitle": "Tradespeople",
     "adminSubtitle": "{total} profiles · {pending} awaiting review.",
     "adminEmpty": "No tradespeople have registered yet.",
