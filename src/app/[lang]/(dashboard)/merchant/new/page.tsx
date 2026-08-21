@@ -9,6 +9,7 @@ import {
   type GroupKey,
 } from "@/lib/catalog";
 import { sectorConfig } from "@/lib/sectors";
+import { Check } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { StoreForm } from "@/components/store-form";
 
@@ -67,6 +68,30 @@ export default async function NewStorePage({
         <p className="mt-2 text-muted-foreground">
           {dict.merchant.createSubtitle}
         </p>
+
+        {/* ISS-021's remaining half. /merchants carries these four lines under
+            both of its "open your store" buttons, but this is the page where
+            the merchant is actually deciding — the form is directly below, and
+            the questions it raises (does this cost me anything, do they want my
+            bank details, who holds the money) are the ones that stop a Lebanese
+            shopkeeper signing up. Reused from merchantsPage.entryReassure
+            verbatim rather than written again: two copies of a promise about
+            money is two things to keep true. */}
+        <ul className="mt-5 space-y-2 rounded-2xl border border-border bg-surface-muted/50 p-4">
+          {dict.merchantsPage.entryReassure.map((line) => (
+            <li
+              key={line}
+              className="flex items-start gap-2 text-sm text-muted-foreground"
+            >
+              <Check
+                className="mt-0.5 h-4 w-4 shrink-0 text-success"
+                aria-hidden
+              />
+              <span>{line}</span>
+            </li>
+          ))}
+        </ul>
+
         <div className="mt-6">
           <StoreForm
             lang={lang}

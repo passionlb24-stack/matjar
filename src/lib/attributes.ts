@@ -214,12 +214,13 @@ export const categoryAttributes: Partial<Record<CategoryKey, AttrField[]>> = {
     // how every listing site does it. Not everything numeric is a range.
     { key: "rooms", ar: "عدد الغرف", en: "Bedrooms", type: "number", unit: { ar: "غرف", en: "bd" }, filter: true },
     { key: "bathrooms", ar: "الحمّامات", en: "Bathrooms", type: "number", unit: { ar: "حمّام", en: "ba" } },
-    // `range` without `filter`: see the MJ-013 note at the foot of the file.
-    // The only control that exists today turns a filterable field into a
-    // dropdown of its distinct values, which for an area or a mileage is one
-    // entry per listing. The range is declared; the flag that would render it
-    // as a dropdown is deliberately not set.
-    { key: "area", ar: "المساحة (م²)", en: "Area (m²)", type: "number", unit: { ar: "م²", en: "m²" }, range: true },
+    // `filter` + `range` together now mean "offer it, as two ends". Until the
+    // two-ended control existed, `filter` was withheld here because the only
+    // renderer turned a filterable field into a dropdown of its distinct
+    // values — one entry per listing for an area. attrControl() routes it away
+    // from that renderer, and the no-dropdown test now checks the routing
+    // rather than the flag.
+    { key: "area", ar: "المساحة (م²)", en: "Area (m²)", type: "number", unit: { ar: "م²", en: "m²" }, filter: true, range: true },
     {
       key: "furnished",
       ar: "مفروش",
@@ -240,8 +241,8 @@ export const categoryAttributes: Partial<Record<CategoryKey, AttrField[]>> = {
     // automotive has two stores and zero catalogue rows in production: there is
     // no stored value to preserve.
     { key: "model", ar: "الموديل", en: "Model", type: "text" },
-    { key: "year", ar: "السنة", en: "Year", type: "number", range: true },
-    { key: "mileage", ar: "المسافة (كم)", en: "Mileage (km)", type: "number", unit: { ar: "كم", en: "km" }, range: true },
+    { key: "year", ar: "السنة", en: "Year", type: "number", filter: true, range: true },
+    { key: "mileage", ar: "المسافة (كم)", en: "Mileage (km)", type: "number", unit: { ar: "كم", en: "km" }, filter: true, range: true },
     {
       key: "gearbox",
       ar: "ناقل الحركة",
@@ -363,15 +364,90 @@ export function attrRangeBounds(
   rows: readonly AttrRow[],
 ): { min: number; max: number } | null {
   if (!field.range) return null;
-  const values = rows
-    .map((r) => valueOf(r, field.key))
-    .filter((v) => v !== "")
-    .map(Number)
-    .filter((n) => Number.isFinite(n));
-  if (values.length < 2) return null;
-  const min = Math.min(...values);
-  const max = Math.max(...values);
+  return numericRangeBounds(
+    rows
+      .map((r) => valueOf(r, field.key))
+      .filter((v) => v !== "")
+      .map(Number),
+  );
+}
+
+/**
+ * The spread in a bag of numbers, or `null` when there is not one.
+ *
+ * The rule a range control needs, with nothing about attributes in it, because
+ * the one range a shopper can use today is PRICE — a real column, not a jsonb
+ * key. Both ends of MJ-013 ask the same question of their numbers and must not
+ * answer it two different ways.
+ */
+export function numericRangeBounds(
+  values: readonly number[],
+): { min: number; max: number } | null {
+  const finite = values.filter((n) => Number.isFinite(n));
+  if (finite.length < 2) return null;
+  const min = Math.min(...finite);
+  const max = Math.max(...finite);
   return min < max ? { min, max } : null;
+}
+
+/**
+ * How long a catalogue has to be before narrowing it by a range is a service
+ * rather than clutter.
+ *
+ * This is a judgement, not a measurement, so here is the judgement: on a 375px
+ * phone the product grid is two columns, about six rows fit across a couple of
+ * scrolls, and twelve items is the point where a shopper stops seeing the whole
+ * catalogue at once. Below that, a "from / to" pair asks them to do work in
+ * order to hide four things they could have read.
+ *
+ * It is deliberately a floor on the ROW COUNT and not on the spread: a spread
+ * of $1.99–$4.99 is a real spread, and a shopper with sixty such items has a
+ * real reason to cut it. `numericRangeBounds` already refuses the no-spread
+ * case separately.
+ */
+export const MIN_RANGE_ROWS = 12;
+
+/**
+ * The bounds of a price filter for a catalogue, or `null` when it should not be
+ * drawn.
+ *
+ * Callers pass the price the customer would actually PAY — `effectivePrice`,
+ * after discount and flash — because a slider whose ends disagree with the
+ * numbers printed on the cards is a slider that looks broken.
+ */
+export function priceRangeBounds(
+  prices: readonly number[],
+): { min: number; max: number } | null {
+  if (prices.length < MIN_RANGE_ROWS) return null;
+  return numericRangeBounds(prices);
+}
+
+/**
+ * Which control a filterable field gets.
+ *
+ * The registry used to keep range fields out of `filter` altogether, because
+ * the single renderer that existed would have turned a mileage into a dropdown
+ * of four hundred numbers. Now that both renderers exist, the invariant moves
+ * here: this function is the only thing that decides, and the test asserts no
+ * range field can reach the dropdown through it.
+ */
+export function attrControl(field: AttrField): "range" | "select" {
+  return field.range ? "range" : "select";
+}
+
+/** Is a stored attribute value inside the half-open bounds a shopper typed?
+ *  An unset end is not a constraint; an unparseable or absent value never
+ *  passes, exactly as a blank never matches an exact-match dropdown. */
+export function withinRange(
+  raw: string | undefined | null,
+  min: number | null,
+  max: number | null,
+): boolean {
+  const n = Number((raw ?? "").trim());
+  if (!Number.isFinite(n) || (raw ?? "").trim() === "") return false;
+  if (min != null && n < min) return false;
+  if (max != null && n > max) return false;
+  return true;
 }
 
 /**
@@ -390,7 +466,7 @@ export function attributeFilterFields(
     .filter((f) => f.filter && !f.legacy)
     .filter((f) =>
       f.range
-        ? attrRangeBounds(f, rows) !== null
+        ? rows.length >= MIN_RANGE_ROWS && attrRangeBounds(f, rows) !== null
         : attrFacetOptions(f, rows).length >= MIN_ATTR_FACET_OPTIONS,
     );
 }
@@ -431,21 +507,35 @@ export function attributeSummary(
 }
 
 // ---------------------------------------------------------------------------
-// MJ-013 — what is declared here and what is still missing
+// MJ-013 — what is wired, and what is wired but empty
 // ---------------------------------------------------------------------------
 //
-// `range: true` and attrRangeBounds() are the registry's half of the typed
-// range filter. The other half is the CONTROL — two numeric inputs on the
-// catalogue grid and a predicate that compares against them — and it lives in
-// store-products.tsx, which this change does not touch.
+// Both halves now exist. The registry's half is `range: true`,
+// attrRangeBounds() and priceRangeBounds() above; the control's half is
+// `components/store/catalogue-filters.tsx`, a "from / to" pair per range and a
+// predicate built from withinRange(). attrControl() is the seam, so a range can
+// no longer reach the dropdown renderer by someone setting one flag.
 //
-// That half was left undone on purpose rather than by omission. Every field
-// marked `range` belongs to realEstate or automotive, and in production those
-// two sectors have two stores between them and not one catalogue row. A
-// mileage slider over zero cars is the failure this file exists to prevent, so
-// the declaration lands first and the control follows the inventory.
+// WHAT THAT ACTUALLY RETURNS TODAY, measured against production rather than
+// assumed:
 //
-// The one range a buyer could use today is PRICE, which is not an attribute at
-// all — it is a column on products, populated on all sixty-one priced rows,
-// spanning $1.50 to $800 in retail alone. It needs no schema work, only the
-// same control; /market already has that control for the listings table.
+//   • area, year, mileage — declared, gated, and EMPTY. realEstate has one
+//     store and zero catalogue rows; automotive has two stores and zero. Not a
+//     single product row in the database carries any attribute value at all
+//     except `duration` on six clinic services. attributeFilterFields() returns
+//     [] for both sectors, which is the correct answer and the one the tests
+//     pin. These controls are ready for the first dealer who uploads a
+//     forecourt; nothing renders before then.
+//
+//   • price — the one range with real data behind it, on every priced row. It
+//     is not an attribute and is not in this registry's tables; it is gated by
+//     priceRangeBounds() and rendered by the same control. It is also, today,
+//     gated OUT: MIN_RANGE_ROWS is twelve and the two biggest storefronts hold
+//     eleven and ten items. That is the honest state — the control is correct,
+//     the catalogues are short, and the filter appears on its own when one of
+//     them grows past a screenful. Lowering the floor to make it visible now
+//     would be building the control for the screenshot rather than the shopper.
+//
+// `rooms` stays a dropdown on purpose. A flat is one, two, three or four
+// bedrooms and every listing site in the world picks that off a list. Not
+// everything numeric is a range.

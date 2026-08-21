@@ -8,7 +8,12 @@ import {
   attrRangeBounds,
   attributeFilterFields,
   attrCoverage,
+  attrControl,
+  numericRangeBounds,
+  priceRangeBounds,
+  withinRange,
   MIN_ATTR_FACET_OPTIONS,
+  MIN_RANGE_ROWS,
   type AttrRow,
 } from "@/lib/attributes";
 
@@ -179,18 +184,31 @@ describe("the attribute registry describes things products cannot already say", 
   });
 
   it("does not hand a range field to the dropdown renderer", () => {
-    // The only attribute-filter control that exists today (store-products.tsx)
-    // turns every `filter: true` field into a <select> of the distinct values
-    // present. For a mileage or an area that is one option per listing — a
-    // dropdown of four hundred numbers. Until a real two-ended control exists,
-    // a field cannot be both a range and a rendered filter.
+    // The dropdown renderer turns a filterable field into a <select> of the
+    // distinct values present. For a mileage or an area that is one option per
+    // listing — a dropdown of four hundred numbers.
+    //
+    // This used to be enforced by keeping `filter` off every range field, which
+    // also meant no range could ever be OFFERED. Now that catalogue-filters.tsx
+    // has a real two-ended control, the invariant is about ROUTING: attrControl
+    // is the single place that picks a renderer, and no range may come out of
+    // it as a dropdown, whatever its flags say.
     for (const [category, fields] of Object.entries(categoryAttributes)) {
       for (const f of fields ?? []) {
         if (!f.range) continue;
         expect(
-          f.filter ?? false,
+          attrControl(f),
           `${category}.${f.key} would render as a dropdown of every distinct value`,
-        ).toBe(false);
+        ).toBe("range");
+      }
+    }
+  });
+
+  it("sends everything that is not a range to the dropdown", () => {
+    for (const [category, fields] of Object.entries(categoryAttributes)) {
+      for (const f of fields ?? []) {
+        if (f.range) continue;
+        expect(attrControl(f), `${category}.${f.key}`).toBe("select");
       }
     }
   });
@@ -345,5 +363,109 @@ describe("a range needs a spread, not just a number", () => {
         { attributes: { ptype: "land" } },
       ]),
     ).toBeNull();
+  });
+});
+
+// ===========================================================================
+// MJ-013 — the control's half, and the floor that keeps it off short catalogues
+// ===========================================================================
+
+describe("a range is only offered to a catalogue long enough to need one", () => {
+  const rowsWith = (values: readonly string[]): AttrRow[] =>
+    values.map((area) => ({ attributes: { area } }));
+
+  it("withholds an attribute range from a catalogue below the floor", () => {
+    // Three flats of three different sizes DO spread — attrRangeBounds says so
+    // — and a "from / to" pair over three flats is still work asked of a
+    // shopper who can see all three.
+    const three = rowsWith(["85", "140", "300"]);
+    expect(attrRangeBounds(
+      (categoryAttributes.realEstate ?? []).find((f) => f.key === "area")!,
+      three,
+    )).not.toBeNull();
+    expect(
+      attributeFilterFields("realEstate", three).map((f) => f.key),
+    ).not.toContain("area");
+  });
+
+  it("offers it once the catalogue clears the floor", () => {
+    const many = rowsWith(
+      Array.from({ length: MIN_RANGE_ROWS }, (_, i) => String(80 + i * 10)),
+    );
+    expect(
+      attributeFilterFields("realEstate", many).map((f) => f.key),
+    ).toContain("area");
+  });
+
+  it("still withholds it when a long catalogue has no spread", () => {
+    const flat = rowsWith(Array.from({ length: MIN_RANGE_ROWS }, () => "140"));
+    expect(
+      attributeFilterFields("realEstate", flat).map((f) => f.key),
+    ).not.toContain("area");
+  });
+
+  it("leaves bedrooms a dropdown even though it is a number", () => {
+    const many: AttrRow[] = Array.from({ length: MIN_RANGE_ROWS }, (_, i) => ({
+      attributes: { rooms: String((i % 4) + 1) },
+    }));
+    const rooms = attributeFilterFields("realEstate", many).find(
+      (f) => f.key === "rooms",
+    );
+    expect(rooms).toBeTruthy();
+    expect(attrControl(rooms!)).toBe("select");
+  });
+});
+
+describe("the price range, which is the only one with data behind it", () => {
+  const spread = (n: number) => Array.from({ length: n }, (_, i) => 1 + i);
+
+  it("draws nothing for the catalogues that actually exist today", () => {
+    // misk holds eleven items and ملحمة البركة ten — the two biggest real
+    // storefronts on the platform. Both sit under the floor, so neither shows
+    // a price filter, and that is the intended answer rather than a bug.
+    expect(priceRangeBounds(spread(11))).toBeNull();
+    expect(priceRangeBounds(spread(10))).toBeNull();
+  });
+
+  it("draws one for a catalogue that has outgrown a screenful", () => {
+    expect(priceRangeBounds(spread(MIN_RANGE_ROWS))).toEqual({
+      min: 1,
+      max: MIN_RANGE_ROWS,
+    });
+  });
+
+  it("draws nothing when a long catalogue is priced flat", () => {
+    expect(
+      priceRangeBounds(Array.from({ length: 40 }, () => 7.5)),
+    ).toBeNull();
+  });
+
+  it("shares its spread rule with the attribute ranges", () => {
+    expect(numericRangeBounds([])).toBeNull();
+    expect(numericRangeBounds([5])).toBeNull();
+    expect(numericRangeBounds([5, 5])).toBeNull();
+    expect(numericRangeBounds([5, NaN, 9])).toEqual({ min: 5, max: 9 });
+  });
+});
+
+describe("the range predicate", () => {
+  it("treats an unset end as no constraint", () => {
+    expect(withinRange("2018", null, null)).toBe(true);
+    expect(withinRange("2018", 2015, null)).toBe(true);
+    expect(withinRange("2018", null, 2015)).toBe(false);
+  });
+
+  it("includes both ends", () => {
+    expect(withinRange("2015", 2015, 2020)).toBe(true);
+    expect(withinRange("2020", 2015, 2020)).toBe(true);
+    expect(withinRange("2021", 2015, 2020)).toBe(false);
+  });
+
+  it("never passes a row that does not carry the value", () => {
+    // The same rule the exact-match dropdown already follows: a blank does not
+    // quietly match. A car with no mileage recorded is not "under 50,000 km".
+    for (const raw of ["", "   ", null, undefined, "not a number"]) {
+      expect(withinRange(raw, 0, 100000)).toBe(false);
+    }
   });
 });

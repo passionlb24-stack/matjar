@@ -4,35 +4,42 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Minus, Plus, ShoppingCart, MessageCircle, Zap } from "lucide-react";
+import { ShoppingCart, MessageCircle } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { categoryStyles, type CategoryKey } from "@/lib/catalog";
-import { attributeSummary, categoryAttributes } from "@/lib/attributes";
-import { effectivePrice, compareAtPrice, isFlashActive } from "@/lib/pricing";
+import { attributeSummary } from "@/lib/attributes";
+import { effectivePrice } from "@/lib/pricing";
 import { waLink, buildOrderMessage } from "@/lib/whatsapp";
 import { formatUsd } from "@/lib/currency";
-import {
-  unitPricingOf,
-  pricePerBase,
-  baseMeasure,
-  isWholeBaseUnit,
-  formatQuantityMeasure,
-  MEASURE_LABELS,
-  type UnitPricing,
-} from "@/lib/unit-pricing";
-import { deliveryWindows, scheduledForIso } from "@/lib/delivery-windows";
 import type { WeekHours } from "@/lib/hours";
 import { localized } from "@/lib/i18n-field";
 import { groupBySection, type SectionInfo } from "@/lib/sections";
 import { categoryIcons } from "@/components/category-icon";
-import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { PriceTag, BundleIncludes } from "@/components/store/product-price";
+import { QuantityStepper } from "@/components/store/quantity-stepper";
+import { CartSheet } from "@/components/store/cart-sheet";
 import {
-  CheckoutForm,
-  type PlacedOrder,
-} from "@/components/checkout/checkout-form";
-import { OrderPlaced } from "@/components/checkout/order-placed";
+  DeliveryWindow,
+  NO_WINDOW,
+  windowIso,
+  type WindowPick,
+} from "@/components/store/delivery-window";
+import { CatalogueFilters } from "@/components/store/catalogue-filters";
+import {
+  applyFilters,
+  emptyFilters,
+  filtersActive,
+  type CatalogueFilterState,
+} from "@/lib/catalogue-filters";
+// The two components below are the only heavy things on this page that a
+// browsing visitor never sees, so they are the only ones fetched late. The
+// TYPE comes from the real module — `import type` is erased, it opens no
+// dependency — while the component itself comes from the thunk. See
+// store/lazy-checkout.tsx for why that thunk has to be a client module.
+import type { PlacedOrder } from "@/components/checkout/checkout-form";
+import { CheckoutForm, OrderPlaced } from "@/components/store/lazy-checkout";
 import { newIdempotencyKey } from "@/lib/checkout";
 import type {
   CheckoutItem,
@@ -45,6 +52,38 @@ import type {
 // checkout contract in src/lib/checkout.ts — re-exported here only so the
 // existing importers (store-products-section, the store page) keep working.
 export type { DeliveryZone } from "@/lib/checkout";
+
+// ===========================================================================
+// What is in this file, and what deliberately is not — M-017
+// ===========================================================================
+//
+// The audit row describes 1,540 lines carrying "catalogue, cart, coupon,
+// loyalty and checkout at once". Most of that had already gone: the arithmetic
+// to `lib/checkout.ts`, the form to `checkout/checkout-form.tsx`, the sector
+// engines to `store/lazy-engines.tsx`. What was left was 921 lines, and the
+// remaining split was made along what the CUSTOMER is doing, not along a line
+// budget:
+//
+//   • narrowing the catalogue → store/catalogue-filters.tsx (and MJ-013's new
+//     range control landed there rather than growing this file again)
+//   • reading a price          → store/product-price.tsx
+//   • changing a quantity      → store/quantity-stepper.tsx
+//   • checking the basket      → store/cart-sheet.tsx
+//   • choosing a delivery slot → store/delivery-window.tsx
+//   • paying                   → checkout/, and now fetched on demand
+//
+// WHAT STAYED, ON PURPOSE. The cart itself — `cart`, `setQty`, the two
+// localStorage effects, `items`, `total`, `lines`, `orderItems`, `waUrl`, the
+// idempotency key and the placed order — is one piece of state that the
+// storefront, the sticky bar, the sheet and the checkout all read. Splitting it
+// would put a second component in charge of part of the basket, and this is the
+// money path.
+//
+// `renderList` and `Card` stayed for the plainer reason: a product card reads
+// the cart, the setter, the layout, the sector's icon, the sector's gradient,
+// the locale, the dictionary and the add-to-cart label. Lifting it out means
+// threading eight or nine props to save a hundred lines of JSX that nothing
+// else renders — the cure the audit row explicitly warns against.
 
 type Product = {
   id: string;
@@ -75,104 +114,6 @@ type Product = {
   unitMeasure?: string | null;
   unitAmount?: number | null;
 };
-
-/**
- * "/ كيلو" after the price, and the per-kilo rate when a unit is not a whole
- * one.
- *
- * This is the fix MJ-010 is actually about. The butcher's cards read "$7.50"
- * today, and $7.50 is what he charges for a KILO of minced beef — the unit was
- * never anywhere on the screen, in the database or in the order. Nothing about
- * the money changes here; the unit that was always implied is simply printed.
- *
- * For a unit that is not one whole kilo (say 250 g at $1.88) both are shown:
- * what you pay for one unit, and what that works out to per kilo. The second is
- * the number a shopper compares against the shop down the road, and deriving it
- * for them is the difference between an honest price and an arithmetic puzzle.
- */
-function UnitSuffix({
-  unit,
-  unitPrice,
-  lang,
-}: {
-  unit: UnitPricing;
-  unitPrice: number;
-  lang: Locale;
-}) {
-  const l = lang === "ar" ? "ar" : "en";
-  const per = MEASURE_LABELS[unit.measure][l];
-  if (isWholeBaseUnit(unit)) {
-    return (
-      <span className="text-xs font-semibold text-muted-foreground">
-        {" / "}
-        {per}
-      </span>
-    );
-  }
-  const base = baseMeasure(unit);
-  return (
-    <>
-      <span className="text-xs font-semibold text-muted-foreground">
-        {" / "}
-        {formatQuantityMeasure(unit, 1, l)}
-      </span>
-      <span className="text-xs font-normal text-muted-foreground">
-        {"· "}
-        <span className="text-money">{formatUsd(pricePerBase(unitPrice, unit))}</span>
-        {` / ${MEASURE_LABELS[base][l]}`}
-      </span>
-    </>
-  );
-}
-
-function PriceTag({ p, lang }: { p: Product; lang: Locale }) {
-  const eff = effectivePrice(p);
-  const compare = compareAtPrice(p);
-  const flash = isFlashActive(p);
-  const unit = unitPricingOf(p);
-  return (
-    <span className="sf-price inline-flex flex-wrap items-center gap-x-1.5">
-      {/* .text-money = tabular numerals + LTR bidi isolation, the house rule
-          for currency inside Arabic text (globals.css). */}
-      <span
-        className={`text-money font-bold ${flash ? "text-warning" : "text-primary"}`}
-      >
-        {formatUsd(eff)}
-      </span>
-      {/* The unit rides immediately after the amount, before the struck-through
-          compare-at price, so "$5 / كيلو  $6" reads as one price and its old
-          value rather than as two prices with a unit between them. */}
-      {unit && <UnitSuffix unit={unit} unitPrice={eff} lang={lang} />}
-      {compare != null && (
-        <span className="text-money text-xs font-normal text-muted-foreground line-through">
-          {formatUsd(compare)}
-        </span>
-      )}
-      {flash && <Zap className="h-3.5 w-3.5 fill-accent text-accent" />}
-    </span>
-  );
-}
-
-// "يشمل: 2× X · 1× Y" under a bundle's name so shoppers see what's inside.
-function BundleIncludes({
-  p,
-  lang,
-  label,
-}: {
-  p: Product;
-  lang: Locale;
-  label: string;
-}) {
-  if (!p.isBundle || !p.includes?.length) return null;
-  return (
-    <p className="mt-0.5 text-xs text-muted-foreground">
-      <span className="font-semibold text-primary">{label} </span>
-      {p.includes
-        .map((it) => `${it.quantity}× ${localized(it.name, it.nameEn, lang)}`)
-        .join(" · ")}
-    </p>
-  );
-}
 
 const GRID_CATEGORIES = new Set<CategoryKey>([
   "retail",
@@ -246,34 +187,13 @@ export function StoreProducts({
 
   const [checkingOut, setCheckingOut] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
-  // Delivery window. Empty = order now, which is what every order has been
-  // until this existed, so leaving it alone changes nothing.
-  const [windowDate, setWindowDate] = useState("");
-  const [windowTime, setWindowTime] = useState("");
-  // The clock is read AFTER mount, never during render.
-  //
-  // This component is a client component but it is still server-rendered, and
-  // `deliveryWindows(hours, new Date())` in the render body would be evaluated
-  // twice against two different clocks in two different zones: on the server
-  // (UTC on Vercel) and again in the browser (UTC+3 in Beirut). `daySpan` keys
-  // off `getDay()` and the dates are built from local parts, so the two runs
-  // can disagree about which slots exist and even about which DAY it is —
-  // a hydration mismatch on the money path. Same reason the cart above reads
-  // localStorage in an effect rather than during render.
-  const [now, setNow] = useState<Date | null>(null);
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    setNow(new Date());
-  }, []);
-  /* eslint-enable react-hooks/set-state-in-effect */
-  // Null until mounted, so the server renders no picker at all rather than one
-  // built from the wrong timezone. The server re-checks and drops a past time
-  // regardless (0194), so a list that ages while the customer types is safe.
-  const windows = now ? deliveryWindows(hours, now) : [];
-  const daySlots = windows.find((w) => w.date === windowDate)?.slots ?? [];
-  // A day without a time is not a window: it sends nothing, and the order is an
-  // ordinary order-now.
-  const scheduledFor = scheduledForIso(windowDate, windowTime);
+  // The chosen delivery window. Kept HERE rather than inside the picker
+  // because the picker lives in the checkout panel and unmounts whenever the
+  // basket empties — a shopper who clears their cart, changes their mind and
+  // refills it keeps the slot they had chosen, exactly as before the split.
+  // Empty = order now, which is what every order has been until this existed.
+  const [windowPick, setWindowPick] = useState<WindowPick>(NO_WINDOW);
+  const scheduledFor = windowIso(windowPick);
   // One idempotency key per checkout ATTEMPT — re-minted every time the
   // customer enters the checkout, so a basket they edited and re-confirmed is
   // a new order rather than the RPC handing back the earlier one.
@@ -283,23 +203,15 @@ export function StoreProducts({
   // WhatsApp message — is derived from the cart.
   const [placed, setPlaced] = useState<PlacedOrder | null>(null);
 
-  // Listing filters (realEstate/automotive): buyers narrow the grid by the
-  // sector's filterable attributes (purpose, rooms, gearbox, fuel…). Only fields
-  // marked filter:true, and only when some product actually carries a value.
-  const [attrFilters, setAttrFilters] = useState<Record<string, string>>({});
-  const filterFields = (categoryAttributes[category] ?? []).filter(
-    (f) => f.filter,
-  );
-
-  // Brand filter (Salla parity): distinct brands present in the catalogue. A
-  // brand link from a product page arrives via ?brand= as initialBrand.
-  const brands = [
-    ...new Set(
-      products.map((p) => p.brand?.trim()).filter((b): b is string => !!b),
+  // What the shopper has narrowed the grid to. Brand arrives pre-set when a
+  // product page linked here with ?brand=.
+  const [filters, setFilters] = useState<CatalogueFilterState>(() =>
+    emptyFilters(
+      initialBrand &&
+        products.some((p) => (p.brand?.trim() ?? "") === initialBrand)
+        ? initialBrand
+        : null,
     ),
-  ].sort((a, b) => a.localeCompare(b));
-  const [brand, setBrand] = useState<string | null>(
-    initialBrand && brands.includes(initialBrand) ? initialBrand : null,
   );
 
   const Icon = categoryIcons[category];
@@ -383,49 +295,6 @@ export function StoreProducts({
     setPlaced(order);
     setCart({}); // clears the persisted cart via the storage effect
     router.refresh();
-  }
-
-  function Stepper({ id, qty }: { id: string; qty: number }) {
-    const p = products.find((x) => x.id === id);
-    const atMax = p?.stock != null && qty >= p.stock;
-    // A weight-sold line counts in kilos, not in nameless units. The stepper
-    // still increments the same integer `quantity` the RPC receives — only the
-    // label between the buttons changes, from "2" to "2 كيلو". Rendered LTR
-    // with tabular figures for the same bidi reason money is: "500 غ" inside an
-    // RTL row otherwise resolves its number and its unit against each other.
-    const unit = p ? unitPricingOf(p) : null;
-    const readout = unit
-      ? formatQuantityMeasure(unit, qty, lang === "ar" ? "ar" : "en")
-      : String(qty);
-    return (
-      <div className="flex items-center gap-2">
-        {/* 32px squares are what the design wants and 44px is what a thumb
-            needs, so the hit area is extended with a transparent pseudo-element
-            rather than growing the buttons. These are the most-tapped controls
-            in the whole shopping flow. */}
-        <button
-          onClick={() => setQty(id, qty - 1)}
-          className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-border transition-colors before:absolute before:-inset-1.5 before:content-[''] hover:bg-surface-muted"
-          aria-label="-"
-        >
-          <Minus className="h-4 w-4" />
-        </button>
-        <span
-          dir="ltr"
-          className={`text-center font-bold tabular-nums ${unit ? "min-w-16" : "w-5"}`}
-        >
-          {readout}
-        </span>
-        <button
-          onClick={() => setQty(id, qty + 1)}
-          disabled={atMax}
-          className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-border transition-colors before:absolute before:-inset-1.5 before:content-[''] hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-40"
-          aria-label="+"
-        >
-          <Plus className="h-4 w-4" />
-        </button>
-      </div>
-    );
   }
 
   function Card({ p }: { p: Product }) {
@@ -514,7 +383,12 @@ export function StoreProducts({
                       {dict.store.chooseOption}
                     </Link>
                   ) : qty > 0 ? (
-                    <Stepper id={p.id} qty={qty} />
+                    <QuantityStepper
+                      product={p}
+                      qty={qty}
+                      lang={lang}
+                      onChange={(next) => setQty(p.id, next)}
+                    />
                   ) : (
                     <button
                       onClick={() => setQty(p.id, 1)}
@@ -578,7 +452,12 @@ export function StoreProducts({
                   {dict.store.chooseOption}
                 </Link>
               ) : qty > 0 ? (
-                <Stepper id={p.id} qty={qty} />
+                <QuantityStepper
+                  product={p}
+                  qty={qty}
+                  lang={lang}
+                  onChange={(next) => setQty(p.id, next)}
+                />
               ) : (
                 <button
                   onClick={() => setQty(p.id, 1)}
@@ -594,32 +473,7 @@ export function StoreProducts({
     );
   }
 
-  // Per-field selectable values: select fields use their fixed options; text/
-  // number fields (brand, rooms) derive distinct values actually present.
-  function fieldChoices(f: (typeof filterFields)[number]) {
-    if (f.type === "select") return f.options ?? [];
-    const seen = new Map<string, string>();
-    for (const p of products) {
-      const v = p.attributes?.[f.key];
-      if (v && !seen.has(v)) seen.set(v, v);
-    }
-    return [...seen.keys()]
-      .sort((a, b) =>
-        f.type === "number" ? Number(a) - Number(b) : a.localeCompare(b),
-      )
-      .map((v) => ({ value: v, ar: v, en: v }));
-  }
-
-  const activeFilters = Object.entries(attrFilters).filter(([, v]) => v);
-  const filteredProducts = products.filter((p) => {
-    if (brand && (p.brand?.trim() ?? "") !== brand) return false;
-    return activeFilters.every(([k, v]) => (p.attributes?.[k] ?? "") === v);
-  });
-
-  // Only worth showing when this sector has filterable fields with real values.
-  const shownFilterFields = filterFields.filter(
-    (f) => fieldChoices(f).length > 0,
-  );
+  const filteredProducts = applyFilters(products, filters);
 
   // Group for display when the store defined sections; otherwise one flat list
   // (no headers, no regression). Cart/total logic still uses the full `products`.
@@ -627,68 +481,17 @@ export function StoreProducts({
 
   return (
     <div>
-      {brands.length > 1 && (
-        <div className="mb-4 flex flex-wrap items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => setBrand(null)}
-            className={`rounded-full border px-3.5 py-1.5 text-sm font-bold transition-colors ${
-              brand === null
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border text-muted-foreground hover:border-primary/40"
-            }`}
-          >
-            {dict.store.allBrands}
-          </button>
-          {brands.map((b) => (
-            <button
-              key={b}
-              type="button"
-              onClick={() => setBrand(b)}
-              className={`rounded-full border px-3.5 py-1.5 text-sm font-bold transition-colors ${
-                brand === b
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border text-muted-foreground hover:border-primary/40"
-              }`}
-            >
-              {b}
-            </button>
-          ))}
-        </div>
-      )}
-      {isGrid && shownFilterFields.length > 0 && (
-        <div className="mb-5 flex flex-wrap items-center gap-2">
-          {shownFilterFields.map((f) => (
-            <select
-              key={f.key}
-              value={attrFilters[f.key] ?? ""}
-              onChange={(e) =>
-                setAttrFilters((s) => ({ ...s, [f.key]: e.target.value }))
-              }
-              className="rounded-full border border-border bg-surface px-3.5 py-1.5 text-sm font-semibold outline-none transition-colors focus:border-primary"
-            >
-              <option value="">{lang === "ar" ? f.ar : f.en}</option>
-              {fieldChoices(f).map((o) => (
-                <option key={o.value} value={o.value}>
-                  {lang === "ar" ? o.ar : o.en}
-                </option>
-              ))}
-            </select>
-          ))}
-          {activeFilters.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setAttrFilters({})}
-              className="rounded-full px-3 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {dict.store.clearFilters}
-            </button>
-          )}
-        </div>
-      )}
+      <CatalogueFilters
+        lang={lang}
+        dict={dict}
+        category={category}
+        products={products}
+        showAttributeFilters={isGrid}
+        value={filters}
+        onChange={setFilters}
+      />
 
-      {(brand || (isGrid && shownFilterFields.length > 0)) &&
-      filteredProducts.length === 0 ? (
+      {filtersActive(filters) && filteredProducts.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
           {dict.store.noMatches}
         </div>
@@ -727,65 +530,19 @@ export function StoreProducts({
               hidden={!checkingOut}
               className="mt-6 rounded-2xl border border-border bg-surface p-5 shadow-sm"
             >
-              {/* Delivery window. Derived from stores.hours, so the only times
-                  offered are times this shop is actually open — the existing
-                  picker on the product page is a bare datetime-local that will
-                  cheerfully take 3am. Hidden altogether when the merchant has
-                  set no hours: a picker with nothing safe to offer is worse
-                  than none. Rides to the server inside p_custom_fields, which
-                  is the channel 0194 already reads — no schema, no RPC change,
-                  and "order now" stays the default. */}
-              {windows.length > 0 && (
-                <div className="mb-5">
-                  <span className="text-sm font-semibold">
-                    {dict.store.windowTitle}
-                  </span>
-                  <div className="mt-1.5 grid gap-2 sm:grid-cols-2">
-                    <select
-                      aria-label={dict.store.windowTitle}
-                      value={windowDate}
-                      onChange={(e) => {
-                        setWindowDate(e.target.value);
-                        setWindowTime("");
-                      }}
-                      className="h-11 rounded-xl border border-border bg-surface px-3 text-sm font-semibold outline-none transition-colors focus:border-primary"
-                    >
-                      <option value="">{dict.store.windowAsap}</option>
-                      {windows.map((w, i) => (
-                        <option key={w.date} value={w.date}>
-                          {i === 0
-                            ? dict.store.windowToday
-                            : i === 1
-                              ? dict.store.windowTomorrow
-                              : new Date(`${w.date}T12:00`).toLocaleDateString(
-                                  lang === "ar" ? "ar-LB" : "en-GB",
-                                  { weekday: "long", day: "numeric", month: "short" },
-                                )}
-                        </option>
-                      ))}
-                    </select>
-                    {windowDate && (
-                      <select
-                        aria-label={dict.store.windowTime}
-                        dir="ltr"
-                        value={windowTime}
-                        onChange={(e) => setWindowTime(e.target.value)}
-                        className="h-11 rounded-xl border border-border bg-surface px-3 text-sm font-semibold tabular-nums outline-none transition-colors focus:border-primary"
-                      >
-                        <option value="">{dict.store.windowTime}</option>
-                        {daySlots.map((s) => (
-                          <option key={s} value={s}>
-                            {s}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-                  <p className="mt-1.5 text-xs text-muted-foreground">
-                    {dict.store.windowHint}
-                  </p>
-                </div>
-              )}
+              {/* Derived from stores.hours, so the only times offered are times
+                  this shop is actually open — the picker on the product page is
+                  a bare datetime-local that will cheerfully take 3am. Rides to
+                  the server inside p_custom_fields, the channel 0194 already
+                  reads: no schema, no RPC change, and "order now" stays the
+                  default. */}
+              <DeliveryWindow
+                lang={lang}
+                dict={dict}
+                hours={hours}
+                value={windowPick}
+                onChange={setWindowPick}
+              />
               <CheckoutForm
                 lang={lang}
                 dict={dict}
@@ -851,71 +608,19 @@ export function StoreProducts({
         )
       )}
 
-      {/* The cart, on demand: lines, quantities and the running total —
-          everything the sticky bar summarises but had no room to show. The
-          steppers here are the same component the product list uses, so a
-          quantity change is one code path, not two that can disagree. */}
-      <BottomSheet
+      <CartSheet
         open={cartOpen}
         onClose={() => setCartOpen(false)}
-        title={dict.store.yourOrder}
-        closeLabel={dict.common.close}
-        footer={
-          <button
-            type="button"
-            onClick={() => {
-              setCartOpen(false);
-              startCheckout();
-            }}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary font-bold text-primary-foreground"
-          >
-            {dict.store.checkout} · {formatUsd(total)}
-          </button>
-        }
-      >
-        <ul className="divide-y divide-border">
-          {items.map((p) => (
-            <li key={p.id} className="flex items-center gap-3 py-3">
-              <span className="min-w-0 flex-1">
-                <span className="block truncate font-semibold">{p.name}</span>
-                {/* The rate, with its unit. A weight line's own weight is on
-                    the stepper beside it, so repeating it here would say the
-                    same thing twice; what the line needs is the price the total
-                    was worked out FROM, so the customer can check it.
-                    Deliberately NOT the full PriceTag: that would add a
-                    struck-through compare-at price and a flash bolt to every
-                    piece-priced line too, and this change is not allowed to
-                    restyle products that have nothing to do with it. */}
-                <span className="text-sm tabular-nums text-muted-foreground">
-                  {formatUsd(effectivePrice(p))}
-                  {(() => {
-                    const u = unitPricingOf(p);
-                    return u ? (
-                      <UnitSuffix unit={u} unitPrice={effectivePrice(p)} lang={lang} />
-                    ) : null;
-                  })()}
-                </span>
-              </span>
-              <Stepper id={p.id} qty={cart[p.id]} />
-              <span className="w-16 shrink-0 text-end font-bold tabular-nums">
-                {formatUsd(effectivePrice(p) * cart[p.id])}
-              </span>
-            </li>
-          ))}
-        </ul>
-        {/* The one honest disclosure, and it is about the CUT, not the money.
-            See the long note in src/lib/unit-pricing.ts: the total is exact
-            because the ordered weight is what the order says and what the shop
-            cuts to. What genuinely varies is the last few grams of a hand-cut
-            piece, so that is what this sentence says — and nothing more, because
-            a warning that the total might change would be promising a
-            correction this platform has no way to make. */}
-        {items.some((p) => unitPricingOf(p) !== null) && (
-          <p className="mt-3 rounded-xl bg-surface-muted/60 px-3.5 py-2.5 text-xs leading-relaxed text-muted-foreground">
-            {dict.store.weighedNote}
-          </p>
-        )}
-      </BottomSheet>
+        lang={lang}
+        dict={dict}
+        lines={items.map((p) => ({ product: p, qty: cart[p.id] }))}
+        total={total}
+        onSetQty={setQty}
+        onCheckout={() => {
+          setCartOpen(false);
+          startCheckout();
+        }}
+      />
     </div>
   );
 }

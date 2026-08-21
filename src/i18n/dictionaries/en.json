@@ -514,7 +514,14 @@
       "confirmDelete": "Delete this branch?",
       "cantDeletePrimary": "You can't delete the primary branch — make another branch primary first.",
       "makePrimary": "Make primary branch",
-      "branchLabel": "Branch"
+      "branchLabel": "Branch",
+      "hoursTitle": "Branch hours",
+      "hoursInherit": "Same hours as the store",
+      "hoursOwn": "This branch has its own hours",
+      "stockTitle": "Stock across branches",
+      "stockShared": "All your branches sell from one shared stock pool. If a product has 3 left, that is 3 for the whole store — not 3 at each branch.",
+      "stockSeparateLabel": "My branches keep their own separate stock",
+      "stockSeparateNote": "Noted. Matjar does not track stock per branch yet, so your branches still share one pool and nothing about your orders changes. We use this to decide who gets per-branch stock first."
     },
     "branchesPublic": {
       "title": "Branches"
@@ -1577,6 +1584,9 @@
     "chooseBranch": "Choose branch",
     "clearFilters": "Clear filters",
     "allBrands": "All brands",
+    "priceRange": "Price",
+    "rangeFrom": "From",
+    "rangeTo": "To",
     "deliveryZone": "Delivery area",
     "freeDelivery": "Free delivery",
     "zoneEta": "Arrives in about {min}–{max} minutes",
