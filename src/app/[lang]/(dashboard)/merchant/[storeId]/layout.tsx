@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
-import type { CategoryKey } from "@/lib/catalog";
+import { toCategoryKey } from "@/lib/catalog";
 import {
   getSector,
   OS_GROUPS,
@@ -87,7 +87,7 @@ export default async function StoreOsLayout({
       )
     : 0;
   const effectivePlan = resolvePlan(s.plan, s.trial_ends_at);
-  const category = (s.business_types?.slug as CategoryKey) ?? "retail";
+  const category = toCategoryKey(s.business_types?.slug, `store ${storeId}`);
   const sector = getSector(category);
 
   // Owner sees every module; staff only what they were granted.

@@ -10,6 +10,7 @@ import {
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
+import { getSectionSupply } from "@/lib/data/section-supply";
 import { Container } from "@/components/ui/container";
 import {
   AdminAttentionQueue,
@@ -21,6 +22,7 @@ import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { AdminBroadcast } from "@/components/admin-broadcast";
+import { AdminSectionSupply } from "@/components/admin-section-supply";
 import { PushNotice } from "@/components/push-notice";
 import { AdminStoreActions } from "@/components/admin-store-actions";
 import { AdminReviewDelete } from "@/components/admin-review-delete";
@@ -83,6 +85,10 @@ export default async function AdminOverviewPage({
   const { data: queueData } = await supabase.rpc("admin_attention_queue");
   const queue = (queueData ?? {}) as AttentionQueue;
 
+  // Which verticals are hidden from navigation, and by how much. The gate is
+  // automatic and was previously invisible — see admin-section-supply.tsx.
+  const sectionSupply = await getSectionSupply();
+
   const initial = (name: string) => name.trim().charAt(0).toUpperCase() || "?";
 
   return (
@@ -104,6 +110,7 @@ export default async function AdminOverviewPage({
             body={dict.push.adminNoticeBody}
           />
           <AdminAttentionQueue queue={queue} lang={lang} dict={dict} />
+          <AdminSectionSupply rows={sectionSupply} dict={dict} />
           <StatGrid>
             <Stat
               label={dict.admin.totalStores}

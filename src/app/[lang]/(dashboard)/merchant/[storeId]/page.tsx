@@ -13,7 +13,7 @@ import { ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
-import type { CategoryKey } from "@/lib/catalog";
+import { toCategoryKey, type CategoryKey } from "@/lib/catalog";
 import {
   getSector,
   resolveStoreModules,
@@ -158,7 +158,7 @@ export default async function StoreOsHomePage({
     status_changed_at: string | null;
     business_types: { slug: string; name_ar: string; name_en: string } | null;
   };
-  const category = (s.business_types?.slug as CategoryKey) ?? "retail";
+  const category = toCategoryKey(s.business_types?.slug, `store ${storeId}`);
   const sector = getSector(category);
   /** Nothing public exists for this store yet — no page, no shareable link. */
   const isPending = s.status !== "active";

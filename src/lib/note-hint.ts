@@ -9,7 +9,7 @@
 // own. The rest fall back to a neutral prompt rather than an invented one —
 // a wrong example is worse than a plain one.
 
-import type { CategoryKey } from "@/lib/catalog";
+import { isCategoryKey, type CategoryKey } from "@/lib/catalog";
 
 export type NoteHintKey =
   | "default"
@@ -31,8 +31,14 @@ const BY_SECTOR: Partial<Record<CategoryKey, NoteHintKey>> = {
   beauty: "beauty",
 };
 
-/** Unknown or note-less sectors get the neutral prompt. */
+/** Unknown or note-less sectors get the neutral prompt.
+ *
+ *  Checked with `isCategoryKey`, not narrowed with `toCategoryKey`: the fallback
+ *  that belongs here is the neutral prompt, not retail's. Sending an
+ *  unrecognised sector through `toCategoryKey` would hand a shopper retail's
+ *  hint — an invented example, which is the exact failure this table exists to
+ *  avoid. Same result as the old assertion, minus the assertion. */
 export function noteHintKey(category?: string | null): NoteHintKey {
-  if (!category) return "default";
-  return BY_SECTOR[category as CategoryKey] ?? "default";
+  if (!isCategoryKey(category)) return "default";
+  return BY_SECTOR[category] ?? "default";
 }

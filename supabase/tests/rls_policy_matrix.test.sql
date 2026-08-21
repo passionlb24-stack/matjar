@@ -463,7 +463,15 @@ begin
     jsonb_build_object('t','reviews',          'c','store_id',  'v',v_store_a),
     jsonb_build_object('t','product_reviews',  'c','product_id','v',v_pub_a),
     jsonb_build_object('t','product_questions','c','product_id','v',v_pub_a),
-    jsonb_build_object('t','store_classes',    'c','store_id',  'v',v_store_a));
+    jsonb_build_object('t','store_classes',    'c','store_id',  'v',v_store_a),
+    -- Added when 0302 made store_locations WRITES owner-only. Its read is
+    -- deliberately NOT narrowed: it carries the branch list on every public
+    -- store page. That is the exact accident 0302 header records -- a
+    -- narrowing applied ahead of its deploy took the reviews block off every
+    -- store page -- so the read is pinned here rather than trusted. Needs no
+    -- fixture line: stores_create_primary_location is a SECURITY DEFINER
+    -- trigger, so inserting store A already created its primary branch.
+    jsonb_build_object('t','store_locations',  'c','store_id',  'v',v_store_a));
 
   -- ==========================================================================
   -- 3. THE RUNNER

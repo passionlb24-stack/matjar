@@ -6,7 +6,7 @@ import { ChevronNext, ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
-import type { CategoryKey } from "@/lib/catalog";
+import { toCategoryKey } from "@/lib/catalog";
 import { categoryModule } from "@/lib/modules";
 import { Container } from "@/components/ui/container";
 import { ProductForm } from "@/components/product-form";
@@ -67,9 +67,11 @@ export default async function StoreItemsPage({
     sPlan.trial_ends_at != null && new Date(sPlan.trial_ends_at) > new Date();
   const effectivePlan = resolvePlan(sPlan.plan, sPlan.trial_ends_at);
   const productCap = planProductLimit(effectivePlan);
-  const category =
-    ((store as unknown as { business_types: { slug: string } | null })
-      .business_types?.slug as CategoryKey) ?? "retail";
+  const category = toCategoryKey(
+    (store as unknown as { business_types: { slug: string } | null })
+      .business_types?.slug,
+    `store ${storeId}`,
+  );
   const mod = categoryModule[category];
   const itemsLabel = dict.store[mod.itemsKey];
 

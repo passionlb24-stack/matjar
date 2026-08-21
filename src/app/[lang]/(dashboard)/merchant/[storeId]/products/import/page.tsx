@@ -10,7 +10,7 @@ import { ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
-import type { CategoryKey } from "@/lib/catalog";
+import { toCategoryKey } from "@/lib/catalog";
 import { categoryModule } from "@/lib/modules";
 import { getStorePlan } from "@/lib/plan-server";
 import { hasPlan, planProductLimit } from "@/lib/plan-tiers";
@@ -49,9 +49,11 @@ export default async function ProductImportPage({
   if (!store) redirect(`/${lang}/merchant`);
   // Only so the back link can name the catalogue it returns to in the sector's
   // own word, the same way the editor does (ISS-018).
-  const category =
-    ((store as unknown as { business_types: { slug: string } | null })
-      .business_types?.slug as CategoryKey) ?? "retail";
+  const category = toCategoryKey(
+    (store as unknown as { business_types: { slug: string } | null })
+      .business_types?.slug,
+    `store ${storeId}`,
+  );
   const itemsLabel = dict.store[categoryModule[category].itemsKey];
 
   const plan = await getStorePlan(storeId);

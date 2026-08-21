@@ -2474,6 +2474,10 @@
     }
   },
   "admin": {
+    "sectionSupplyTitle": "Sections hidden from visitors",
+    "sectionSupplyBody": "These are not in the menu or the footer because they are empty. Their pages still work by URL and in search — we just do not send anyone there until there is something to find.",
+    "sectionSupplyEmpty": "Every section has content and is visible to visitors.",
+    "sectionSupplyNeeds": "needs at least one",
     "title": "Admin panel",
     "jumpTo": "Jump to section",
     "jumpToPlaceholder": "Type a section name…",

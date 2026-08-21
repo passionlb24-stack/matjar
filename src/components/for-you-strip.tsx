@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import {
-  type CategoryKey,
+  toCategoryKey,
   type RegionKey,
   type Store,
 } from "@/lib/catalog";
@@ -45,7 +45,7 @@ function rowToStore(row: RecommendedRow): Store {
     name: { ar: row.name, en: row.name },
     area: { ar: row.area ?? "", en: row.area ?? "" },
     region: (row.region as RegionKey) ?? undefined,
-    category: (row.category as CategoryKey) ?? "retail",
+    category: toCategoryKey(row.category, `store ${row.id}`),
     isOpen: open ?? true,
     plan: row.plan ?? "free",
     verified: row.is_verified ?? false,

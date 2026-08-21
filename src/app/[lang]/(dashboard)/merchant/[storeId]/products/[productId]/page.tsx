@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
-import type { CategoryKey } from "@/lib/catalog";
+import { toCategoryKey } from "@/lib/catalog";
 import { categoryModule } from "@/lib/modules";
 import { Container } from "@/components/ui/container";
 import { FETCH_BOUNDS, warnIfTruncated } from "@/lib/data/bounds";
@@ -44,9 +44,11 @@ export default async function EditProductPage({
     .eq("id", storeId)
     .maybeSingle();
   if (!store) redirect(`/${lang}/merchant`);
-  const category =
-    ((store as unknown as { business_types: { slug: string } | null })
-      .business_types?.slug as CategoryKey) ?? "retail";
+  const category = toCategoryKey(
+    (store as unknown as { business_types: { slug: string } | null })
+      .business_types?.slug,
+    `store ${storeId}`,
+  );
   const mod = categoryModule[category];
 
   const { data: product } = await supabase

@@ -2,13 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
-import {
-  regions,
-  categoryGroup,
-  type CategoryKey,
-  type GroupKey,
-} from "@/lib/catalog";
-import { sectorConfig } from "@/lib/sectors";
+import { regions, categoryGroup, toCategoryKey } from "@/lib/catalog";
 import { Check } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { StoreForm } from "@/components/store-form";
@@ -40,20 +34,23 @@ export default async function NewStorePage({
     .select("id, slug, name_ar, name_en")
     .order("sort_order");
 
-  const businessTypes = ((types ?? []) as BusinessTypeRow[]).map((t) => ({
-    value: t.id,
-    label: lang === "ar" ? t.name_ar : t.name_en,
-    // Map each granular sector to its top-level group; unknown slugs fall back
-    // to Shopping so the option is never dropped.
-    group:
-      (categoryGroup as Record<string, GroupKey | undefined>)[
-        t.slug as CategoryKey
-      ] ?? "shopping",
-    // The sector key itself, so the form can ask a restaurant and a clinic
-    // different questions. A slug the registry does not know falls back to
-    // retail — the generic bundle — rather than crashing the picker.
-    category: (t.slug in sectorConfig ? t.slug : "retail") as CategoryKey,
-  }));
+  const businessTypes = ((types ?? []) as BusinessTypeRow[]).map((t) => {
+    // The sector key the form branches on, so it can ask a restaurant and a
+    // clinic different questions, and the group the picker files the option
+    // under. Each used to hand-roll its own fallback — one an `in sectorConfig`
+    // test, one a `?? "shopping"` on a widened lookup — which is two chances to
+    // disagree with the rest of the codebase about what an unknown slug means.
+    // Narrowed once now, by the shared helper: unknown lands on retail, whose
+    // group is shopping, exactly what the two fallbacks produced between them,
+    // and the slug gets named in a warning instead of being absorbed twice.
+    const category = toCategoryKey(t.slug, `business type ${t.id}`);
+    return {
+      value: t.id,
+      label: lang === "ar" ? t.name_ar : t.name_en,
+      group: categoryGroup[category],
+      category,
+    };
+  });
   const regionOptions = regions.map((r) => ({
     value: r.key,
     label: r.name[lang as Locale],

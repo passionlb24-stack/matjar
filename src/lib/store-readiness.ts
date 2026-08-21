@@ -1,6 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import type { CategoryKey } from "@/lib/catalog";
+import { toCategoryKey, type CategoryKey } from "@/lib/catalog";
 import { sectorPrimarySetup } from "@/lib/sectors";
 import { effectivePlan, hasPlan } from "@/lib/plan-tiers";
 import { publishStage, type PublishStage } from "@/lib/store-onboarding";
@@ -72,7 +72,7 @@ export async function getStoreReadiness(
   } | null;
   if (!s) return null;
 
-  const category = (s.business_types?.slug as CategoryKey) ?? "retail";
+  const category = toCategoryKey(s.business_types?.slug, `store ${storeId}`);
 
   // The core entity is `products` for most sectors; a hotel's readiness hangs
   // on its rooms and an organiser's on its ticket types, which is the same rule

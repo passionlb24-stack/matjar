@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isPro } from "@/lib/plan";
 import { getStorePlan } from "@/lib/plan-server";
 import { ProGate } from "@/components/pro-gate";
-import type { CategoryKey } from "@/lib/catalog";
+import { toCategoryKey } from "@/lib/catalog";
 import { sectorConfig } from "@/lib/sectors";
 import { Container } from "@/components/ui/container";
 import { ChevronPrev } from "@/components/ui/directional-icon";
@@ -81,9 +81,11 @@ export default async function StoreCustomersPage({
       (staffRow?.permissions as Record<string, boolean> | null) ?? {};
     if (!(perms.orders ?? false)) redirect(`/${lang}/merchant/${storeId}`);
   }
-  const category =
-    ((store as unknown as { business_types: { slug: string } | null })
-      .business_types?.slug as CategoryKey) ?? "retail";
+  const category = toCategoryKey(
+    (store as unknown as { business_types: { slug: string } | null })
+      .business_types?.slug,
+    `store ${storeId}`,
+  );
   const noun = dict.os.nouns[sectorConfig[category].customersNoun];
 
   const [

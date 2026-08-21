@@ -2,7 +2,7 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createPublicClient } from "@/lib/supabase/public-client";
-import type { CategoryKey } from "@/lib/catalog";
+import { toCategoryKey, type CategoryKey } from "@/lib/catalog";
 import { FETCH_BOUNDS, warnIfTruncated } from "./bounds";
 import type {
   Variant,
@@ -137,7 +137,10 @@ async function fetchProductView(
       store?.booking_cancel_hours != null
         ? Number(store.booking_cancel_hours)
         : null,
-    category: (store?.business_types?.slug as CategoryKey) ?? "retail",
+    category: toCategoryKey(
+      store?.business_types?.slug,
+      `store ${data.store_id as string}`,
+    ),
     itemKind: ((data.item_kind as string | null) ?? "product") as "product" | "service",
     durationMinutes: data.duration_minutes != null ? Number(data.duration_minutes) : null,
     name: data.name as string,

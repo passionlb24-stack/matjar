@@ -6,7 +6,7 @@ import {
   featuredStores,
   stores as demoStores,
   SHOW_DEMO_STORES,
-  type CategoryKey,
+  toCategoryKey,
   type RegionKey,
   type Store,
 } from "@/lib/catalog";
@@ -50,7 +50,7 @@ function rowToStore(row: {
     name: { ar: row.name, en: row.name },
     area: { ar: row.area ?? "", en: row.area ?? "" },
     region: (row.region as RegionKey) ?? undefined,
-    category: (row.business_types?.slug as CategoryKey) ?? "retail",
+    category: toCategoryKey(row.business_types?.slug, `store ${row.id}`),
     isOpen: open ?? true,
     plan: row.plan ?? "free",
     verified: row.is_verified ?? false,

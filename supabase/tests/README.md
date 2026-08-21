@@ -117,7 +117,7 @@ checks the negative passes just as happily when the feature has been deleted.
 
 ### Reading the result
 
-- `RLS MATRIX PASSED` — green. Current baseline: **729 passed, 24 pending**.
+- `RLS MATRIX PASSED` — green. Current baseline: **730 passed, 24 pending**.
 - `RLS MATRIX FAILED` — red. Each line names the actor, the table, the store
   side, and what it saw.
 - `RLS MATRIX STALE` — the suite is right about the database and wrong about
