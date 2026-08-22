@@ -105,6 +105,15 @@ jobs:
           # Never let the key reach a log or an artifact.
           echo "android/app/matjar.jks" >> .git/info/exclude
 
+      # The repository is developed on Windows, where git does not carry a
+      # POSIX executable bit, so android/gradlew arrived on the runner as
+      # non-executable and the first build ever attempted died with
+      # "./gradlew: Permission denied" before Gradle was even reached. The mode
+      # bit is now set in the index too; this line means a future Windows
+      # checkout that loses it again cannot break the build.
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
       - name: Build debug APK
         if: inputs.build_type == 'debug'
         working-directory: android
