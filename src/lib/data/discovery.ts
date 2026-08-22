@@ -276,7 +276,7 @@ export const getDiscoveryCoverage = unstable_cache(
 /** PostgREST `or=` is a comma-separated list, so a comma or a parenthesis in the
  *  buyer's words would otherwise be read as syntax. `%` and `_` are ilike
  *  wildcards; a search for "50%" must not match everything. */
-function escapeForOr(term: string): string {
+export function escapeForOr(term: string): string {
   return term.replace(/[%_]/g, (m) => `\\${m}`).replace(/[(),.:*]/g, " ").trim();
 }
 

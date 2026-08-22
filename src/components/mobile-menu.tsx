@@ -158,8 +158,11 @@ export function MobileMenu({
       ]
     : [{ href: `/${lang}/login`, label: dict.common.login, icon: LogIn }];
 
+  // `lg:hidden`, not `md:hidden`: the desktop nav and controls only appear at
+  // `lg`, so a tablet between 768 and 1024 was left with no menu at all and a
+  // nav row it could not fit.
   return (
-    <div className="md:hidden">
+    <div className="lg:hidden">
       <button
         ref={triggerRef}
         type="button"

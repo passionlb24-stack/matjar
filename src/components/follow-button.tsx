@@ -6,17 +6,22 @@ import { Heart, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { QUICK_ACTION_BASE, QUICK_ACTION_LABEL } from "@/components/quick-action";
 
 export function FollowButton({
   storeId,
   following,
   lang,
   dict,
+  compact = false,
 }: {
   storeId: string;
   following: boolean;
   lang: Locale;
   dict: Dictionary;
+  /** Phone presentation: icon only, one 44px target, label back from lg up.
+   *  Opt-in — a caller that does not ask for it renders exactly as before. */
+  compact?: boolean;
 }) {
   const router = useRouter();
   const [on, setOn] = useState(following);
@@ -52,18 +57,22 @@ export function FollowButton({
     router.refresh();
   }
 
+  const label = on ? dict.store.following : dict.store.follow;
   return (
     <button
       onClick={toggle}
       disabled={busy}
-      className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60 ${
+      aria-label={compact ? label : undefined}
+      className={`flex items-center gap-1.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60 ${
+        compact ? QUICK_ACTION_BASE : "px-4 py-2"
+      } ${
         on
           ? "bg-primary-soft text-primary"
           : "border border-border hover:border-primary hover:text-primary"
       }`}
     >
       {on ? <Check className="h-4 w-4" /> : <Heart className="h-4 w-4" />}
-      {on ? dict.store.following : dict.store.follow}
+      <span className={compact ? QUICK_ACTION_LABEL : undefined}>{label}</span>
     </button>
   );
 }

@@ -8,6 +8,7 @@ import {
   Store as StoreIcon,
   CalendarCheck,
   Clock,
+  Flame,
   ShieldCheck,
   Truck,
   UserRound,
@@ -349,8 +350,9 @@ export default async function ProductPage({
             </span>
           ))}
         {soldCount > 0 && (
-          <span className="text-sm font-semibold text-primary">
-            🔥 {dict.product.soldCount.replace("{n}", String(soldCount))}
+          <span className="flex items-center gap-1.5 text-sm font-semibold text-primary">
+            <Flame className="h-4 w-4 shrink-0" />
+            {dict.product.soldCount.replace("{n}", String(soldCount))}
           </span>
         )}
       </div>
@@ -728,8 +730,18 @@ export default async function ProductPage({
         </div>
 
         {/* Mobile: the price and CTA follow the thumb once the buy box scrolls
-            away — only where this page itself transacts. */}
-        {offering.transacts && (
+            away.
+            Not gated on `offering.transacts` any more. That flag answers "does
+            the CART live on this page", and an appointment service answers no —
+            so a clinic's أشعة page, 3,040px tall at 390, pinned nothing at all
+            and the one control the page exists for was gone after two flicks.
+            §22 asks for a sticky `احجز موعدًا` as plainly as §21 asks for a
+            sticky `أضف للسلة`. The bar still only SCROLLS BACK to the buy box,
+            so the booking hand-off stays in exactly one place.
+            Directory-only sectors (contactStore) are still excluded: there is
+            no transaction to pin, and pinning a price beside "تواصل مع المتجر"
+            would imply one the platform cannot honour. */}
+        {(offering.transacts || offering.cta === "bookAppointment") && (
           <ProductBuyBar
             targetId="buy-box"
             price={formatUsd(basePrice)}
@@ -753,6 +765,13 @@ export default async function ProductPage({
               dict={dict}
             />
           </div>
+        )}
+
+        {/* Room for the buy bar, which is showing by the time the reader is
+            this far down the page — the layout's spacer clears the tab bar,
+            not the 64px sitting on top of it. */}
+        {(offering.transacts || offering.cta === "bookAppointment") && (
+          <div aria-hidden className="h-16 lg:hidden" />
         )}
       </Container>
     </div>

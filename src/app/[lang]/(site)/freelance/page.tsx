@@ -99,7 +99,7 @@ export default async function FreelancePage({
   };
 
   const chip = (active: boolean) =>
-    `rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+    `inline-flex h-11 items-center rounded-full border px-4 text-sm font-semibold transition-colors ${
       active
         ? "border-primary bg-primary text-primary-foreground"
         : "border-border text-muted-foreground hover:border-primary/40"

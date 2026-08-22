@@ -66,6 +66,7 @@ export function DiscoveryFilters({
   filters,
   facets,
   pinned,
+  total,
 }: {
   lang: Locale;
   dict: Dict;
@@ -74,6 +75,13 @@ export function DiscoveryFilters({
   query: DiscoveryQuery;
   filters: FilterKey[];
   facets: DiscoveryFacets;
+  /** Matches for the state now in the URL — the number the page behind the
+   *  sheet is already showing. The CTA may print it because it is counted, not
+   *  predicted: every chip in the sheet is a link, so the navigation has
+   *  happened by the time this arrives. A sheet that batched selections and
+   *  applied them on close could not honestly name a count, which is the reason
+   *  the chips were left as links rather than turned into checkboxes. */
+  total: number;
   /** Set on /category/[slug], where the sector lives in the PATH. Every link
    *  below then omits it: `?sector=services` on top of `/category/services` is
    *  a second address for one page, which is exactly what the canonical work
@@ -295,21 +303,42 @@ export function DiscoveryFilters({
         )}
       </div>
 
+      {/* The sheet ends where the thumb already is, with the count it earned.
+          The number is the live one for the URL the page is on — the chips
+          inside are links, and the sheet stays open across that navigation, so
+          a buyer narrows and watches this number move before deciding they are
+          done. Nothing here forecasts a selection that has not been applied. */}
       <BottomSheet
         open={sheet}
         onClose={() => setSheet(false)}
         title={dict.discovery.filters}
         closeLabel={dict.common.close}
         footer={
-          <Link
-            href={clearHref}
-            onClick={() => setSheet(false)}
-            className="flex h-12 items-center justify-center rounded-xl border border-border text-sm font-bold"
-          >
-            {dict.discovery.clearAll}
-          </Link>
+          <div className="flex items-center gap-2">
+            {active > 0 && (
+              <Link
+                href={clearHref}
+                onClick={() => setSheet(false)}
+                className="flex h-12 shrink-0 items-center justify-center rounded-xl border border-border px-5 text-sm font-bold"
+              >
+                {dict.discovery.clearAll}
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={() => setSheet(false)}
+              className="flex h-12 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+            >
+              {dict.discovery.showResults}
+              <span className="tabular-nums">({total})</span>
+            </button>
+          </div>
         }
       >
+        {/* A tap here no longer dismisses the sheet. Closing on the first chip
+            meant a buyer who wanted "open now" AND "has offers" had to find the
+            filter button twice, and it made the footer's count unreadable —
+            gone before the page behind had recounted. */}
         <div className="space-y-5 pb-2">
           {sectorChips.length > 0 && (
             <SheetGroup label={dict.discovery.sector}>
@@ -320,7 +349,6 @@ export function DiscoveryFilters({
                   on={query.sector === key}
                   label={dict.catalog[key].name}
                   count={count}
-                  onClick={() => setSheet(false)}
                 />
               ))}
             </SheetGroup>
@@ -334,7 +362,6 @@ export function DiscoveryFilters({
                   on={query.region === key}
                   label={regionName(key)}
                   count={count}
-                  onClick={() => setSheet(false)}
                 />
               ))}
             </SheetGroup>
@@ -342,13 +369,7 @@ export function DiscoveryFilters({
           {booleanChips.length > 0 && (
             <SheetGroup label={dict.discovery.filters}>
               {booleanChips.map((c) => (
-                <Chip
-                  key={c.key}
-                  href={c.href}
-                  on={c.on}
-                  label={c.label}
-                  onClick={() => setSheet(false)}
-                />
+                <Chip key={c.key} href={c.href} on={c.on} label={c.label} />
               ))}
             </SheetGroup>
           )}
@@ -359,7 +380,6 @@ export function DiscoveryFilters({
                 href={href({ sort: s })}
                 on={query.sort === s}
                 label={dict.sort[s]}
-                onClick={() => setSheet(false)}
               />
             ))}
           </SheetGroup>
@@ -406,18 +426,15 @@ function Chip({
   on,
   label,
   count,
-  onClick,
 }: {
   href: string;
   on: boolean;
   label: string;
   count?: number;
-  onClick?: () => void;
 }) {
   return (
     <Link
       href={href}
-      onClick={onClick}
       // aria-pressed is only valid on role="button". On a link the browser
       // ignores it entirely, so a screen-reader user had no way to tell which
       // sector filter was active — axe reports it as a critical violation

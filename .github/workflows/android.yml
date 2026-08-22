@@ -1,0 +1,137 @@
+# Builds the Android app.
+#
+# Matjar is a hosted-hybrid Capacitor shell: the native app loads
+# https://matjarlb.com and layers push, geolocation, camera, share and deep
+# links on top. So this workflow does NOT build the website — there is no
+# `next build` here on purpose. It packages the shell that opens it. A web
+# change reaches the app the moment Vercel deploys it, with no new APK.
+#
+# There is no Java or Android SDK on the maintainer's machine, and the
+# maintainer is not a developer. GitHub's ubuntu runner has both preinstalled,
+# so this is the build machine.
+#
+# Run it from the Actions tab -> Android -> Run workflow.
+#
+#   debug   (default) an APK that installs directly on a phone by opening the
+#           file. Signed with Android's throwaway debug key, so it is for
+#           testing only and can never be uploaded to Google Play.
+#   release an AAB for the Play Console. Needs the four secrets below; without
+#           them the job stops with an explanation instead of failing obscurely.
+#
+# For a release build, add these under Settings -> Secrets and variables ->
+# Actions. Generating the keystore is a one-time step documented in
+# docs/ANDROID_RELEASE.md — it must be kept forever, because Google rejects an
+# update signed with a different key.
+#
+#   ANDROID_KEYSTORE_BASE64   the .jks file, base64-encoded
+#   ANDROID_KEYSTORE_PASSWORD
+#   ANDROID_KEY_ALIAS
+#   ANDROID_KEY_PASSWORD
+
+name: Android
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: "debug = installable test APK, release = Play Store AAB"
+        type: choice
+        options: [debug, release]
+        default: debug
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      # Capacitor's CLI and the native plugin packages are needed for `cap
+      # sync`; the site's own dependencies are not, but npm ci installs the
+      # lockfile as a whole and a partial install would drift from it.
+      - name: Install dependencies
+        run: npm ci
+
+      # Copies native-shell/ into the Android project and regenerates the
+      # plugin wiring from capacitor.config.ts. Without this, a newly added
+      # Capacitor plugin is in package.json but absent from the APK.
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      # The version has to climb for every Play upload, and hand-editing
+      # build.gradle is exactly the step a non-developer forgets. The run
+      # number is monotonic per repository, so it can never go backwards.
+      # versionName stays whatever build.gradle says — that is the number the
+      # public sees, and it is a product decision, not a build one.
+      - name: Stamp versionCode from the run number
+        if: inputs.build_type == 'release'
+        run: |
+          sed -i "s/versionCode 1$/versionCode ${{ github.run_number }}/" android/app/build.gradle
+          grep -n "versionCode\|versionName" android/app/build.gradle
+
+      - name: Check release signing secrets
+        if: inputs.build_type == 'release'
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KS" ]; then
+            echo "::error::A release build needs the signing secrets."
+            echo "ANDROID_KEYSTORE_BASE64 is not set on this repository."
+            echo "See docs/ANDROID_RELEASE.md for how to create the keystore"
+            echo "and add all four secrets. Until then, choose 'debug' — that"
+            echo "APK installs on a phone and needs no secrets at all."
+            exit 1
+          fi
+
+      - name: Decode keystore
+        if: inputs.build_type == 'release'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/matjar.jks
+          # Never let the key reach a log or an artifact.
+          echo "android/app/matjar.jks" >> .git/info/exclude
+
+      - name: Build debug APK
+        if: inputs.build_type == 'debug'
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Build release AAB
+        if: inputs.build_type == 'release'
+        working-directory: android
+        env:
+          MATJAR_KEYSTORE: matjar.jks
+          MATJAR_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          MATJAR_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          MATJAR_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew bundleRelease --no-daemon
+
+      - name: Upload APK
+        if: inputs.build_type == 'debug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: matjar-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Upload AAB
+        if: inputs.build_type == 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: matjar-release-aab
+          path: android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error

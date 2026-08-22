@@ -6,15 +6,19 @@ import { MessageSquare, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { QUICK_ACTION_BASE, QUICK_ACTION_LABEL } from "@/components/quick-action";
 
 export function MessageStoreButton({
   storeId,
   lang,
   dict,
+  compact = false,
 }: {
   storeId: string;
   lang: Locale;
   dict: Dictionary;
+  /** Phone presentation: icon only, one 44px target, label back from lg up. */
+  compact?: boolean;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -41,14 +45,19 @@ export function MessageStoreButton({
     <button
       onClick={onClick}
       disabled={busy}
-      className="flex items-center gap-1.5 rounded-xl border border-border px-4 py-2 text-sm font-semibold transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
+      aria-label={compact ? dict.messages.messageStore : undefined}
+      className={`flex items-center gap-1.5 rounded-xl border border-border text-sm font-semibold transition-colors hover:border-primary hover:text-primary disabled:opacity-60 ${
+        compact ? QUICK_ACTION_BASE : "px-4 py-2"
+      }`}
     >
       {busy ? (
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : (
         <MessageSquare className="h-4 w-4" />
       )}
-      {dict.messages.messageStore}
+      <span className={compact ? QUICK_ACTION_LABEL : undefined}>
+        {dict.messages.messageStore}
+      </span>
     </button>
   );
 }

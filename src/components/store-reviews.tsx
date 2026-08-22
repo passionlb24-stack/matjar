@@ -56,7 +56,10 @@ export function StoreReviews({
       ) : (
         <Link
           href={`/${lang}/login`}
-          className="inline-block rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+          // 42px tall, which is 42 — two short of the minimum, and short
+          // enough that four passes of "the header and nav are fine" never
+          // caught it. The two pixels come from the hit box, not the pill.
+          className="relative inline-block rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors before:absolute before:-inset-y-px before:content-[''] hover:border-primary hover:text-primary"
         >
           {dict.reviews.loginToReview}
         </Link>

@@ -13,6 +13,7 @@ import {
 import { isOpenNow, parseHours } from "@/lib/hours";
 import type { StorePlan } from "@/lib/plan-tiers";
 import { FETCH_BOUNDS, fetchAllByIds, warnIfTruncated } from "./bounds";
+import { escapeForOr } from "./discovery";
 
 /** Demo/sample catalog rows use short ids; only these reach a uuid column. */
 const UUID_RE =
@@ -220,7 +221,20 @@ export async function getStoresForListing(): Promise<Store[]> {
   ]);
 }
 
-// Name search for the unified search page (trigram-backed ilike).
+// Store search for the unified search page.
+//
+// This matched the name column alone, while /explore matched name, description
+// AND area through the same UI. The consequence was that searching a CITY found
+// nothing: 12 of 15 live stores carry "طرابلس" in their area and not one of them
+// has it in its name, so the single most likely thing a Lebanese customer types
+// returned an empty page — while the same word on /explore returned twelve.
+//
+// Now the same three columns, and the escaper is shared rather than copied:
+// PostgREST reads an or= filter as a comma-separated list, so a comma or
+// parenthesis in
+// the buyer's words would be parsed as syntax, and %/_ are ilike wildcards — a
+// search for "50%" must not match every store. Two copies of that rule is how
+// the two paths drifted apart in the first place.
 export async function searchStores(
   q: string,
   region?: string,
@@ -235,7 +249,9 @@ export async function searchStores(
     )
     .eq("status", "active")
     .is("deleted_at", null)
-    .ilike("name", `%${term}%`);
+    .or(
+      `name.ilike.%${escapeForOr(term)}%,description.ilike.%${escapeForOr(term)}%,area.ilike.%${escapeForOr(term)}%`,
+    );
   if (region && region !== "all") query = query.eq("region", region);
   const { data } = await query.limit(24);
   const list = ((data ?? []) as unknown as Parameters<typeof rowToStore>[0][]).map(

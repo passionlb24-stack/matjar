@@ -22,7 +22,7 @@ export default async function AuthLayout({
     <div className="flex flex-1 flex-col">
       <header className="border-b border-border">
         <Container className="flex h-16 items-center justify-between">
-          <Link href={`/${lang}`} className="flex items-center gap-2">
+          <Link href={`/${lang}`} className="flex min-h-11 items-center gap-2">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
               <Store className="h-5 w-5" />
             </span>
@@ -30,8 +30,14 @@ export default async function AuthLayout({
               {dict.common.brand}
             </span>
           </Link>
-          <ThemeToggle />
-          <LanguageSwitcher currentLocale={lang} />
+          {/* Grouped: this row is justify-between, so leaving the two
+              controls as separate children pushed the theme toggle into the
+              middle of the header instead of sitting beside the language
+              switcher at the end. */}
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <LanguageSwitcher currentLocale={lang} />
+          </div>
         </Container>
       </header>
       <div className="flex flex-1 items-center justify-center px-5 py-12">

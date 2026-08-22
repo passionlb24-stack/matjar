@@ -16,10 +16,33 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Play rejects an unsigned bundle, and Capacitor's generated project has no
+    // release signing config at all — so `bundleRelease` produced a file that
+    // built cleanly and could not be uploaded.
+    //
+    // The key never lives in this repository. It arrives as environment
+    // variables from GitHub Actions secrets (see .github/workflows/android.yml
+    // and docs/ANDROID_RELEASE.md). When they are absent — every local build,
+    // every debug build — this block defines nothing and the build behaves
+    // exactly as it did before, which is what keeps `assembleDebug` working on
+    // a machine that has never seen the key.
+    signingConfigs {
+        release {
+            if (System.getenv("MATJAR_KEYSTORE")) {
+                storeFile file(System.getenv("MATJAR_KEYSTORE"))
+                storePassword System.getenv("MATJAR_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("MATJAR_KEY_ALIAS")
+                keyPassword System.getenv("MATJAR_KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (System.getenv("MATJAR_KEYSTORE")) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

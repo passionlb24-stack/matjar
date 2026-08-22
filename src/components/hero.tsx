@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { dictSlice } from "@/lib/dict-slice";
 import { ShoppingBag } from "lucide-react";
 import type { Locale } from "@/i18n/config";
@@ -10,7 +11,33 @@ import { HeroSearch } from "@/components/hero-search";
 // action. No statistic wall (the live inventory cannot honestly support one),
 // no decorative floats, no merchant pitch — that lives at the bottom of the
 // page and on /merchants.
-export function Hero({ lang, dict }: { lang: Locale; dict: Dictionary }) {
+//
+// V3 splits that composition by width instead of deleting half of it. On a
+// desktop the block above the fold has room for a headline, a supporting line
+// and a wide search field, and it keeps all three, unchanged. On a phone the
+// same block cost 293px — 104 of them the `<h1>` alone — and put the first
+// tappable thing on the page at 445px, past half of an 844px screen.
+//
+// What survives on a phone is one line saying what this is: a first-time
+// visitor to an unfamiliar marketplace does need that, and nothing else on the
+// page says it. What does not survive is the subtitle, which restates the
+// headline as a verb list, and the "start shopping" button, which is a single
+// browse target sitting directly on top of the nine-target category row that
+// follows it. The headline text itself is unchanged at every width — the phone
+// only renders it smaller.
+//
+// `children` is the phone-only location row (components/home/home-location). It
+// sits inside this section rather than beside it so the top of the page reads
+// as one block rather than two stacked bands.
+export function Hero({
+  lang,
+  dict,
+  children,
+}: {
+  lang: Locale;
+  dict: Dictionary;
+  children?: ReactNode;
+}) {
   const popular =
     lang === "ar"
       ? ["مطاعم", "عيادات", "ملابس", "عقارات", "سيارات", "صيانة"]
@@ -19,12 +46,12 @@ export function Hero({ lang, dict }: { lang: Locale; dict: Dictionary }) {
 
   return (
     <section className="border-b border-border bg-surface-muted/30">
-      <Container className="py-10 text-center sm:py-14">
-        <h1 className="mx-auto max-w-2xl text-3xl font-extrabold leading-[1.15] tracking-tight text-balance sm:text-4xl lg:text-5xl">
+      <Container className="py-4 text-center sm:py-14">
+        <h1 className="mx-auto max-w-2xl text-xl font-extrabold leading-snug tracking-tight text-balance sm:text-4xl sm:leading-[1.15] lg:text-5xl">
           {t.title} <span className="text-primary">{t.titleHighlight}</span>
         </h1>
 
-        <p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground sm:text-lg">
+        <p className="mx-auto mt-4 hidden max-w-xl text-base text-muted-foreground sm:block sm:text-lg">
           {t.subtitle}
         </p>
 
@@ -37,11 +64,17 @@ export function Hero({ lang, dict }: { lang: Locale; dict: Dictionary }) {
           <HeroSearch lang={lang} dict={dictSlice(dict, ["hero"])} popular={popular} />
         </div>
 
-        {/* Below `lg` the header search is the primary action, so the hero's
-            own button carries the browse intent instead. 44px tall. */}
+        {/* Location. Phone-only: at `lg` the same question is already asked by
+            the region select inside HeroSearch above. */}
+        {children ? <div className="mt-3 lg:hidden">{children}</div> : null}
+
+        {/* From `sm` up the header search is still the primary action, so this
+            button carries the browse intent. On a phone it is dropped: the
+            category row immediately below is the same intent with nine
+            destinations instead of one. 44px tall. */}
         <Link
           href={`/${lang}/explore`}
-          className="mt-6 inline-flex h-11 items-center gap-2 rounded-2xl bg-primary px-6 text-[15px] font-bold text-primary-foreground transition-colors hover:bg-primary-hover lg:mt-8"
+          className="mt-6 hidden h-11 items-center gap-2 rounded-2xl bg-primary px-6 text-[15px] font-bold text-primary-foreground transition-colors hover:bg-primary-hover sm:inline-flex lg:mt-8"
         >
           <ShoppingBag className="h-5 w-5" />
           {t.ctaPrimary}

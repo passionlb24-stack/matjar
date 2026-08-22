@@ -904,16 +904,39 @@ export default async function StorePage({
     .map((p) => p.discountPrice ?? p.price)
     .filter((p) => p > 0)
     .sort((a, b) => a - b)[0];
+  const note =
+    cheapest != null ? `${dict.store.from} ${formatUsd(cheapest)}` : null;
+  // §19 names four sticky CTAs — أضف للسلة / احجز موعد / اطلب الآن / تواصل —
+  // and the fourth was the one no storefront ever got. A services profile
+  // (Passion Glow) leads with a request form, cannot run a cart or a calendar,
+  // and so fell out of `canTransactHere` entirely: it shipped with no sticky
+  // action at all, on the sector whose whole transaction IS getting in touch.
+  //
+  // It scrolls to the form, exactly as the other three scroll to their engine —
+  // never to a phone dialler, and only when the page actually rendered a form
+  // to scroll to. A store with neither an engine nor a form still gets no bar,
+  // because a bar that scrolls nowhere is worse than no bar.
+  const contactTarget = present.serviceRequest
+    ? "sec-serviceRequest"
+    : present.leadForm
+      ? "sec-leadForm"
+      : null;
   const stickyCta =
     canTransactHere && present.catalog
       ? {
+          targetId: "offerings",
           label: dict.offering.cta[storeOffering.cta],
-          note:
-            cheapest != null
-              ? `${dict.store.from} ${formatUsd(cheapest)}`
-              : null,
+          note,
         }
-      : null;
+      : contactTarget
+        ? {
+            targetId: contactTarget,
+            label: dict.offering.cta.contactStore,
+            // Only if the page really did list priced items — the same
+            // `cheapest`, which is a read of the catalogue, not an estimate.
+            note: present.catalog ? note : null,
+          }
+        : null;
 
   // ===== How payment works, above the catalogue =====
   //
@@ -1041,7 +1064,7 @@ export default async function StorePage({
 
       {stickyCta && (
         <StoreStickyCta
-          targetId="offerings"
+          targetId={stickyCta.targetId}
           label={stickyCta.label}
           note={stickyCta.note}
         />

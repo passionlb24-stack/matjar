@@ -1,7 +1,9 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useState } from "react";
 import Link from "next/link";
+import { Check, Clock, Truck, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -53,10 +55,63 @@ export type PlacedOrder = {
   total: number;
   /** "Tell the merchant on WhatsApp", frozen for the same reason. */
   waUrl: string | null;
+  /** What was ordered, frozen for the same reason — §28 wants a summary on the
+   *  success screen, and by the time it renders the cart it came from is
+   *  already empty. Names and counts only: the amount of record is `total`. */
+  lines: readonly { id: string; name: string; quantity: number }[];
 };
 
+// min-h-11 is the 44px thumb minimum. These measured 42px at 390 — two pixels
+// short is still a miss, and every one of them is on the money path.
 const fieldClass =
-  "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
+  "mt-1.5 min-h-11 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
+
+// ===== The stages =====
+//
+// §25: "staged sections, not one giant form". Measured before this existed, the
+// checkout was twenty-one sibling blocks in one `space-y-4` column and the
+// confirm button sat 1,738px down a 844px screen — the customer scrolled past
+// the summary, the coupon, the totals, the fulfilment pick, the zone, the
+// address, the change, the name, the phone, the note and the merchant's own
+// questions with nothing telling them where they were or how much was left.
+//
+// What this is NOT is a wizard. A wizard means several submits, or one submit
+// reconstructed from remembered state, and this is the form that places a real
+// order against place_order / place_guest_order. It stays ONE <form> with ONE
+// submit; only the reading of it is staged. The blocks inside each stage are
+// the same blocks in the same order — nothing was moved between stages except
+// into the stage it already belonged to.
+function Stage({
+  n,
+  title,
+  action,
+  children,
+}: {
+  n: number;
+  title: string;
+  /** A control that belongs to the stage's header rather than its body — only
+   *  "عدّل" on the basket today. */
+  action?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <section className="border-t border-border pt-4 first:border-t-0 first:pt-0">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h3 className="flex min-w-0 items-center gap-2 text-sm font-bold">
+          <span
+            aria-hidden
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-soft text-xs font-extrabold tabular-nums text-primary"
+          >
+            {n}
+          </span>
+          {title}
+        </h3>
+        {action}
+      </div>
+      <div className="space-y-4">{children}</div>
+    </section>
+  );
+}
 
 export function CheckoutForm({
   lang,
@@ -361,6 +416,11 @@ export function CheckoutForm({
       orderId: orderId as string,
       total: totals.grandTotal,
       waUrl,
+      lines: lines.map((l) => ({
+        id: l.id,
+        name: l.name,
+        quantity: l.quantity,
+      })),
     });
   }
 
@@ -369,23 +429,38 @@ export function CheckoutForm({
     totals.pointsDiscount > 0 ||
     totals.deliveryFee > 0;
 
+  // Does stage 2 have anything in it? Delivery always brings the address, the
+  // instructions and the change-for row, so it alone is enough; the rest are
+  // the merchant's own optional blocks. Mirrors the render conditions below
+  // exactly — if a block is added there, it belongs here too.
+  const showFulfillmentStage =
+    options.length > 1 ||
+    store.branches.length > 1 ||
+    !!store.prepTime ||
+    !!store.paymentNote ||
+    (totals.belowStoreMinimum && store.minOrder != null) ||
+    delivery;
+
   return (
-    <form onSubmit={submit} className="space-y-4">
+    <form onSubmit={submit} className="space-y-5">
+      <Stage
+        n={1}
+        title={dict.store.yourOrder}
+        action={
+          <button
+            type="button"
+            onClick={onBack}
+            className="relative shrink-0 text-sm font-semibold text-primary before:absolute before:-inset-x-3 before:-inset-y-3 before:content-[''] hover:underline"
+          >
+            {editLabel ?? dict.store.editOrder}
+          </button>
+        }
+      >
       {/* What is being ordered — before anything asks for input. The customer
           is about to hand over money for a list they could otherwise no longer
           see. */}
       <div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold">{dict.store.yourOrder}</span>
-          <button
-            type="button"
-            onClick={onBack}
-            className="text-sm font-semibold text-primary hover:underline"
-          >
-            {editLabel ?? dict.store.editOrder}
-          </button>
-        </div>
-        <ul className="mt-2 space-y-1.5">
+        <ul className="space-y-1.5">
           {lines.map((l) => (
             <li
               key={l.id}
@@ -507,14 +582,21 @@ export function CheckoutForm({
 
       {showCodLine && (
         <p className="inline-flex items-center gap-1.5 rounded-lg bg-success-soft px-3 py-1.5 text-sm font-semibold text-success">
-          💵 {dict.store.codNote}
+          <Wallet className="h-4 w-4 shrink-0" />
+          {dict.store.codNote}
         </p>
       )}
+      </Stage>
 
+      {/* Rendered only when it has something in it. A pickup-only store with
+          one branch and no prep note has nothing to say here, and a numbered
+          heading over an empty box is worse than no heading. */}
+      {showFulfillmentStage && (
+      <Stage n={2} title={dict.store.fulfillment}>
       {options.length > 1 && (
         <div>
-          <span className="text-sm font-semibold">{dict.store.fulfillment}</span>
-          <div className="mt-1.5 grid grid-cols-2 gap-2">
+          {/* No repeated label — the stage heading above IS this question. */}
+          <div className="grid grid-cols-2 gap-2">
             {options.map((opt: Fulfillment) => (
               <button
                 key={opt}
@@ -523,7 +605,7 @@ export function CheckoutForm({
                   set("fulfillment", opt);
                   onFulfillmentChange?.(opt);
                 }}
-                className={`rounded-xl border px-4 py-2.5 text-sm font-bold transition-colors ${
+                className={`min-h-11 rounded-xl border px-4 py-2.5 text-sm font-bold transition-colors ${
                   choices.fulfillment === opt
                     ? "border-primary bg-primary-soft text-primary"
                     : "border-border text-muted-foreground hover:border-primary/40"
@@ -603,16 +685,16 @@ export function CheckoutForm({
           {zone && (
             <div className="mt-1.5 space-y-0.5 text-xs text-muted-foreground">
               {zone.etaMin != null && zone.etaMax != null && (
-                <p>
-                  ⏱️{" "}
+                <p className="flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5 shrink-0" />
                   {dict.store.zoneEta
                     .replace("{min}", String(zone.etaMin))
                     .replace("{max}", String(zone.etaMax))}
                 </p>
               )}
               {zone.freeOver != null && totals.deliveryFee > 0 && (
-                <p>
-                  🚚{" "}
+                <p className="flex items-center gap-1.5">
+                  <Truck className="h-3.5 w-3.5 shrink-0" />
                   {dict.store.freeOverHint.replace(
                     "{n}",
                     formatUsd(zone.freeOver),
@@ -620,8 +702,9 @@ export function CheckoutForm({
                 </p>
               )}
               {totals.deliveryFee === 0 && zone.freeOver != null && (
-                <p className="font-semibold text-success">
-                  ✓ {dict.store.freeDeliveryApplied}
+                <p className="flex items-center gap-1.5 font-semibold text-success">
+                  <Check className="h-3.5 w-3.5 shrink-0" />
+                  {dict.store.freeDeliveryApplied}
                 </p>
               )}
             </div>
@@ -704,7 +787,7 @@ export function CheckoutForm({
                 key={c.v}
                 type="button"
                 onClick={() => setChangeChoice(c.v)}
-                className={`rounded-full border px-3.5 py-1.5 text-sm font-bold transition-colors ${
+                className={`relative rounded-full border px-3.5 py-1.5 text-sm font-bold transition-colors before:absolute before:-inset-y-2 before:content-[''] ${
                   changeChoice === c.v
                     ? "border-primary bg-primary-soft text-primary"
                     : "border-border text-muted-foreground hover:border-primary/40"
@@ -728,7 +811,10 @@ export function CheckoutForm({
           </div>
         </div>
       )}
+      </Stage>
+      )}
 
+      <Stage n={showFulfillmentStage ? 3 : 2} title={dict.store.yourDetails}>
       {!viewer.loggedIn && (
         <div>
           <label className="text-sm font-semibold" htmlFor="name">
@@ -838,6 +924,7 @@ export function CheckoutForm({
           </Link>
         </p>
       )}
+      </Stage>
 
       {orderError && (
         <div className="space-y-2">
@@ -865,7 +952,8 @@ export function CheckoutForm({
         <p className="text-xs font-semibold text-success">{confirmNote}</p>
       )}
 
-      <div className="flex gap-2">
+      {/* Desktop keeps exactly the row it always had — §44. */}
+      <div className="hidden gap-2 lg:flex">
         <button
           type="button"
           onClick={onBack}
@@ -881,6 +969,56 @@ export function CheckoutForm({
           {placing ? dict.store.placing : dict.store.confirmOrder}
         </button>
       </div>
+
+      {/* Phones: the confirm follows the thumb, and carries the amount.
+          Measured before this existed, the confirm button sat at y=1738 on an
+          844px screen while the total was stated once, near the top, and
+          scrolled away 1,200px earlier — so the last thing a cash-on-delivery
+          customer saw before committing was a button with no number on it.
+          §25: "the final amount must always be clear".
+
+          The figure comes from `totals.grandTotal`, the same value the button
+          places and the same one the totals block prints. There is no second
+          arithmetic here and no second submit: this IS the form's submit
+          button, moved, and the in-flow row above is hidden below `lg` so
+          exactly one is ever present.
+
+          z-[45] and an opaque background on purpose. The store profile's own
+          sticky CTA and the product page's buy bar both sit at
+          `bottom-[var(--m-tabbar-h)] z-40` with identical geometry, and one of
+          them can still be on screen behind this. Sitting one layer above with
+          a solid surface replaces that bar rather than stacking a second one
+          on top of it — and stays under the tab bar's z-50, which must never
+          be covered. */}
+      <div className="fixed inset-x-0 bottom-[var(--m-tabbar-h)] z-[45] border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden print:hidden">
+        <div className="mx-auto flex max-w-3xl items-center gap-[var(--m-sticky-gap)] px-[var(--m-page-x)] py-2.5">
+          <button
+            type="button"
+            onClick={onBack}
+            className="h-[var(--m-touch)] shrink-0 rounded-xl border border-border px-4 text-sm font-semibold transition-colors hover:bg-surface-muted"
+          >
+            {dict.store.back}
+          </button>
+          <button
+            type="submit"
+            disabled={placing || hardBlocked}
+            className="sf-buy flex h-[var(--m-touch)] flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground shadow-sm transition-[transform,background-color] duration-150 select-none hover:bg-primary-hover active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
+          >
+            {placing ? (
+              dict.store.placing
+            ) : (
+              <>
+                <span className="truncate">{dict.store.confirmOrder}</span>
+                <span aria-hidden>·</span>
+                <Money value={totals.grandTotal} cents />
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+      {/* Room for that bar, so the merchant's last custom field is never
+          trapped underneath it. */}
+      <div aria-hidden className="h-16 lg:hidden" />
     </form>
   );
 }

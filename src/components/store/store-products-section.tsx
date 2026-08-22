@@ -329,7 +329,7 @@ export function StoreProductsSection({
                   <Money value={p.price} className="font-bold text-foreground" />
                 </p>
               </div>
-              <button className="shrink-0 rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover">
+              <button className="relative shrink-0 rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors before:absolute before:-inset-y-1 before:content-[''] hover:bg-primary-hover">
                 {surface === "appointment" ? dict.store.book : dict.store.order}
               </button>
             </div>

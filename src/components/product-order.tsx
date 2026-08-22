@@ -5,7 +5,7 @@ import { Minus, Plus, ShoppingCart, Wallet } from "lucide-react";
 import { noteHintKey } from "@/lib/note-hint";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
-import { formatUsd, formatLbp } from "@/lib/currency";
+import { formatLbp } from "@/lib/currency";
 import { Money } from "@/components/ui/money";
 import {
   CheckoutForm,
@@ -45,8 +45,11 @@ export type ModifierGroup = {
   maxSelect: number | null;
 };
 
+// min-h-11 is the 44px thumb target. Measured at 390 these rendered 42px —
+// close enough to look right and short enough to miss, which is the worst kind
+// of near-miss. Same constant the booking panel's fields already carry.
 const fieldClass =
-  "mt-1.5 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
+  "mt-1.5 min-h-11 w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground";
 
 export function ProductOrder({
   lang,
@@ -242,6 +245,7 @@ export function ProductOrder({
         dict={dict}
         order={placed}
         loggedIn={viewer.loggedIn}
+        storeName={checkout.storeName}
       />
     );
   }
@@ -421,9 +425,11 @@ export function ProductOrder({
                       {a.name}
                     </span>
                     {a.price > 0 && (
-                      <span className="font-bold text-primary">
-                        + {formatUsd(a.price)}
-                      </span>
+                      <Money
+                        value={a.price}
+                        prefix="+ "
+                        className="font-bold text-primary"
+                      />
                     )}
                   </label>
                 );
@@ -452,9 +458,11 @@ export function ProductOrder({
                   />
                   {a.name}
                 </span>
-                <span className="font-bold text-primary">
-                  + {formatUsd(a.price)}
-                </span>
+                <Money
+                  value={a.price}
+                  prefix="+ "
+                  className="font-bold text-primary"
+                />
               </label>
             ))}
           </div>
@@ -530,21 +538,28 @@ export function ProductOrder({
             <span className="text-sm font-semibold">
               {dict.product.quantity}
             </span>
+            {/* 36 × 36 measured at 390 — the two most-tapped controls in the
+                buy box, both under the 44px minimum. The design wants the small
+                square, so the hit area grows with a transparent pseudo-element
+                instead of the button (36 + 2×4 = 44), which is exactly what
+                store/quantity-stepper.tsx already does for the cart. */}
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setQty((q) => Math.max(1, q - 1))}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border transition-colors hover:bg-surface-muted"
+                className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-border transition-colors before:absolute before:-inset-1 before:content-[''] hover:bg-surface-muted"
                 aria-label="-"
               >
                 <Minus className="h-4 w-4" />
               </button>
-              <span className="w-6 text-center font-bold">{qty}</span>
+              <span dir="ltr" className="w-6 text-center font-bold tabular-nums">
+                {qty}
+              </span>
               <button
                 type="button"
                 disabled={qty >= maxQty}
                 onClick={() => setQty((q) => q + 1)}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border transition-colors hover:bg-surface-muted disabled:opacity-40"
+                className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-border transition-colors before:absolute before:-inset-1 before:content-[''] hover:bg-surface-muted disabled:opacity-40"
                 aria-label="+"
               >
                 <Plus className="h-4 w-4" />
@@ -554,8 +569,11 @@ export function ProductOrder({
 
           <div className="flex items-center justify-between border-t border-border pt-4">
             <div>
+              {/* The amount goes through <Money> rather than a bare
+                  formatUsd(): the label and the figure sit in one RTL run, and
+                  an unisolated "$22.17" reorders against it. */}
               <span className="text-lg font-extrabold">
-                {dict.product.total}: {formatUsd(total)}
+                {dict.product.total}: <Money value={total} />
               </span>
               {lbpRate > 0 && (
                 <p className="text-xs text-muted-foreground">

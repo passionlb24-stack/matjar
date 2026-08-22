@@ -68,7 +68,11 @@ function PasswordField({
           type="button"
           onClick={() => setShow((s) => !s)}
           aria-label={show ? hideLabel : showLabel}
-          className="absolute inset-y-0 end-0 flex items-center pe-3.5 text-muted-foreground transition-colors hover:text-foreground"
+          // The input already reserves a 44px end gutter (pe-11); the button
+          // now fills it exactly. It used to be pe-3.5 with no width of its
+          // own, so it measured 34 wide against a full 44 of height — tall
+          // enough to look correct and too narrow to hit with a thumb.
+          className="absolute inset-y-0 end-0 flex w-11 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
         >
           {show ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
         </button>
@@ -267,7 +271,11 @@ export function LoginForm({ lang, dict }: { lang: Locale; dict: Dictionary }) {
         <div className="text-end">
           <Link
             href={`/${lang}/forgot-password`}
-            className="text-sm font-semibold text-primary hover:underline"
+            // Standalone link on its own row, so it earns a real 44px target.
+            // The "create one" link further down sits inside a sentence and
+            // keeps its text height — growing it would break the line it is
+            // part of, and inline links in prose are exempt for that reason.
+            className="inline-flex min-h-11 items-center text-sm font-semibold text-primary hover:underline"
           >
             {dict.auth.forgotLink}
           </Link>
