@@ -16,15 +16,69 @@ function toMinutes(hhmm: string): number {
   return (h || 0) * 60 + (m || 0);
 }
 
+// A merchant writes "09:00–18:00" meaning Beirut, always. Nothing else is
+// plausible: every shop on this platform is in Lebanon.
+//
+// This used to be read with `now.getDay()` and `now.getHours()`, which is
+// whatever timezone the machine happens to be in. On the server that is UTC,
+// and Beirut runs three hours ahead — so every store on the platform carried a
+// status that was wrong for six hours of every day: shown CLOSED for the first
+// three hours it was actually open, and OPEN for three hours after it shut.
+//
+// Caught on production rather than by reading: at 18:01 Beirut, two shops whose
+// hours end at 18:00 both rendered «مفتوح هلأ». UTC was 15:01, which is exactly
+// what the old arithmetic would conclude.
+//
+// Intl rather than a fixed +3, because Lebanon keeps DST: the offset is +2 in
+// winter and +3 in summer, and a hard-coded number would be wrong for half the
+// year in the other direction. `h23` because `hour12: false` renders midnight
+// as "24" on some engines, which would put it a day out.
+//
+// It also removes a hydration hazard. This runs on the server AND in the
+// browser, where `getHours()` was the visitor's own timezone — so the same
+// store could render open on the server and closed on the client for anyone
+// outside Beirut. Both sides now ask the same question.
+const BEIRUT_CLOCK = new Intl.DateTimeFormat("en-US", {
+  timeZone: "Asia/Beirut",
+  weekday: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+const DOW: Record<string, number> = {
+  Sun: 0,
+  Mon: 1,
+  Tue: 2,
+  Wed: 3,
+  Thu: 4,
+  Fri: 5,
+  Sat: 6,
+};
+
+/** The weekday (0–6, Sunday first, matching the `hours` keys) and minutes past
+ *  midnight, in Beirut, for an instant. */
+export function beirutClock(now: Date): { dow: number; minutes: number } {
+  let dow = 0;
+  let hour = 0;
+  let minute = 0;
+  for (const part of BEIRUT_CLOCK.formatToParts(now)) {
+    if (part.type === "weekday") dow = DOW[part.value] ?? 0;
+    else if (part.type === "hour") hour = Number(part.value);
+    else if (part.type === "minute") minute = Number(part.value);
+  }
+  return { dow, minutes: hour * 60 + minute };
+}
+
 /** True/false when hours are configured; null when unknown (not configured). */
 export function isOpenNow(
   hours: WeekHours | null | undefined,
   now: Date,
 ): boolean | null {
   if (!hours || Object.keys(hours).length === 0) return null;
-  const span = hours[String(now.getDay())];
+  const { dow, minutes: cur } = beirutClock(now);
+  const span = hours[String(dow)];
   if (!span) return false;
-  const cur = now.getHours() * 60 + now.getMinutes();
   const open = toMinutes(span.open);
   const close = toMinutes(span.close);
   // Overnight spans (e.g. 18:00–02:00) wrap past midnight.
