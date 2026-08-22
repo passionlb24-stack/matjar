@@ -38,6 +38,19 @@ on:
         type: choice
         options: [debug, release]
         default: debug
+  # A tag is the second way in, and the only one that needs nothing but git.
+  # Push `apk-<anything>` and a debug APK builds:
+  #     git tag apk-2026-08-22 && git push origin apk-2026-08-22
+  # Useful when the Actions UI is not to hand, and it leaves a permanent
+  # marker of exactly which commit an APK came from, which "Run workflow"
+  # does not.
+  push:
+    tags: ["apk-*"]
+
+# A tag push carries no inputs, so the choice has to fall back to something.
+# Debug: a tag must never be able to spend the signing key by accident.
+env:
+  BUILD_TYPE: ${{ inputs.build_type || 'debug' }}
 
 concurrency:
   group: android-${{ github.ref }}
@@ -79,13 +92,13 @@ jobs:
       # versionName stays whatever build.gradle says — that is the number the
       # public sees, and it is a product decision, not a build one.
       - name: Stamp versionCode from the run number
-        if: inputs.build_type == 'release'
+        if: env.BUILD_TYPE == 'release'
         run: |
           sed -i "s/versionCode 1$/versionCode ${{ github.run_number }}/" android/app/build.gradle
           grep -n "versionCode\|versionName" android/app/build.gradle
 
       - name: Check release signing secrets
-        if: inputs.build_type == 'release'
+        if: env.BUILD_TYPE == 'release'
         env:
           KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
@@ -99,7 +112,7 @@ jobs:
           fi
 
       - name: Decode keystore
-        if: inputs.build_type == 'release'
+        if: env.BUILD_TYPE == 'release'
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/matjar.jks
           # Never let the key reach a log or an artifact.
@@ -115,12 +128,12 @@ jobs:
         run: chmod +x android/gradlew
 
       - name: Build debug APK
-        if: inputs.build_type == 'debug'
+        if: env.BUILD_TYPE == 'debug'
         working-directory: android
         run: ./gradlew assembleDebug --no-daemon
 
       - name: Build release AAB
-        if: inputs.build_type == 'release'
+        if: env.BUILD_TYPE == 'release'
         working-directory: android
         env:
           MATJAR_KEYSTORE: matjar.jks
@@ -130,7 +143,7 @@ jobs:
         run: ./gradlew bundleRelease --no-daemon
 
       - name: Upload APK
-        if: inputs.build_type == 'debug'
+        if: env.BUILD_TYPE == 'debug'
         uses: actions/upload-artifact@v4
         with:
           name: matjar-debug-apk
@@ -138,7 +151,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload AAB
-        if: inputs.build_type == 'release'
+        if: env.BUILD_TYPE == 'release'
         uses: actions/upload-artifact@v4
         with:
           name: matjar-release-aab
