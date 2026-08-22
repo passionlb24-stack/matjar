@@ -19,6 +19,11 @@ import { ShareButton } from "@/components/share-button";
 import { MessageStoreButton } from "@/components/message-store-button";
 import { ProBadge } from "@/components/pro-badge";
 import { hasPlan } from "@/lib/plan-tiers";
+import {
+  QUICK_ACTION_BASE,
+  QUICK_ACTION_LABEL,
+} from "@/components/quick-action";
+import { StoreAbout } from "@/components/store/store-about";
 
 export function StoreHeader({
   store,
@@ -46,6 +51,18 @@ export function StoreHeader({
   isFollowing: boolean;
 }) {
   const cat = dict.catalog[store.category];
+  // Instagram / Facebook / website — built from the merchant's own fields, so a
+  // shop that filled in none of them gets no row at all rather than an empty
+  // one. Listed once here because the phone and the desktop each render it in
+  // the place that suits them.
+  const elsewhere = [
+    store.instagram && {
+      href: store.instagram,
+      label: dict.merchant.instagram,
+    },
+    store.facebook && { href: store.facebook, label: dict.merchant.facebook },
+    store.website && { href: store.website, label: dict.merchant.website },
+  ].filter(Boolean) as { href: string; label: string }[];
   return (
     <div className="relative z-10 -mt-6 rounded-2xl border border-border bg-surface p-5 shadow-md sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -165,9 +182,16 @@ export function StoreHeader({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        {/* Quick actions (§17). Below `lg` this is one row of icon-only 44px
+            targets — save, share, message, call, WhatsApp — because that is
+            what "what can I do" needs to be on a phone. It used to be seven
+            labelled pills that wrapped over three rows, cost 130px of an 844px
+            screen, and were 38px tall to the last one. From `lg` up every pill
+            is back with its word, in the same order, unchanged. */}
+        <div className="flex flex-wrap gap-1.5 lg:gap-2">
           {store.isReal && (
             <FollowButton
+              compact
               storeId={id}
               following={isFollowing}
               lang={lang}
@@ -175,6 +199,7 @@ export function StoreHeader({
             />
           )}
           <ShareButton
+            compact
             title={store.name}
             dict={dict}
             url={
@@ -184,15 +209,16 @@ export function StoreHeader({
             }
           />
           {store.isReal && (
-            <MessageStoreButton storeId={id} lang={lang} dict={dict} />
+            <MessageStoreButton compact storeId={id} lang={lang} dict={dict} />
           )}
           {store.phone && (
             <a
               href={`tel:${store.phone}`}
-              className="flex items-center gap-1.5 rounded-xl border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted"
+              aria-label={dict.store.call}
+              className={`flex items-center gap-1.5 rounded-xl border border-border text-sm font-semibold transition-colors hover:bg-surface-muted ${QUICK_ACTION_BASE}`}
             >
               <Phone className="h-4 w-4" />
-              {dict.store.call}
+              <span className={QUICK_ACTION_LABEL}>{dict.store.call}</span>
             </a>
           )}
           {store.whatsapp && (
@@ -200,34 +226,55 @@ export function StoreHeader({
               href={waLink(store.whatsapp) ?? "#"}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 rounded-xl bg-whatsapp px-4 py-2 text-sm font-semibold text-whatsapp-foreground transition-colors hover:bg-whatsapp-hover"
+              aria-label={dict.store.whatsapp}
+              className={`flex items-center gap-1.5 rounded-xl bg-whatsapp text-sm font-semibold text-whatsapp-foreground transition-colors hover:bg-whatsapp-hover ${QUICK_ACTION_BASE}`}
             >
               <MessageCircle className="h-4 w-4" />
-              {dict.store.whatsapp}
+              <span className={QUICK_ACTION_LABEL}>{dict.store.whatsapp}</span>
             </a>
           )}
-          {store.instagram && (
-            <a href={store.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center rounded-xl border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted">
-              {dict.merchant.instagram}
+          {/* The merchant's other homes. They are links AWAY from the profile,
+              so on a phone they do not compete with the actions above: from
+              `lg` up they stay exactly where they were, and below `lg` the same
+              three render once more under the description (see `elsewhere`).
+              Two copies of a plain anchor, one of them always display:none —
+              cheaper than moving the desktop cluster and calling it a fix. */}
+          {elsewhere.map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden items-center rounded-xl border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted lg:flex"
+            >
+              {l.label}
             </a>
-          )}
-          {store.facebook && (
-            <a href={store.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center rounded-xl border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted">
-              {dict.merchant.facebook}
-            </a>
-          )}
-          {store.website && (
-            <a href={store.website} target="_blank" rel="noopener noreferrer" className="flex items-center rounded-xl border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-muted">
-              {dict.merchant.website}
-            </a>
-          )}
+          ))}
         </div>
       </div>
 
       {store.description && (
-        <p className="mt-4 border-t border-border pt-4 text-muted-foreground">
-          {store.description}
-        </p>
+        <StoreAbout
+          text={store.description}
+          more={dict.store.readMore}
+          less={dict.store.readLess}
+        />
+      )}
+
+      {elsewhere.length > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 lg:hidden">
+          {elsewhere.map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative inline-flex h-11 items-center text-sm font-semibold text-primary underline underline-offset-4"
+            >
+              {l.label}
+            </a>
+          ))}
+        </div>
       )}
     </div>
   );

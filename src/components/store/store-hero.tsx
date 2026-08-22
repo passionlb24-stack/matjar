@@ -50,11 +50,15 @@ export function StoreHero({
       <BackButton
         label={dict.common.back}
         fallbackHref={`/${lang}/explore`}
-        className={
+        // The pill stays 32px tall — it sits on the merchant's banner and a
+        // 44px slab there is a bruise. The thumb gets its 44px from the
+        // transparent `before` box instead (32 + 2×6), the same way the site
+        // header's menu button has since it was last measured.
+        className={`relative pointer-events-auto before:absolute before:-inset-y-1.5 before:content-[''] ${
           !store.coverUrl && (variant === "slim" || variant === "band")
-            ? "pointer-events-auto rounded-full border border-border bg-surface/80 px-3 py-1.5 backdrop-blur-sm hover:bg-surface"
-            : "pointer-events-auto rounded-full bg-black/40 px-3 py-1.5 !text-white backdrop-blur-sm hover:bg-black/55 hover:!text-white"
-        }
+            ? "rounded-full border border-border bg-surface/80 px-3 py-1.5 backdrop-blur-sm hover:bg-surface"
+            : "rounded-full bg-black/40 px-3 py-1.5 !text-white backdrop-blur-sm hover:bg-black/55 hover:!text-white"
+        }`}
       />
     </Container>
   );

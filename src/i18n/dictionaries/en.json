@@ -1549,6 +1549,7 @@
     "inquiryGreeting": "Hi, I'd like to ask about",
     "noServices": "No bookable services yet.",
     "yourOrder": "Your order",
+    "yourDetails": "Your details",
     "total": "Total",
     "checkout": "Place order",
     "placing": "Placing…",
@@ -1645,7 +1646,9 @@
     "follow": "Follow",
     "following": "Following",
     "share": "Share",
-    "copied": "Link copied ✓"
+    "copied": "Link copied ✓",
+    "readMore": "Read more",
+    "readLess": "Show less"
   },
   "leadForm": {
     "title": "Request a viewing or ask",

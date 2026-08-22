@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Check, MessageCircle } from "lucide-react";
+import { Check, MessageCircle, Store as StoreIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Money } from "@/components/ui/money";
 import type { Locale } from "@/i18n/config";
@@ -22,13 +22,26 @@ export function OrderPlaced({
   dict,
   order,
   loggedIn,
+  storeName = null,
 }: {
   lang: Locale;
   dict: Dictionary;
   order: PlacedOrder;
   loggedIn: boolean;
+  /** WHO the order went to. §28 asks a success screen for reference, merchant,
+   *  summary, status and what happens next; this screen had three of the five
+   *  and named nobody. On a platform where the next thing that happens is a
+   *  merchant phoning you, the shop's name is not decoration — it is how the
+   *  customer recognises the call. Read from the caller's own checkout context
+   *  (`store.storeName` / `checkout.storeName`), never invented; omitted, the
+   *  line simply does not render. */
+  storeName?: string | null;
 }) {
-  const { orderId, total, waUrl } = order;
+  // `lines` rides on the placed order rather than arriving as a prop, for the
+  // same reason `total` does: the caller clears its cart on the line after
+  // this component is handed the result, so anything derived from that cart
+  // reads empty here. Frozen at placement, it cannot.
+  const { orderId, total, waUrl, lines } = order;
   return (
     <div className="mt-6 rounded-2xl border border-success/30 bg-success-soft p-6 text-center">
       <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-success-strong text-success-strong-foreground">
@@ -66,6 +79,34 @@ export function OrderPlaced({
       {/* What was paid, and what happens now — the two questions the customer
           actually has at this exact moment. */}
       <div className="mx-auto mt-4 max-w-xs rounded-xl border border-border bg-surface px-4 py-3 text-start">
+        {/* Icon rather than a label, exactly as /orders/[id] names the shop —
+            "المتجر" reads wrong above a clinic, and the icon carries the
+            meaning in both locales without inventing a noun for the sector. */}
+        {storeName && (
+          <p className="mb-2 flex items-center gap-1.5 border-b border-border pb-2 text-sm font-bold">
+            <StoreIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <span dir="auto" className="min-w-0 truncate">
+              {storeName}
+            </span>
+          </p>
+        )}
+        {lines.length > 0 && (
+          <ul className="mb-2 space-y-1 border-b border-border pb-2">
+            {lines.map((l) => (
+              <li
+                key={l.id}
+                className="flex items-baseline justify-between gap-2 text-sm"
+              >
+                <span dir="auto" className="min-w-0 truncate">
+                  {l.name}
+                </span>
+                <span dir="ltr" className="shrink-0 tabular-nums text-muted-foreground">
+                  ×{l.quantity}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
         <div className="flex items-baseline justify-between gap-3">
           <span className="text-sm text-muted-foreground">
             {dict.store.total}

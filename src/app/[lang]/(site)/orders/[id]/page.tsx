@@ -5,6 +5,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { Money } from "@/components/ui/money";
+import { ChevronPrev } from "@/components/ui/directional-icon";
 import { Container } from "@/components/ui/container";
 import { Card } from "@/components/ui/card";
 import { Breadcrumbs } from "@/components/breadcrumbs";
@@ -291,11 +292,17 @@ export default async function OrderDetailPage({
             ))}
         </Card>
 
+        {/* The arrow was a literal "←". "Back" in an Arabic document points
+            RIGHT, so on this app's primary locale it aimed at the wrong side
+            of the screen. ChevronPrev resolves direction from the document's
+            own `dir` (see ui/directional-icon.tsx), and the link clears 44px
+            while it is at it. */}
         <Link
           href={`/${lang}/orders`}
-          className="mt-6 inline-block text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground print:hidden"
+          className="mt-6 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground print:hidden"
         >
-          ← {t.backToOrders}
+          <ChevronPrev className="h-4 w-4" />
+          {t.backToOrders}
         </Link>
 
         {/* Room for the sticky bar plus the tab bar beneath it, so the last

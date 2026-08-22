@@ -958,8 +958,9 @@ export function BookingPanel({
                 </div>
               )}
               {engineMode && avail && (
-                <p className="text-xs font-semibold text-muted-foreground">
-                  ⏱️ {dict.booking.durationLabel.replace("{n}", String(avail.duration))}
+                <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  <Clock className="h-3.5 w-3.5 shrink-0" />
+                  {dict.booking.durationLabel.replace("{n}", String(avail.duration))}
                 </p>
               )}
               {dayFull &&
@@ -1341,8 +1342,9 @@ export function BookingPanel({
             ) : (
               <>
                 {engineMode && avail && (
-                  <p className="pb-3 text-xs font-semibold text-muted-foreground">
-                    ⏱️ {dict.booking.durationLabel.replace("{n}", String(avail.duration))}
+                  <p className="flex items-center gap-1.5 pb-3 text-xs font-semibold text-muted-foreground">
+                    <Clock className="h-3.5 w-3.5 shrink-0" />
+                    {dict.booking.durationLabel.replace("{n}", String(avail.duration))}
                   </p>
                 )}
                 {slotGrid(true)}
@@ -1353,7 +1355,9 @@ export function BookingPanel({
         ) : (
           <Link
             href={`/${lang}/login`}
-            className="inline-block rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+            // 42px, same two pixels short as the review sign-in link it is a
+            // twin of; taken from the hit box so the pill is unchanged.
+            className="relative inline-block rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors before:absolute before:-inset-y-px before:content-[''] hover:border-primary hover:text-primary"
           >
             {dict.booking.loginToBook}
           </Link>

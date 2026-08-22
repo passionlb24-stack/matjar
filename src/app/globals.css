@@ -712,3 +712,22 @@ select:focus-visible,
   font-size: 12px;
   letter-spacing: 0.24em;
 }
+
+/* Leaflet ships its zoom buttons at 30x30, which is the only pair of controls
+   on a store page that a thumb cannot reliably hit. They are third-party DOM,
+   so the size is corrected here rather than by wrapping the map. 44px is the
+   floor the rest of this codebase holds to; the border-radius and the font
+   scale with it so the control still looks like Leaflet's, not like a pair of
+   stretched squares.
+
+   Not fixed here, and worth knowing: the marker icons are 20x20 and the
+   attribution credit is 14px tall. Both are Leaflet's own, and both would
+   have to change the map's appearance to grow — a 44px pin covers the street
+   it is pointing at. The zoom pair is the one that is purely a control. */
+.leaflet-touch .leaflet-bar a,
+.leaflet-bar a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  font-size: 20px;
+}

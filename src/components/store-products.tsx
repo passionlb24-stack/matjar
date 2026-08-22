@@ -13,6 +13,7 @@ import { attributeSummary } from "@/lib/attributes";
 import { effectivePrice } from "@/lib/pricing";
 import { waLink, buildOrderMessage } from "@/lib/whatsapp";
 import { formatUsd } from "@/lib/currency";
+import { Money } from "@/components/ui/money";
 import type { WeekHours } from "@/lib/hours";
 import { localized } from "@/lib/i18n-field";
 import { groupBySection, type SectionInfo } from "@/lib/sections";
@@ -341,14 +342,20 @@ export function StoreProducts({
           return (
             <div
               key={p.id}
-              className="sf-card group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+              className="sf-card group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
             >
               <Card p={p} />
               <div className="flex flex-1 flex-col p-4">
+                {/* Stretched link: at 390 the name alone was a 118 × 24 tap
+                    target sitting inside a 250px card, so the way into the
+                    product was the smallest thing on the card. `after:inset-0`
+                    hands the whole card to the name link — image included,
+                    which is where a thumb goes anyway — and the action cell
+                    below lifts itself back out with `relative z-[1]`. */}
                 <Link
                   href={`/${lang}/product/${p.id}`}
                   dir="auto"
-                  className="font-bold leading-tight transition-colors hover:text-primary"
+                  className="font-bold leading-tight transition-colors after:absolute after:inset-0 after:content-[''] hover:text-primary"
                 >
                   {localized(p.name, p.nameEn, lang)}
                 </Link>
@@ -370,15 +377,18 @@ export function StoreProducts({
                     {dict.store.onlyLeft.replace("{n}", String(p.stock))}
                   </p>
                 )}
-                <div className="mt-3 flex justify-end">
+                {/* z-[1] keeps the action above the stretched link; min-h-11
+                    because these measured 102 × 36 at 390 and are the single
+                    most-tapped control on a storefront. */}
+                <div className="relative z-[1] mt-3 flex justify-end">
                   {p.stock != null && p.stock <= 0 ? (
-                    <span className="w-full rounded-lg bg-surface-muted px-3.5 py-2 text-center text-sm font-bold text-muted-foreground">
+                    <span className="flex min-h-11 w-full items-center justify-center rounded-lg bg-surface-muted px-3.5 py-2 text-center text-sm font-bold text-muted-foreground">
                       {dict.store.soldOut}
                     </span>
                   ) : p.hasVariants ? (
                     <Link
                       href={`/${lang}/product/${p.id}`}
-                      className="w-full rounded-lg bg-primary px-3.5 py-2 text-center text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                      className="flex min-h-11 w-full items-center justify-center rounded-lg bg-primary px-3.5 py-2 text-center text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
                     >
                       {dict.store.chooseOption}
                     </Link>
@@ -392,7 +402,7 @@ export function StoreProducts({
                   ) : (
                     <button
                       onClick={() => setQty(p.id, 1)}
-                      className="w-full rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                      className="min-h-11 w-full rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
                     >
                       {addLabel}
                     </button>
@@ -414,10 +424,16 @@ export function StoreProducts({
             >
               <Card p={p} />
               <div className="min-w-0 flex-1">
+                {/* The list layout takes its 44px from the hit box rather than
+                    from `min-h-11` the way the grid above does, and on purpose:
+                    this row is already the tall-catalogue layout — misk runs to
+                    5400px with eleven items — so growing every row by 8px to
+                    reach a size the `before` box reaches for free would be paid
+                    for in scroll. Name: 24 + 2×10. Action: 36 + 2×4. */}
                 <Link
                   href={`/${lang}/product/${p.id}`}
                   dir="auto"
-                  className="block truncate font-bold transition-colors hover:text-primary"
+                  className="relative block truncate font-bold transition-colors before:absolute before:-inset-y-2.5 before:content-[''] hover:text-primary"
                 >
                   {localized(p.name, p.nameEn, lang)}
                 </Link>
@@ -447,7 +463,7 @@ export function StoreProducts({
               ) : p.hasVariants ? (
                 <Link
                   href={`/${lang}/product/${p.id}`}
-                  className="shrink-0 rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                  className="relative shrink-0 rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors before:absolute before:-inset-y-1 before:content-[''] hover:bg-primary-hover"
                 >
                   {dict.store.chooseOption}
                 </Link>
@@ -461,7 +477,7 @@ export function StoreProducts({
               ) : (
                 <button
                   onClick={() => setQty(p.id, 1)}
-                  className="shrink-0 rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                  className="relative shrink-0 rounded-lg bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground transition-colors before:absolute before:-inset-y-1 before:content-[''] hover:bg-primary-hover"
                 >
                   {addLabel}
                 </button>
@@ -518,6 +534,7 @@ export function StoreProducts({
           dict={dict}
           order={placed}
           loggedIn={viewer.loggedIn}
+          storeName={checkout.storeName}
         />
       ) : (
         items.length > 0 && (
@@ -561,26 +578,46 @@ export function StoreProducts({
               />
             </div>
             {!checkingOut && (
-          <div className="sticky bottom-4 mt-6 flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface p-4 shadow-lg">
+          /* WHERE THIS BAR SITS, and why the offset is not decoration.
+              At `bottom-4` it rendered top=746 bottom=828 in an 844px viewport,
+              while the bottom tab bar occupies 787–844 at z-50. This bar
+              carried no z-index at all, so its last 41px — most of the checkout
+              button — sat UNDER the tab bar and could not be tapped. It is the
+              basket: the one control on a storefront that must never be
+              covered. `--m-tabbar-h` is the visible bar only, so the safe-area
+              inset is added here (bottom-nav pads for it separately), plus the
+              house sticky gap. Above `lg` there is no tab bar, so the original
+              bottom-4 is restored and desktop is untouched. */
+          <div className="sticky bottom-[calc(var(--m-tabbar-h)+env(safe-area-inset-bottom)+var(--m-sticky-gap))] z-30 mt-6 flex items-center justify-between gap-3 rounded-2xl border border-border bg-surface p-4 shadow-lg lg:bottom-4">
             {/* The bar used to state a total for a list the customer could no
                 longer see without committing to checkout. Tapping it now opens
                 the cart itself. */}
             <button
               type="button"
               onClick={() => setCartOpen(true)}
-              className="min-w-0 text-start"
+              className="relative min-h-11 min-w-0 text-start"
             >
-              <p aria-live="polite" className="text-sm text-muted-foreground">
+              {/* truncate, not wrap: at 320 the button beside it takes what it
+                  needs and this line gives way, rather than growing the bar to
+                  two rows. */}
+              <p
+                aria-live="polite"
+                className="truncate text-sm text-muted-foreground"
+              >
                 {dict.store.itemsInCart.replace(
                   "{n}",
                   String(items.reduce((n, p) => n + cart[p.id], 0)),
                 )}
               </p>
-              <p key={total} className="animate-pop text-lg font-extrabold tabular-nums">
-                {formatUsd(total)}
-              </p>
+              {/* Through <Money>: `tabular-nums` alone leaves the "$" a bidi
+                  neutral in this RTL row. */}
+              <Money
+                key={total}
+                value={total}
+                className="animate-pop block text-lg font-extrabold"
+              />
             </button>
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center gap-2">
               {waUrl && (
                 <a
                   href={waUrl}
@@ -594,12 +631,22 @@ export function StoreProducts({
                   </span>
                 </a>
               )}
+              {/* The amount rides on the button as well as beside it (§24), so
+                  the number and the commitment are never separated.
+                  The WORDING never drops — an earlier pass hid it below `sm`
+                  and, since `sm` is 640px, that meant every phone from 320 to
+                  430 got a cart glyph and a price with no verb on it, which
+                  reads as "add" at least as easily as "check out". The ICON is
+                  what gives way instead: it is the only part of the button
+                  carrying no information the label does not already carry. */}
               <button
                 onClick={startCheckout}
-                className="sf-buy flex items-center gap-1.5 rounded-xl bg-primary px-6 py-3 font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
+                className="sf-buy flex min-h-11 items-center gap-1.5 rounded-xl bg-primary px-3.5 py-3 font-bold whitespace-nowrap text-primary-foreground transition-colors hover:bg-primary-hover sm:px-6"
               >
-                <ShoppingCart className="h-4 w-4" />
+                <ShoppingCart className="hidden h-4 w-4 shrink-0 sm:block" />
                 {dict.store.checkout}
+                <span aria-hidden>·</span>
+                <Money value={total} />
               </button>
             </div>
           </div>

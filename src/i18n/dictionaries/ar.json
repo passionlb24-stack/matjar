@@ -1549,6 +1549,7 @@
     "inquiryGreeting": "مرحبا، بدّي استفسر عن",
     "noServices": "لسا ما في خدمات متاحة للحجز.",
     "yourOrder": "طلبك",
+    "yourDetails": "معلوماتك",
     "total": "المجموع",
     "checkout": "أكّد الطلب",
     "placing": "عم نأكّد…",
@@ -1645,7 +1646,9 @@
     "follow": "تابِع",
     "following": "متابَع",
     "share": "مشاركة",
-    "copied": "تم نسخ الرابط ✓"
+    "copied": "تم نسخ الرابط ✓",
+    "readMore": "شوف المزيد",
+    "readLess": "شوف أقل"
   },
   "leadForm": {
     "title": "اطلب معاينة أو استفسر",
