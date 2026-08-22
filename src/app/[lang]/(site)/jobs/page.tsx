@@ -63,7 +63,7 @@ export default async function JobsPage({
   const jobs = (data ?? []) as JobPosting[];
 
   const chip = (active: boolean) =>
-    `rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${
+    `inline-flex h-11 items-center rounded-full border px-4 text-sm font-medium transition-colors ${
       active
         ? "border-primary bg-primary-soft text-primary"
         : "border-border text-muted-foreground hover:border-primary/40"

@@ -135,7 +135,7 @@ export function MarketFilters({
             setCategory("all");
             navigate({ category: "all" });
           }}
-          className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${chip(category === "all")}`}
+          className={`inline-flex h-11 items-center rounded-full border px-4 text-sm font-medium transition-colors ${chip(category === "all")}`}
         >
           {t.allCategories}
         </button>
@@ -146,7 +146,7 @@ export function MarketFilters({
               setCategory(c.slug);
               navigate({ category: c.slug });
             }}
-            className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${chip(category === c.slug)}`}
+            className={`inline-flex h-11 items-center rounded-full border px-4 text-sm font-medium transition-colors ${chip(category === c.slug)}`}
           >
             {c.name}
           </button>
