@@ -1,6 +1,7 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 
-// Chevrons that mean a *direction of travel*, not a side of the screen.
+// Chevrons and arrows that mean a *direction of travel*, not a side of the
+// screen.
 //
 // "Next" in Arabic points LEFT. A bare <ChevronRight/> is therefore wrong on
 // every Arabic screen, and the app is Arabic-first — so the only safe way to
@@ -43,4 +44,30 @@ export function ChevronNext({ className = "h-4 w-4", ...props }: Props) {
 /** Back / previous / up a level. Points left in English, right in Arabic. */
 export function ChevronPrev({ className = "h-4 w-4", ...props }: Props) {
   return <ChevronLeft className={`rtl:rotate-180 ${className}`} {...props} />;
+}
+
+// ===== Arrows =====
+//
+// The same idea, for the heavier arrow glyph the CTAs use. These exist because
+// the chevron pair only covered half the problem: `rtl:rotate-180` was being
+// pasted onto lucide's ArrowLeft/ArrowRight at 15 call sites, which makes the
+// icon flip with the document but says nothing about which way it should point
+// in the first place. Seven of those had the wrong base arrow — a "read the
+// guide" CTA whose arrow pointed backwards in BOTH locales, a back link that
+// pointed forwards in both — and every one of them looked deliberate, because
+// the `rtl:` class made it look like someone had thought about direction.
+//
+// A wrapper named for the meaning is the only version of this that cannot be
+// got wrong by pattern-matching the line above. eslint's
+// `matjar/no-raw-directional-icon` now refuses the raw imports outside this
+// file so the pasting cannot come back.
+
+/** Forward / next / continue / "read more". Right in English, left in Arabic. */
+export function ArrowNext({ className = "h-4 w-4", ...props }: Props) {
+  return <ArrowRight className={`rtl:rotate-180 ${className}`} {...props} />;
+}
+
+/** Back / previous / return. Left in English, right in Arabic. */
+export function ArrowPrev({ className = "h-4 w-4", ...props }: Props) {
+  return <ArrowLeft className={`rtl:rotate-180 ${className}`} {...props} />;
 }

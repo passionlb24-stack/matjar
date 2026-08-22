@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { APP_MODE_ATTR, APP_MODE_VALUE } from "@/lib/app-mode";
 import {
   NATIVE_PUSH_ENABLED,
   checkNativePermission,
@@ -35,6 +36,26 @@ export function NativeBridge() {
       const { Capacitor } = await import("@capacitor/core");
       if (!Capacitor.isNativePlatform() || cancelled) return;
       const platform = Capacitor.getPlatform();
+
+      // Last-resort app-mode signal. The real one is set BEFORE PAINT, by the
+      // <head> script in the root layout, off a token this app appends to the
+      // WebView's user agent (src/lib/app-mode.ts + capacitor.config.ts).
+      //
+      // This line is for exactly one case: a binary already on someone's phone
+      // that was built before that token existed. Its UA carries no token, and
+      // `window.Capacitor` is not guaranteed to be injected in time for a
+      // script in <head> when the WebView is pointed at a remote `server.url` —
+      // so the head script declines, and that install would keep its website
+      // chrome until the person updates the app.
+      //
+      // Setting it here means the chrome disappears AFTER hydration on those
+      // builds. That is a flash, and a flash is worse than a clean render — but
+      // it is better than a permanent sitemap footer, which is the only other
+      // option for an install nobody can retroactively rebuild. On any binary
+      // produced after this commit the attribute is already present and this is
+      // a no-op write of the same value, so no flash is introduced anywhere it
+      // was not already the lesser evil.
+      document.documentElement.setAttribute(APP_MODE_ATTR, APP_MODE_VALUE);
 
       // Splash + status bar
       const [{ SplashScreen }, { StatusBar, Style }] = await Promise.all([

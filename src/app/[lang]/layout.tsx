@@ -6,6 +6,10 @@ import "../globals.css";
 import { isLocale, locales, localeDirection } from "@/i18n/config";
 import { SITE_URL } from "@/lib/site";
 import { NativeBridge } from "@/components/native-bridge";
+import {
+  APP_MODE_BOOT_SCRIPT,
+  APP_MODE_CRITICAL_CSS,
+} from "@/lib/app-mode";
 import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 import { SwRegister } from "@/components/sw-register";
 
@@ -110,6 +114,13 @@ export default async function RootLayout({
               "try{var t=localStorage.getItem('matjar-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}",
           }}
         />
+        {/* Same trick, same reason, for the native shell: mark <html> before the
+            body is parsed, so the app never paints the website chrome and then
+            takes it away. The <style> beside it carries the rules that removal
+            depends on — inline, in this response, because they must not be
+            droppable by the asset pipeline. See src/lib/app-mode.ts. */}
+        <script dangerouslySetInnerHTML={{ __html: APP_MODE_BOOT_SCRIPT }} />
+        <style dangerouslySetInnerHTML={{ __html: APP_MODE_CRITICAL_CSS }} />
       </head>
       <body className="flex min-h-dvh flex-col bg-background font-sans text-foreground antialiased">
         {/* Google Tag Manager was here, and it has never once run.

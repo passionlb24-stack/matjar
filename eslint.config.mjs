@@ -133,7 +133,94 @@ const noRawPalette = {
   },
 };
 
-const matjar = { rules: { "no-raw-palette": noRawPalette } };
+// ===== matjar/no-raw-directional-icon =====
+//
+// In Arabic, BACK points right and FORWARD points left. The app is Arabic-first,
+// so lucide's `ChevronRight` does not mean "next" and `ArrowLeft` does not mean
+// "back" — they mean a side of the screen, which is never what a control means.
+//
+// This has been fixed 59 times and keeps coming back, and the reason it keeps
+// coming back is that the WRONG version looks right. The house pattern is
+// `<ArrowLeft className="… rtl:rotate-180" />`, and the `rtl:` class makes the
+// line look considered. It only makes the icon flip with the document; it says
+// nothing about which way it should have been pointing to begin with. Seven
+// call sites had the base arrow backwards under that class — a "read the guide"
+// CTA whose arrow pointed backwards in Arabic AND in English, a "back to
+// leaders" link that pointed forwards in both — and nothing about the source
+// gave them away.
+//
+// So the check is not "did you remember the rtl: class". A rule shaped like
+// that passes every one of those seven. The check is: the raw left/right icon
+// does not appear in JSX at all. Direction is expressed by NAME —
+// ChevronNext/ChevronPrev/ArrowNext/ArrowPrev from ui/directional-icon — and a
+// name cannot be got wrong by copying the line above it.
+//
+// Detected on the JSX element, not on import statements or strings, so the
+// keyboard handlers in ui/tabs.tsx (`e.key === "ArrowRight"`, which really is
+// about a side of the screen) are untouched.
+const DIRECTIONAL_ICONS = {
+  ChevronRight: "ChevronNext",
+  ChevronLeft: "ChevronPrev",
+  ArrowRight: "ArrowNext",
+  ArrowLeft: "ArrowPrev",
+  ChevronsRight: "ChevronNext",
+  ChevronsLeft: "ChevronPrev",
+  MoveRight: "ArrowNext",
+  MoveLeft: "ArrowPrev",
+  CircleArrowRight: "ArrowNext",
+  CircleArrowLeft: "ArrowPrev",
+  CircleChevronRight: "ChevronNext",
+  CircleChevronLeft: "ChevronPrev",
+};
+
+// Where the raw icons are legitimately allowed, each for a stated reason.
+const DIRECTIONAL_ALLOWLIST = [
+  // Defines the wrappers; has to import the raw icons to build them.
+  "src/components/ui/directional-icon.tsx",
+  // These two animate the chevron with a hover translate on the same element.
+  // Rotation and translation share one `transform`, so these spell the whole
+  // composition out by hand rather than take a prop nothing else would use.
+  // Both are commented at the call site and both are correct.
+  "src/components/os-dashboard/alerts-card.tsx",
+  "src/components/os-dashboard/suggestions-card.tsx",
+];
+
+const noRawDirectionalIcon = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Ban lucide's left/right chevrons and arrows in JSX; direction is named, not sided.",
+    },
+    schema: [],
+    messages: {
+      raw: "`<{{ found }}>` names a SIDE of the screen. In Arabic — this app's primary locale — back points right and forward points left, so a side is never what the control means. Use `<{{ use }}>` from @/components/ui/directional-icon, which resolves the arrow from the document's own `dir`. Adding `rtl:rotate-180` is NOT the fix: it flips the icon with the document but does not say which way it should point, and that is exactly how the seven backwards CTAs got past review.",
+    },
+  },
+  create(context) {
+    const filename = (context.filename ?? "").replace(/\\/g, "/");
+    if (DIRECTIONAL_ALLOWLIST.some((f) => filename.endsWith(f))) return {};
+    return {
+      JSXOpeningElement(node) {
+        if (node.name.type !== "JSXIdentifier") return;
+        const use = DIRECTIONAL_ICONS[node.name.name];
+        if (!use) return;
+        context.report({
+          node: node.name,
+          messageId: "raw",
+          data: { found: node.name.name, use },
+        });
+      },
+    };
+  },
+};
+
+const matjar = {
+  rules: {
+    "no-raw-palette": noRawPalette,
+    "no-raw-directional-icon": noRawDirectionalIcon,
+  },
+};
 
 // Files allowed to name palette colours, each for a stated reason. Keep the
 // list short and keep the reasons here — an allow-list without reasons turns
@@ -181,6 +268,19 @@ const eslintConfig = defineConfig([
     ignores: ["src/components/ui/**", ...PALETTE_ALLOWLIST],
     plugins: { matjar },
     rules: { "matjar/no-raw-palette": "warn" },
+  },
+
+  // Directional icons: ERROR, everywhere, from day one. Unlike the palette
+  // backlog there is nothing to migrate — the tree is clean as of this commit
+  // (161 call sites already go through the wrappers, and the 15 remaining raw
+  // arrows were converted alongside this rule), so the gate can hold at zero
+  // immediately. A warning would be the wrong level anyway: a backwards chevron
+  // is not a style preference, it is a control pointing at the wrong side of
+  // the screen for the language 100% of this app's primary audience reads.
+  {
+    files: ["src/**/*.tsx"],
+    plugins: { matjar },
+    rules: { "matjar/no-raw-directional-icon": "error" },
   },
 ]);
 

@@ -739,3 +739,126 @@ select:focus-visible,
   line-height: 44px !important;
   font-size: 20px !important;
 }
+
+/* ============================================================================
+   App shell — making the WebView stop feeling like a browser tab
+   ============================================================================
+
+   The structural half of this lives in an inline <style> in <head>
+   (src/lib/app-mode.ts): the footer/CTA/switcher removals and the overscroll
+   lock. Those MUST arrive, so they are not written here — see the .leaflet-bar
+   note at the foot of this file for why a rule in this file is not something to
+   stake a layout on.
+
+   What is here is the polish, where a miss costs nothing structural: chrome
+   that does not behave like a document, a press state, and a page fade.
+
+   Two scopes are used deliberately:
+     `html[data-app="native"] …`      — app only. Never touches the web.
+     `@media (hover:none) and (pointer:coarse)` — every touch device, app or
+     mobile browser. Only used for rules that are safe there: none of them move
+     a pixel, so the mobile browser's LAYOUT is unchanged either way.
+   ------------------------------------------------------------------------- */
+
+/* --- Chrome is furniture, not text -----------------------------------------
+
+   A long-press on a tab label or a nav item should do nothing. A long-press on
+   a shop's phone number should still offer to copy it — that is a real thing
+   people do here, and it is the reason this is an allow-list rather than a
+   blanket `user-select:none` on the body.
+
+   Scoped to coarse pointers so a desktop user can still select anything.
+   `:where()` keeps specificity at 0 so any component can override locally. */
+@media (hover: none) and (pointer: coarse) {
+  :where(header, nav, [role="tablist"], [role="tab"], [data-chrome]),
+  :where(button, [role="button"], summary) {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* …and the exceptions, which are the whole point. A number, an address or a
+     price inside the chrome stays selectable and copyable. The footer carries
+     the support WhatsApp number in exactly this shape. */
+  :where(header, nav, [data-chrome])
+    :where(
+      a[href^="tel:"],
+      a[href^="mailto:"],
+      a[href*="wa.me"],
+      address,
+      .text-money,
+      [data-selectable]
+    ) {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+  }
+
+  /* No long-press "save image" sheet on decorative chrome — the header logo,
+     tab icons, the brand mark in a nav. Content images (a product photo, a
+     storefront cover) are NOT included: saving one of those is legitimate. */
+  :where(header, nav, [data-chrome]) img,
+  img[data-decorative] {
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+}
+
+/* --- Press feedback --------------------------------------------------------
+
+   ui/button.tsx already carries `active:scale-[0.97]`, so <Button> is covered
+   everywhere. This picks up the things that are tappable without being one:
+   the tab bar's links, icon buttons, anything opting in with `data-press`.
+
+   App only. In a browser a link that shrinks under the finger reads as a bug;
+   in an app it reads as the app answering. */
+html[data-app="native"] :where(button, [role="button"], [data-press]):active {
+  transform: scale(0.97);
+  transition: transform 90ms ease-out;
+}
+
+/* Reduced motion means no scale at all — not a fast scale. The global guard
+   above only zeroes durations, and a 0.01ms transition to scale(0.97) still
+   moves. Opacity carries the acknowledgement instead. */
+@media (prefers-reduced-motion: reduce) {
+  html[data-app="native"] :where(button, [role="button"], [data-press]):active {
+    transform: none;
+    opacity: 0.7;
+  }
+}
+
+/* --- Page transition -------------------------------------------------------
+
+   A short fade as a route's content mounts. App only.
+
+   Opacity, and deliberately NOT transform: a transformed element becomes the
+   containing block for its `position: fixed` descendants, and the sticky
+   checkout / buy / store CTAs are fixed elements rendered inside the page. A
+   translate here would re-anchor them mid-transition — which is the same class
+   of bug as the checkout button that ended up 41px under the tab bar. Opacity
+   creates a stacking context and nothing else; the fixed bars keep their
+   geometry throughout.
+
+   `both` so the element is not left at opacity 0 if the animation never runs;
+   the reduced-motion guard above collapses the duration to 0.01ms, which
+   lands on the `to` frame immediately. */
+@keyframes matjar-page-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+html[data-app="native"] main > * {
+  animation: matjar-page-in 0.18s ease-out both;
+}
+
+/* The ☰ menu's language/theme row loses its first child in the app, and a lone
+   theme toggle stranded at the start of an otherwise empty row looks like
+   something failed to load. */
+html[data-app="native"] [data-app-row="lang-theme"] {
+  justify-content: flex-end;
+}
