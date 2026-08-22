@@ -725,12 +725,13 @@ select:focus-visible,
    have to change the map's appearance to grow — a 44px pin covers the street
    it is pointing at. The zoom pair is the one that is purely a control.
 
-   !important is not a preference here. leaflet.css is imported inside
-   store-map.tsx, so Next injects it as a route chunk that loads AFTER this
-   stylesheet, and Leaflet's own rule is `.leaflet-touch .leaflet-bar a` —
-   exactly the specificity of anything written here. At equal weight the later
-   sheet won, and a rule that matched correctly still measured 30x30. Found by
-   re-measuring after the first attempt, not by reading the cascade. */
+   This block is a fallback and is NOT what makes the size stick. It compiles
+   correctly — a local production build emits it into a CSS chunk and the
+   controls measure 44x44 there — but on matjarlb.com it never appeared in any
+   loaded stylesheet, including after a forced clean rebuild, while a change
+   committed alongside it was live. The authoritative sizing is therefore set
+   on the elements in store-map.tsx, where no chunk ordering can drop it. This
+   stays for the case where that effect has not run yet. */
 .leaflet-touch .leaflet-bar a,
 .leaflet-bar a {
   width: 44px !important;

@@ -34,6 +34,26 @@ export function StoreMap({
       [33.8547, 35.8623], // Lebanon
       8,
     );
+    // Leaflet's zoom buttons are 30x30 — the last controls on this page a
+    // thumb cannot reliably hit. The size is set here, on the elements, rather
+    // than in globals.css, because the stylesheet route was tried twice and
+    // failed on production both times: the rule compiles into a CSS chunk in a
+    // local production build and measures 44x44, and on matjarlb.com every
+    // rule matching that selector comes from leaflet.css with the override
+    // absent — including after a forced clean rebuild. Rather than keep
+    // guessing at the asset pipeline, the sizing now travels with the code
+    // that creates the control, where no chunk ordering can drop it.
+    const sizeZoomControls = () => {
+      ref.current
+        ?.querySelectorAll<HTMLElement>(".leaflet-control-zoom a")
+        .forEach((el) => {
+          el.style.setProperty("width", "44px", "important");
+          el.style.setProperty("height", "44px", "important");
+          el.style.setProperty("line-height", "44px", "important");
+          el.style.setProperty("font-size", "20px", "important");
+        });
+    };
+
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "© OpenStreetMap",
       maxZoom: 19,
@@ -77,6 +97,11 @@ export function StoreMap({
     if (markers.length) {
       map.fitBounds(L.featureGroup(markers).getBounds().pad(0.2));
     }
+
+    // The control exists by now; `whenReady` covers the case where Leaflet
+    // has not finished laying the container out yet.
+    sizeZoomControls();
+    map.whenReady(sizeZoomControls);
 
     return () => {
       map.remove();
