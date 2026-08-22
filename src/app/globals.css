@@ -723,11 +723,18 @@ select:focus-visible,
    Not fixed here, and worth knowing: the marker icons are 20x20 and the
    attribution credit is 14px tall. Both are Leaflet's own, and both would
    have to change the map's appearance to grow — a 44px pin covers the street
-   it is pointing at. The zoom pair is the one that is purely a control. */
+   it is pointing at. The zoom pair is the one that is purely a control.
+
+   !important is not a preference here. leaflet.css is imported inside
+   store-map.tsx, so Next injects it as a route chunk that loads AFTER this
+   stylesheet, and Leaflet's own rule is `.leaflet-touch .leaflet-bar a` —
+   exactly the specificity of anything written here. At equal weight the later
+   sheet won, and a rule that matched correctly still measured 30x30. Found by
+   re-measuring after the first attempt, not by reading the cascade. */
 .leaflet-touch .leaflet-bar a,
 .leaflet-bar a {
-  width: 44px;
-  height: 44px;
-  line-height: 44px;
-  font-size: 20px;
+  width: 44px !important;
+  height: 44px !important;
+  line-height: 44px !important;
+  font-size: 20px !important;
 }
