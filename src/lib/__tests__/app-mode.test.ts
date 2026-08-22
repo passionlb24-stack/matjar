@@ -26,7 +26,15 @@ describe("app mode signal", () => {
     // The config declares the token locally (it cannot import from src/ — the
     // Capacitor CLI loads this file on its own), so both halves are checked.
     expect(cap).toContain(`const APP_UA_TOKEN = "${APP_UA_TOKEN}";`);
-    expect(cap).toContain("appendUserAgent: `${APP_UA_TOKEN}/1`");
+    // The token must be the PREFIX of whatever is appended, because the boot
+    // script matches on the token alone. What follows the slash is the build
+    // number and is meant to vary — CI supplies it through MATJAR_BUILD — so
+    // this deliberately does not pin a literal. It pinned `/1` once, and the
+    // first attempt to stamp a build number then failed this assertion instead
+    // of the thing that was actually broken.
+    expect(cap).toMatch(
+      /appendUserAgent:\s*`\$\{APP_UA_TOKEN\}\/\$\{[A-Za-z_]+\}`/,
+    );
 
     // `overrideUserAgent` would replace the WebView UA rather than extend it,
     // and Capacitor documents it as making `appendUserAgent` a no-op. Matched

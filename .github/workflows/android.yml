@@ -109,19 +109,22 @@ jobs:
           if [ "$BUILD_TYPE" = "debug" ]; then
             sed -i "s/versionName \"1.0\"/versionName \"test-${{ github.run_number }}\"/" android/app/build.gradle
           fi
-          # The same number goes into the user-agent token, so the running build
-          # is legible from the page itself and not only from Android settings.
-          # The website detects app mode on the "MatjarApp" prefix alone, so
-          # changing what follows the slash cannot break detection.
-          sed -i "s|MatjarApp/1|MatjarApp/${{ github.run_number }}|" capacitor.config.ts
           grep -n "versionCode\|versionName" android/app/build.gradle
-          grep -n "appendUserAgent" capacitor.config.ts
 
       # Copies native-shell/ into the Android project and regenerates the
-      # plugin wiring from the (now stamped) capacitor.config.ts. Without this,
-      # a newly added Capacitor plugin is in package.json but absent from the
-      # APK.
+      # native config from capacitor.config.ts. Without this, a newly added
+      # Capacitor plugin is in package.json but absent from the APK.
+      #
+      # MATJAR_BUILD is read by capacitor.config.ts and lands on the WebView's
+      # user agent, so the running build is legible from the page itself. It is
+      # passed as an environment variable rather than rewritten into the file:
+      # the first version of this sed'd for "MatjarApp/1", which the file never
+      # contains — the value is assembled from a constant — so it matched
+      # nothing and exited 0. The website matches app mode on the "MatjarApp"
+      # prefix alone, so whatever follows the slash cannot break detection.
       - name: Sync Capacitor
+        env:
+          MATJAR_BUILD: ${{ github.run_number }}
         run: npx cap sync android
 
       # Proof the stamp actually reached the artifact the app reads, rather than

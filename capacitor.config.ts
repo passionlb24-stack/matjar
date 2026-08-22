@@ -17,6 +17,19 @@ const serverUrl = process.env.CAP_SERVER_URL || "https://matjarlb.com";
 // a website, which is the exact bug this whole mechanism exists to fix.
 const APP_UA_TOKEN = "MatjarApp";
 
+// Which build this binary is, carried on the user agent so the running build is
+// legible from the page itself and not only from Android's settings screen.
+//
+// An environment variable rather than a string CI rewrites. The first attempt
+// did `sed s|MatjarApp/1|MatjarApp/<run>|` over this file — and the literal
+// "MatjarApp/1" does not appear in it, because the value is assembled from the
+// token above. The substitution matched nothing, reported success, and would
+// have shipped an unstamped APK if a later step had not gone looking for the
+// value in the generated config. Nothing to match, nothing to get wrong.
+//
+// "dev" locally, so a hand-built APK is never mistaken for a CI one.
+const APP_BUILD = process.env.MATJAR_BUILD || "dev";
+
 const config: CapacitorConfig = {
   appId: "com.matjarlb.app",
   appName: "Matjar",
@@ -32,7 +45,7 @@ const config: CapacitorConfig = {
   //
   // `appendUserAgent`, not `overrideUserAgent`: the stock Android/iOS WebView
   // UA still has to reach the server and Vercel Analytics intact.
-  appendUserAgent: `${APP_UA_TOKEN}/1`,
+  appendUserAgent: `${APP_UA_TOKEN}/${APP_BUILD}`,
   // Fallback assets shown before the remote URL loads / when offline.
   webDir: "native-shell",
   backgroundColor: "#1556c2",
