@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  ArrowLeft,
   GraduationCap,
   Crown,
   LayoutGrid,
@@ -25,7 +24,7 @@ import {
   Wrench,
   Building2,
 } from "lucide-react";
-import { ChevronNext } from "@/components/ui/directional-icon";
+import { ArrowNext, ChevronNext } from "@/components/ui/directional-icon";
 import type { LucideIcon } from "lucide-react";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -292,7 +291,7 @@ function SectionCard({
       <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{note}</p>
       <span className={`mt-4 inline-flex items-center gap-1.5 text-sm font-bold ${gold ? "text-accent-foreground" : "text-primary"}`}>
         {cta}
-        <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1 rtl:rotate-180" />
+        <ArrowNext className="h-4 w-4 transition-transform ltr:group-hover:translate-x-1 rtl:group-hover:-translate-x-1" />
       </span>
     </Link>
   );

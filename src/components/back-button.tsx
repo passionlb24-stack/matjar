@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowPrev } from "@/components/ui/directional-icon";
 
 // Context-aware back button for inner pages. Uses browser history when there's
 // somewhere to go back to, otherwise falls back to a sensible href. RTL-aware
@@ -29,7 +29,7 @@ export function BackButton({
       onClick={onBack}
       className={`inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground ${className}`}
     >
-      <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+      <ArrowPrev className="h-4 w-4" />
       {label}
     </button>
   );

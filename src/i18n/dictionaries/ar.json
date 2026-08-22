@@ -2,7 +2,15 @@
   "home": {
     "forYou": "مختارة لك",
     "forYouSubtitle": "متاجر نعتقد أنها تناسب ذوقك بناءً على متابعاتك وطلباتك.",
-    "byArea": "تسوّق حسب المنطقة"
+    "byArea": "تسوّق حسب المنطقة",
+    "gateways": {
+      "label": "تصفّح حسب القطاع",
+      "food": "مطاعم وأكل",
+      "health": "صحة وعيادات",
+      "shopping": "تسوّق",
+      "services": "خدمات وصيانة"
+    },
+    "openNow": "مفتوح هلق"
   },
   "sort": {
     "label": "ترتيب حسب",
@@ -1407,6 +1415,7 @@
     "open": "مفتوح",
     "closed": "مسكّر",
     "reviews": "تقييم",
+    "newStore": "جديد",
     "verified": "موثّق",
     "memberSince": "عضو منذ {year}",
     "relatedTitle": "خدمات مشابهة",
@@ -1807,6 +1816,34 @@
     "waRejected": "مرحبا، متجري \"{store}\" ما انقبل. بدّي افهم شو صار وشو لازم اعمل."
   },
   "merchant": {
+    "mobile": {
+      "modeChip": "وضع التاجر",
+      "navHome": "الرئيسية",
+      "navOrders": "الطلبات",
+      "navItems": "منتجاتي",
+      "navCustomers": "زبائني",
+      "navMore": "المزيد",
+      "hoursNote": "الحالة من ساعات الدوام — اضغط لتعدّلها",
+      "hoursUnset": "ما حدّدت ساعات دوام بعد — اضغط لتحطّها",
+      "hoursUnknown": "غير محدّد",
+      "ordersWaitingOne": "طلب جديد بانتظارك",
+      "ordersWaitingMany": "{n} طلبات جديدة بانتظارك",
+      "ordersWaitingCta": "افتح الطلبات",
+      "todayTitle": "أرقام اليوم",
+      "todaySales": "مبيعات اليوم",
+      "todaySalesHint": "طلبات اليوم عالمنصّة + الكاشير، بدون الملغى",
+      "todayOrders": "طلبات اليوم",
+      "pendingOrders": "بانتظار قرارك",
+      "needsActionTitle": "بدها قرارك",
+      "acceptOrder": "أقبل الطلب",
+      "accepting": "عم نقبل…",
+      "callCustomer": "اتصال بالزبون",
+      "noPhone": "ما في رقم",
+      "orderShown": "معروض للزباين",
+      "orderHidden": "مخفي عن الزباين",
+      "availabilityLabel": "إظهار {name} للزباين",
+      "quickTitle": "شغل سريع"
+    },
     "dashboardTitle": "متاجري",
     "dashboardSubtitle": "أدِر متاجرك واطّلع على حالتها.",
     "stats": {
@@ -3081,6 +3118,7 @@
     "confirmRefund": "متأكد إنك بدّك تسجّل استرجاع؟"
   },
   "orders": {
+    "awaitingMerchant": "بانتظار تأكيد المتجر",
     "title": "طلباتي",
     "filter": {
       "all": "الكل",
@@ -3179,6 +3217,9 @@
     "groupOrders": "طلباتي وحجوزاتي",
     "groupSaved": "محفوظاتي وتواصلي",
     "groupSelling": "بيعي على متجر",
+    "groupApp": "إعدادات التطبيق",
+    "language": "اللغة",
+    "merchantDoor": "عندك محل؟ افتح متجرك عالتطبيق.",
     "deleteAccount": {
       "title": "حذف الحساب",
       "hint": "فيك تحذف حسابك من هون بدون ما تتواصل مع حدا. اقرا شو بينحذف وشو بيضلّ قبل ما تكمّل — هالخطوة ما فيك ترجّعها.",
@@ -4183,7 +4224,11 @@
     "products": "المنتجات",
     "listings": "إعلانات سوق الأحد",
     "empty": "ما في نتائج مطابقة.",
-    "emptyHint": "جرّب كلمة أقصر أو تهجئة مختلفة."
+    "emptyHint": "جرّب كلمة أقصر أو تهجئة مختلفة.",
+    "kindProducts": "منتجات وخدمات",
+    "mapAll": "شوف كل النتائج على الخريطة",
+    "mapHeading": "النتائج على الخريطة",
+    "mapBack": "رجوع للنتائج"
   },
   "market": {
     "nav": "سوق الأحد",

@@ -82,6 +82,13 @@ export function BottomNav({
             <li key={tab.href} className="flex-1">
               <Link
                 href={tab.href}
+                /* Opts this link into the app's press state (globals.css).
+                   A tab that does not acknowledge the finger is one of the
+                   loudest "this is a web page" tells in the shell: the tap
+                   registers and then nothing happens until the next route
+                   paints. In a browser this attribute does nothing at all —
+                   the rule behind it is scoped to html[data-app="native"]. */
+                data-press
                 aria-current={active ? "page" : undefined}
                 aria-label={
                   tab.badge ? `${tab.label} (${tab.badge})` : undefined

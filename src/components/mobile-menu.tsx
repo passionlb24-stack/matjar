@@ -39,6 +39,10 @@ type Item = {
   bold?: boolean;
   /** Omitted = always shown. `false` = nothing behind it yet (MP-026). */
   on?: boolean;
+  /** Merchant-recruitment entries: present on the web, hidden inside the
+   *  native shell, where they belong on /account rather than in the browse
+   *  menu of a shopping app. See src/lib/app-mode.ts. */
+  appHide?: boolean;
 };
 
 export function MobileMenu({
@@ -138,7 +142,7 @@ export function MobileMenu({
     {
       title: dict.mobileNav.more,
       items: [
-        { href: `/${lang}/merchants`, label: dict.common.forMerchants, icon: Store, bold: true },
+        { href: `/${lang}/merchants`, label: dict.common.forMerchants, icon: Store, bold: true, appHide: true },
         { href: `/${lang}/hub`, label: dict.common.hub, icon: Wrench },
         { href: `/${lang}/map`, label: dict.map.title, icon: MapIcon },
         { href: `/${lang}/pricing`, label: dict.pricing.title, icon: Tag },
@@ -211,6 +215,7 @@ export function MobileMenu({
                         key={item.href}
                         href={item.href}
                         onClick={() => setOpen(false)}
+                        data-app-hide={item.appHide ? "merchant-cta" : undefined}
                         aria-current={isActivePath(pathname, item.href) ? "page" : undefined}
                         className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition-colors hover:bg-surface-muted aria-[current=page]:bg-surface-muted ${
                           item.bold ? "font-bold text-primary" : "font-medium text-foreground"
@@ -248,9 +253,18 @@ export function MobileMenu({
             </div>
 
             {/* Language + theme live in the bar on desktop; on a phone they
-                move here so the header can't overflow. */}
-            <div className="mt-2 flex items-center justify-between gap-2 border-t border-border pt-3">
-              <LanguageSwitcher currentLocale={lang} />
+                move here so the header can't overflow.
+                In the native shell the language half is hidden (it lives on
+                /account there — see src/lib/app-mode.ts) and the row falls back
+                to `justify-end`, which is where a lone theme toggle belongs
+                rather than stranded at the start of an empty row. */}
+            <div
+              data-app-row="lang-theme"
+              className="mt-2 flex items-center justify-between gap-2 border-t border-border pt-3"
+            >
+              <span data-app-hide="lang" className="contents">
+                <LanguageSwitcher currentLocale={lang} />
+              </span>
               <ThemeToggle />
             </div>
             {user && (

@@ -11,6 +11,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Money } from "@/components/ui/money";
+import { OrderTrack } from "@/components/order-track";
+import type { Fulfillment } from "@/lib/order-progress";
 
 type OrderStatus =
   | "pending"
@@ -27,6 +29,8 @@ type OrderRow = {
   status: OrderStatus;
   total: number;
   created_at: string;
+  /** Decides which track the order is on — the two do not share a path. */
+  fulfillment: Fulfillment;
   stores: { name: string } | null;
 };
 
@@ -61,7 +65,7 @@ export default async function OrdersPage({
 
   const { data } = await supabase
     .from("orders")
-    .select("id, status, total, created_at, stores(name)")
+    .select("id, status, total, created_at, fulfillment, stores(name)")
     .eq("customer_id", user.id)
     .order("created_at", { ascending: false });
   const orders = (data ?? []) as unknown as OrderRow[];
@@ -88,8 +92,18 @@ export default async function OrdersPage({
                     <p className="text-money mt-1 text-lg font-extrabold text-primary">
                       <Money value={order.total} />
                     </p>
+                    {/* Where it has got to. The pill says what the status is;
+                        this says what is left, which is the question somebody
+                        opens this page to ask. */}
+                    <OrderTrack
+                      status={order.status}
+                      fulfillment={order.fulfillment}
+                      labels={dict.orders.status}
+                      awaitingLabel={dict.orders.awaitingMerchant}
+                      lang={lang}
+                    />
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex shrink-0 items-center gap-2 self-start">
                     <Badge variant={statusVariant[order.status]}>
                       {dict.orders.status[order.status]}
                     </Badge>

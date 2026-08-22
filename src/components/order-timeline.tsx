@@ -1,19 +1,17 @@
 import { Check, Clock, X } from "lucide-react";
+import { ORDER_FLOW } from "@/lib/order-progress";
 
 export type OrderEvent = { to_status: string; created_at: string };
 
 // Visual order journey (0173): the canonical steps with real timestamps from
 // order_status_events. Pure presentational — usable from server pages and the
 // client guest tracker alike.
-const DELIVERY_FLOW = [
-  "pending",
-  "accepted",
-  "preparing",
-  "ready",
-  "out_for_delivery",
-  "completed",
-];
-const PICKUP_FLOW = ["pending", "accepted", "preparing", "ready", "completed"];
+//
+// The two flows used to be declared here. They moved to lib/order-progress.ts
+// when the orders LIST grew a compact version of this same track, because two
+// declarations of the order journey are two things that can disagree about it.
+// This file still owns the timestamps and the presentation; it no longer owns
+// the sequence.
 
 export function OrderTimeline({
   events,
@@ -29,7 +27,8 @@ export function OrderTimeline({
   lang: string;
 }) {
   const terminated = status === "cancelled" || status === "rejected";
-  const flow = fulfillment === "delivery" ? DELIVERY_FLOW : PICKUP_FLOW;
+  const flow: readonly string[] =
+    fulfillment === "delivery" ? ORDER_FLOW.delivery : ORDER_FLOW.pickup;
   const eventAt = new Map<string, string>();
   for (const e of events) if (!eventAt.has(e.to_status)) eventAt.set(e.to_status, e.created_at);
   const reachedIdx = flow.indexOf(status);

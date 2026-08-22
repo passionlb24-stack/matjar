@@ -88,7 +88,19 @@ export function SiteFooter({
   ];
 
   return (
-    <footer className="border-t border-border bg-surface print:hidden">
+    // `data-app-hide`: gone inside the native shell, untouched in every
+    // browser. This footer is 21 internal links and the site's only visible
+    // support number — load-bearing for SEO and for a first-time visitor —
+    // and it is also 1115px of sitemap under a phone screen that already has
+    // a tab bar. Apps do not put a sitemap at the bottom of every screen;
+    // websites do, which is exactly what it was making this one feel like.
+    // The rule that hides it is inlined into <head> (src/lib/app-mode.ts) so
+    // it applies in the first style resolution — this never paints in the app
+    // and is never removed after the fact.
+    <footer
+      data-app-hide="footer"
+      className="border-t border-border bg-surface print:hidden"
+    >
       <Container className="py-10 sm:py-14">
         {/* One column on phones, five from `md`. The app block is a separate
             cell so the single-column stack can end with it — see below. It is

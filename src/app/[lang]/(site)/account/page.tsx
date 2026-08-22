@@ -22,6 +22,7 @@ import { SITE_URL } from "@/lib/site";
 import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
 import { ButtonLink } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { ProfileForm } from "@/components/profile-form";
 import { LoyaltyPanel } from "@/components/loyalty-panel";
 import { AddressManager, type AddressRow } from "@/components/address-manager";
@@ -216,6 +217,45 @@ export default async function AccountPage({
             </div>
           </div>
         ))}
+
+        {/* ===== App-only settings =====
+            The mirror image of what the native shell removes from its chrome.
+            A language toggle in a top bar and a merchant CTA in a sitemap
+            footer are website furniture; in an app they are Settings, and this
+            is where someone on a phone goes looking for them.
+            `data-app-only` is `display:none` everywhere except inside the shell
+            (src/lib/app-mode.ts), so the web page renders exactly as it did —
+            this block is in the HTML and never gets a box. Server-rendered
+            rather than gated on a JS check, so it is there in the app's first
+            paint, same as the removals are. */}
+        <div data-app-only className="mt-10">
+          <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted-foreground">
+            {dict.account.groupApp}
+          </h2>
+          <div className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface p-4">
+            <span className="text-sm font-semibold">
+              {dict.account.language}
+            </span>
+            <LanguageSwitcher currentLocale={lang as Locale} />
+          </div>
+          <div className="mt-3 rounded-2xl border border-border bg-surface p-4">
+            <p className="text-sm text-muted-foreground">
+              {dict.account.merchantDoor}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <ButtonLink href={`/${lang}/merchant/new`} size="sm">
+                {dict.common.openStore}
+              </ButtonLink>
+              <ButtonLink
+                href={`/${lang}/merchants`}
+                size="sm"
+                variant="secondary"
+              >
+                {dict.common.forMerchants}
+              </ButtonLink>
+            </div>
+          </div>
+        </div>
 
         <DeleteAccount
           lang={lang as Locale}

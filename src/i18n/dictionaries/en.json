@@ -2,7 +2,15 @@
   "home": {
     "forYou": "For you",
     "forYouSubtitle": "Stores we think you'll love, based on who you follow and order from.",
-    "byArea": "Shop by area"
+    "byArea": "Shop by area",
+    "gateways": {
+      "label": "Browse by sector",
+      "food": "Food",
+      "health": "Health",
+      "shopping": "Shopping",
+      "services": "Services"
+    },
+    "openNow": "Open now"
   },
   "sort": {
     "label": "Sort by",
@@ -1407,6 +1415,7 @@
     "open": "Open",
     "closed": "Closed",
     "reviews": "reviews",
+    "newStore": "New",
     "verified": "Verified",
     "memberSince": "Member since {year}",
     "relatedTitle": "Similar services",
@@ -1807,6 +1816,34 @@
     "waRejected": "Hi, my store \"{store}\" was not approved. I would like to understand what happened."
   },
   "merchant": {
+    "mobile": {
+      "modeChip": "Merchant mode",
+      "navHome": "Home",
+      "navOrders": "Orders",
+      "navItems": "My items",
+      "navCustomers": "My customers",
+      "navMore": "More",
+      "hoursNote": "Status comes from your opening hours — tap to edit",
+      "hoursUnset": "No opening hours set yet — tap to add them",
+      "hoursUnknown": "Not set",
+      "ordersWaitingOne": "1 new order is waiting for you",
+      "ordersWaitingMany": "{n} new orders are waiting for you",
+      "ordersWaitingCta": "Open orders",
+      "todayTitle": "Today",
+      "todaySales": "Today's sales",
+      "todaySalesHint": "Today's online orders + POS, cancelled excluded",
+      "todayOrders": "Today's orders",
+      "pendingOrders": "Awaiting your decision",
+      "needsActionTitle": "Needs your decision",
+      "acceptOrder": "Accept order",
+      "accepting": "Accepting…",
+      "callCustomer": "Call the customer",
+      "noPhone": "No phone number",
+      "orderShown": "Shown to customers",
+      "orderHidden": "Hidden from customers",
+      "availabilityLabel": "Show {name} to customers",
+      "quickTitle": "Quick actions"
+    },
     "dashboardTitle": "My stores",
     "dashboardSubtitle": "Manage your stores and track their status.",
     "stats": {
@@ -3081,6 +3118,7 @@
     "confirmRefund": "Record a refund for this order?"
   },
   "orders": {
+    "awaitingMerchant": "Waiting for the shop to confirm",
     "title": "My orders",
     "filter": {
       "all": "All",
@@ -3179,6 +3217,9 @@
     "groupOrders": "Orders & bookings",
     "groupSaved": "Saved & messages",
     "groupSelling": "Selling on Matjar",
+    "groupApp": "App settings",
+    "language": "Language",
+    "merchantDoor": "Have a shop? Open your store on Matjar.",
     "deleteAccount": {
       "title": "Delete account",
       "hint": "You can delete your account here, without contacting anyone. Read what goes and what stays before you continue — this cannot be undone.",
@@ -4183,7 +4224,11 @@
     "products": "Products",
     "listings": "Sunday Market listings",
     "empty": "No matching results.",
-    "emptyHint": "Try a shorter word or a different spelling."
+    "emptyHint": "Try a shorter word or a different spelling.",
+    "kindProducts": "Products and services",
+    "mapAll": "See all results on the map",
+    "mapHeading": "Results on the map",
+    "mapBack": "Back to results"
   },
   "market": {
     "nav": "Sunday Market",

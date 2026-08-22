@@ -181,7 +181,15 @@ export function SiteHeader({
               </span>
             )}
             <ThemeToggle />
-            <LanguageSwitcher currentLocale={lang} />
+            {/* A language toggle in the top bar is a website control — an app
+                asks once, in Settings, and remembers. Hidden in the shell and
+                offered on /account instead (`data-app-only` block there);
+                signed-out app users still reach one on /login, whose layout
+                carries its own. The theme toggle stays: switching to dark is
+                something a phone user does at night, not once at signup. */}
+            <span data-app-hide="lang" className="contents">
+              <LanguageSwitcher currentLocale={lang} />
+            </span>
             {user ? (
               <>
                 {dashboardHref && (
@@ -223,9 +231,14 @@ export function SiteHeader({
               pill is 215 of them. Both now wait for 1280. Nothing is lost in
               between — `للتجّار` is a link in the nav row a few pixels away,
               and the footer carries both it and `افتح متجرك`. */}
+          {/* `data-app-hide`: in the shell this is the app's own top bar, and a
+              customer who opened a shopping app is not there to be recruited as
+              a merchant. The door is not bricked up — /account carries an
+              app-only merchant block, and /merchant/new still answers. */}
           {!user && (
             <Link
               href={`/${lang}/merchant/new`}
+              data-app-hide="merchant-cta"
               className="relative hidden rounded-lg bg-primary px-3 py-2 text-sm font-bold text-primary-foreground transition-colors before:absolute before:-inset-y-1 before:inset-x-0 before:content-[''] hover:bg-primary-hover xl:inline-block xl:px-4"
             >
               {dict.common.openStore}

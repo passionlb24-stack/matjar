@@ -18,6 +18,7 @@ import { planProductLimit } from "@/lib/plan";
 import { effectivePlan as resolvePlan } from "@/lib/plan-tiers";
 import { Money } from "@/components/ui/money";
 import { CardList, CardRow } from "@/components/ui/card";
+import { MerchantItemAvailability } from "@/components/merchant/merchant-item-availability";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -168,59 +169,131 @@ export default async function StoreItemsPage({
                 {products.map((p) => (
                   <CardRow
                     key={p.id}
-                    className={`flex items-center gap-3 p-3 ${p.is_available ? "" : "opacity-60"}`}
+                    className={`p-3 ${p.is_available ? "" : "opacity-60"}`}
                   >
-                    {p.image_url ? (
-                      <Image
-                        src={p.image_url}
-                        alt=""
-                        width={48}
-                        height={48}
-                        className="h-12 w-12 shrink-0 rounded-lg object-cover"
-                        sizes="48px"
-                      />
-                    ) : (
-                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-surface-muted text-muted-foreground">
-                        <Package className="h-5 w-5" />
+                    {/* One row on a desktop, exactly as before. On a phone it
+                        wraps to two: the item and its availability switch on
+                        the first line, the travel/manage controls on the
+                        second — seven controls in one 320px row was why the
+                        "hide this, it just ran out" tap was a 32px grey icon
+                        squeezed between a price and a delete button. */}
+                    <div className="flex items-center gap-3">
+                      {p.image_url ? (
+                        <Image
+                          src={p.image_url}
+                          alt=""
+                          width={48}
+                          height={48}
+                          className="h-12 w-12 shrink-0 rounded-lg object-cover"
+                          sizes="48px"
+                        />
+                      ) : (
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-surface-muted text-muted-foreground">
+                          <Package className="h-5 w-5" />
+                        </span>
+                      )}
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-semibold">{p.name}</span>
+                        <span className="mt-0.5 flex flex-wrap items-center gap-2 lg:hidden">
+                          <span className="font-bold text-primary">
+                            <Money value={p.price} />
+                          </span>
+                          {(waiting[p.id] ?? 0) > 0 && (
+                            <span
+                              className="inline-flex shrink-0 items-center gap-1 rounded-full bg-warning-soft px-2 py-0.5 text-[11px] font-bold text-warning"
+                              title={dict.merchant.products.waitingHint}
+                            >
+                              <BellRing className="h-3 w-3" />
+                              {waiting[p.id]} {dict.merchant.products.waiting}
+                            </span>
+                          )}
+                        </span>
                       </span>
-                    )}
-                    <span className="flex-1 font-semibold">{p.name}</span>
-                    {(waiting[p.id] ?? 0) > 0 && (
-                      <span
-                        className="inline-flex shrink-0 items-center gap-1 rounded-full bg-warning-soft px-2.5 py-0.5 text-xs font-bold text-warning"
-                        title={dict.merchant.products.waitingHint}
+                      {(waiting[p.id] ?? 0) > 0 && (
+                        <span
+                          className="hidden shrink-0 items-center gap-1 rounded-full bg-warning-soft px-2.5 py-0.5 text-xs font-bold text-warning lg:inline-flex"
+                          title={dict.merchant.products.waitingHint}
+                        >
+                          <BellRing className="h-3.5 w-3.5" />
+                          {waiting[p.id]} {dict.merchant.products.waiting}
+                        </span>
+                      )}
+                      <span className="hidden font-bold text-primary lg:inline">
+                        <Money value={p.price} />
+                      </span>
+                      {/* The phone's primary control: is this on the shelf or
+                          not. Writes `products.is_available` through the same
+                          path ProductRowActions' eye does — hiding it here
+                          takes it off the storefront immediately. */}
+                      <span className="lg:hidden">
+                        <MerchantItemAvailability
+                          productId={p.id}
+                          storeId={storeId}
+                          isAvailable={p.is_available}
+                          label={dict.merchant.mobile.availabilityLabel.replace(
+                            "{name}",
+                            p.name,
+                          )}
+                          shownLabel={dict.merchant.mobile.orderShown}
+                          hiddenLabel={dict.merchant.mobile.orderHidden}
+                          errorLabel={dict.common.actionFailed}
+                        />
+                      </span>
+                      <span className="hidden items-center gap-3 lg:flex">
+                        {/* ISS-018: this sits beside ProductRowActions, whose
+                            controls (show / hide / delete) all act in place.
+                            Edit is the only one that leaves for another screen
+                            and it looked identical to them. The chevron says
+                            "this one travels" — ChevronNext, so it points left
+                            in Arabic. */}
+                        <Link
+                          href={`/${lang}/merchant/${storeId}/products/${p.id}`}
+                          className="relative inline-flex shrink-0 items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold transition-colors before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:border-primary hover:text-primary"
+                        >
+                          {dict.merchant.products.editAction}
+                          <ChevronNext className="h-3.5 w-3.5" />
+                        </Link>
+                        <ProductRowActions
+                          productId={p.id}
+                          storeId={storeId}
+                          isAvailable={p.is_available}
+                          showLabel={dict.merchant.products.show}
+                          hideLabel={dict.merchant.products.hide}
+                          deleteLabel={dict.merchant.products.delete}
+                          confirmLabel={dict.merchant.products.confirmDelete}
+                          errorLabel={dict.common.actionFailed}
+                          okLabel={dict.common.confirm}
+                          cancelLabel={dict.common.cancel}
+                        />
+                      </span>
+                    </div>
+                    {/* Phone line two. ProductRowActions still carries its eye
+                        alongside delete — it is one component and splitting it
+                        would change a file this screen is not the only owner
+                        of. The eye and the switch write the same column, so
+                        they can disagree only for as long as a server refresh
+                        takes; the switch is the labelled one. */}
+                    <div className="mt-2 flex items-center justify-between gap-2 lg:hidden">
+                      <Link
+                        href={`/${lang}/merchant/${storeId}/products/${p.id}`}
+                        className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-1 rounded-xl border border-border px-3 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
                       >
-                        <BellRing className="h-3.5 w-3.5" />
-                        {waiting[p.id]} {dict.merchant.products.waiting}
-                      </span>
-                    )}
-                    <span className="font-bold text-primary">
-                      <Money value={p.price} />
-                    </span>
-                    {/* ISS-018: this row sits beside ProductRowActions, whose
-                        controls (show / hide / delete) all act in place. Edit
-                        is the only one that leaves for another screen, and it
-                        looked identical to them. The chevron says "this one
-                        travels" — ChevronNext, so it points left in Arabic. */}
-                    <Link
-                      href={`/${lang}/merchant/${storeId}/products/${p.id}`}
-                      className="relative inline-flex shrink-0 items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold transition-colors before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:border-primary hover:text-primary"
-                    >
-                      {dict.merchant.products.editAction}
-                      <ChevronNext className="h-3.5 w-3.5" />
-                    </Link>
-                    <ProductRowActions
-                      productId={p.id}
-                      storeId={storeId}
-                      isAvailable={p.is_available}
-                      showLabel={dict.merchant.products.show}
-                      hideLabel={dict.merchant.products.hide}
-                      deleteLabel={dict.merchant.products.delete}
-                      confirmLabel={dict.merchant.products.confirmDelete}
-                      errorLabel={dict.common.actionFailed}
-                      okLabel={dict.common.confirm}
-                      cancelLabel={dict.common.cancel}
-                    />
+                        {dict.merchant.products.editAction}
+                        <ChevronNext className="h-3.5 w-3.5" />
+                      </Link>
+                      <ProductRowActions
+                        productId={p.id}
+                        storeId={storeId}
+                        isAvailable={p.is_available}
+                        showLabel={dict.merchant.products.show}
+                        hideLabel={dict.merchant.products.hide}
+                        deleteLabel={dict.merchant.products.delete}
+                        confirmLabel={dict.merchant.products.confirmDelete}
+                        errorLabel={dict.common.actionFailed}
+                        okLabel={dict.common.confirm}
+                        cancelLabel={dict.common.cancel}
+                      />
+                    </div>
                   </CardRow>
                 ))}
               </CardList>

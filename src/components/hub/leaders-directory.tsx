@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  ArrowLeft,
   BadgeCheck,
   Building2,
   Crown,
@@ -12,6 +11,7 @@ import {
   Search,
   X,
 } from "lucide-react";
+import { ArrowNext } from "@/components/ui/directional-icon";
 import type { LeaderCard } from "@/lib/leaders";
 import { InitialsAvatar } from "@/components/hub/initials-avatar";
 
@@ -275,7 +275,7 @@ function LeaderCardView({
           <BadgeCheck className="h-3.5 w-3.5" /> {t.verified}
         </span>
         <span className="inline-flex items-center gap-1 text-xs font-bold text-primary">
-          {t.viewProfile} <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" />
+          {t.viewProfile} <ArrowNext className="h-3.5 w-3.5" />
         </span>
       </div>
     </Link>

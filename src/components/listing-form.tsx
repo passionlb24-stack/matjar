@@ -4,7 +4,8 @@ import { revalidateListing } from "@/lib/cache-actions";
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { X, ArrowLeft, ArrowRight, Star, Send, Save, Eye, User, BadgeCheck, MapPin } from "lucide-react";
+import { X, Star, Send, Save, Eye, User, BadgeCheck, MapPin } from "lucide-react";
+import { ArrowNext, ArrowPrev } from "@/components/ui/directional-icon";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -184,9 +185,9 @@ export function ListingForm({
                     unlabelled controls here — icon-only buttons with no name
                     for a screen reader, and no tooltip for anyone unsure which
                     direction "earlier" is. */}
-                <button type="button" onClick={() => move(i, -1)} title={t.moveEarlier} aria-label={t.moveEarlier} className="text-white"><ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" /></button>
+                <button type="button" onClick={() => move(i, -1)} title={t.moveEarlier} aria-label={t.moveEarlier} className="text-white"><ArrowPrev className="h-3.5 w-3.5" /></button>
                 <button type="button" onClick={() => makeMain(i)} title={t.makeMain} aria-label={t.makeMain} className="text-white"><Star className="h-3.5 w-3.5" /></button>
-                <button type="button" onClick={() => move(i, 1)} title={t.moveLater} aria-label={t.moveLater} className="text-white"><ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" /></button>
+                <button type="button" onClick={() => move(i, 1)} title={t.moveLater} aria-label={t.moveLater} className="text-white"><ArrowNext className="h-3.5 w-3.5" /></button>
               </div>
               <button
                 type="button"

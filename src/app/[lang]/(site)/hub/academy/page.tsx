@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Clock, ArrowLeft, GraduationCap } from "lucide-react";
-import { ChevronPrev } from "@/components/ui/directional-icon";
+import { Clock, GraduationCap } from "lucide-react";
+import { ArrowNext, ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
@@ -82,7 +82,7 @@ export default async function AcademyPage({
             <p className="mt-4 max-w-lg text-muted-foreground">{featured.excerpt}</p>
             <Link href={`/${lang}/hub/academy/${featured.slug}`} className="mt-6 inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-6 text-sm font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover">
               {a.read}
-              <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+              <ArrowNext className="h-4 w-4" />
             </Link>
           </div>
           <div className={`grid place-items-center border-t border-border bg-gradient-to-bl ${fs.grad} to-transparent p-6 md:border-s md:border-t-0`}>
@@ -136,7 +136,7 @@ export default async function AcademyPage({
           <p className="mx-auto mt-3 max-w-xl text-muted-foreground">{a.ctaNote}</p>
           <Link href={`/${lang}/merchant`} className="mt-6 inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-6 text-sm font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover">
             {a.ctaButton}
-            <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+            <ArrowNext className="h-4 w-4" />
           </Link>
         </div>
       </Container>

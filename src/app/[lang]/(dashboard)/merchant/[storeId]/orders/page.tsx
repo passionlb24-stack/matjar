@@ -15,15 +15,33 @@ import { getStorePlan } from "@/lib/plan-server";
 import { hasPlan } from "@/lib/plan-tiers";
 import { ChevronPrev } from "@/components/ui/directional-icon";
 import { NextStepEmpty } from "@/components/os-dashboard/next-step-empty";
+import {
+  MerchantOrderCard,
+  type MerchantOrderCardData,
+} from "@/components/merchant/merchant-order-card";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** The one status that means "waiting on the merchant". It is also exactly
+ *  what the bottom-nav badge counts and what the accept button clears, so the
+ *  badge, the home banner and this list can never disagree. */
+const NEEDS_ACTION = "pending";
 
 type OrderItem = {
   name: string;
   quantity: number;
   unit_price: number;
   note: string | null;
+  /** Joined off order_items.product_id: how this product is sold (0299). Null
+   *  for every piece-priced product — which is every product that predates
+   *  that migration — and for a staff member whose RLS does not let them read
+   *  the catalogue. Either way the line falls back to a plain count. */
+  products: {
+    sold_by: string | null;
+    unit_measure: string | null;
+    unit_amount: number | null;
+  } | null;
 };
 type OrderRow = {
   id: string;
@@ -79,7 +97,11 @@ export default async function StoreOrdersPage({
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, status, total, fulfillment, address, phone, customer_name, customer_note, store_note, created_at, location_id, assigned_to, tags, delivery_fee, change_for, delivery_instructions, custom_fields, scheduled_for, order_items(name, quantity, unit_price, note)",
+      // The nested products() join is READ-ONLY and additive: it carries the
+      // three descriptive unit-pricing columns (0299) so a butcher's line can
+      // read "2 كيلو" instead of "2×". Nothing computes a total from them —
+      // no deployed function can even see them — so no money moves.
+      "id, status, total, fulfillment, address, phone, customer_name, customer_note, store_note, created_at, location_id, assigned_to, tags, delivery_fee, change_for, delivery_instructions, custom_fields, scheduled_for, order_items(name, quantity, unit_price, note, products(sold_by, unit_measure, unit_amount))",
     )
     .eq("store_id", storeId)
     .order("created_at", { ascending: false });
@@ -177,6 +199,31 @@ export default async function StoreOrdersPage({
     };
   });
 
+  // ---- The phone's decision queue -----------------------------------------
+  // Everything above stays as it is; this is the same rows, filtered to the
+  // ones actually waiting on the merchant and sorted newest first, because the
+  // order that just came in is the one whose customer is still on the line.
+  // (`orders` is already ordered created_at desc, so filtering preserves it.)
+  const needsAction: MerchantOrderCardData[] = orders
+    .filter((o) => o.status === NEEDS_ACTION)
+    .map((o) => ({
+      id: o.id,
+      total: Number(o.total),
+      fulfillment: o.fulfillment,
+      customerName: o.customer_name,
+      phone: o.phone,
+      customerNote: o.customer_note,
+      address: o.address,
+      createdAt: o.created_at,
+      items: (o.order_items ?? []).map((it) => ({
+        name: it.name,
+        quantity: it.quantity,
+        soldBy: it.products?.sold_by ?? null,
+        unitMeasure: it.products?.unit_measure ?? null,
+        unitAmount: it.products?.unit_amount ?? null,
+      })),
+    }));
+
   return (
     <div className="py-10">
       <Container className="max-w-3xl">
@@ -191,6 +238,45 @@ export default async function StoreOrdersPage({
         <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
           {dict.merchant.ordersTitle}
         </h1>
+
+        {/* Below lg the merchant is holding the phone one-handed with somebody
+            waiting, so the orders that need a decision come first, in full, as
+            cards with two targets big enough to hit without looking. The
+            filterable list below is still the whole ledger and is untouched —
+            this is a queue in front of it, not a replacement for it. From lg up
+            it does not render: a desktop shows the same rows with a status
+            control and the filter chips already in view. */}
+        {needsAction.length > 0 && (
+          <section className="mt-6 lg:hidden" aria-label={dict.merchant.mobile.needsActionTitle}>
+            <h2 className="flex items-center gap-2 px-1 text-xs font-bold uppercase tracking-wider text-muted-foreground/80">
+              {dict.merchant.mobile.needsActionTitle}
+              <span className="rounded-full bg-danger-strong px-1.5 text-[10px] font-bold text-danger-strong-foreground tabular-nums">
+                {needsAction.length}
+              </span>
+            </h2>
+            <div className="mt-2 space-y-3">
+              {needsAction.map((o) => (
+                <MerchantOrderCard
+                  key={o.id}
+                  order={o}
+                  lang={lang}
+                  labels={{
+                    order: dict.orders.order,
+                    total: dict.orders.total,
+                    delivery: dict.store.delivery,
+                    pickup: dict.store.pickup,
+                    accept: dict.merchant.mobile.acceptOrder,
+                    accepting: dict.merchant.mobile.accepting,
+                    call: dict.merchant.mobile.callCustomer,
+                    noPhone: dict.merchant.mobile.noPhone,
+                    error: dict.common.actionFailed,
+                    customerFallback: dict.os.dashboard.customerFallback,
+                  }}
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
         {orders.length ? (
           <OrdersFilter

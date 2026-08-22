@@ -16,7 +16,9 @@ import {
   planRank,
   effectivePlan as resolvePlan,
 } from "@/lib/plan-tiers";
-import type { MerchantTab } from "@/components/merchant-tab-bar";
+import { isOpenNow, parseHours } from "@/lib/hours";
+import type { MerchantNavItem } from "@/components/merchant/merchant-bottom-nav";
+import { MerchantModeBar } from "@/components/merchant/merchant-mode-bar";
 import {
   MerchantSidebar,
   type SidebarNav,
@@ -60,7 +62,10 @@ export default async function StoreOsLayout({
   const { data: store } = await supabase
     .from("stores")
     .select(
-      "id, name, slug, owner_id, plan, trial_ends_at, logo_url, business_types(slug)",
+      // `hours` rides along on the row the layout already fetches: the mode bar
+      // states the shop's open/closed status on every dashboard screen, and it
+      // is derived from this column exactly as the storefront derives it.
+      "id, name, slug, owner_id, plan, trial_ends_at, logo_url, hours, business_types(slug)",
     )
     .eq("id", storeId)
     .maybeSingle();
@@ -74,6 +79,7 @@ export default async function StoreOsLayout({
     plan: string | null;
     trial_ends_at: string | null;
     logo_url: string | null;
+    hours: unknown;
     business_types: { slug: string } | null;
   };
   // Effective plan mirrors getStorePlan: an active 14-day trial counts as Pro,
@@ -204,15 +210,23 @@ export default async function StoreOsLayout({
   };
 
 
-  // ---- Phone tab bar ----------------------------------------------------
-  // Derived from the sector's own module list, not a hardcoded map per
-  // business type: a restaurant leads with الطلبات and a clinic with المواعيد
-  // because sectors.ts already says which module comes first for each. A tab
-  // the staff member cannot open is never rendered — canSee is the same gate
-  // the sidebar uses.
+  // ---- Phone bottom navigation ------------------------------------------
+  // Five slots, fixed in this order: home · operations · catalogue · customers
+  // · more. That is the redesign brief's الرئيسية · الطلبات · منتجاتي · زبائني
+  // · المزيد — but WHICH module fills the middle three is resolved from the
+  // sector, not hardcoded, because sectors.ts already knows that a clinic's
+  // operations module is bookings and its customers are patients. Hardcoding
+  // the words would print "منتجاتي" over a hotel's room list.
+  //
+  // Two gates, both the sidebar's own: `canSee` (a staff member never gets a
+  // tab they would be redirected out of) and `isLocked` (a tab that opens a
+  // paywall is an advertisement in the most valuable strip of the phone, which
+  // is the mistake ISS-004/005 records).
   const sectorModules = new Set(OS_GROUPS.flatMap((g) => sector.modules[g]));
   const firstVisible = (candidates: OsModuleKey[]) =>
-    candidates.find((k) => sectorModules.has(k) && canSee(k));
+    candidates.find(
+      (k) => sectorModules.has(k) && canSee(k) && !isLocked(k),
+    );
 
   // Order matters: the first match wins, so the most operational module for
   // that sector leads. "stays" and "tickets" are here because a hotel and an
@@ -234,17 +248,17 @@ export default async function StoreOsLayout({
     "classes",
     "courses",
   ]);
-  // The phone's four primary tabs must all open. `reports` is Pro and
-  // `accounting` is Business, so a free store's fourth tab was a padlock in the
-  // most valuable strip of the phone UI — one of only four places it could have
-  // put something the merchant can use. It now falls through to no tab at all.
-  const reportKey = firstVisible(["reports", "accounting"].filter(
-    (k) => !isLocked(k as OsModuleKey),
-  ) as OsModuleKey[]);
+  // `customers` is a Pro module (OS_MODULE_META), so on a free store past its
+  // trial this slot resolves to nothing rather than to a padlock, and the bar
+  // renders four tabs. `members` and `leads` are the sector-equivalent people
+  // lists for a gym and an agency.
+  const peopleKey = firstVisible(["customers", "members", "leads"]);
 
   // Only the operations tab carries a badge, and only from a real count of
-  // orders actually awaiting the merchant. A number they cannot clear would
-  // be worse than none.
+  // work actually awaiting the merchant — orders in `pending`, the status the
+  // accept button clears. A number they cannot clear would be worse than none,
+  // so a sector whose operations module is not orders gets no badge rather
+  // than a plausible-looking one.
   let opsBadge = 0;
   if (opsKey === "orders") {
     const { count } = await supabase
@@ -255,13 +269,30 @@ export default async function StoreOsLayout({
     opsBadge = count ?? 0;
   }
 
-  const tabs: MerchantTab[] = [
-    { key: "home", label: dict.dashboard.panel, href: base },
+  // The brief's own words for the two slots where the sector's word IS the
+  // generic one; anywhere else the sector keeps its vocabulary (المرضى، الغرف).
+  const opsLabel =
+    opsKey === "orders" ? dict.merchant.mobile.navOrders : opsKey ? moduleLabel[opsKey] : "";
+  const catalogLabel =
+    catalogKey === "items"
+      ? dict.merchant.mobile.navItems
+      : catalogKey
+        ? moduleLabel[catalogKey]
+        : "";
+  const peopleLabel =
+    peopleKey === "customers" && sector.customersNoun === "customers"
+      ? dict.merchant.mobile.navCustomers
+      : peopleKey
+        ? moduleLabel[peopleKey]
+        : "";
+
+  const tabs: MerchantNavItem[] = [
+    { key: "home", label: dict.merchant.mobile.navHome, href: base },
     ...(opsKey
       ? [
           {
             key: opsKey,
-            label: moduleLabel[opsKey],
+            label: opsLabel,
             href: `${base}/${OS_MODULE_META[opsKey].path}`,
             badge: opsBadge,
           },
@@ -271,27 +302,50 @@ export default async function StoreOsLayout({
       ? [
           {
             key: catalogKey,
-            label: moduleLabel[catalogKey],
+            label: catalogLabel,
             href: `${base}/${OS_MODULE_META[catalogKey].path}`,
           },
         ]
       : []),
-    ...(reportKey
+    ...(peopleKey
       ? [
           {
-            key: reportKey,
-            label: moduleLabel[reportKey],
-            href: `${base}/${OS_MODULE_META[reportKey].path}`,
+            key: peopleKey,
+            label: peopleLabel,
+            href: `${base}/${OS_MODULE_META[peopleKey].path}`,
           },
         ]
       : []),
-    { key: "more", label: dict.os.groups.store },
+    { key: "more", label: dict.merchant.mobile.navMore },
   ];
+
+  // The shop's real open/closed state, derived from its weekly hours grid the
+  // same way the storefront header, /explore and the for-you strip derive it.
+  // null = no hours configured, which the bar says out loud rather than
+  // guessing. Read through requestNow() so every consumer in this request
+  // agrees on the instant.
+  const openNow = isOpenNow(parseHours(s.hours), new Date(requestNow()));
+
   return (
-    // ISS-028: the rail and the content sit side by side from md up, matching
-    // the breakpoint the sidebar itself now switches at. Below md the shell
-    // stacks and the phone chrome (top bar, tab bar, drawer) takes over.
-    <div className="flex flex-col md:flex-row">
+    // One breakpoint decides which shell the merchant gets: below lg the mode
+    // bar + bottom nav + drawer, from lg the rail beside the content.
+    <div className="flex flex-col lg:flex-row">
+      <MerchantModeBar
+        storeName={s.name}
+        open={openNow}
+        chipLabel={dict.merchant.mobile.modeChip}
+        openLabel={dict.os.hours.openNow}
+        closedLabel={dict.os.hours.closedNow}
+        unknownLabel={dict.merchant.mobile.hoursUnknown}
+        hoursNote={dict.merchant.mobile.hoursNote}
+        hoursUnsetNote={dict.merchant.mobile.hoursUnset}
+        // The weekly hours grid lives on the store edit screen — the one place
+        // that actually decides open/closed. Owner-only, and a staff member
+        // who lands there is redirected by that page's own guard.
+        hoursHref={`${base}/edit`}
+        viewHref={`/${lang}/${s.slug ?? `store/${storeId}`}`}
+        viewLabel={dict.os.viewPublic}
+      />
       <MerchantSidebar
         lang={lang}
         storeId={storeId}
@@ -304,11 +358,11 @@ export default async function StoreOsLayout({
         nav={nav}
         tabs={tabs}
       />
-      {/* Clear the fixed phone tab bar (56px + safe area) so the last row of
-          any screen is never trapped under it. The tab bar stops at md, so the
-          reservation must stop at md too — left at lg it would have hung 56px
-          of dead space under every tablet screen. */}
-      <div className="min-w-0 flex-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
+      {/* Clear the fixed bottom nav (56px + safe area) so the last row of any
+          screen is never trapped under it. The nav stops at lg, so the
+          reservation stops at lg too — left on past it, every desktop screen
+          would hang 56px of dead space. */}
+      <div className="min-w-0 flex-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] lg:pb-0">
         {children}
       </div>
     </div>

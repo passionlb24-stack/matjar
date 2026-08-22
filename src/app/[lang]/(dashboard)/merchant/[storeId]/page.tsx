@@ -59,6 +59,7 @@ import {
   ReviewsWidget,
   type MerchantReview,
 } from "@/components/os-dashboard/reviews-widget";
+import { MerchantToday } from "@/components/merchant/merchant-today";
 import { dictSlice } from "@/lib/dict-slice";
 import type { StorePlan } from "@/lib/plan-tiers";
 import { formatUsd } from "@/lib/currency";
@@ -568,6 +569,27 @@ export default async function StoreOsHomePage({
     isToday: i === perDay.length - 1,
     tooltip: `${dayLabel(d.day)} — ${fmtMoney(Number(d.online) + Number(d.pos))}`,
   }));
+
+  // ---- Today, for the phone shell -----------------------------------------
+  // The LAST bucket of the same per_day series the chart above renders, so the
+  // two can never disagree, and store_report buckets by Beirut days (0219) —
+  // "today" is the merchant's today, not one that rolls over at 21:00 local.
+  //
+  // Both figures ride on `report`, which is fetched only when canRevenue, so
+  // a staff member without the orders permission gets null for both and the
+  // tiles are absent rather than zeroed. `online` here is the day's booked
+  // total with cancelled/rejected excluded — the same definition the chart's
+  // bars and tooltip use.
+  const todayBucket = perDay.length ? perDay[perDay.length - 1] : null;
+  const todayNumbers = {
+    orders:
+      canRevenue && todayBucket ? Number(todayBucket.orders) : null,
+    sales:
+      canRevenue && todayBucket
+        ? Number(todayBucket.online) + Number(todayBucket.pos)
+        : null,
+  };
+
   const showChart =
     canRevenue &&
     !!report &&
@@ -977,6 +999,31 @@ export default async function StoreOsHomePage({
             {dict.merchant.products.back}
           </Link>
 
+          {/* ===== The phone's first screenful =====
+              A merchant on a phone gets the decision before the decoration:
+              what arrived, how today is going, and the two or three things
+              they do twenty times a day. The full sector-ordered dashboard
+              renders underneath it, unchanged, at every width — this block
+              disappears at lg, where the KPI row and the chart already say
+              all of this with room to spare. */}
+          <MerchantToday
+            pending={canOrders && hasOrders ? pendingOrders : null}
+            ordersHref={`${base}/orders`}
+            today={todayNumbers}
+            quickActions={quickActions}
+            labels={{
+              waitingOne: dict.merchant.mobile.ordersWaitingOne,
+              waitingMany: dict.merchant.mobile.ordersWaitingMany,
+              waitingCta: dict.merchant.mobile.ordersWaitingCta,
+              todayTitle: dict.merchant.mobile.todayTitle,
+              todayOrders: dict.merchant.mobile.todayOrders,
+              todaySales: dict.merchant.mobile.todaySales,
+              todaySalesHint: dict.merchant.mobile.todaySalesHint,
+              pendingOrders: dict.merchant.mobile.pendingOrders,
+              quickTitle: dict.merchant.mobile.quickTitle,
+            }}
+          />
+
           {/* Sector-tinted hero: identity + the day's quick actions. */}
           <div
             className={`mt-4 overflow-hidden rounded-3xl border border-border bg-gradient-to-br ${sector.heroTint} bg-surface p-6 sm:p-8`}
@@ -1051,8 +1098,11 @@ export default async function StoreOsHomePage({
               )}
             </div>
 
+            {/* From lg only: below it the same actions already sit in the
+                phone block above, one screenful higher and above the fold.
+                Rendering both would be the same row of buttons twice. */}
             {quickActions.length > 0 && (
-              <div className="mt-6">
+              <div className="mt-6 hidden lg:block">
                 <QuickActions actions={quickActions} />
               </div>
             )}

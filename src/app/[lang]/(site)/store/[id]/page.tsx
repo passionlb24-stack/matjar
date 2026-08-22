@@ -33,6 +33,7 @@ import { storeJsonLd, jsonLdScript, toOpeningHours } from "@/lib/jsonld";
 import { parseHours } from "@/lib/hours";
 import { getUsdLbpRate } from "@/lib/data/settings";
 import { formatUsd } from "@/lib/currency";
+import { waNumber } from "@/lib/phone";
 import { categoryIcons } from "@/components/category-icon";
 import { Container } from "@/components/ui/container";
 import {
@@ -916,6 +917,8 @@ export default async function StorePage({
   // never to a phone dialler, and only when the page actually rendered a form
   // to scroll to. A store with neither an engine nor a form still gets no bar,
   // because a bar that scrolls nowhere is worse than no bar.
+  // Only a number that survives waNumber() — see below.
+  const contactWa = waNumber(store.whatsapp ?? store.phone ?? null);
   const contactTarget = present.serviceRequest
     ? "sec-serviceRequest"
     : present.leadForm
@@ -936,7 +939,23 @@ export default async function StorePage({
             // `cheapest`, which is a read of the catalogue, not an estimate.
             note: present.catalog ? note : null,
           }
-        : null;
+        : // Nothing to scroll to. Four of fifteen live storefronts are in this
+          // state — no catalogue, no engine, no form — and every one of them
+          // has a phone and a WhatsApp number sitting in the header. They had
+          // no persistent action at all, on the page where ringing the shop is
+          // the only transaction there is.
+          //
+          // `waNumber` returns null for a number that cannot actually be
+          // dialled, so a store with a malformed phone still gets no bar rather
+          // than a button that fails. No target id: this one never hides,
+          // because there is no on-page control for it to cover.
+          contactWa
+          ? {
+              href: `https://wa.me/${contactWa}`,
+              label: dict.offering.cta.contactStore,
+              note: null,
+            }
+          : null;
 
   // ===== How payment works, above the catalogue =====
   //

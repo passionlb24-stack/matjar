@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlertCircle, ArrowLeft, Check } from "lucide-react";
+import { AlertCircle, Check } from "lucide-react";
+import { ArrowNext } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
@@ -191,7 +192,7 @@ export default async function MerchantsPage({
               className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-surface px-5 text-sm font-bold transition-colors hover:border-primary/40"
             >
               {m.sectorsCta}
-              <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+              <ArrowNext className="h-4 w-4" />
             </Link>
           </div>
         </section>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { groupKeys } from "@/lib/catalog";
+import { getDiscoveryCoverage } from "@/lib/data/discovery";
 import { groupIcons } from "@/components/category-icon";
 import { Container } from "@/components/ui/container";
 import { ChevronNext } from "@/components/ui/directional-icon";
@@ -16,9 +17,27 @@ const TINTS = [
   "bg-success-soft text-success",
 ];
 
-export function WorldsShowcase({ lang, dict }: { lang: Locale; dict: Dictionary }) {
+// Two changes in the V3 pass, both from counting what is actually behind these
+// tiles rather than trusting the list.
+//
+// It only renders groups that HAVE stores. Nine tiles were hard-coded, and on
+// the live platform only four of the nine have a single store between them:
+// رياضة, حجوزات, عقارات, سيارات and تعليم each led to a results page with
+// nothing on it. A tile is a promise that there is something behind it.
+//
+// And it is hidden below `lg`, because SectorGateways above it links to the
+// very same `?group=` URLs for the very same four populated groups — the two
+// were not different granularities of navigation, they were the same four
+// links twice on one phone screen, 480px apart. Desktop keeps the row: there
+// the gateways and this rail do not stack in a single view.
+export async function WorldsShowcase({ lang, dict }: { lang: Locale; dict: Dictionary }) {
+  const coverage = await getDiscoveryCoverage();
+  const live = groupKeys.filter((g) => (coverage.byGroup[g] ?? 0) > 0);
+  // Every group empty means an empty marketplace, and a heading over nothing is
+  // its own dead end.
+  if (!live.length) return null;
   return (
-    <section className="py-5 sm:py-8 lg:py-12">
+    <section className="hidden py-5 sm:py-8 lg:block lg:py-12">
       <Container>
         <div className="mb-3 flex items-center justify-between gap-4 sm:mb-5 sm:items-end">
           <h2 className="text-lg font-extrabold tracking-tight sm:text-2xl lg:text-3xl">
@@ -47,7 +66,7 @@ export function WorldsShowcase({ lang, dict }: { lang: Locale; dict: Dictionary 
           data-animate
           className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-3 lg:overflow-visible lg:px-0 lg:pb-0 [&::-webkit-scrollbar]:hidden"
         >
-          {groupKeys.map((g, i) => {
+          {live.map((g, i) => {
             const Icon = groupIcons[g];
             return (
               <Link

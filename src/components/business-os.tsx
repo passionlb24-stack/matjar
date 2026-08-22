@@ -6,9 +6,9 @@ import {
   BarChart3,
   Boxes,
   Wrench,
-  ArrowLeft,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { ArrowNext } from "@/components/ui/directional-icon";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
@@ -82,7 +82,7 @@ export function BusinessOs({ lang, dict }: { lang: Locale; dict: Dictionary }) {
             className="inline-flex h-12 items-center gap-2 rounded-xl border border-border bg-surface px-6 text-sm font-bold transition-colors hover:border-primary/40"
           >
             {t.ctaSecondary}
-            <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+            <ArrowNext className="h-4 w-4" />
           </Link>
         </div>
       </Container>

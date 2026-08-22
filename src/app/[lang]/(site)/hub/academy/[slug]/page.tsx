@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Clock, ArrowLeft } from "lucide-react";
-import { ChevronPrev } from "@/components/ui/directional-icon";
+import { Clock } from "lucide-react";
+import { ArrowNext, ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
@@ -91,7 +91,7 @@ export default async function GuidePage({
               className="mt-3 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
             >
               {a.ctaButton}
-              <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+              <ArrowNext className="h-4 w-4" />
             </Link>
           </div>
         </div>

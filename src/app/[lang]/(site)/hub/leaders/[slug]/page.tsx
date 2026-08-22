@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  ArrowRight,
   Award,
   BadgeCheck,
   Building2,
@@ -12,6 +11,7 @@ import {
   MapPin,
   Tag,
 } from "lucide-react";
+import { ArrowPrev } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/lib/site";
@@ -383,7 +383,7 @@ export default async function LeaderProfilePage({
             href={`/${lang}/hub/leaders`}
             className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary"
           >
-            <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+            <ArrowPrev className="h-4 w-4" />
             {t.backToLeaders}
           </Link>
         </div>
