@@ -23,6 +23,7 @@ import { Container } from "@/components/ui/container";
 import { PageHeader } from "@/components/ui/page-header";
 import { ButtonLink } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { AppBuildMarker } from "@/components/app-build-marker";
 import { ProfileForm } from "@/components/profile-form";
 import { LoyaltyPanel } from "@/components/loyalty-panel";
 import { AddressManager, type AddressRow } from "@/components/address-manager";
@@ -255,6 +256,24 @@ export default async function AccountPage({
               </ButtonLink>
             </div>
           </div>
+        
+          {/* Which build this is, and whether app mode actually switched on.
+              Diagnostic rather than decoration: the shell displays the live
+              site, so a new APK changes little about what is on screen, and
+              "I installed it and it looks the same" is otherwise impossible to
+              tell apart from an install that quietly declined. */}
+          <h2 className="mb-3 mt-8 text-sm font-bold uppercase tracking-wide text-muted-foreground">
+            {dict.account.groupBuild}
+          </h2>
+          <AppBuildMarker
+            labels={{
+              mode: dict.account.buildMode,
+              on: dict.account.buildModeOn,
+              off: dict.account.buildModeOff,
+              agent: dict.account.buildAgent,
+              version: dict.account.buildVersion,
+            }}
+          />
         </div>
 
         <DeleteAccount

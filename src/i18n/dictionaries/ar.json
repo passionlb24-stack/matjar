@@ -3208,6 +3208,12 @@
     "replyError": "ما قدرنا نحفظ الردّ. جرّب مرة تانية."
   },
   "account": {
+    "groupBuild": "عن التطبيق",
+    "buildMode": "وضع التطبيق",
+    "buildModeOn": "شغّال",
+    "buildModeOff": "مطفي — عم تتصفّح كموقع",
+    "buildAgent": "علامة التطبيق",
+    "buildVersion": "رقم النسخة",
     "title": "حسابي",
     "fullName": "الاسم الكامل",
     "phone": "رقم الهاتف",

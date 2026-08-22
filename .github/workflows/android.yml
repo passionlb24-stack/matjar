@@ -83,22 +83,59 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Copies native-shell/ into the Android project and regenerates the
-      # plugin wiring from capacitor.config.ts. Without this, a newly added
-      # Capacitor plugin is in package.json but absent from the APK.
-      - name: Sync Capacitor
-        run: npx cap sync android
-
+      # BEFORE the Capacitor sync, not after. `cap sync` reads
+      # capacitor.config.ts and writes the result into the Android project, so
+      # a stamp applied afterwards would sit in a file the APK no longer reads
+      # — the build would look stamped in the log and ship unstamped.
+      #
       # The version has to climb for every Play upload, and hand-editing
       # build.gradle is exactly the step a non-developer forgets. The run
       # number is monotonic per repository, so it can never go backwards.
-      # versionName stays whatever build.gradle says — that is the number the
-      # public sees, and it is a product decision, not a build one.
-      - name: Stamp versionCode from the run number
-        if: env.BUILD_TYPE == 'release'
+      #
+      # Debug builds get stamped too, and that is not cosmetic. Every test APK
+      # so far shipped as versionCode 1 / versionName 1.0, so Android could not
+      # tell one from the next: installing a newer one over an older one is a
+      # same-version reinstall, which is exactly the situation where a device
+      # can decline quietly and leave the old app in place. There was then no
+      # way to tell from the phone which build was actually running.
+      #
+      # versionName carries the run number for a debug build so it is legible in
+      # Settings → Apps → متجر. A release keeps the marketing version from
+      # build.gradle — that is what the public sees, and it is a product
+      # decision rather than a build one.
+      - name: Stamp the version
         run: |
           sed -i "s/versionCode 1$/versionCode ${{ github.run_number }}/" android/app/build.gradle
+          if [ "$BUILD_TYPE" = "debug" ]; then
+            sed -i "s/versionName \"1.0\"/versionName \"test-${{ github.run_number }}\"/" android/app/build.gradle
+          fi
+          # The same number goes into the user-agent token, so the running build
+          # is legible from the page itself and not only from Android settings.
+          # The website detects app mode on the "MatjarApp" prefix alone, so
+          # changing what follows the slash cannot break detection.
+          sed -i "s|MatjarApp/1|MatjarApp/${{ github.run_number }}|" capacitor.config.ts
           grep -n "versionCode\|versionName" android/app/build.gradle
+          grep -n "appendUserAgent" capacitor.config.ts
+
+      # Copies native-shell/ into the Android project and regenerates the
+      # plugin wiring from the (now stamped) capacitor.config.ts. Without this,
+      # a newly added Capacitor plugin is in package.json but absent from the
+      # APK.
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      # Proof the stamp actually reached the artifact the app reads, rather than
+      # only the source file the log printed. This is the assertion that would
+      # have caught the ordering mistake this step order fixes.
+      - name: Verify the stamp reached the Android project
+        run: |
+          f=android/app/src/main/assets/capacitor.config.json
+          grep -q "MatjarApp/${{ github.run_number }}" "$f" || {
+            echo "::error::The user-agent stamp did not reach $f"
+            grep -n "appendUserAgent" "$f" || echo "(no appendUserAgent at all)"
+            exit 1
+          }
+          echo "stamped: $(grep -o 'MatjarApp/[0-9]*' "$f")"
 
       - name: Check release signing secrets
         if: env.BUILD_TYPE == 'release'

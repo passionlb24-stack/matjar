@@ -3208,6 +3208,12 @@
     "replyError": "We couldn't save the reply. Try again."
   },
   "account": {
+    "groupBuild": "About the app",
+    "buildMode": "App mode",
+    "buildModeOn": "On",
+    "buildModeOff": "Off — running as a website",
+    "buildAgent": "App token",
+    "buildVersion": "Build",
     "title": "My account",
     "fullName": "Full name",
     "phone": "Phone number",
