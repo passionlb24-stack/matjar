@@ -97,8 +97,14 @@ export function SiteFooter({
             is byte-for-byte where it was. `1fr` on row 2 absorbs any extra
             height the row-spanning link columns need, keeping row 1 — and so
             the app block's top edge — exactly under the tagline. */}
-        <div className="grid gap-10 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr] md:grid-rows-[auto_1fr] md:gap-y-6">
-          <div>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr] md:grid-rows-[auto_1fr] md:gap-10 md:gap-y-6">
+          {/* The brand block spans both mobile columns; the four link columns
+              pair up beneath it. One column on a phone put 21 links at 44px
+              into a single stack and made this footer 1639px tall — 52% of the
+              whole home page. Two columns halves that without hiding a single
+              link behind a tap, which is what an accordion would have cost.
+              The labels are short enough for a half-width column at 320px. */}
+          <div className="col-span-2 md:col-span-1">
             {/* Measured at 40px in a live browser: the only interactive target on
                 the home page that misses the 44px the rest of the codebase holds
                 to, and the only one with no hit-area pseudo behind it. */}
@@ -169,7 +175,7 @@ export function SiteFooter({
               thing under the brand on a phone — above every link the footer
               actually exists to serve. Last child, so the mobile stack reaches
               them only after the navigation. */}
-          <div className="md:col-start-1 md:row-start-2 md:self-start">
+          <div className="col-span-2 md:col-span-1 md:col-start-1 md:row-start-2 md:self-start">
             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               {dict.footer.appTitle}
             </p>

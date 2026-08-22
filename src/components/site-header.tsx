@@ -89,7 +89,16 @@ export function SiteHeader({
               className="h-9 w-auto max-w-none object-contain"
             />
           </Link>
-          <nav className="hidden items-center gap-1 md:flex">
+          {/* One breakpoint for the whole header. This nav used to appear at
+              `md`, while the mobile search row below is `lg:hidden`, the ☰
+              menu was `md:hidden`, and the rate pill and merchant CTA both
+              wait for `lg`. Between 768 and 1024 that produced the worst of
+              both: the ☰ gone, the full nav crammed into a row that measured
+              1011px of content inside 768px, and the phone search bar still
+              stacked underneath it. The tablet now gets the mobile treatment,
+              which is complete, until there is genuinely room for the desktop
+              one. */}
+          <nav className="hidden items-center gap-1 lg:flex">
             <NavLink
               href={`/${lang}/explore`}
               className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground aria-[current=page]:bg-surface-muted aria-[current=page]:text-foreground"
@@ -158,14 +167,14 @@ export function SiteHeader({
               unreadMessages={unreadMessages}
             />
           )}
-          {/* Full controls on tablet/desktop; on a phone these move into the ☰
-              menu so the bar can never overflow. */}
-          <div className="hidden items-center gap-2 md:flex md:gap-3">
+          {/* Full controls on desktop; below `lg` these live in the ☰ menu so
+              the bar can never overflow. */}
+          <div className="hidden items-center gap-2 lg:flex lg:gap-3">
             {/* Daily habit hook: Lebanese users check the USD rate constantly. */}
             {lbpRate > 0 && (
               <span
                 title={dict.common.rateTitle}
-                className="hidden whitespace-nowrap rounded-full bg-surface-muted px-3 py-1.5 text-xs font-bold text-muted-foreground lg:block"
+                className="hidden whitespace-nowrap rounded-full bg-surface-muted px-3 py-1.5 text-xs font-bold text-muted-foreground xl:block"
               >
                 $1 = {lbpRate.toLocaleString("en-US")}{" "}
                 {lang === "ar" ? "ل.ل." : "LBP"}
@@ -209,17 +218,15 @@ export function SiteHeader({
               the footer carries both `للتجّار` and `افتح متجرك`, and the foot
               of Home is a merchant door of its own. It stops competing above
               the fold, which is all that changed.
-              `lg` rather than `md` because of a defect this does not create and
-              does not fix: between 768 and roughly 1150 the nav row already
-              needs more width than its container has (measured: 1011px of
-              content in 768px at the time of writing, before this change). 97
-              of those pixels are this button, so it waits for the width that
-              can hold it. Below `lg` the ☰ menu is already the home for
-              everything else in this row. */}
+              `xl`, not `lg`: at 1024 the logo, nav and controls already need
+              1075px of a 1024px row, and this button together with the rate
+              pill is 215 of them. Both now wait for 1280. Nothing is lost in
+              between — `للتجّار` is a link in the nav row a few pixels away,
+              and the footer carries both it and `افتح متجرك`. */}
           {!user && (
             <Link
               href={`/${lang}/merchant/new`}
-              className="relative hidden rounded-lg bg-primary px-3 py-2 text-sm font-bold text-primary-foreground transition-colors before:absolute before:-inset-y-1 before:inset-x-0 before:content-[''] hover:bg-primary-hover lg:inline-block lg:px-4"
+              className="relative hidden rounded-lg bg-primary px-3 py-2 text-sm font-bold text-primary-foreground transition-colors before:absolute before:-inset-y-1 before:inset-x-0 before:content-[''] hover:bg-primary-hover xl:inline-block xl:px-4"
             >
               {dict.common.openStore}
             </Link>
