@@ -10,7 +10,6 @@ import {
   ExternalLink,
   LayoutDashboard,
   Lock,
-  Menu,
   MessageCircle,
   Store,
   X,
@@ -23,16 +22,18 @@ import {
   type OsModuleKey,
 } from "@/lib/sectors";
 import {
-  MerchantTabBar,
-  type MerchantTab,
-} from "@/components/merchant-tab-bar";
+  MerchantBottomNav,
+  type MerchantNavItem,
+} from "@/components/merchant/merchant-bottom-nav";
 
 // ===== Matjar Business OS — persistent sidebar =====
-// The Shopify-grade shell around every store page. Desktop: a sticky rail on
-// the inline-start side. Mobile: a slim top bar + slide-in drawer. The nav
-// model arrives fully resolved (labels + hrefs) from the server layout; icons
-// are looked up client-side by module key since component refs don't
-// serialize across the RSC boundary.
+// The Shopify-grade shell around every store page. Desktop (lg+): a sticky rail
+// on the inline-start side. Below lg: the merchant mode bar (rendered by the
+// store layout above this) plus a thumb-reachable bottom nav, with this
+// component's drawer behind its "المزيد" slot as the long tail. The nav model
+// arrives fully resolved (labels + hrefs) from the server layout; icons are
+// looked up client-side by module key since component refs don't serialize
+// across the RSC boundary.
 
 export type SidebarItem = {
   key: string;
@@ -142,8 +143,8 @@ export function MerchantSidebar({
   /** The store's sector, so the roster module can carry its own glyph. */
   category: CategoryKey;
   nav: SidebarNav;
-  /** Phone tab bar, derived from the sector in the layout. Empty = none. */
-  tabs?: MerchantTab[];
+  /** Phone bottom nav, resolved from the sector in the layout. Empty = none. */
+  tabs?: MerchantNavItem[];
 }) {
   // During an active trial the plan is "pro" (unlocked), but say so explicitly
   // so the merchant knows it's temporary and counting down.
@@ -426,54 +427,41 @@ export function MerchantSidebar({
           h-16), and the inset is added on top. Off a notch the inset is 0 and
           this resolves to the old 64px exactly. (MP-033)
 
-          ISS-028: the rail now starts at md (768px), not lg (1024px). Between
-          those two widths a tablet was handed the phone build of this component
-          — a 48px top strip, a fixed 56px bottom tab bar whose five tabs each
-          stretched to ~205px, and an overlay drawer with a scrim — while the
-          dashboard header above it had already switched to its full desktop
-          control set at md. Two fixed strips ate 104px of a landscape iPad's
-          768px of height and navigation still cost a tap and a dismissal, on
-          the one class of device with room to spare. md is also the threshold
-          the header already committed to, so the two now agree. Every iPad in
-          portrait (810–834px) is inside this band; landscape iPads were already
-          past lg and see no change. */}
-      <aside className="sticky top-[calc(var(--m-header-h)+env(safe-area-inset-top))] hidden h-[calc(100dvh-var(--m-header-h)-env(safe-area-inset-top))] w-60 shrink-0 flex-col border-e border-border bg-surface md:flex print:hidden">
+          ISS-028 moved this rail to md (768px). The mobile-shell redesign moves
+          it back to lg (1024px) so that ONE breakpoint decides which of the two
+          shells a merchant gets: below lg the navy mode bar, the thumb nav and
+          the drawer; from lg the rail. Two thresholds meant a 900px tablet
+          could show the rail while the shell above it still spoke phone.
+          Stated plainly because it is a real trade-off and ISS-028 argued the
+          other way: a portrait iPad (810–834px) goes back to the phone shell
+          and gives up its persistent rail. Nothing at or above lg — every
+          desktop, every landscape iPad — changes at all.
+
+          Both rails stick *below* the dashboard header, whose real height is
+          the h-16 row PLUS env(safe-area-inset-top): the header pads for the
+          notch above its row (see (dashboard)/layout.tsx). A hardcoded `top-16`
+          ignored the inset and sat ~47px too high on a notched phone; the
+          offset is derived instead, and off a notch resolves to 64px exactly.
+          (MP-033) */}
+      <aside className="sticky top-[calc(var(--m-header-h)+env(safe-area-inset-top))] hidden h-[calc(100dvh-var(--m-header-h)-env(safe-area-inset-top))] w-60 shrink-0 flex-col border-e border-border bg-surface lg:flex print:hidden">
         {identity}
         {renderNav(false)}
       </aside>
 
-      {/* Phone top bar. */}
-      <div className="sticky top-[calc(var(--m-header-h)+env(safe-area-inset-top))] z-30 flex h-12 items-center gap-2 border-b border-border bg-surface/90 px-4 backdrop-blur md:hidden print:hidden">
-        <button
-          type="button"
-          aria-label="menu"
-          aria-expanded={open}
-          onClick={() => setOpen(true)}
-          className="-ms-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-surface-muted active:scale-[0.98]"
-        >
-          <Menu className="h-5 w-5" aria-hidden />
-        </button>
-        <span className="min-w-0 flex-1 truncate text-sm font-bold">
-          {storeName}
-        </span>
-        <Link
-          href={viewHref}
-          target="_blank"
-          aria-label={nav.viewStoreLabel}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground active:scale-[0.98]"
-        >
-          <ExternalLink className="h-4 w-4" aria-hidden />
-        </Link>
-      </div>
+      {/* No phone top bar here any more: the store's name, its open/closed
+          state and the link to the public page moved into the merchant mode
+          bar, which the store layout renders above this. Two stacked strips
+          both saying the shop's name was 100px of a phone screen spent twice on
+          the same fact. */}
 
       {/* Phone primary navigation. The drawer below is no longer how a
           merchant reaches their orders — it is where the long tail lives. */}
       {tabs && tabs.length > 0 && (
-        <MerchantTabBar
-          tabs={tabs}
+        <MerchantBottomNav
+          items={tabs}
           category={category}
           onMore={() => setOpen(true)}
-          moreLabel={nav.backLabel}
+          navLabel={nav.backLabel}
         />
       )}
 
@@ -481,10 +469,10 @@ export function MerchantSidebar({
           overflow-hidden clips the off-canvas panel (translated a full width
           past the inline-start edge when closed) so it never adds horizontal
           page scroll — which on mobile would blow up the layout viewport and
-          shrink the whole dashboard. Below md only: from md up the rail above
-          is the navigation and this never renders (ISS-028). */}
+          shrink the whole dashboard. Below lg only: from lg up the rail above
+          is the navigation and this never renders. */}
       <div
-        className={`fixed inset-0 z-50 overflow-hidden md:hidden ${open ? "" : "pointer-events-none"}`}
+        className={`fixed inset-0 z-50 overflow-hidden lg:hidden ${open ? "" : "pointer-events-none"}`}
         aria-hidden={!open}
       >
         <div

@@ -200,14 +200,29 @@ export function StoreCard({
             })}
           </ul>
         )}
-        {store.rating != null && (
+        {/* Rating, or the honest thing to say instead of one.
+            Five reviews exist across the whole marketplace, so on almost every
+            card `rating` is undefined — rowToStore leaves it undefined at zero
+            reviews rather than writing a 0 — and this slot used to be simply
+            blank. A blank is not neutral: the card beside it has a star row, so
+            the gap reads as "we withheld the score", which is worse than the
+            truth. The truth is that nobody has reviewed this store yet, and
+            «جديد» says it in the one word a shopper already knows how to
+            discount. No number is invented and none is implied. */}
+        {store.rating != null ? (
           <div className="mt-3 flex items-center gap-1.5 text-sm">
             <Star className="h-4 w-4 fill-accent text-accent" />
-            <span className="font-bold">{store.rating.toFixed(1)}</span>
+            <span className="font-bold tabular-nums">
+              {store.rating.toFixed(1)}
+            </span>
             <span className="text-muted-foreground">
               ({store.reviews} {dict.featured.reviews})
             </span>
           </div>
+        ) : (
+          <span className="mt-3 inline-flex items-center rounded-full bg-tint-7-soft px-2 py-0.5 text-xs font-bold text-tint-7">
+            {dict.featured.newStore}
+          </span>
         )}
       </div>
 
