@@ -39,7 +39,7 @@ export async function BestSellersTeaser({
               so the link is no longer desktop-only. */}
           <Link
             href={`/${lang}/best-sellers`}
-            className="shrink-0 whitespace-nowrap rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+            className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-lg border border-border bg-surface px-4 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
           >
             {dict.featured.viewAll}
           </Link>

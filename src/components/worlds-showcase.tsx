@@ -18,17 +18,20 @@ const TINTS = [
 
 export function WorldsShowcase({ lang, dict }: { lang: Locale; dict: Dictionary }) {
   return (
-    <section className="py-8 sm:py-12">
+    <section className="py-5 sm:py-8 lg:py-12">
       <Container>
-        <div className="mb-5 flex items-end justify-between gap-4">
-          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+        <div className="mb-3 flex items-center justify-between gap-4 sm:mb-5 sm:items-end">
+          <h2 className="text-lg font-extrabold tracking-tight sm:text-2xl lg:text-3xl">
             {dict.categories.title}
           </h2>
           <Link
             href={`/${lang}/categories`}
             // -me-2/px-2 keeps the label optically flush with the container
-            // edge while the box itself stays a 44px tap target on phones.
-            className="-me-2 inline-flex h-11 shrink-0 items-center gap-1 px-2 text-sm font-bold text-primary transition-colors hover:text-primary-hover"
+            // edge. The box is 28px tall on a phone so the heading row does not
+            // cost 44 — the tap target is grown back to 44 by the transparent
+            // ::before, the same pattern the header logo uses. At `sm` it goes
+            // back to an intrinsic h-11.
+            className="relative -me-2 inline-flex shrink-0 items-center gap-1 px-2 py-1 text-sm font-bold text-primary transition-colors before:absolute before:-inset-y-2 before:inset-x-0 before:content-[''] hover:text-primary-hover sm:h-11 sm:py-0 sm:before:hidden"
           >
             {dict.home2.seeAll}
             <ChevronNext className="h-4 w-4" />

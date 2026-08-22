@@ -201,11 +201,25 @@ export function SiteHeader({
               </Link>
             )}
           </div>
-          {/* Open-store is the primary guest CTA — keep it visible always. */}
+          {/* Open-store is the primary guest CTA from `lg` up, where the row
+              has the width for it. On a phone it was one of only six visible
+              controls, and the one asking somebody who came to buy something
+              to become a merchant instead — §8 puts secondary controls in the
+              menu. It is not lost there: the ☰ menu carries `للتجّار` in bold,
+              the footer carries both `للتجّار` and `افتح متجرك`, and the foot
+              of Home is a merchant door of its own. It stops competing above
+              the fold, which is all that changed.
+              `lg` rather than `md` because of a defect this does not create and
+              does not fix: between 768 and roughly 1150 the nav row already
+              needs more width than its container has (measured: 1011px of
+              content in 768px at the time of writing, before this change). 97
+              of those pixels are this button, so it waits for the width that
+              can hold it. Below `lg` the ☰ menu is already the home for
+              everything else in this row. */}
           {!user && (
             <Link
               href={`/${lang}/merchant/new`}
-              className="relative rounded-lg bg-primary px-3 py-2 text-sm font-bold text-primary-foreground transition-colors before:absolute before:-inset-y-1 before:inset-x-0 before:content-[''] hover:bg-primary-hover sm:px-4"
+              className="relative hidden rounded-lg bg-primary px-3 py-2 text-sm font-bold text-primary-foreground transition-colors before:absolute before:-inset-y-1 before:inset-x-0 before:content-[''] hover:bg-primary-hover lg:inline-block lg:px-4"
             >
               {dict.common.openStore}
             </Link>

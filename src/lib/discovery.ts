@@ -695,6 +695,39 @@ export function activeFilterCount(q: DiscoveryQuery): number {
   return n;
 }
 
+/**
+ * The state a buyer arrives in: nothing typed, nothing narrowed, first page.
+ *
+ * Discovery blocks — a browse-by-sector grid and the like — belong on that
+ * screen and nowhere else. Once somebody has asked a question, answering it is
+ * the whole page; pushing the answer below a browse grid is how a results
+ * screen turns back into a sitemap.
+ */
+export function isDefaultQuery(q: DiscoveryQuery): boolean {
+  return q.q.trim() === "" && activeFilterCount(q) === 0 && q.page === 1;
+}
+
+/**
+ * Results split by the sector they belong to, in registry order.
+ *
+ * A marketplace search crosses sectors — "لحمة" is a butcher AND a dish — and
+ * one "Stores" heading over both throws away the single fact that tells a buyer
+ * which result answers their question. Sectors with no hit in this set are
+ * absent rather than empty: the grouping is read off the rows, so a heading can
+ * never appear above nothing. That is the same rule the filters follow, applied
+ * to result headings.
+ */
+export function groupBySector<T extends { category: CategoryKey }>(
+  items: readonly T[],
+): { sector: CategoryKey; items: T[] }[] {
+  const out: { sector: CategoryKey; items: T[] }[] = [];
+  for (const sector of categoryKeys) {
+    const matched = items.filter((i) => i.category === sector);
+    if (matched.length) out.push({ sector, items: matched });
+  }
+  return out;
+}
+
 /** Everything cleared except the text the buyer typed and the sector a category
  *  page is pinned to — clearing filters should not eject you from the page. */
 export function clearedQuery(

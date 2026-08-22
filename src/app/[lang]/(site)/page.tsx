@@ -11,6 +11,7 @@ import { FeaturedStores } from "@/components/featured-stores";
 import { BestSellersTeaser } from "@/components/best-sellers-teaser";
 import { ForYouStrip } from "@/components/for-you-strip";
 import { HomeMore } from "@/components/home-more";
+import { HomeLocation } from "@/components/home/home-location";
 import { MerchantCta } from "@/components/merchant-cta";
 import { SectionSkeleton } from "@/components/section-skeleton";
 import { dictSlice } from "@/lib/dict-slice";
@@ -65,7 +66,22 @@ export default async function Home({
         }}
       />
 
-      <Hero lang={lang} dict={dict} />
+      {/* The phone's first viewport, in order: search (in the sticky header),
+          one line of identity, location, categories. The location row reads the
+          discovery coverage, so it is streamed rather than awaited — the
+          fallback reserves its exact height (h-11 under mt-3) so nothing above
+          the fold moves when it lands. */}
+      <Hero lang={lang} dict={dict}>
+        <Suspense fallback={<div className="h-11" />}>
+          <HomeLocation
+            lang={lang}
+            labels={{
+              byArea: dict.home.byArea,
+              allRegions: dict.explore.allRegions,
+            }}
+          />
+        </Suspense>
+      </Hero>
 
       <WorldsShowcase lang={lang} dict={dict} />
 

@@ -11,7 +11,9 @@ import {
   facetIsUseful,
   facetOptions,
   filterAvailability,
+  groupBySector,
   groupOptions,
+  isDefaultQuery,
   parseDiscoveryQuery,
   regionOptions,
   resolveCardFacts,
@@ -447,5 +449,54 @@ describe("URL state — a filtered view has to be an address", () => {
     expect(cleared.openNow).toBe(false);
     // A category page must not eject the buyer from the category.
     expect(clearedQuery(sample, { sector: true }).sector).toBe("retail");
+  });
+});
+
+describe("browse blocks belong on the arrival screen and nowhere else", () => {
+  it("recognises the untouched view", () => {
+    expect(isDefaultQuery(DEFAULT_QUERY)).toBe(true);
+    // Sort is not a narrowing: re-ordering the same set is still arrival.
+    expect(isDefaultQuery({ ...DEFAULT_QUERY, sort: "newest" })).toBe(true);
+    // Whitespace is not a question.
+    expect(isDefaultQuery({ ...DEFAULT_QUERY, q: "   " })).toBe(true);
+  });
+
+  it("does not mistake somebody who has asked something for an arrival", () => {
+    expect(isDefaultQuery({ ...DEFAULT_QUERY, q: "شاورما" })).toBe(false);
+    expect(isDefaultQuery({ ...DEFAULT_QUERY, openNow: true })).toBe(false);
+    expect(isDefaultQuery({ ...DEFAULT_QUERY, sector: "food" })).toBe(false);
+    // Page two of anything is a continuation, not an arrival.
+    expect(isDefaultQuery({ ...DEFAULT_QUERY, page: 2 })).toBe(false);
+  });
+});
+
+describe("result headings are read off the results", () => {
+  const rows = [
+    { id: "a", category: "food" as CategoryKey },
+    { id: "b", category: "retail" as CategoryKey },
+    { id: "c", category: "food" as CategoryKey },
+  ];
+
+  it("gives every sector present exactly one group, in registry order", () => {
+    const groups = groupBySector(rows);
+    expect(groups.map((g) => g.sector)).toEqual(
+      categoryKeys.filter((c) => c === "retail" || c === "food"),
+    );
+    expect(groups.find((g) => g.sector === "food")?.items).toHaveLength(2);
+    expect(groups.find((g) => g.sector === "retail")?.items).toHaveLength(1);
+  });
+
+  it("never produces a heading with nothing under it", () => {
+    // The whole point: fifteen of seventeen sectors return nothing for a given
+    // search, and none of them may show up as an empty "مطاعم" heading.
+    for (const g of groupBySector(rows))
+      expect(g.items.length).toBeGreaterThan(0);
+    expect(groupBySector([])).toEqual([]);
+  });
+
+  it("loses nothing", () => {
+    expect(groupBySector(rows).reduce((n, g) => n + g.items.length, 0)).toBe(
+      rows.length,
+    );
   });
 });

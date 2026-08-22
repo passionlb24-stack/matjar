@@ -50,7 +50,10 @@ export function StoreRail({
           </div>
           <Link
             href={href}
-            className="inline-flex shrink-0 items-center gap-1 text-sm font-bold text-primary transition-colors hover:text-primary-hover"
+            // 20px of text is a 20px tap target. The pseudo-element grows it to
+            // 44 without moving the heading row, which is why the padding is not
+            // simply increased.
+            className="relative inline-flex min-h-11 shrink-0 items-center gap-1 text-sm font-bold text-primary transition-colors before:absolute before:-inset-x-2 before:content-[''] hover:text-primary-hover"
           >
             {seeAll}
             <ChevronNext className="h-4 w-4" />

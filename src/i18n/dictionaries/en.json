@@ -1,7 +1,8 @@
 {
   "home": {
     "forYou": "For you",
-    "forYouSubtitle": "Stores we think you'll love, based on who you follow and order from."
+    "forYouSubtitle": "Stores we think you'll love, based on who you follow and order from.",
+    "byArea": "Shop by area"
   },
   "sort": {
     "label": "Sort by",

@@ -89,42 +89,56 @@ export default async function ExplorePage({
 
   return (
     <div className="pb-16">
+      {/* On a phone this band used to be the entire first screen: a centred
+          headline, a centred subtitle and a five-line note, roughly 700px
+          before the first thing a buyer could tap. Start-aligned and tight at
+          phone width, unchanged from `sm` up. */}
       <div className="border-b border-border bg-surface-muted/40">
-        <Container className="py-8 text-center sm:py-12">
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+        <Container className="py-5 text-start sm:py-12 sm:text-center">
+          <h1 className="text-2xl font-extrabold tracking-tight sm:text-4xl">
             {dict.explore.title}
           </h1>
-          <p className="mx-auto mt-3 max-w-xl text-muted-foreground sm:text-lg">
+          <p className="mt-1.5 text-sm text-muted-foreground sm:mx-auto sm:mt-3 sm:max-w-xl sm:text-lg">
             {dict.explore.subtitle}
           </p>
-          {early && (
-            <div className="mx-auto mt-6 max-w-xl rounded-2xl border border-border bg-surface p-5 text-start shadow-sm">
-              <h2 className="flex items-center gap-2 text-sm font-extrabold">
-                <Sprout className="h-4.5 w-4.5 shrink-0 text-success" />
-                {dict.explore.earlyTitle}
-              </h2>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {dict.explore.earlyBody}
-              </p>
-              <a
-                href={supportWaLink(dict.explore.earlyWaPrefill)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-whatsapp before:absolute before:-inset-x-3 before:-inset-y-3 before:content-['']"
-              >
-                <MessageCircle className="h-4 w-4" />
-                {dict.explore.earlyCta}
-              </a>
-            </div>
-          )}
         </Container>
       </div>
+
       <DiscoveryPage
         lang={lang}
         dict={dict}
         base={`/${lang}/explore`}
         query={query}
       />
+
+      {/* ISS-026's note, moved below the listing rather than above it.
+          It answers "why is this list so short?" — a question a reader only
+          has once they have seen the list, and the WhatsApp line is a place to
+          put the thing they came for and did not find. Above the results it
+          was an apology delivered before the thing being apologised for, and
+          it cost the buyer the whole first viewport to read it. */}
+      {early && (
+        <Container className="pt-2">
+          <div className="mx-auto max-w-xl rounded-2xl border border-border bg-surface p-5 text-start shadow-sm">
+            <h2 className="flex items-center gap-2 text-sm font-extrabold">
+              <Sprout aria-hidden className="h-4.5 w-4.5 shrink-0 text-success" />
+              {dict.explore.earlyTitle}
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              {dict.explore.earlyBody}
+            </p>
+            <a
+              href={supportWaLink(dict.explore.earlyWaPrefill)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-whatsapp before:absolute before:-inset-x-3 before:-inset-y-3 before:content-['']"
+            >
+              <MessageCircle aria-hidden className="h-4 w-4" />
+              {dict.explore.earlyCta}
+            </a>
+          </div>
+        </Container>
+      )}
     </div>
   );
 }
