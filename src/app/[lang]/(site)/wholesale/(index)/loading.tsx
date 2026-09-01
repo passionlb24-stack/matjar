@@ -1,3 +1,19 @@
+// Deliberately NOT next to the dynamic [id] route.
+//
+// A loading.tsx opens a Suspense boundary around its whole segment. Next then
+// sends the shell and this skeleton immediately — status 200, headers gone —
+// and streams the rest. A notFound() reached afterwards can no longer change
+// the status, so an unknown id answered 200 OK with a 404 page in the body.
+//
+// Measured on production before the fix:
+//   /ar/jobs/<unknown-uuid>       200   <- 404 body
+//   /ar/wholesale/<unknown-uuid>  200   <- 404 body
+//   /ar/product/<unknown-uuid>    200   <- 404 body
+//   /ar/u/<unknown-uuid>          404         (no loading.tsx: the control)
+//
+// Search engines take a 200 as "this page exists" and index the lot. Keeping
+// this file inside the (index) group scopes the boundary to the listing page
+// that wants it and leaves [id] free to answer honestly.
 import { Container } from "@/components/ui/container";
 import { Skeleton } from "@/components/ui/skeleton";
 
