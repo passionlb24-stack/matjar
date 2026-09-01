@@ -39,7 +39,7 @@ export default async function NewGigPage({
       <Container className="max-w-xl">
         <Link
           href={`/${lang}/freelance`}
-          className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex h-11 items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
         >
           <ChevronPrev className="h-4 w-4" />
           {dict.freelance.title}

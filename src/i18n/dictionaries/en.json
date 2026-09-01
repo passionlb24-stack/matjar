@@ -3981,7 +3981,75 @@
     "myGigs": "My services",
     "noGigs": "You haven't published any services yet.",
     "statusActive": "Active",
-    "statusPaused": "Paused"
+    "statusPaused": "Paused",
+    "pro": {
+      "backToList": "Freelancers",
+      "servicesCount": {
+        "one": "1 service",
+        "two": "2 services",
+        "few": "{n} services",
+        "many": "{n} services"
+      },
+      "onMatjarSince": "On Matjar since {year}",
+      "newHere": "New on Matjar",
+      "newHereNote": "No jobs completed through Matjar yet, so there are no reviews. Read their services and message them before you decide.",
+      "ownerNote": "This is your public profile — this is how visitors see it.",
+      "editProfile": "Edit your profile",
+      "empty": "Nothing published yet.",
+      "metaDescription": "{name} on Matjar — {services}."
+    },
+    "people": {
+      "peopleTab": "People",
+      "servicesTab": "Services",
+      "searchLabel": "Search",
+      "searchPlaceholder": "A freelancer's name or a kind of service…",
+      "search": "Search",
+      "clear": "Clear",
+      "peopleCount": {
+        "one": "1 freelancer",
+        "two": "2 freelancers",
+        "few": "{n} freelancers",
+        "many": "{n} freelancers"
+      },
+      "servicesCount": {
+        "one": "1 service",
+        "two": "2 services",
+        "few": "{n} services",
+        "many": "{n} services"
+      },
+      "allRegions": "All regions",
+      "viewProfile": "View profile",
+      "noResultsTitle": "Nobody matches that.",
+      "noResultsBody": "Try dropping a filter — or tell us what you need and we'll help you reach the freelancers who are available.",
+      "describeNeed": "Tell us what you need",
+      "resetFilters": "Clear filters"
+    },
+    "brief": {
+      "title": "Tell us what you need",
+      "subtitle": "Write your request once, then choose the freelancer you want to send it to.",
+      "needLabel": "What exactly do you need?",
+      "needPlaceholder": "e.g. 5 Instagram posts for a restaurant, in Arabic, brand assets ready.",
+      "categoryLabel": "Kind of service",
+      "anyCategory": "Any kind",
+      "budgetLabel": "Budget in USD (optional)",
+      "timelineLabel": "When do you need it (optional)",
+      "timelinePlaceholder": "e.g. within a week",
+      "regionLabel": "Region (optional)",
+      "anyRegion": "Any region",
+      "recipientLabel": "Who should receive it?",
+      "noRecipients": "No freelancer matches that right now — try clearing the filter.",
+      "send": "Send request",
+      "sending": "Sending…",
+      "deliveryNote": "Your request arrives as a message in your Matjar inbox — we never ask for your phone number or address.",
+      "needRequired": "Write what you need first.",
+      "recipientRequired": "Choose a freelancer to send it to.",
+      "failed": "That didn't go through — try again.",
+      "summaryTitle": "Project request",
+      "budgetLine": "Budget",
+      "timelineLine": "Timing",
+      "regionLine": "Region",
+      "categoryLine": "Kind of service"
+    }
   },
   "wholesale": {
     "title": "Wholesale",
@@ -4492,7 +4560,244 @@
     "title": "Wishlist",
     "empty": "You haven't saved any products yet."
   },
+  "professional": {
+    "trust": {
+      "hint": "Tap a badge to see what it means",
+      "identity": "ID verified",
+      "identityWhy": "We checked their ID and it matches the name they work under.",
+      "phone": "Phone confirmed",
+      "phoneWhy": "We sent a code to the number and they confirmed it, so it works and it is theirs.",
+      "credential": "Trade certificate",
+      "credentialWhy": "They submitted a certificate or licence for their trade and we reviewed it.",
+      "business": "Registered business",
+      "businessWhy": "They have a registered commercial record, not just a name.",
+      "pro": "Pro subscriber",
+      "proWhy": "A paid subscription that buys more visibility in search. It is not verification and says nothing about their work."
+    },
+    "plurals": {
+      "years": {
+        "one": "1 year in the trade",
+        "two": "{count} years in the trade",
+        "few": "{count} years in the trade",
+        "many": "{count} years in the trade"
+      },
+      "jobs": {
+        "one": "1 job through Matjar",
+        "two": "{count} jobs through Matjar",
+        "few": "{count} jobs through Matjar",
+        "many": "{count} jobs through Matjar"
+      },
+      "reviews": {
+        "one": "1 review",
+        "two": "{count} reviews",
+        "few": "{count} reviews",
+        "many": "{count} reviews"
+      },
+      "deliveryDays": {
+        "one": "Delivered in 1 day",
+        "two": "Delivered in {count} days",
+        "few": "Delivered in {count} days",
+        "many": "Delivered in {count} days"
+      },
+      "revisions": {
+        "one": "1 revision included",
+        "two": "{count} revisions included",
+        "few": "{count} revisions included",
+        "many": "{count} revisions included"
+      },
+      "minutes": {
+        "one": "Takes 1 min",
+        "two": "Takes {count} min",
+        "few": "Takes {count} min",
+        "many": "Takes {count} min"
+      }
+    },
+    "about": {
+      "title": "About",
+      "more": "Read more",
+      "less": "Read less"
+    },
+    "experience": {
+      "title": "Experience",
+      "specialtiesLabel": "Works on"
+    },
+    "availability": {
+      "title": "Working hours",
+      "closed": "Closed",
+      "openNow": "Open now",
+      "closedNow": "Closed now",
+      "today": "Today",
+      "note": "Times are Beirut time.",
+      "days": {
+        "0": "Sunday",
+        "1": "Monday",
+        "2": "Tuesday",
+        "3": "Wednesday",
+        "4": "Thursday",
+        "5": "Friday",
+        "6": "Saturday"
+      }
+    },
+    "services": {
+      "title": "Services & prices",
+      "from": "From",
+      "perHour": "/ hour",
+      "perUnit": "/ {unit}",
+      "visitFee": "Call-out fee",
+      "visitFeeNote": "The price of the work is set after they see it.",
+      "quote": "Quoted after they see the job",
+      "quoteNote": "Some work cannot be priced over the phone — they look at it and give you a price.",
+      "quoteCta": "Ask for a quote",
+      "includes": "Includes"
+    },
+    "portfolio": {
+      "title": "Their work",
+      "before": "Before",
+      "after": "After",
+      "viaMatjar": "Done through Matjar",
+      "viaMatjarWhy": "This came out of a job they completed through Matjar, not a photo they uploaded themselves."
+    },
+    "skills": {
+      "title": "What they do"
+    },
+    "reviews": {
+      "title": "What customers said",
+      "average": "{rating} out of 5",
+      "verified": "After a Matjar job",
+      "verifiedWhy": "This review is attached to a job completed through Matjar.",
+      "reply": "{name} replied",
+      "replyShort": "Reply"
+    },
+    "area": {
+      "title": "Where they work",
+      "onSite": "Comes to you",
+      "remote": "Works remotely"
+    },
+    "card": {
+      "from": "From",
+      "more": "+{count}"
+    },
+    "cta": {
+      "requestService": "Request service",
+      "requestQuote": "Ask for a quote"
+    },
+    "completeness": {
+      "title": "Finish your profile",
+      "subtitle": "This is what a customer sees before deciding. Every line you fill in improves your odds.",
+      "progress": "{done} of {total}",
+      "allDone": "Your profile is complete. Nothing left.",
+      "steps": {
+        "photo": "Add your photo",
+        "headline": "Say what you do in one line",
+        "bio": "Write a short intro",
+        "services": "Add your services and prices",
+        "portfolio": "Upload at least 3 photos of your work",
+        "trades": "Pick your trade",
+        "area": "Set the areas you cover",
+        "hours": "Set your working hours",
+        "verify": "Verify your ID",
+        "skills": "Add at least 3 skills",
+        "languages": "Add the languages you speak"
+      },
+      "hints": {
+        "photo": "People trust you more once they see who is coming.",
+        "headline": "One line that says exactly what you do.",
+        "bio": "How long you have been at it, and what sets you apart.",
+        "services": "Even \"priced after a visit\" is clearer than nothing.",
+        "portfolio": "Photos say more than any description.",
+        "trades": "Without a trade you do not show up in search.",
+        "area": "It is the first thing a customer filters by.",
+        "hours": "So they know when they can call.",
+        "verify": "Verification is what settles a customer before they let you into their home.",
+        "skills": "Skills are how the right search finds you.",
+        "languages": "It matters to a customer who does not speak Arabic."
+      }
+    }
+  },
   "crafts": {
+    "askTitle": "What's broken?",
+    "askLead": "Tell us what the problem is and where you are, and we'll see who can come.",
+    "askPlaceholder": "e.g. the AC stopped cooling yesterday",
+    "askWhere": "Where?",
+    "askSubmit": "Continue",
+    "askOrBrowse": "Or browse every trade",
+    "askDidYouMean": "Did you mean?",
+    "askNeedProblem": "Describe the problem in one line.",
+    "commonTitle": "Common jobs",
+    "problems": {
+      "ac-service": "AC isn't cooling",
+      "plumber": "Water leak",
+      "electrician": "No power in the flat",
+      "washer-repair": "Washing machine stopped",
+      "water-pump": "Water won't reach the tap",
+      "solar": "Solar isn't delivering",
+      "inverter": "Inverter & batteries",
+      "fridge-repair": "Fridge isn't cooling",
+      "painter": "Repaint a flat",
+      "furniture-moving": "Move furniture",
+      "home-cleaning": "Clean a home",
+      "waterproofing": "Damp and a dripping ceiling"
+    },
+    "statTrades": "trades ready",
+    "statAreas": "areas in Lebanon",
+    "statProviders": "tradespeople listed",
+    "emptyKicker": "This section is still being built",
+    "emptyHeadline": "No tradespeople have signed up yet",
+    "emptyHeadlineTrade": "No {trade} has signed up yet",
+    "emptyHeadlineArea": "No {trade} in {area} yet",
+    "emptyLead": "The taxonomy is ready: {trades} trades across {areas} areas of Lebanon. What's missing is the people, and we're building that from zero.",
+    "emptyNoFake": "We don't list invented tradespeople or invented ratings. The moment someone real signs up, they appear here.",
+    "emptyWorksTitle": "What works today",
+    "emptyWork1Title": "Tell us what's wrong",
+    "emptyWork1Body": "Fill it in once. We carry it by hand to the first suitable tradesman in your area.",
+    "emptyWork2Title": "Know a good tradesman?",
+    "emptyWork2Body": "Listing is free and takes two minutes. Whoever signs up now takes the first requests in their trade and their area.",
+    "emptyPrimary": "Tell us what's wrong",
+    "emptyRecruitCta": "List your trade",
+    "flowTitle": "Ask for a tradesman",
+    "flowLead": "Nothing is booked and nothing is charged here — this is a request, not an order.",
+    "flowStepProblem": "The problem",
+    "flowStepDetails": "Your details",
+    "flowStepWho": "Who comes",
+    "flowTrade": "Which trade?",
+    "flowTradeAuto": "Not sure",
+    "flowNext": "Next",
+    "flowBack": "Back",
+    "flowFinding": "Looking for who can come…",
+    "flowMatchTitle": "Tradespeople who cover this",
+    "flowMatchLead": "Pick who should receive the request.",
+    "flowChoose": "Ask this one",
+    "flowNoMatchTitle": "No tradesman is listed for this yet",
+    "flowNoMatchBody": "We can take it over WhatsApp and carry it by hand. That is the only honest route today: with nobody listed we cannot store the request, and we won't promise something we can't deliver.",
+    "flowWaCta": "Send it over WhatsApp",
+    "flowWaMessage": "Hello, I need a tradesman.\nProblem: {problem}\nTrade: {trade}\nArea: {area}\nTiming: {when}",
+    "flowUnknown": "Not specified",
+    "flowGuestNote": "No account needed to send a request. Signing in lets you attach photos and follow it from your account.",
+    "flowSummary": "Your request",
+    "flowEdit": "Edit",
+    "flowMineTitle": "My earlier requests",
+    "joinLeadTitle": "Let customers find you",
+    "joinLeadBody": "One profile on Matjar: what you do, where you travel, what you charge. No online shop, no subscription.",
+    "joinWhy1Title": "The request arrives complete",
+    "joinWhy1Body": "The problem, the area, the timing and a photo when there is one — instead of a call where you ask ten questions.",
+    "joinWhy2Title": "Ratings come from real jobs",
+    "joinWhy2Body": "Nobody can rate you unless you finished a job for them through Matjar. That is what makes a rating worth anything.",
+    "joinWhy3Title": "Your address stays yours",
+    "joinWhy3Body": "We publish the areas you cover, never where you live. Customers reach you with a button.",
+    "joinHonestTitle": "Honestly, where we are",
+    "joinHonestBody": "This section is new and there aren't many requests yet. Whoever signs up now is the first in their trade and their area, and builds a rating before it gets crowded.",
+    "joinStepsTitle": "What it takes",
+    "joinStep1": "Two minutes: your name, your trade, your areas.",
+    "joinStep2": "We review the profile before it goes live.",
+    "joinStep3": "We tell you the moment it's live, and requests start arriving.",
+    "joinSignInCta": "Sign in and continue",
+    "joinSignInNote": "You'll need a Matjar account — a minute, by phone or email.",
+    "joinCustomerTitle": "Here as a customer?",
+    "joinCustomerBody": "If you need a tradesman rather than a listing, start here.",
+    "profileNewTitle": "New on Matjar",
+    "profileNewBody": "No Matjar ratings yet. That means new, not worse.",
+    "profileAreaNote": "These are the areas they travel to — not where they live.",
+    "browseTitle": "Browse by trade",
     "title": "Trades & repair",
     "subtitle": "Find a tradesman or local service near you in Lebanon.",
     "badge": "On-site tradespeople",
