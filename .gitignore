@@ -53,3 +53,10 @@ next-env.d.ts
 
 # Agent worktrees: full checkouts of this repo living inside it.
 .claude/worktrees/
+
+# Full before/after screenshot sweeps from scripts/shots-professional.mjs.
+# 70 PNGs and 21MB per run, regenerable in one command, and permanent once it
+# is in git history. The handful that carry the argument live in
+# docs/professional-v2/key/ and ARE committed.
+docs/professional-v2/before/
+docs/professional-v2/after/

@@ -204,7 +204,7 @@ export function StoreProductsSection({
                   )}
                 </div>
               )}
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {store.products
                   .filter((p) => p.id)
                   .map((p) => {
@@ -309,7 +309,7 @@ export function StoreProductsSection({
       ) : null}
       {/* Demo/sample stores: a static preview grid, no transaction. */}
       {!store.isReal && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {store.products.map((p, i) => (
             <div
               key={`${p.name}-${i}`}

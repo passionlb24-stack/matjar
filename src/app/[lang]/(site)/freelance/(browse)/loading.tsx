@@ -1,8 +1,24 @@
 import { Container } from "@/components/ui/container";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Mirrors the freelance gigs page: PageHeader (icon badge + title/subtitle +
-// action), a category-chip row, then the gig-card grid.
+// Mirrors the freelance discovery page: PageHeader (icon badge + title/subtitle
+// + action), a chip row, then the card grid.
+//
+// It lives inside the `(browse)` route group — a group changes no URL — so that
+// it covers ONLY /freelance, and not /freelance/[id], /freelance/pro/[id] or
+// /freelance/brief. It used to sit at `freelance/loading.tsx`, which meant two
+// things, both wrong:
+//
+//   1. Opening a gig or a profile flashed a grid-of-cards skeleton that looks
+//      nothing like the page arriving.
+//   2. A `loading.tsx` makes the segment stream, so the response headers are
+//      flushed before the page body runs — and a `notFound()` reached after
+//      that can no longer set the status. Every unknown gig id answered
+//      "200 OK" with a 404 page in the body: the soft 404 that a search engine
+//      happily indexes. Measured, not assumed — /ar/u/[id] has no loading.tsx
+//      and answers a real 404 for the same input.
+//
+// Both are fixed by scoping, and the page that had a skeleton still has it.
 export default function FreelanceLoading() {
   return (
     <div className="py-10">

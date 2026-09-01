@@ -220,6 +220,46 @@ test("an unknown URL renders the Arabic 404 page, with a 404 status", async ({
   ).toBe(404);
 });
 
+test("a matched route with a missing record also answers 404", async ({ request }) => {
+  // The other shape of the same bug, and the one the test above cannot see.
+  //
+  // That test asks for a URL no route matches. This asks for URLs that match a
+  // route perfectly and name a record that does not exist — where the page runs,
+  // finds nothing, and calls notFound(). If a loading.tsx sits over the segment,
+  // Next has already flushed the shell with a 200 by then and the status can no
+  // longer change: the body says "not found" and the header says "here it is".
+  //
+  // Measured on production 2026-08-24, before the fix:
+  //   /ar/jobs/<unknown>       200   <- 404 body
+  //   /ar/wholesale/<unknown>  200   <- 404 body
+  //   /ar/product/<unknown>    200   <- 404 body
+  //   /ar/u/<unknown>          404         (no loading.tsx — the control)
+  //
+  // The control is in the list on purpose: it is what proves the other three
+  // were a boundary problem rather than three unrelated pages getting it wrong.
+  const missing = "00000000-0000-4000-8000-000000000000";
+  const paths = [
+    `/ar/jobs/${missing}`,
+    `/ar/wholesale/${missing}`,
+    `/ar/product/${missing}`,
+    `/ar/u/${missing}`,
+  ];
+
+  const statuses = await Promise.all(
+    paths.map(async (path) => ({ path, status: (await request.get(path)).status() })),
+  );
+
+  for (const { path, status } of statuses) {
+    expect(
+      status,
+      `${path} names a record that does not exist and must answer 404. A 200 ` +
+        "here is a soft 404: Google indexes it as a real page. The cause is " +
+        "almost always a loading.tsx covering the dynamic segment — scope it " +
+        "into a route group beside the listing page instead of deleting it.",
+    ).toBe(404);
+  }
+});
+
 test("no page in the smoke set logs an uncaught error or a failed request", async ({
   context,
   request,

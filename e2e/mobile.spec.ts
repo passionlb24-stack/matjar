@@ -16,6 +16,30 @@ test("no page scrolls horizontally at 375px", async ({ page, request }) => {
     "/ar/explore",
     arabicSearchUrl("عطر"),
     "/ar/login",
+    // The crafts section, because this is where the defect last came back and
+    // where it will come back again. The trade-group cards are grid items, and
+    // a grid item's automatic minimum size is its MIN-CONTENT width — so a
+    // `truncate` (white-space: nowrap) line inside one floors the column at the
+    // full untruncated Arabic string. That shipped 103px of horizontal scroll
+    // at 360 and none at all at 768, where `sm:grid-cols-2` compiles to
+    // minmax(0,1fr) and its explicit 0 minimum hides the whole thing. No
+    // desktop check would ever have caught it.
+    "/ar/crafts",
+    "/ar/crafts/electrician",
+    "/ar/crafts/requests",
+    "/ar/crafts/join",
+    // The freelance section, now that it is person-first: a people grid, a
+    // services grid, a profile whose service-cover strip is `grid-cols-3`, and
+    // a brief form whose recipient rows are full-width flex. Every one of those
+    // is the same grid-item shape the crafts defect came out of. The ids are
+    // the real production rows — the platform's only freelancer and one of his
+    // three gigs — so a run that stops seeing them says the fixture moved,
+    // which is worth knowing too.
+    "/ar/freelance",
+    "/ar/freelance?view=services",
+    "/ar/freelance/pro/8b6f9cdc-3100-4f4b-a2df-3cb3e7c1e80a",
+    "/ar/freelance/138fb16e-1282-4491-a547-9ed486b4acc4",
+    "/ar/freelance/brief",
     ...(storeId ? [`/ar/store/${storeId}`] : []),
   ];
 

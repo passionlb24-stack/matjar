@@ -2,17 +2,17 @@ import { createElement } from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { MessageCircle, Wrench } from "lucide-react";
+import { Wrench } from "lucide-react";
 import { ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { Container } from "@/components/ui/container";
-import { EmptyState } from "@/components/ui/empty-state";
-import { CraftCard } from "@/components/crafts/craft-card";
+import { ProfessionalCard } from "@/components/professional";
+import { CraftEmptyState } from "@/components/crafts/craft-empty-state";
 import { tradeIcon } from "@/lib/trade-icons";
-import { supportWaLink } from "@/lib/support";
 import {
-  browseCrafts,
+  browseCraftsAsProfiles,
+  countActiveProviders,
   getAreasByRegion,
   getTrade,
   getTradeGroups,
@@ -45,14 +45,19 @@ export async function generateMetadata({
   };
 }
 
+// ────────────────────────────────────────────────────────────────────────────
 // One trade, filtered by area.
 //
 // This is the page that should rank: someone searching "كهربائي طرابلس" is not
 // browsing, they have a problem right now. So it opens with the answer — the
-// providers when there are any, and when there are none, a compact and honest
-// path to still getting the job done: send the request over WhatsApp so it can
-// be routed to craftsmen as they join. Sibling trades of the same group sit
-// below as chips, because "سبّاك" and "عزل ورطوبة" are often the same leak.
+// tradesmen when there are any, and when there are none, the same empty state
+// the landing page uses, which routes to describing the problem rather than to
+// a dead end. Sibling trades sit below as chips, because "سبّاك" and "عزل
+// ورطوبة" are frequently the same leak.
+//
+// Every one of the 47 of these renders the empty state today. That is the
+// argument for the empty state being a component and being good.
+// ────────────────────────────────────────────────────────────────────────────
 export default async function TradePage({
   params,
   searchParams,
@@ -71,16 +76,20 @@ export default async function TradePage({
   const tradeRow = isAll ? null : await getTrade(trade);
   if (!isAll && !tradeRow) notFound();
 
-  const [providers, areasByRegion, groups] = await Promise.all([
-    browseCrafts({
-      trade: isAll ? null : trade,
-      area: area || null,
-      q: q || null,
-      sort,
-      limit: 60,
-    }),
+  const [providers, areasByRegion, groups, providerCount] = await Promise.all([
+    browseCraftsAsProfiles(
+      {
+        trade: isAll ? null : trade,
+        area: area || null,
+        q: q || null,
+        sort,
+        limit: 60,
+      },
+      lang,
+    ),
     getAreasByRegion(),
     getTradeGroups(),
+    countActiveProviders(),
   ]);
 
   const tradeName = tradeRow
@@ -102,6 +111,7 @@ export default async function TradePage({
         (tr) => tr.slug !== tradeRow.slug,
       )
     : [];
+  const tradeTotal = groups.reduce((n, g) => n + g.trades.length, 0);
 
   // Resolve to an element up front. Binding the looked-up component to a
   // capitalised const inside render trips react/no-unstable-components; the
@@ -111,16 +121,6 @@ export default async function TradePage({
     tradeRow ? tradeIcon(tradeRow.slug, tradeRow.group_slug) : Wrench,
     { "aria-hidden": true, className: "h-6 w-6" },
   );
-
-  // The WhatsApp fallback carries the trade (and area, when filtered) so the
-  // support line knows what is being asked for without a single extra question.
-  const waText = tradeRow
-    ? activeAreaName
-      ? t.waRequestTradeArea
-          .replace("{trade}", tradeName)
-          .replace("{area}", activeAreaName)
-      : t.waRequestTrade.replace("{trade}", tradeName)
-    : t.waRequestGeneric;
 
   /** Keeps the other filters while changing one. */
   const hrefWith = (next: { area?: string; sort?: string }) => {
@@ -144,7 +144,7 @@ export default async function TradePage({
           {t.title}
         </Link>
 
-        <div className="mt-2 flex items-center gap-3">
+        <div className="mt-2 flex min-w-0 items-center gap-3">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary-soft text-primary">
             {tradeIconNode}
           </span>
@@ -163,39 +163,43 @@ export default async function TradePage({
           </div>
         </div>
 
-        {/* Area — the filter that decides everything in this section. */}
-        <div className="mt-5 flex flex-wrap gap-2">
-          <Link
-            href={hrefWith({ area: "" })}
-            aria-current={!area ? "page" : undefined}
-            className={`inline-flex min-h-11 items-center rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors ${
-              !area
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-surface hover:border-primary/40"
-            }`}
-          >
-            {t.anywhere}
-          </Link>
-          {allAreas.slice(0, 14).map((a) => (
+        {/* Area — the filter that decides everything in this section. Shown
+            only where filtering could change the answer: with nobody listed at
+            all, fourteen area chips are fourteen taps that lead to the same
+            empty page. */}
+        {providers.length > 0 && (
+          <div className="mt-5 flex flex-wrap gap-2">
             <Link
-              key={a.slug}
-              href={hrefWith({ area: a.slug })}
-              aria-current={area === a.slug ? "page" : undefined}
+              href={hrefWith({ area: "" })}
+              aria-current={!area ? "page" : undefined}
               className={`inline-flex min-h-11 items-center rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors ${
-                area === a.slug
+                !area
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-surface hover:border-primary/40"
               }`}
             >
-              {ar ? a.name_ar : a.name_en}
+              {t.anywhere}
             </Link>
-          ))}
-        </div>
+            {allAreas.slice(0, 14).map((a) => (
+              <Link
+                key={a.slug}
+                href={hrefWith({ area: a.slug })}
+                aria-current={area === a.slug ? "page" : undefined}
+                className={`inline-flex min-h-11 items-center rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors ${
+                  area === a.slug
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-surface hover:border-primary/40"
+                }`}
+              >
+                {ar ? a.name_ar : a.name_en}
+              </Link>
+            ))}
+          </div>
+        )}
 
-        {/* Sorting exists only when there is something to sort. "Most
-            requested" is deliberately absent — there is no request volume
-            behind it yet, and a sort that ranks on nothing is a lie told in a
-            dropdown. */}
+        {/* Sorting exists only when there is something to sort. "الأكثر طلبًا"
+            is deliberately absent — there is no request volume behind it, and a
+            sort that ranks on nothing is a lie told in a dropdown. */}
         {providers.length > 1 && (
           <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
             <span className="text-muted-foreground">{t.sortBy}</span>
@@ -221,59 +225,51 @@ export default async function TradePage({
           </div>
         )}
 
-        {providers.length ? (
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        {providers.length > 0 ? (
+          <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {providers.map((p) => (
-              <CraftCard
+              <ProfessionalCard
                 key={p.id}
-                provider={p}
+                profile={p}
+                href={`/${lang}/crafts/p/${p.id}`}
+                dict={dict}
                 lang={lang}
-                labels={{
-                  from: t.from,
-                  verified: t.verified,
-                  noRating: t.noRating,
-                  covers: t.covers,
-                  works: t.works,
-                  years: t.years,
-                  viewProfile: t.viewProfile,
-                }}
               />
             ))}
           </div>
-        ) : activeArea ? (
-          <div className="mt-6">
-            {/* The area filter emptied the page — the next tap is obvious:
-                widen the net before giving up on the trade. */}
-            <EmptyState
-              icon={Wrench}
-              title={t.noneInArea
-                .replace("{trade}", tradeName)
-                .replace("{area}", activeAreaName ?? "")}
-              description={t.tryAnywhere}
-              action={{ href: hrefWith({ area: "" }), label: t.showAllAreas }}
-            />
-          </div>
         ) : (
-          /* Zero providers for the trade itself. Compact, and it converts:
-             the request still has somewhere real to go. craft_requests cannot
-             store a provider-less request (provider_id is NOT NULL), so the
-             working path is the platform's WhatsApp line, prefilled with the
-             trade so nothing needs retyping. */
-          <div className="mt-6 rounded-2xl border border-dashed border-border p-5 sm:p-6">
-            <h2 className="font-extrabold">{t.requestFallbackTitle}</h2>
-            <p className="mt-1 max-w-lg text-sm text-muted-foreground">
-              {t.requestHelpBody}
-            </p>
-            <a
-              href={supportWaLink(waText)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-whatsapp px-5 py-2.5 text-sm font-bold text-whatsapp-foreground transition-colors hover:bg-whatsapp-hover"
-            >
-              <MessageCircle aria-hidden className="h-4 w-4" />
-              {t.requestHelpCta}
-            </a>
-          </div>
+          <>
+            {/* When the AREA filter is what emptied the page, widening it is
+                the cheaper next tap than describing the whole job — so it is
+                offered first, and only then the general route. */}
+            {activeArea && (
+              <p className="mt-6 text-sm text-muted-foreground">
+                {t.tryAnywhere}{" "}
+                <Link
+                  href={hrefWith({ area: "" })}
+                  className="font-bold text-primary underline-offset-4 hover:underline"
+                >
+                  {t.showAllAreas}
+                </Link>
+              </p>
+            )}
+            <CraftEmptyState
+              lang={lang}
+              t={t}
+              className="mt-4"
+              stats={{
+                trades: tradeTotal,
+                areas: allAreas.length,
+                providers: providerCount,
+              }}
+              trade={tradeRow ? { slug: tradeRow.slug, name: tradeName } : null}
+              areaName={activeAreaName}
+              askQuery={{
+                ...(q ? { problem: q } : {}),
+                ...(area ? { area } : {}),
+              }}
+            />
+          </>
         )}
 
         {/* The same leak is often another trade's job. */}
@@ -282,33 +278,19 @@ export default async function TradePage({
             <h2 className="text-sm font-extrabold text-muted-foreground">
               {t.relatedTrades}
             </h2>
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div className="mt-2 flex min-w-0 flex-wrap gap-2">
               {siblings.map((tr) => (
                 <Link
                   key={tr.slug}
                   href={`/${lang}/crafts/${tr.slug}`}
-                  className="inline-flex min-h-11 items-center rounded-xl border border-border bg-surface px-3 py-2 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+                  className="inline-flex min-h-11 min-w-0 items-center rounded-xl border border-border bg-surface px-3 py-2 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
                 >
-                  {ar ? tr.name_ar : tr.name_en}
+                  <span className="truncate">{ar ? tr.name_ar : tr.name_en}</span>
                 </Link>
               ))}
             </div>
           </section>
         )}
-
-        {/* Supply is the bottleneck — recruit on the page that proves demand. */}
-        <section className="mt-8 flex flex-col items-start gap-3 rounded-2xl bg-primary-soft p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="font-extrabold">{t.recruitTitle}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{t.recruitBody}</p>
-          </div>
-          <Link
-            href={`/${lang}/crafts/join`}
-            className="inline-flex min-h-11 shrink-0 items-center rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
-          >
-            {t.joinCta}
-          </Link>
-        </section>
       </Container>
     </div>
   );

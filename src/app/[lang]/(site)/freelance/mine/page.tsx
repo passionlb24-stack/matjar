@@ -51,7 +51,7 @@ export default async function MyGigsPage({
       <Container className="max-w-2xl">
         <Link
           href={`/${lang}/freelance`}
-          className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex h-11 items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
         >
           <ChevronPrev className="h-4 w-4" />
           {t.title}
@@ -70,14 +70,16 @@ export default async function MyGigsPage({
           }
         />
 
-        {/* Public profile — buyers pick a person, so this is what /u/[id] shows.
-            Link to preview it as visitors see it. */}
+        {/* Public profile — buyers pick a person, so this is what
+            /freelance/pro/[id] shows. Preview it as visitors see it; the
+            completeness card there says what is still missing and why it
+            matters. */}
         <div className="mt-6">
-          <div className="mb-2 flex items-center justify-between">
+          <div className="mb-2 flex items-center justify-between gap-3">
             <h2 className="text-lg font-bold">{t.publicProfile}</h2>
             <Link
-              href={`/${lang}/u/${user.id}`}
-              className="text-sm font-semibold text-primary hover:underline"
+              href={`/${lang}/freelance/pro/${user.id}`}
+              className="inline-flex h-11 items-center text-sm font-semibold text-primary hover:underline"
             >
               {t.viewPublicProfile}
             </Link>

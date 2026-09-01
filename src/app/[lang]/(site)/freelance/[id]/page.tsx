@@ -3,20 +3,19 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import {
-  Clock,
-  MapPin,
   User,
   Check,
   Images,
   ExternalLink,
   BadgeCheck,
 } from "lucide-react";
-import { ChevronPrev } from "@/components/ui/directional-icon";
+import { ChevronNext, ChevronPrev } from "@/components/ui/directional-icon";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { createClient } from "@/lib/supabase/server";
 import { localeAlternates } from "@/lib/site";
 import { regions } from "@/lib/catalog";
+import { countLabel } from "@/lib/data/freelance";
 import type { Gig } from "@/lib/gigs";
 import { Container } from "@/components/ui/container";
 import { TrustChips } from "@/components/trust-chips";
@@ -89,8 +88,6 @@ export default async function GigDetailPage({
     data: { user },
   } = await supabase.auth.getUser();
   const isOwn = user?.id === gig.freelancer_id;
-  const regionName =
-    regions.find((r) => r.key === gig.region)?.name[lang] ?? gig.region;
 
   // The buyer is choosing a PERSON, not a listing. profiles is own-row-only
   // under RLS, so this goes through the security-definer view added in 0205 and
@@ -100,6 +97,7 @@ export default async function GigDetailPage({
   });
   const profile = ((profRows ?? []) as {
     full_name: string | null;
+    avatar_url: string | null;
     bio: string | null;
     skills: string[] | null;
     gig_count: number | null;
@@ -107,6 +105,13 @@ export default async function GigDetailPage({
     freelancer_verified: boolean | null;
     member_since: string | null;
   }[])[0];
+
+  // A gig belongs to somebody. This page is the service, so the person gets a
+  // row of their own at the top rather than a name in a metadata line, and it
+  // goes to the profile — /freelance/pro/[id] — not to the generic /u/[id]
+  // card. The whole point of the change is that three adverts are one person.
+  const personName = profile?.full_name?.trim() || gig.freelancer_name || t.freelancer;
+  const gigCount = profile?.gig_count ?? 1;
 
   // Same shape the grid uses, so the cards below are the cards above.
   const { data: relData } = await supabase.rpc("browse_gigs", {
@@ -131,7 +136,7 @@ export default async function GigDetailPage({
       <Container className="max-w-2xl">
         <Link
           href={`/${lang}/freelance`}
-          className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex h-11 items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
         >
           <ChevronPrev className="h-4 w-4" />
           {t.title}
@@ -149,6 +154,48 @@ export default async function GigDetailPage({
         )}
 
         <Card className="mt-4 p-6">
+          {/* The person, first and whole. This used to be a name in the
+              metadata row, which is how one freelancer with three listings read
+              as three strangers. */}
+          <Link
+            href={`/${lang}/freelance/pro/${gig.freelancer_id}`}
+            className="-m-2 mb-1 flex min-h-11 items-center gap-3 rounded-xl p-2 transition-colors hover:bg-surface-muted"
+          >
+            {profile?.avatar_url ? (
+              <Image
+                src={profile.avatar_url}
+                alt=""
+                width={44}
+                height={44}
+                className="h-11 w-11 shrink-0 rounded-full object-cover"
+              />
+            ) : (
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">
+                <User className="h-5 w-5" />
+              </span>
+            )}
+            <span className="min-w-0 flex-1">
+              <span
+                dir="auto"
+                className="flex items-center gap-1 text-sm font-bold"
+              >
+                <span className="truncate">{personName}</span>
+                {profile?.freelancer_verified && (
+                  <BadgeCheck
+                    className="h-4 w-4 shrink-0 text-primary"
+                    aria-label={t.verifiedTitle}
+                  />
+                )}
+              </span>
+              <span className="block text-xs text-muted-foreground">
+                {gigCount > 1
+                  ? countLabel(t.people.servicesCount, gigCount)
+                  : t.people.viewProfile}
+              </span>
+            </span>
+            <ChevronNext className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </Link>
+
           {gig.category && (
             <Badge variant="primary" size="sm">
               {t.categories[gig.category as keyof typeof t.categories] ??
@@ -158,32 +205,12 @@ export default async function GigDetailPage({
           <h1 className="mt-2 text-2xl font-extrabold tracking-tight">
             {gig.title}
           </h1>
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-            <Link
-              href={`/${lang}/u/${gig.freelancer_id}`}
-              className="flex items-center gap-1 font-semibold text-primary hover:underline"
-            >
-              <User className="h-4 w-4" />
-              {profile?.full_name || gig.freelancer_name || t.freelancer}
-              {profile?.freelancer_verified && (
-                <BadgeCheck className="h-4 w-4" aria-label={t.verifiedTitle} />
-              )}
-            </Link>
-            {regionName && (
-              <span className="flex items-center gap-1">
-                <MapPin className="h-4 w-4" />
-                {regionName}
-              </span>
-            )}
-            {gig.delivery_days != null && (
-              <span className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                {t.deliveryIn.replace("{n}", String(gig.delivery_days))}
-              </span>
-            )}
-          </div>
           {/* Same evidence the card showed. Identical component, so the listing
-              and this page can never claim different things about one person. */}
+              and this page can never claim different things about one person.
+              The hand-rolled region + delivery row that used to sit above this
+              was removed rather than kept: TrustChips already renders both, so
+              the page was printing "الشمال" and "تسليم ٢ أيام" twice, once in
+              each style. */}
           <div className="mt-3">
             <TrustChips
               gig={{

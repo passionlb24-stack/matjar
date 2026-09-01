@@ -92,7 +92,20 @@ export function daySpan(
   date: Date,
 ): DaySpan | null {
   if (!hours) return null;
-  return hours[String(date.getDay())] ?? null;
+  // Beirut's weekday, for the same reason isOpenNow() above uses Beirut's
+  // clock — and this one was missed when that was fixed, which is worth
+  // recording because of how the two failed TOGETHER.
+  //
+  // `date.getDay()` is the machine's weekday. On a UTC server, between
+  // midnight and 03:00 in Beirut it is still the previous day, so this returned
+  // yesterday's opening times. store-header.tsx renders "today's hours" from
+  // this line directly beside an open/closed badge computed by isOpenNow() —
+  // so in that window the badge said one thing and the times beside it said
+  // another, about the same shop, in the same card.
+  //
+  // Half-fixing a timezone is worse than not fixing it: it turns one wrong
+  // answer into two answers that contradict each other.
+  return hours[String(beirutClock(date).dow)] ?? null;
 }
 
 /** Bookable "HH:MM" slots for one day's span at a given granularity. */
