@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { isOpenNow, beirutClock, type WeekHours } from "@/lib/hours";
+import { isOpenNow, beirutClock, daySpan, type WeekHours } from "@/lib/hours";
 
 // The bug these exist for was live on matjarlb.com and visible to customers:
 // business hours were read with `now.getDay()` / `now.getHours()`, which is the
@@ -90,6 +90,11 @@ describe("business hours are Beirut hours", () => {
     try {
       isOpenNow(NINE_TO_SIX, new Date("2026-08-22T15:01:00Z"));
       beirutClock(new Date("2026-08-22T15:01:00Z"));
+      // daySpan is in here because leaving it out is how it stayed broken:
+      // isOpenNow was fixed, the assertions above were written against fixed
+      // UTC instants, and every one of them passes on a laptop already set to
+      // Beirut — which this one is. Only this spy fails everywhere.
+      daySpan(NINE_TO_SIX, new Date("2026-08-22T15:01:00Z"));
       expect(hours).not.toHaveBeenCalled();
       expect(day).not.toHaveBeenCalled();
       expect(minutes).not.toHaveBeenCalled();
@@ -97,6 +102,54 @@ describe("business hours are Beirut hours", () => {
       hours.mockRestore();
       day.mockRestore();
       minutes.mockRestore();
+    }
+  });
+
+  it("reads daySpan's weekday in Beirut too", () => {
+    // This one was MISSED when isOpenNow was fixed, and the two failing
+    // together is the whole point: store-header renders "today's hours" from
+    // daySpan directly beside an open/closed badge from isOpenNow. Between
+    // midnight and 03:00 Beirut, UTC is still on the previous day, so the badge
+    // said one thing and the times beside it said another — about the same shop,
+    // in the same card. Half-fixing a timezone turns a wrong answer into two
+    // answers that disagree.
+    const week: WeekHours = {
+      "0": { open: "10:00", close: "14:00" }, // Sunday
+      "6": { open: "08:00", close: "20:00" }, // Saturday
+    };
+    // 22:00Z Saturday is 01:00 SUNDAY in Beirut. The machine (UTC) still says
+    // Saturday and would hand back 08:00–20:00.
+    const t = new Date("2026-08-22T22:00:00Z");
+    expect(beirutClock(t).dow).toBe(0);
+    expect(daySpan(week, t)).toEqual({ open: "10:00", close: "14:00" });
+  });
+
+  it("agrees with isOpenNow about which day it is", () => {
+    // The invariant that actually matters: whatever span daySpan hands the UI,
+    // isOpenNow must have judged that same span. Checked across a full day of
+    // instants, including the 21:00-24:00Z window where UTC and Beirut differ
+    // on the date.
+    const week: WeekHours = {
+      "0": { open: "10:00", close: "14:00" },
+      "1": { open: "09:00", close: "17:00" },
+      "6": { open: "08:00", close: "20:00" },
+    };
+    for (let h = 0; h < 24; h++) {
+      const t = new Date(Date.UTC(2026, 7, 22, h, 30));
+      const span = daySpan(week, t);
+      const open = isOpenNow(week, t);
+      if (span == null) {
+        // No span for that Beirut day means closed, never "unknown".
+        expect(open, `${h}:30Z`).toBe(false);
+      } else {
+        const { minutes } = beirutClock(t);
+        const [oh, om] = span.open.split(":").map(Number);
+        const [ch, cm] = span.close.split(":").map(Number);
+        const o = oh * 60 + om;
+        const c = ch * 60 + cm;
+        const expected = c <= o ? minutes >= o || minutes < c : minutes >= o && minutes < c;
+        expect(open, `${h}:30Z against ${span.open}-${span.close}`).toBe(expected);
+      }
     }
   });
 
