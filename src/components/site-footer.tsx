@@ -70,6 +70,20 @@ export function SiteFooter({
       links: [
         { label: dict.common.forMerchants, href: `/${lang}/merchants` },
         { label: L.openStore, href: `/${lang}/merchant/new` },
+        // Ungated on purpose, and it is the one link here that MUST be.
+        //
+        // Every other vertical link on this page is gated on supply — see
+        // section-supply.ts — so a customer is never sent to an empty browse
+        // page. For crafts that gate closed a loop: craft_providers is 0, so
+        // /crafts vanished from the header, the mobile menu and this footer,
+        // which meant the page where a tradesman signs up could not be reached
+        // from anywhere on the site. No craftsmen, therefore no link;
+        // no link, therefore no craftsmen.
+        //
+        // The customer-facing browse link stays gated. This is the supply side,
+        // it lives in the merchants column where the other recruitment doors
+        // are, and it is always open.
+        { label: dict.crafts.joinCta, href: `/${lang}/crafts/join` },
         { label: dict.common.hub, href: `/${lang}/hub` },
         { label: L.pricing, href: `/${lang}/pricing` },
         { label: L.merchantLogin, href: `/${lang}/login` },
