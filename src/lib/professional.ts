@@ -54,13 +54,35 @@ export type PricingMode =
   | "fixed" // a set price for a defined job
   | "from" // a floor: "starts from $x"
   | "hourly"
+  | "per_unit" // priced by the metre, the panel, the door…
   | "visit_fee" // the call-out is priced; the work is quoted after
   | "quote_required"; // no number can honestly be shown
 
+/**
+ * Two notes on which of these the database can actually produce today.
+ *
+ * `craft_services.pricing_type` is CHECK-constrained to
+ * `fixed | from | hourly | per_meter | quote`. `per_unit` exists because
+ * `per_meter` does: a painter quoting by the square metre was being degraded to
+ * "we'll quote you", which throws away a real number the tradesman gave. It
+ * carries its `unit` so "$12" can never render without "the square metre"
+ * beside it — a per-unit rate shown as a flat price is the single most
+ * expensive misreading on a page like this.
+ *
+ * `visit_fee` has NO column behind it in any table. It is a real trade
+ * practice and the shape is right, but nothing can write it until a migration
+ * adds it, so treat any code path for it as unreachable rather than as a
+ * shipped feature.
+ */
 export type ProfessionalPrice = {
   mode: PricingMode;
   /** Absent for `quote_required`, and absent is not zero. */
   amount?: number | null;
+  /**
+   * The thing being priced, for `per_unit` — "متر مربّع", "لوح". Required in
+   * practice for that mode: without it the amount is a number with no meaning.
+   */
+  unit?: string | null;
   /** Only for a job with a genuinely known duration. */
   durationMinutes?: number | null;
 };
@@ -180,7 +202,15 @@ export function hasRating(p: {
  */
 export function startingPrice(services: ProfessionalService[]): number | null {
   const nums = services
-    .map((s) => (s.price.mode === "quote_required" ? null : s.price.amount))
+    .map((s) =>
+      // `per_unit` is excluded for the same reason `quote_required` is: "$12 the
+      // square metre" is not a price the job starts at. Surfacing it as
+      // "يبدأ من $12" on a card, stripped of its unit, would understate a
+      // hundred-metre job by two orders of magnitude.
+      s.price.mode === "quote_required" || s.price.mode === "per_unit"
+        ? null
+        : s.price.amount,
+    )
     .filter((n): n is number => typeof n === "number" && n > 0);
   return nums.length ? Math.min(...nums) : null;
 }

@@ -109,6 +109,25 @@ describe("startingPrice — null is an answer, zero is a lie", () => {
     expect(startingPrice(zeroed)).toBeNull();
   });
 
+  it("refuses to turn a per-unit rate into a starting price", () => {
+    // craft_services.pricing_type genuinely allows per_meter, so a painter can
+    // say "$12 the square metre". Surfacing that on a card as "يبدأ من $12",
+    // stripped of its unit, understates a hundred-metre job by two orders of
+    // magnitude — the most expensive misreading available on a page like this.
+    const painter: ProfessionalService[] = [
+      { id: "a", name: "دهان", price: { mode: "per_unit", amount: 12, unit: "متر مربّع" } },
+    ];
+    expect(startingPrice(painter)).toBeNull();
+  });
+
+  it("still finds a real floor when a per-unit service sits beside a priced one", () => {
+    const mixed: ProfessionalService[] = [
+      { id: "a", name: "دهان", price: { mode: "per_unit", amount: 12, unit: "متر مربّع" } },
+      { id: "b", name: "معاينة", price: { mode: "fixed", amount: 20 } },
+    ];
+    expect(startingPrice(mixed)).toBe(20);
+  });
+
   it("finds the floor across the real freelancer's three gigs", () => {
     expect(startingPrice(realFreelancer().services)).toBe(5);
   });
