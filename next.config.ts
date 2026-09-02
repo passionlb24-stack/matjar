@@ -84,11 +84,15 @@ const nextConfig: NextConfig = {
   generateBuildId: () => BUILD_ID,
   env: { NEXT_PUBLIC_BUILD_ID: BUILD_ID },
   images: {
+    // Supabase resizes its own images; Vercel's optimizer is out of the path.
+    // See src/lib/image-loader.ts for the 402 that made this necessary.
+    loader: "custom",
+    loaderFile: "./src/lib/image-loader.ts",
     remotePatterns: [
       {
         protocol: "https",
         hostname: "wesihatopiznatsyfxer.supabase.co",
-        pathname: "/storage/v1/object/public/**",
+        pathname: "/storage/v1/**",
       },
     ],
   },

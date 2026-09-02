@@ -97,8 +97,13 @@ export default async function HubPage({
               </div>
             </div>
 
-            {/* dashboard cluster over faint grid */}
-            <div className="relative">
+            {/* dashboard cluster over faint grid. overflow-x-clip because the
+                grid below is -inset-6 and this block sits at the viewport edge
+                on a phone: 24px of decoration was reaching 4px past the right
+                edge and giving the whole page a horizontal scroll. clip, not
+                hidden — it makes no scroll container and leaves the vertical
+                bleed alone. */}
+            <div className="relative overflow-x-clip">
               <div
                 aria-hidden
                 className="pointer-events-none absolute -inset-6 -z-10 opacity-60"
