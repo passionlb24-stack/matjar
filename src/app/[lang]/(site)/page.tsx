@@ -14,6 +14,7 @@ import { HomeMore } from "@/components/home-more";
 import { HomeLocation } from "@/components/home/home-location";
 import { SectorGateways } from "@/components/home/sector-gateways";
 import { OpenNowRail } from "@/components/home/open-now-rail";
+import { CraftsDoor } from "@/components/home/crafts-door";
 import { MerchantCta } from "@/components/merchant-cta";
 import { SectionSkeleton } from "@/components/section-skeleton";
 import { dictSlice } from "@/lib/dict-slice";
@@ -115,6 +116,11 @@ export default async function Home({
       <Suspense fallback={<SectionSkeleton cards={4} />}>
         <OpenNowRail lang={lang} dict={dict} />
       </Suspense>
+
+      {/* The craftsmen section. Static, no data read — it links to a page
+          whose zero state is itself the funnel. See crafts-door.tsx for why
+          this is a strip and not a fifth gateway tile. */}
+      <CraftsDoor lang={lang} dict={dictSlice(dict, ["crafts"])} />
 
       {/* Reads group coverage to drop tiles with no stores behind them, so it
           is streamed rather than blocking the fold. The fallback is null, not a

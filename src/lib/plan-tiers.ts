@@ -1,4 +1,4 @@
-// Matjar subscription tiers + the August-2026 annual promo. Everything is driven
+// Matjar subscription tiers + the 2026 launch annual promo. Everything is driven
 // off PROMO_END — after it passes, annual prices automatically revert to
 // standard (monthly × 12) and the promo UI hides itself. No manual flag to flip.
 // (Not to be confused with lib/pricing.ts, which is per-PRODUCT pricing.)
@@ -16,7 +16,11 @@ export type PlanConfig = {
   popular?: boolean;
 };
 
-export const PROMO_END = "2026-08-31T23:59:59+03:00"; // Asia/Beirut
+// Extended on 2026-09-02 from 08-31 at the owner's request: the August window
+// closed with the promo prices still the ones being advertised to merchants.
+// Same prices; only the deadline moved. The copy that names the window reads
+// this date through {date}, so nothing else has to change when it moves again.
+export const PROMO_END = "2026-09-30T23:59:59+03:00"; // Asia/Beirut
 
 export const PLAN_TIERS: Record<PlanKey, PlanConfig> = {
   basic: {

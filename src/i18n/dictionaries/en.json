@@ -3496,10 +3496,10 @@
   "pricing": {
     "title": "Pricing",
     "subtitle": "A plan for every stage — start small and grow your store with us. 0% commission, always.",
-    "annualOnly": "August only",
+    "annualOnly": "Limited time",
     "save": "Save {pct}%",
     "countdown": "Offer ends in {n} days",
-    "promoBadge": "August offer",
+    "promoBadge": "Launch offer",
     "commission": "0% commission on sales",
     "trialLine": "14 days free — no card",
     "cta": "Open your store free",
@@ -3597,7 +3597,7 @@
       { "q": "What's the difference between the three plans?", "a": "Basic to start (up to 30 products), Pro for active shops (POS, sales and profit reports, the customer book, offers, and we build the store with you), and Business for chains & branches (inventory, kitchen, suppliers, accounting, automation, campaigns, attendance & payroll). Your store page, orders and bookings are on every plan — Pro and Business add the management screens behind them." },
       { "q": "Do I need Pro to take bookings?", "a": "No. Appointments, table reservations, classes and court slots work on every plan, including a store that never subscribed. Pro adds the team page and the reports on top of them." },
       { "q": "Does paying make my store verified?", "a": "No. Every store is reviewed before it goes live, on any plan. The verified badge is a separate, stricter check of a business's documents — no plan buys it, and it has not been awarded to anyone yet." },
-      { "q": "How long does the annual offer last?", "a": "The annual promo prices ($75 / $150 / $300) run during August only. After that, annual reverts to the standard yearly price." },
+      { "q": "How long does the annual offer last?", "a": "The annual promo prices ($75 / $150 / $300) run for a limited time — the countdown above shows how long is left. After that, annual reverts to the standard yearly price." },
       { "q": "Is there a commission on sales?", "a": "Never — Matjar takes 0% commission on your orders, on any plan. Only the plan subscription." },
       { "q": "Can I change or cancel my plan?", "a": "Of course — upgrade, downgrade, or cancel anytime, and your store and products stay." },
       { "q": "How do I pay?", "a": "Payment is manual for now — request the plan from your store dashboard and we'll contact you to activate it. Online payment is coming soon." }

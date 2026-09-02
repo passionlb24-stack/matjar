@@ -114,7 +114,18 @@ export const getNavSections = cache(async function getNavSections(): Promise<
 > {
   const counts = await countSections();
   return {
-    crafts: hasEnough(counts.crafts),
+    // Always on, by the owner's decision on 2026-09-02, and against the rule
+    // every other line here follows. The gate exists so a customer is never
+    // sent to an empty browse page — and with craft_providers at 0 it hid
+    // /crafts from the header, the menu, the footer and Home. That closed a
+    // loop: the page where a tradesman signs up was reachable from nowhere,
+    // so the count that would have opened the gate could never move.
+    //
+    // /crafts is also not an empty page the way an empty jobs board is. Its
+    // zero state is a working funnel — describe the problem, or register a
+    // trade — and it says the count out loud rather than hiding it. Sending
+    // people there is the recruitment, not a dead end.
+    crafts: true,
     jobs: hasEnough(counts.jobs),
     freelance: hasEnough(counts.freelance),
     wholesale: hasEnough(counts.wholesale),
